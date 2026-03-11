@@ -99,7 +99,7 @@
     .add-opt { display: flex; align-items: center; gap: 12px; background: var(--s1); border: 1.5px solid var(--bd); border-radius: 8px; padding: 13px 16px; cursor: pointer; transition: all 0.18s; }
     .add-opt:hover { border-color: var(--teal); background: var(--tdim); }
     .add-opt.selected { border-color: var(--teal); background: var(--tdim); }
-    .add-check { font-size: 1.1rem; color: var(--teal); flex-shrink: 0; line-height: 1; }
+    .add-check { font-size: 1.5rem; color: var(--teal); flex-shrink: 0; line-height: 1; }
     .add-opt span { font-size: 0.95rem; color: var(--text); line-height: 1.4; }
 
     /* RESULTS */
@@ -408,9 +408,9 @@ const ADDITIONAL = [
     opts:["Rarely","Sometimes","Often","Very often"]
   },
   {
-    id:"A4", type:"single",
+    id:"A4", type:"multi", max:5,
     stem:"Which of these changes would you most hope to experience through travel?",
-    hint:"Choose 1",
+    hint:"Mark all that apply",
     opts:[
       "Seeing the world from new perspectives.",
       "Feeling more confident in unfamiliar situations.",
@@ -629,7 +629,7 @@ function startAssessment() {
   shuffledQ = shuffle(QUESTIONS);
   currentQIdx = 0;
   answers = {};
-  addAnswers = {A1:[], A2:null, A3:null, A4:null};
+  addAnswers = {A1:[], A2:null, A3:null, A4:[]};
 
   showScreen('screen-questions');
   renderQuestion();
