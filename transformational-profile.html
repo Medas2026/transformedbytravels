@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Transformational Travel Profile | Transformed by Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --bg:    #0d1520;
+      --s1:    #131f30;
+      --s2:    #1a2a40;
+      --bd:    rgba(255,255,255,0.07);
+      --teal:  #2dd4bf;
+      --tdim:  rgba(45,212,191,0.11);
+      --text:  #e2e8f0;
+      --muted: #64748b;
+      --soft:  #94a3b8;
+      --zSB:   #f43f5e;
+      --zB:    #fb923c;
+      --zA:    #34d399;
+      --zSA:   #2dd4bf;
+    }
+
+    body { font-family: 'Open Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── NAV ── */
+    .nav { background: rgba(13,21,32,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--bd); padding: 0 28px; height: 62px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .logo-text { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: #fff; text-decoration: none; }
+    .logo-accent { color: var(--teal); }
+    .nav-back { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.8rem; color: var(--teal); text-decoration: none; }
+    .nav-back:hover { opacity: 0.75; }
+
+    .wrapper { max-width: 700px; margin: 0 auto; padding: 44px 20px 96px; }
+
+    /* ── SCREENS ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── CARD ── */
+    .card { background: linear-gradient(155deg, var(--s2) 0%, var(--s1) 100%); border: 1px solid var(--bd); border-radius: 20px; padding: 32px; margin-bottom: 16px; }
+    .card-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.67rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.13em; margin-bottom: 20px; }
+
+    /* ── BUTTONS ── */
+    .btn { display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.87rem; letter-spacing: 0.04em; padding: 13px 24px; border-radius: 9px; cursor: pointer; transition: all 0.18s; border: 2px solid transparent; text-decoration: none; }
+    .btn-teal  { background: var(--teal); color: #0d1520; border-color: var(--teal); }
+    .btn-teal:hover  { background: #14b8a6; }
+    .btn-ghost { background: transparent; color: var(--teal); border-color: rgba(45,212,191,0.4); }
+    .btn-ghost:hover { background: var(--tdim); border-color: var(--teal); }
+    .btn-sm { padding: 9px 18px; font-size: 0.78rem; }
+    .btn-full { width: 100%; text-align: center; padding: 15px; font-size: 0.95rem; }
+
+    /* ══════════════════════════════
+       WELCOME
+    ══════════════════════════════ */
+    .w-hero {
+      background: linear-gradient(150deg, #0f2236 0%, #162a3e 55%, #0d1d2e 100%);
+      border: 1px solid rgba(45,212,191,0.2);
+      border-radius: 22px; padding: 52px 44px; text-align: center; margin-bottom: 16px;
+      box-shadow: 0 28px 72px rgba(0,0,0,0.5);
+      position: relative; overflow: hidden;
+    }
+    .w-hero::before { content:''; position:absolute; top:-80px; right:-80px; width:280px; height:280px; border-radius:50%; background:radial-gradient(circle,rgba(45,212,191,0.08),transparent 70%); pointer-events:none; }
+    .w-badge { display:inline-block; background:var(--tdim); border:1px solid rgba(45,212,191,0.28); color:var(--teal); font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; padding:6px 15px; border-radius:40px; margin-bottom:22px; }
+    .w-hero h1 { font-family:'Montserrat',sans-serif; font-size:2.2rem; font-weight:800; color:#fff; line-height:1.18; margin-bottom:18px; }
+    .w-hero h1 em { color:var(--teal); font-style:normal; }
+    .w-hero p { color:var(--soft); font-size:0.97rem; line-height:1.78; max-width:500px; margin:0 auto 14px; }
+    .w-discover { text-align:left; max-width:440px; margin:24px auto 0; }
+    .w-discover h4 { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.75rem; color:var(--teal); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px; }
+    .w-discover li { display:flex; align-items:flex-start; gap:9px; font-size:0.88rem; color:var(--soft); margin-bottom:9px; list-style:none; }
+    .w-discover li::before { content:"✦"; color:var(--teal); font-size:0.58rem; margin-top:5px; flex-shrink:0; }
+
+    /* registration */
+    .reg-form h3 { font-family:'Montserrat',sans-serif; font-weight:700; font-size:1rem; color:#fff; margin-bottom:5px; }
+    .reg-form p  { font-size:0.83rem; color:var(--muted); margin-bottom:20px; }
+    .reg-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+    .fgroup { display:flex; flex-direction:column; gap:5px; }
+    .fgroup label { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.68rem; color:var(--soft); text-transform:uppercase; letter-spacing:0.08em; }
+    .fgroup input { background:rgba(255,255,255,0.04); border:1.5px solid rgba(255,255,255,0.09); border-radius:9px; padding:11px 14px; font-family:'Open Sans',sans-serif; font-size:0.92rem; color:var(--text); outline:none; transition:border-color 0.2s; width:100%; }
+    .fgroup input:focus { border-color:rgba(45,212,191,0.5); }
+    .fgroup input::placeholder { color:var(--muted); }
+    .reg-note { font-size:0.76rem; color:var(--muted); font-style:italic; margin-top:3px; }
+    .instr-box { font-size:0.83rem; color:var(--muted); background:rgba(255,255,255,0.02); border:1px solid var(--bd); border-radius:10px; padding:14px 16px; line-height:1.65; margin-bottom:16px; }
+    .instr-box strong { color:var(--soft); }
+    .w-meta { font-size:0.76rem; color:var(--muted); text-align:center; margin-top:10px; }
+
+    /* ══════════════════════════════
+       PROGRESS + QUESTION
+    ══════════════════════════════ */
+    .prog-wrap { margin-bottom:18px; }
+    .prog-top { display:flex; justify-content:space-between; margin-bottom:7px; }
+    .prog-lbl { font-family:'Montserrat',sans-serif; font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
+    .prog-pct { font-family:'Montserrat',sans-serif; font-size:0.72rem; font-weight:700; color:var(--teal); }
+    .prog-track { background:rgba(255,255,255,0.05); border-radius:5px; height:4px; overflow:hidden; }
+    .prog-fill  { height:100%; background:linear-gradient(90deg,var(--teal),#38bdf8); border-radius:5px; transition:width 0.5s ease; }
+
+    .dim-tabs { display:flex; gap:5px; justify-content:center; margin:8px 0 20px; flex-wrap:wrap; }
+    .dim-tab { font-family:'Montserrat',sans-serif; font-size:0.62rem; font-weight:700; color:var(--muted); padding:3px 9px; border-radius:20px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); text-transform:uppercase; letter-spacing:0.04em; transition:all 0.25s; }
+    .dim-tab.active { color:var(--teal); border-color:rgba(45,212,191,0.3); background:var(--tdim); }
+    .dim-tab.done   { color:rgba(45,212,191,0.4); border-color:rgba(45,212,191,0.1); }
+
+    .q-card { background:linear-gradient(155deg,var(--s2) 0%,var(--s1) 100%); border:1px solid var(--bd); border-radius:20px; padding:40px 36px 28px; box-shadow:0 14px 44px rgba(0,0,0,0.28); }
+    .q-tag  { display:inline-flex; align-items:center; gap:6px; font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--teal); background:var(--tdim); border:1px solid rgba(45,212,191,0.2); padding:4px 11px; border-radius:20px; margin-bottom:16px; }
+    .q-stem { font-family:'Montserrat',sans-serif; font-size:1.2rem; font-weight:700; color:#f1f5f9; line-height:1.45; margin-bottom:26px; }
+    .options { display:flex; flex-direction:column; gap:10px; }
+    .opt-btn { display:flex; align-items:flex-start; gap:13px; padding:15px 18px; background:rgba(255,255,255,0.025); border:1.5px solid rgba(255,255,255,0.06); border-radius:12px; cursor:pointer; text-align:left; transition:all 0.16s; font-family:'Open Sans',sans-serif; font-size:0.93rem; color:var(--soft); line-height:1.55; width:100%; }
+    .opt-btn:hover  { border-color:rgba(45,212,191,0.35); background:rgba(45,212,191,0.04); color:var(--text); }
+    .opt-btn.sel    { border-color:var(--teal); background:rgba(45,212,191,0.09); color:#f1f5f9; }
+    .opt-letter { flex-shrink:0; width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.05); border:1.5px solid rgba(255,255,255,0.1); color:var(--muted); font-family:'Montserrat',sans-serif; font-weight:800; font-size:0.72rem; display:flex; align-items:center; justify-content:center; transition:all 0.16s; margin-top:2px; }
+    .opt-btn.sel .opt-letter { background:var(--teal); border-color:var(--teal); color:#0d1520; }
+    .q-footer { display:flex; justify-content:space-between; align-items:center; margin-top:20px; }
+    .btn-back { background:none; border:none; font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.72rem; color:#1e3050; cursor:pointer; padding:8px 0; letter-spacing:0.05em; transition:color 0.2s; }
+    .btn-back:hover { color:var(--muted); }
+    .q-ctr { font-family:'Montserrat',sans-serif; font-size:0.68rem; font-weight:700; color:#1e3050; letter-spacing:0.06em; }
+
+    /* ══════════════════════════════
+       ADDITIONAL QUESTIONS
+    ══════════════════════════════ */
+    .add-banner { text-align:center; background:var(--tdim); border:1px solid rgba(45,212,191,0.18); border-radius:12px; padding:14px 20px; margin-bottom:18px; }
+    .add-banner h3 { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.76rem; color:var(--teal); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:3px; }
+    .add-banner p  { font-size:0.8rem; color:var(--muted); }
+
+    /* multi-select grid */
+    .mc-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .mc-check { display:flex; align-items:center; gap:9px; padding:10px 13px; background:rgba(255,255,255,0.025); border:1.5px solid rgba(255,255,255,0.06); border-radius:10px; cursor:pointer; font-size:0.86rem; color:var(--soft); transition:all 0.16s; user-select:none; }
+    .mc-check:hover { border-color:rgba(45,212,191,0.3); color:var(--text); }
+    .mc-check.sel    { border-color:var(--teal); background:rgba(45,212,191,0.09); color:#f1f5f9; }
+    .mc-check.dim    { opacity:0.35; pointer-events:none; }
+    .mc-box { width:15px; height:15px; border-radius:3px; border:2px solid rgba(255,255,255,0.15); flex-shrink:0; background:transparent; transition:all 0.16s; }
+    .mc-check.sel .mc-box { background:var(--teal); border-color:var(--teal); }
+    .mc-hint { font-size:0.75rem; color:var(--muted); margin-top:9px; font-style:italic; }
+
+    /* single choice */
+    .mc-single { display:flex; flex-direction:column; gap:9px; }
+    .mc-btn { display:flex; align-items:center; gap:11px; padding:13px 16px; background:rgba(255,255,255,0.025); border:1.5px solid rgba(255,255,255,0.06); border-radius:11px; cursor:pointer; text-align:left; transition:all 0.16s; font-family:'Open Sans',sans-serif; font-size:0.9rem; color:var(--soft); width:100%; }
+    .mc-btn:hover { border-color:rgba(45,212,191,0.35); color:var(--text); }
+    .mc-btn.sel    { border-color:var(--teal); background:rgba(45,212,191,0.09); color:#f1f5f9; }
+    .mc-dot { flex-shrink:0; width:15px; height:15px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); background:transparent; transition:all 0.16s; }
+    .mc-btn.sel .mc-dot { background:var(--teal); border-color:var(--teal); }
+    .add-next-wrap { display:none; text-align:right; margin-top:12px; }
+
+    /* ══════════════════════════════
+       RESULTS — ARCHETYPE HERO
+    ══════════════════════════════ */
+    .r-hero {
+      background:linear-gradient(150deg,#0a1929 0%,#0f2236 55%,#0d1d2e 100%);
+      border:1px solid rgba(45,212,191,0.22); border-radius:22px;
+      padding:48px 40px; text-align:center; margin-bottom:16px;
+      box-shadow:0 28px 72px rgba(0,0,0,0.5); position:relative; overflow:hidden;
+    }
+    .r-hero::before { content:''; position:absolute; top:-70px; right:-70px; width:260px; height:260px; border-radius:50%; background:radial-gradient(circle,rgba(45,212,191,0.09),transparent 70%); pointer-events:none; }
+    .r-greeting   { font-family:'Montserrat',sans-serif; font-size:0.78rem; font-weight:600; color:var(--muted); letter-spacing:0.06em; margin-bottom:3px; }
+    .r-name       { font-family:'Montserrat',sans-serif; font-size:1.35rem; font-weight:800; color:#fff; margin-bottom:22px; }
+    .r-badge      { display:inline-block; background:rgba(45,212,191,0.12); border:1px solid rgba(45,212,191,0.28); color:var(--teal); font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.65rem; letter-spacing:0.14em; text-transform:uppercase; padding:5px 14px; border-radius:40px; margin-bottom:14px; }
+    .r-arch-lbl   { font-family:'Montserrat',sans-serif; font-size:0.7rem; font-weight:600; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:7px; }
+    .r-icon       { font-size:2.8rem; margin-bottom:10px; }
+    .r-arch-name  { font-family:'Montserrat',sans-serif; font-size:2rem; font-weight:800; color:#fff; line-height:1.15; margin-bottom:7px; }
+    .r-arch-tag   { font-family:'Montserrat',sans-serif; font-weight:600; font-size:0.87rem; color:rgba(45,212,191,0.8); font-style:italic; margin-bottom:16px; }
+    .r-arch-desc  { color:var(--soft); font-size:0.95rem; line-height:1.78; max-width:490px; margin:0 auto 22px; }
+    .r-traits     { display:flex; flex-direction:column; gap:8px; max-width:430px; margin:0 auto; text-align:left; }
+    .r-trait      { display:flex; align-items:flex-start; gap:9px; font-size:0.86rem; color:var(--soft); line-height:1.5; }
+    .r-trait::before { content:"✦"; color:var(--teal); font-size:0.58rem; margin-top:5px; flex-shrink:0; }
+
+    /* ══════════════════════════════
+       SPIDER CHART
+    ══════════════════════════════ */
+    .spider-above { text-align:center; margin-bottom:16px; }
+    .spider-above p { font-size:0.9rem; color:var(--soft); line-height:1.65; margin-bottom:4px; }
+    .chart-wrap { max-width:400px; margin:0 auto; }
+    .spider-below { text-align:center; margin-top:16px; }
+    .spider-below p { font-size:0.82rem; color:var(--muted); line-height:1.65; margin-bottom:3px; }
+
+    /* ══════════════════════════════
+       DIMENSION BARS
+    ══════════════════════════════ */
+    .dim-block { margin-bottom:28px; }
+    .dim-block:last-child { margin-bottom:0; }
+    .dim-bh { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .dim-bname { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.9rem; color:var(--text); }
+    .dim-ztag  { font-family:'Montserrat',sans-serif; font-weight:800; font-size:0.75rem; padding:3px 10px; border-radius:20px; }
+    .zt-sa { background:rgba(45,212,191,0.15); color:var(--zSA); }
+    .zt-a  { background:rgba(52,211,153,0.15); color:var(--zA);  }
+    .zt-b  { background:rgba(251,146,60,0.15); color:var(--zB);  }
+    .zt-sb { background:rgba(244,63,94,0.15);  color:var(--zSB); }
+
+    .dim-poles { display:flex; justify-content:space-between; margin-bottom:5px; }
+    .pole-b { font-family:'Montserrat',sans-serif; font-size:0.65rem; font-weight:700; color:var(--muted); }
+    .pole-a { font-family:'Montserrat',sans-serif; font-size:0.65rem; font-weight:700; color:rgba(45,212,191,0.6); }
+
+    .scale-bar { display:flex; height:11px; border-radius:6px; overflow:hidden; margin-bottom:6px; }
+    .sz-sb { background:var(--zSB); flex:1; }
+    .sz-b  { background:var(--zB);  flex:3; }
+    .sz-a  { background:var(--zA);  flex:3; }
+    .sz-sa { background:var(--zSA); flex:1; }
+
+    .scale-mwrap { position:relative; height:18px; margin-bottom:4px; }
+    .scale-marker { position:absolute; transform:translateX(-50%); top:0; width:3px; height:14px; background:#fff; border-radius:2px; box-shadow:0 0 7px rgba(255,255,255,0.65); transition:left 0.9s cubic-bezier(0.4,0,0.2,1); }
+
+    .scale-zlabels { display:flex; margin-bottom:6px; }
+    .szl { font-family:'Montserrat',sans-serif; font-size:0.58rem; font-weight:700; text-transform:uppercase; text-align:center; }
+    .szl-sb { flex:1; color:var(--zSB); }
+    .szl-b  { flex:3; color:var(--zB);  }
+    .szl-a  { flex:3; color:var(--zA);  }
+    .szl-sa { flex:1; color:var(--zSA); }
+
+    .dim-desc { font-size:0.84rem; color:#3a5070; line-height:1.65; }
+
+    /* ══════════════════════════════
+       RECOMMENDED ACTIVITIES
+    ══════════════════════════════ */
+    .act-basis { font-size:0.8rem; color:var(--muted); margin-bottom:16px; font-style:italic; }
+    .act-grid { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+    .act-item { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:13px; padding:16px 14px; }
+    .act-icon { font-size:1.3rem; margin-bottom:7px; }
+    .act-name { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.85rem; color:var(--text); margin-bottom:6px; }
+    .act-dims { display:flex; flex-wrap:wrap; gap:4px; }
+    .act-dim  { font-family:'Montserrat',sans-serif; font-size:0.58rem; font-weight:700; padding:2px 7px; border-radius:10px; background:var(--tdim); color:var(--teal); }
+
+    /* ══════════════════════════════
+       PREFERENCES / ADDITIONAL Q RESULTS
+    ══════════════════════════════ */
+    .pref-grid { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+    .pref-item { background:rgba(255,255,255,0.02); border:1px solid var(--bd); border-radius:12px; padding:15px; }
+    .pref-lbl  { font-family:'Montserrat',sans-serif; font-size:0.62rem; font-weight:700; color:#1e3050; text-transform:uppercase; letter-spacing:0.09em; margin-bottom:6px; }
+    .pref-val  { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.86rem; color:var(--teal); line-height:1.4; }
+    .tag-row   { display:flex; flex-wrap:wrap; gap:5px; }
+    .tag       { background:var(--tdim); border:1px solid rgba(45,212,191,0.2); color:var(--teal); font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.7rem; padding:3px 9px; border-radius:18px; }
+
+    /* result CTAs */
+    .r-ctas { display:flex; gap:11px; flex-wrap:wrap; justify-content:center; padding-top:8px; }
+
+    /* ══════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════ */
+    @media (max-width:560px){
+      .w-hero, .q-card, .r-hero, .card { padding:26px 20px; }
+      .w-hero h1 { font-size:1.7rem; }
+      .q-stem { font-size:1.05rem; }
+      .r-arch-name { font-size:1.55rem; }
+      .reg-row, .mc-grid, .act-grid, .pref-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="logo-text">Transformed<span class="logo-accent">byTravels</span></a>
+  <a href="index.html" class="nav-back">← Home</a>
+</nav>
+
+<div class="wrapper">
+
+  <!-- ══════════════════════════════════════
+       WELCOME
+  ══════════════════════════════════════ -->
+  <div class="screen active" id="scr-welcome">
+
+    <div class="w-hero">
+      <div class="w-badge">Free Assessment</div>
+      <h1>Discover Your <em>Transformational</em> Travel Profile</h1>
+      <p>Travel can do much more than take us to beautiful places. It can change how we see the world, deepen our understanding of other cultures, and even reshape our sense of what matters in life.</p>
+      <p>But not every traveler seeks the same experiences.</p>
+      <p>This short assessment reveals how you naturally approach travel and the types of journeys most likely to create meaningful transformation for you.</p>
+      <div class="w-discover">
+        <h4>After completing the assessment, you will receive:</h4>
+        <ul>
+          <li>Your Transformational Travel Profile across five dimensions</li>
+          <li>Your Traveler Archetype</li>
+          <li>The experiences most likely to be meaningful for you</li>
+          <li>Insights into how travel can shape your perspective</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card reg-form">
+      <h3>Enter your details to receive your report</h3>
+      <p>Your name and email are used to personalise your results.</p>
+      <div class="reg-row">
+        <div class="fgroup"><label>First Name</label><input type="text" id="firstName" placeholder="First name" /></div>
+        <div class="fgroup"><label>Last Name</label><input type="text"  id="lastName"  placeholder="Last name"  /></div>
+      </div>
+      <div class="fgroup" style="margin-bottom:16px">
+        <label>Email</label>
+        <input type="email" id="userEmail" placeholder="your@email.com" />
+        <span class="reg-note">Your report is displayed on screen after you complete the assessment.</span>
+      </div>
+
+      <div class="instr-box">
+        <strong>Instructions &nbsp;·&nbsp;</strong>
+        You will see a series of statements about travel. For each question, choose the option that best reflects your natural preference when traveling. There are no right or wrong answers — simply choose the response that feels most like you.
+      </div>
+
+      <button class="btn btn-teal btn-full" onclick="startAssessment()">Begin Your Profile</button>
+      <p class="w-meta">35 questions &nbsp;·&nbsp; About 3 minutes</p>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════
+       QUESTION
+  ══════════════════════════════════════ -->
+  <div class="screen" id="scr-question">
+    <div class="prog-wrap">
+      <div class="prog-top">
+        <span class="prog-lbl" id="progLbl">Question 1 of 35</span>
+        <span class="prog-pct" id="progPct">0%</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div class="dim-tabs" id="dimTabs"></div>
+    <div class="q-card">
+      <div class="q-tag"  id="qTag"></div>
+      <div class="q-stem" id="qStem"></div>
+      <div class="options" id="qOpts"></div>
+      <div class="q-footer">
+        <button class="btn-back" id="btnPrev" onclick="prevQ()">← Previous</button>
+        <span class="q-ctr" id="qCtr"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       ADDITIONAL QUESTIONS
+  ══════════════════════════════════════ -->
+  <div class="screen" id="scr-additional">
+    <div class="prog-wrap">
+      <div class="prog-top">
+        <span class="prog-lbl">Almost done</span>
+        <span class="prog-pct" id="addPct">97%</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="addFill" style="width:97%"></div></div>
+    </div>
+    <div style="height:14px"></div>
+    <div class="add-banner"><h3>A Few More Questions</h3><p>These help personalise your results and recommendations.</p></div>
+    <div class="q-card">
+      <div class="q-tag" style="color:var(--soft);background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.07)">About You</div>
+      <div class="q-stem" id="addStem"></div>
+      <div id="addOpts"></div>
+      <div class="q-footer">
+        <button class="btn-back" id="btnAddPrev" onclick="prevAdd()">← Previous</button>
+        <span class="q-ctr" id="addCtr"></span>
+      </div>
+    </div>
+    <div class="add-next-wrap" id="addNextWrap">
+      <button class="btn btn-teal" onclick="nextAdd()">Next →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       RESULTS
+  ══════════════════════════════════════ -->
+  <div class="screen" id="scr-results">
+
+    <!-- Archetype -->
+    <div class="r-hero">
+      <div class="r-greeting">Your Transformational Travel Profile</div>
+      <div class="r-name"    id="rUserName"></div>
+      <div class="r-badge">Traveler Archetype</div>
+      <div class="r-arch-lbl">You are</div>
+      <div class="r-icon"      id="rIcon"></div>
+      <div class="r-arch-name" id="rArchName"></div>
+      <div class="r-arch-tag"  id="rArchTag"></div>
+      <p   class="r-arch-desc" id="rArchDesc"></p>
+      <div class="r-traits"    id="rTraits"></div>
+    </div>
+
+    <!-- Spider chart -->
+    <div class="card">
+      <div class="card-title">Your Five Dimensions — Travel Compass</div>
+      <div class="spider-above">
+        <p>Think of the five dimensions as the forces that shape your travel compass.</p>
+        <p>Some forces guide your journeys more strongly than others.</p>
+      </div>
+      <div class="chart-wrap"><canvas id="spiderChart"></canvas></div>
+      <div class="spider-below">
+        <p>A dimension score towards the outer edge means a stronger influence on your travel.</p>
+        <p>A dimension score towards the center means a lesser influence on your travel.</p>
+      </div>
+    </div>
+
+    <!-- Dimension breakdown -->
+    <div class="card">
+      <div class="card-title">Dimension Scores (0 – 7 scale)</div>
+      <div id="dimBlocks"></div>
+    </div>
+
+    <!-- Recommended activities -->
+    <div class="card">
+      <div class="card-title">Experiences Most Likely to Be Meaningful for You</div>
+      <div class="act-basis" id="actBasis"></div>
+      <div class="act-grid"  id="actGrid"></div>
+    </div>
+
+    <!-- Preferences -->
+    <div class="card">
+      <div class="card-title">Your Travel Preferences</div>
+      <div class="pref-grid" id="prefGrid"></div>
+    </div>
+
+    <div class="r-ctas">
+      <a href="index.html#contact" class="btn btn-teal">Book a Consultation</a>
+      <button class="btn btn-ghost" onclick="resetAssessment()">Retake Assessment</button>
+    </div>
+
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  QUESTIONS  (GID=0)
+//  Scoring per GID=1111228987: A = 1, B = 0
+// ═══════════════════════════════════════════════════════════
+const QUESTIONS = [
+  // CURIOSITY
+  {id:1,  dim:"Curiosity",  stem:"When traveling to a new place,",                    a:"I enjoy learning about the history and culture.",                                   b:"I mostly relax and enjoy the experiences planned for the trip."},
+  {id:2,  dim:"Curiosity",  stem:"When traveling to a new place, I like to:",         a:"Understand how local people live.",                                                 b:"Focus mainly on scenery and attractions."},
+  {id:3,  dim:"Curiosity",  stem:"When I travel,",                                    a:"I enjoy asking questions and learning about the places I visit.",                    b:"I enjoy observing and experiencing places without engaging too deeply."},
+  {id:4,  dim:"Curiosity",  stem:"I am drawn to destinations that",                   a:"Teach me something new about the world.",                                           b:"Inspire me through beauty or scenery."},
+  {id:5,  dim:"Curiosity",  stem:"My favorite parts of travel are,",                  a:"Experiencing cultures that are unfamiliar to me.",                                  b:"Visiting iconic or famous places."},
+  {id:6,  dim:"Curiosity",  stem:"When traveling, I enjoy",                           a:"Discovering the stories behind the places I visit.",                                b:"Experiencing the atmosphere of the places I visit."},
+  {id:7,  dim:"Curiosity",  stem:"When traveling, I seek out",                        a:"Museums, historical sites, or cultural experiences.",                               b:"The well-known highlights of a destination."},
+  // ADVENTURE
+  {id:8,  dim:"Adventure",  stem:"I enjoy travel experiences",                        a:"That challenge me physically or mentally.",                                         b:"That are comfortable and calming."},
+  {id:9,  dim:"Adventure",  stem:"I prefer destinations that are:",                   a:"Remote, hard to reach, or less-visited.",                                           b:"Easy to access."},
+  {id:10, dim:"Adventure",  stem:"Some of my best travel memories:",                  a:"Involve doing something that pushed my limits.",                                    b:"Involve relaxing and enjoying the surroundings."},
+  {id:11, dim:"Adventure",  stem:"When I travel, I prefer to:",                       a:"Explore unfamiliar places and experiences.",                                        b:"Return to places I already know and enjoy."},
+  {id:12, dim:"Adventure",  stem:"I prefer travel that feels",                        a:"Adventurous or unpredictable.",                                                     b:"Smooth and well-planned."},
+  {id:13, dim:"Adventure",  stem:"When something goes wrong on travel",               a:"I see it as part of the adventure.",                                                b:"I feel frustrated when things don't go according to plan."},
+  {id:14, dim:"Adventure",  stem:"When I travel, I enjoy:",                           a:"Activities that stretch my abilities or push my limits.",                           b:"Activities that are relaxing and easygoing."},
+  // REFLECTION
+  {id:15, dim:"Reflection", stem:"After a trip is over",                              a:"I often reflect on my travel experiences for a long time.",                         b:"I move on quickly to the next experience."},
+  {id:16, dim:"Reflection", stem:"Travel tends to",                                   a:"Change how I see the world.",                                                       b:"Provide an enjoyable break from daily life."},
+  {id:17, dim:"Reflection", stem:"During a trip,",                                    a:"I sometimes pause to absorb and think about what I'm experiencing.",                b:"I prefer to keep moving and see as much as possible."},
+  {id:18, dim:"Reflection", stem:"When I return home from a trip, I talk about",      a:"What I learned and what it meant to me.",                                           b:"The places I visited and activities I did."},
+  {id:19, dim:"Reflection", stem:"Travel experiences",                                a:"Often influence how I think about my life.",                                        b:"Deliver fun memories but rarely affect my life afterward."},
+  {id:20, dim:"Reflection", stem:"When I encounter new lifestyles while traveling,",  a:"I sometimes reconsider my own assumptions.",                                        b:"I mostly observe them without questioning my own views."},
+  {id:21, dim:"Reflection", stem:"Travel experiences",                                a:"Often lead me to look at my everyday life differently.",                            b:"Leave me refreshed and ready to return to my routine."},
+  // CONNECTION
+  {id:22, dim:"Connection", stem:"When I travel, I am most rewarded by:",            a:"Meeting local people and learning about their lives.",                              b:"Focusing on places that are well known and famous."},
+  {id:23, dim:"Connection", stem:"I enjoy travel experiences that",                   a:"Allow me to spend time in the everyday life of a place.",                          b:"Allow me to see the most important highlights of a destination."},
+  {id:24, dim:"Connection", stem:"When I travel, I prefer to:",                       a:"Connect with people from different backgrounds.",                                   b:"Experience a place mainly through its landscapes."},
+  {id:25, dim:"Connection", stem:"I enjoy travel experiences",                        a:"That feel authentic and personal.",                                                 b:"That involve visiting the major sites that everyone talks about."},
+  {id:26, dim:"Connection", stem:"When I travel, I value,",                           a:"Meaningful interactions with people.",                                              b:"Efficiency and seeing many places."},
+  {id:27, dim:"Connection", stem:"When I travel,",                                    a:"I enjoy opportunities to share meals or conversations with local people.",           b:"I usually keep my interactions brief and focused on my list of sites to see."},
+  {id:28, dim:"Connection", stem:"I feel most engaged when traveling",                a:"When I experience the daily life of a place.",                                      b:"When visiting the major attractions of a place."},
+  // INTENTION
+  {id:29, dim:"Intention",  stem:"Before a trip",                                     a:"I think about what I hope to gain from the experience.",                            b:"I mainly focus on itineraries with logistics and activity plans."},
+  {id:30, dim:"Intention",  stem:"Travel is a way for me",                            a:"To grow as a person.",                                                              b:"To relax and have fun."},
+  {id:31, dim:"Intention",  stem:"I usually choose a trip",                           a:"That aligns with my interests or values.",                                          b:"That looks exciting or appealing."},
+  {id:32, dim:"Intention",  stem:"I want my travel experiences to",                   a:"Connect to something I care deeply about.",                                         b:"Visit places that are popular or highly recommended."},
+  {id:33, dim:"Intention",  stem:"When I travel,",                                    a:"I seek insight or perspective on life.",                                            b:"I seek enjoyment and escape."},
+  {id:34, dim:"Intention",  stem:"When I travel,",                                    a:"I want to learn about the culture and traditions of the places I visit.",           b:"I mainly look up the best restaurants and attractions."},
+  {id:35, dim:"Intention",  stem:"When I travel, I tend to think about,",            a:"How a trip might influence my perspective on life.",                                b:"Whether a trip will be enjoyable and relaxing."},
+];
+
+// ═══════════════════════════════════════════════════════════
+//  ADDITIONAL QUESTIONS  (GID=1078570972)
+// ═══════════════════════════════════════════════════════════
+const ADDITIONAL = [
+  {
+    id:"A1", type:"multi", max:3,
+    stem:"Which of the following are areas of curiosity that you might like to explore on your next trip? (choose up to 3)",
+    opts:["Wildlife","Art","Culture","Day Hiking","Religion and Spirituality","Food","Photography","Science","Scuba Diving","Sailing","Sports Fishing / Hunting","Bird Watching","Trekking / Mountaineering"]
+  },
+  {
+    id:"A2", type:"single",
+    stem:"How would you like to go about planning your next trip?",
+    opts:[
+      "Work with an agent or travel planner and have everything ready to travel.",
+      "Plan the big picture myself and then have an agent make all the reservations.",
+      "Use a planner for challenging places.",
+      "Do it all myself — I like the fun of the details."
+    ]
+  },
+  {
+    id:"A3", type:"single",
+    stem:"How often do social media posts influence your travel ideas?",
+    opts:["Rarely","Sometimes","Often","Very often"]
+  },
+  {
+    id:"A4", type:"single",
+    stem:"Which of these changes would you most hope to experience through travel?",
+    opts:[
+      "Seeing the world from new perspectives.",
+      "Feeling more confident in unfamiliar situations.",
+      "Connecting more deeply with people.",
+      "Deepening my relationship with nature.",
+      "Reflecting on what matters most in life."
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════════════════
+//  DIMENSIONS  (GID=214604113)
+// ═══════════════════════════════════════════════════════════
+const DIMS  = ["Curiosity","Adventure","Reflection","Connection","Intention"];
+const ICONS = {Curiosity:"🔍",Adventure:"⚡",Reflection:"🌿",Connection:"🤝",Intention:"🎯"};
+
+const DIM_META = {
+  Curiosity:  { aLabel:"Learning",  bLabel:"Experiential Enjoyment", force:"Exploration",
+    aDesc:"You are motivated to understand the places you visit. Learning about history, culture, and how people live adds meaning to your travel experiences.",
+    bDesc:"You enjoy the atmosphere and experiences of a destination without needing to analyze or deeply study it. Travel is about enjoying the place and the moment." },
+  Adventure:  { aLabel:"Challenge", bLabel:"Comfort",                force:"Exploration",
+    aDesc:"You are energized by experiences that push you beyond your comfort zone. Unfamiliar places, uncertainty, and physical or mental challenges are often highlights of your trips.",
+    bDesc:"You prefer travel that feels smooth, relaxing, and predictable. Comfort and enjoyment are important parts of a satisfying trip." },
+  Reflection: { aLabel:"Meaning",   bLabel:"Immediate",              force:"Engagement",
+    aDesc:"Travel often leads you to reflect on what you experience and how it relates to your own life. You enjoy thinking about what a journey means beyond the moment.",
+    bDesc:"You enjoy experiences as they happen without feeling a strong need to analyze or interpret them afterward. Travel is something to enjoy and remember fondly." },
+  Connection: { aLabel:"Immersion", bLabel:"Observation",            force:"Integration",
+    aDesc:"You enjoy connecting with people, communities, and the everyday life of the places you visit. Meaningful interactions are often the most memorable parts of travel.",
+    bDesc:"You enjoy experiencing a destination through its landscapes, landmarks, and highlights. Seeing the places themselves is often the most rewarding part of travel." },
+  Intention:  { aLabel:"Purpose",   bLabel:"Recreation",             force:"Integration",
+    aDesc:"You often think about what you hope to gain from a journey. Travel can be a way to grow, learn, or gain new perspective.",
+    bDesc:"You approach travel primarily as a way to relax, enjoy yourself, and take a break from daily life." },
+};
+
+// Zone helpers  (A=1, B=0, scores 0-7)
+function zone(s){ return s===7?"sa":s>=4?"a":s>=1?"b":"sb"; }
+const ZONE_LABEL = {sa:"Strong A",  a:"Standard A",  b:"Standard B",  sb:"Clear & Strong B"};
+const ZONE_CSS   = {sa:"zt-sa",     a:"zt-a",        b:"zt-b",        sb:"zt-sb"};
+
+// ═══════════════════════════════════════════════════════════
+//  ACTIVITY MATRIX  (GID=2042225342)
+//  Algorithm: top-2 dimensions only; score = dim_raw × activity_bit
+// ═══════════════════════════════════════════════════════════
+const ACTIVITIES = [
+  {name:"Cultural Immersion",            icon:"🏛️", C:1,Adv:0,Con:1,Ref:0,Int:0},
+  {name:"Historical Exploration",        icon:"📜", C:1,Adv:1,Con:1,Ref:0,Int:0},
+  {name:"Local Guide Storytelling",      icon:"🗣️", C:1,Adv:0,Con:1,Ref:1,Int:0},
+  {name:"Museum Exploration",            icon:"🎨", C:1,Adv:0,Con:0,Ref:1,Int:0},
+  {name:"Wildlife Safaris",              icon:"🦁", C:1,Adv:1,Con:0,Ref:0,Int:0},
+  {name:"Whale / Marine Watching",       icon:"🐋", C:1,Adv:1,Con:0,Ref:0,Int:0},
+  {name:"Trekking / Multi-day Hiking",   icon:"🥾", C:0,Adv:1,Con:0,Ref:1,Int:0},
+  {name:"Mountaineering",                icon:"⛰️", C:0,Adv:1,Con:0,Ref:1,Int:0},
+  {name:"Scuba Diving",                  icon:"🤿", C:1,Adv:1,Con:0,Ref:0,Int:0},
+  {name:"Sailing Voyages",               icon:"⛵", C:0,Adv:1,Con:0,Ref:1,Int:0},
+  {name:"Remote Landscape Exploration",  icon:"🏔️", C:1,Adv:1,Con:0,Ref:1,Int:0},
+  {name:"Community Visits",              icon:"🏘️", C:0,Adv:0,Con:1,Ref:1,Int:0},
+  {name:"Shared Meals with Locals",      icon:"🍲", C:0,Adv:0,Con:1,Ref:0,Int:0},
+  {name:"Homestays",                     icon:"🏡", C:0,Adv:0,Con:1,Ref:1,Int:0},
+  {name:"Local Festivals",               icon:"🎉", C:1,Adv:0,Con:1,Ref:0,Int:0},
+  {name:"Cooking Classes",               icon:"👨‍🍳", C:1,Adv:0,Con:1,Ref:0,Int:0},
+  {name:"Nature Immersion",              icon:"🌲", C:0,Adv:0,Con:0,Ref:1,Int:0},
+  {name:"Meditation Retreats",           icon:"🧘", C:0,Adv:0,Con:0,Ref:1,Int:1},
+  {name:"Pilgrimages",                   icon:"🕊️", C:0,Adv:1,Con:0,Ref:1,Int:1},
+  {name:"Conservation Travel",           icon:"🌿", C:1,Adv:1,Con:1,Ref:0,Int:1},
+  {name:"Volunteer Projects",            icon:"🙌", C:0,Adv:1,Con:1,Ref:0,Int:1},
+  {name:"Photography Expeditions",       icon:"📷", C:1,Adv:1,Con:0,Ref:1,Int:0},
+  {name:"Art & Architecture Exploration",icon:"🏗️", C:1,Adv:0,Con:0,Ref:1,Int:0},
+  {name:"Spiritual Journeys",            icon:"✨", C:0,Adv:0,Con:0,Ref:1,Int:1},
+  {name:"Exploration Cruises",           icon:"🚢", C:1,Adv:1,Con:0,Ref:1,Int:0},
+  {name:"Sport Fishing",                 icon:"🎣", C:0,Adv:1,Con:0,Ref:0,Int:0},
+  {name:"Hunting Expeditions",           icon:"🌄", C:0,Adv:1,Con:0,Ref:0,Int:0},
+  {name:"Local Markets",                 icon:"🛒", C:1,Adv:0,Con:1,Ref:0,Int:0},
+  {name:"Urban Exploration",             icon:"🏙️", C:1,Adv:0,Con:1,Ref:0,Int:0},
+  {name:"Storytelling with Elders",      icon:"👴", C:0,Adv:0,Con:1,Ref:1,Int:0},
+  {name:"Mountain Biking",               icon:"🚵", C:1,Adv:1,Con:0,Ref:0,Int:0},
+];
+// Map dimension name → activity key
+const DIM_ACT_KEY = {Curiosity:"C",Adventure:"Adv",Connection:"Con",Reflection:"Ref",Intention:"Int"};
+
+// ═══════════════════════════════════════════════════════════
+//  ARCHETYPES  (derived from Three Forces, GID=214604113)
+//  Exploration = Curiosity + Adventure  (0-14)
+//  Engagement  = Reflection             (0-7)
+//  Integration = Connection + Intention (0-14)
+// ═══════════════════════════════════════════════════════════
+function getArchetype(raw){
+  const expl = raw.Curiosity + raw.Adventure;
+  const eng  = raw.Reflection;
+  const intg = raw.Connection + raw.Intention;
+  const eP = expl/14, nP = eng/7, iP = intg/14;
+  const H = 0.571; // ≥ 4/7 = high
+
+  const hE=eP>=H, hN=nP>=H, hI=iP>=H;
+
+  if(hE&&hN&&hI) return {icon:"🌐",name:"The Complete Transformational Traveler",tag:"Every force — fully activated.",
+    desc:"You score strongly across all three travel forces: Exploration, Reflection, and Integration. You travel with fierce curiosity, bold courage, meaningful introspection, authentic human connection, and clear purpose. Every journey leaves you measurably different from who you were before.",
+    traits:["You actively seek learning and challenge simultaneously","Deep reflection and human connection both drive your journey","You travel with clear intention — every trip connects to who you're becoming"]};
+
+  if(hE&&hN) return {icon:"🧭",name:"The Conscious Explorer",tag:"Curiosity and reflection in equal measure.",
+    desc:"You are drawn to unknown places and challenging terrain, and you carry every experience deep into your inner world. You don't just go places — you absorb them, question them, and let them quietly change you.",
+    traits:["Curiosity and Adventure are your primary engines","Reflection transforms your experiences into lasting growth","You are drawn to the unfamiliar and learn from it deeply"]};
+
+  if(hE&&hI) return {icon:"🌍",name:"The Immersive Voyager",tag:"Bold, human, and unapologetically real.",
+    desc:"You crave raw, real experiences — pushing into challenging terrain while forging genuine human connections. Remote villages, local guides, and unexpected conversations are your most treasured souvenirs.",
+    traits:["You combine adventure-seeking with a love of authentic human connection","You choose purposeful journeys that align with your values","You leave every destination with a deeper understanding of its people"]};
+
+  if(hN&&hI) return {icon:"🕊️",name:"The Transformative Pilgrim",tag:"Every journey is an inner journey.",
+    desc:"Your trips are deeply personal. You choose journeys aligned with who you're becoming, connect meaningfully with the people you meet, and let experiences settle in long after you return — quietly rewriting who you are.",
+    traits:["Human connection and deep purpose are the twin pillars of your travel","You process experiences for weeks after returning home","You travel as a form of self-inquiry and intentional growth"]};
+
+  if(hE) return {icon:"⚡",name:"The Bold Explorer",tag:"Discovery through curiosity and courage.",
+    desc:"You are driven by the dual pull of wanting to understand the world and wanting to be tested by it. You seek destinations that are intellectually rich and physically demanding — and you thrive in both.",
+    traits:["Curiosity and Adventure are your dominant travel forces","You gravitate toward remote, challenging, culture-rich destinations","Unfamiliar places energize rather than unsettle you"]};
+
+  if(hN) return {icon:"🌿",name:"The Reflective Wanderer",tag:"Travel as a mirror for the self.",
+    desc:"Wherever you go, you carry the experience inward. You slow down, observe, and let your surroundings speak to you. Travel is less about what you see and more about how it changes the way you see.",
+    traits:["Reflection is your dominant travel force","You process experiences deeply, often long after returning home","Quiet, meaningful moments matter more to you than packed itineraries"]};
+
+  if(hI) return {icon:"🤝",name:"The Purposeful Connector",tag:"Meaningful journeys, meaningful people.",
+    desc:"You travel with heart. Authentic connection with local people and cultures, and clear personal intention, are what make a journey worthwhile. You don't just visit places — you seek to belong to them.",
+    traits:["Connection and Intention are your dominant travel forces","You build meaningful relationships wherever you travel","Every trip has a clear 'why' that connects to your deeper values"]};
+
+  return {icon:"🗺️",name:"The Open Traveler",tag:"Curious, flexible, and ready for anything.",
+    desc:"You approach travel with openness and flexibility — not dominated by any single force, but responsive to whatever a destination offers. You find value in diverse experiences and adapt easily to new environments.",
+    traits:["You draw from all dimensions of travel without being defined by one","Flexibility and openness are your greatest travel strengths","You find transformation in unexpected places and moments"]};
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let qOrder=[], qIdx=0, flipMap={}, answers={};
+let addIdx=0, addAns={};
+let userName="", userEmail="";
+
+// ═══════════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════════
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=0|Math.random()*(i+1);[r[i],r[j]]=[r[j],r[i]];}return r;}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+
+// ═══════════════════════════════════════════════════════════
+//  DIMENSION TAB MARKERS
+// ═══════════════════════════════════════════════════════════
+function buildTabs(){
+  const el=document.getElementById('dimTabs');el.innerHTML='';
+  DIMS.forEach((d,i)=>{const t=document.createElement('div');t.className='dim-tab';t.id='dt'+i;t.textContent=ICONS[d]+' '+d;el.appendChild(t);});
+}
+function updateTabs(i){
+  const cur=Math.floor(i/7);
+  DIMS.forEach((_,di)=>{const e=document.getElementById('dt'+di);if(!e)return;e.className='dim-tab'+(di<cur?' done':di===cur?' active':'');});
+}
+
+// ═══════════════════════════════════════════════════════════
+//  START / RESET
+// ═══════════════════════════════════════════════════════════
+function startAssessment(){
+  const fn=(document.getElementById('firstName').value||'').trim();
+  const ln=(document.getElementById('lastName').value||'').trim();
+  userEmail=(document.getElementById('userEmail').value||'').trim();
+  userName=fn&&ln?fn+' '+ln:fn||ln||'Traveler';
+  qOrder=shuffle(QUESTIONS.map((_,i)=>i));
+  qIdx=0;answers={};addAns={};addIdx=0;
+  QUESTIONS.forEach(q=>{flipMap[q.id]=Math.random()<0.5;});
+  buildTabs();
+  show('scr-question');
+  renderQ();
+}
+function resetAssessment(){show('scr-welcome');}
+
+// ═══════════════════════════════════════════════════════════
+//  QUESTION RENDERING
+// ═══════════════════════════════════════════════════════════
+function renderQ(){
+  const total=QUESTIONS.length, pct=Math.round(qIdx/total*100);
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progLbl').textContent='Question '+(qIdx+1)+' of '+total;
+  document.getElementById('progPct').textContent=pct+'%';
+  document.getElementById('qCtr').textContent=(qIdx+1)+' / '+total;
+  document.getElementById('btnPrev').style.visibility=qIdx===0?'hidden':'visible';
+  updateTabs(qIdx);
+
+  const q=QUESTIONS[qOrder[qIdx]], flip=flipMap[q.id];
+  document.getElementById('qTag').textContent=ICONS[q.dim]+' '+q.dim;
+  document.getElementById('qStem').textContent=q.stem;
+
+  const choices=flip
+    ?[{l:'A',v:0,t:q.b},{l:'B',v:1,t:q.a}]
+    :[{l:'A',v:1,t:q.a},{l:'B',v:0,t:q.b}];
+
+  const el=document.getElementById('qOpts');el.innerHTML='';
+  choices.forEach(ch=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn'+(answers[q.id]===ch.v?' sel':'');
+    btn.dataset.v=ch.v;
+    btn.innerHTML='<span class="opt-letter">'+ch.l+'</span><span>'+ch.t+'</span>';
+    btn.onclick=()=>selectQ(q.id,+btn.dataset.v);
+    el.appendChild(btn);
+  });
+}
+function selectQ(id,v){
+  answers[id]=v;renderQ();
+  setTimeout(()=>{
+    if(qIdx<QUESTIONS.length-1){qIdx++;renderQ();}
+    else{show('scr-additional');renderAdd();}
+  },360);
+}
+function prevQ(){if(qIdx>0){qIdx--;renderQ();}}
+
+// ═══════════════════════════════════════════════════════════
+//  ADDITIONAL QUESTIONS
+// ═══════════════════════════════════════════════════════════
+function renderAdd(){
+  const q=ADDITIONAL[addIdx], total=ADDITIONAL.length;
+  const pct=Math.round(97+(addIdx/total)*3);
+  document.getElementById('addFill').style.width=pct+'%';
+  document.getElementById('addPct').textContent=pct+'%';
+  document.getElementById('addCtr').textContent=(addIdx+1)+' / '+total;
+  document.getElementById('btnAddPrev').style.visibility=addIdx===0?'hidden':'visible';
+  document.getElementById('addStem').textContent=q.stem;
+  document.getElementById('addNextWrap').style.display=q.type==='multi'?'block':'none';
+
+  const el=document.getElementById('addOpts');el.innerHTML='';
+
+  if(q.type==='multi'){
+    const sel=addAns[q.id]||[];
+    const grid=document.createElement('div');grid.className='mc-grid';
+    q.opts.forEach((opt,i)=>{
+      const s=sel.includes(i), full=sel.length>=q.max&&!s;
+      const d=document.createElement('div');
+      d.className='mc-check'+(s?' sel':'')+(full?' dim':'');
+      d.innerHTML='<span class="mc-box"></span><span>'+opt+'</span>';
+      d.onclick=()=>toggleMulti(q.id,i,q.max);
+      grid.appendChild(d);
+    });
+    el.appendChild(grid);
+    const h=document.createElement('div');h.className='mc-hint';
+    h.textContent='Select up to '+q.max+'. Chosen: '+(sel.length)+'/'+q.max;
+    el.appendChild(h);
+  } else {
+    const saved=addAns[q.id];
+    const ul=document.createElement('div');ul.className='mc-single';
+    q.opts.forEach((opt,i)=>{
+      const btn=document.createElement('button');
+      btn.className='mc-btn'+(saved===i?' sel':'');
+      btn.innerHTML='<span class="mc-dot"></span><span>'+opt+'</span>';
+      btn.onclick=()=>selectSingle(q.id,i);
+      ul.appendChild(btn);
+    });
+    el.appendChild(ul);
+  }
+}
+function toggleMulti(id,idx,max){
+  if(!addAns[id])addAns[id]=[];
+  const a=addAns[id],p=a.indexOf(idx);
+  if(p>-1)a.splice(p,1); else if(a.length<max)a.push(idx);
+  renderAdd();
+}
+function nextAdd(){
+  const q=ADDITIONAL[addIdx];
+  if(q.type==='multi'&&!(addAns[q.id]&&addAns[q.id].length))return;
+  advanceAdd();
+}
+function selectSingle(id,idx){addAns[id]=idx;renderAdd();setTimeout(advanceAdd,360);}
+function advanceAdd(){
+  if(addIdx<ADDITIONAL.length-1){addIdx++;renderAdd();}
+  else{saveRecord();showResults();}
+}
+function prevAdd(){
+  if(addIdx>0){addIdx--;renderAdd();}
+  else{qIdx=QUESTIONS.length-1;show('scr-question');renderQ();}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SAVE RECORD TO LOCALSTORAGE
+// ═══════════════════════════════════════════════════════════
+function saveRecord(){
+  try{
+    const record={
+      timestamp: new Date().toISOString(),
+      name: userName,
+      email: userEmail,
+      answers: {...answers},
+      additional: {...addAns}
+    };
+    const existing=JSON.parse(localStorage.getItem('ttpResponses')||'[]');
+    existing.push(record);
+    localStorage.setItem('ttpResponses',JSON.stringify(existing));
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RESULTS
+// ═══════════════════════════════════════════════════════════
+function showResults(){
+  // ── Dimension raw scores 0-7 (A=1, B=0) ──
+  const raw={};
+  DIMS.forEach(d=>raw[d]=0);
+  QUESTIONS.forEach(q=>{ if(answers[q.id]!==undefined) raw[q.dim]+=answers[q.id]; });
+
+  // ── Archetype ──
+  const arch=getArchetype(raw);
+  document.getElementById('rUserName').textContent=userName;
+  document.getElementById('rIcon').textContent=arch.icon;
+  document.getElementById('rArchName').textContent=arch.name;
+  document.getElementById('rArchTag').textContent=arch.tag;
+  document.getElementById('rArchDesc').textContent=arch.desc;
+  const tEl=document.getElementById('rTraits');tEl.innerHTML='';
+  arch.traits.forEach(t=>{tEl.innerHTML+='<div class="r-trait">'+t+'</div>';});
+
+  // ── Spider chart (GID=1111228987 spec) ──
+  // Score: 0→0, 7→100. Rings at 0, 50, 100. Center = "Balanced".
+  const spiderScores=DIMS.map(d=>Math.round((raw[d]/7)*100));
+  const spiderLabels=DIMS.map(d=>ICONS[d]+' '+d);
+
+  const ctx=document.getElementById('spiderChart').getContext('2d');
+  if(window._spider)window._spider.destroy();
+  window._spider=new Chart(ctx,{
+    type:'radar',
+    data:{
+      labels:spiderLabels,
+      datasets:[{
+        label:'Your Profile',
+        data:spiderScores,
+        backgroundColor:'rgba(45,212,191,0.15)',
+        borderColor:'#2dd4bf',
+        borderWidth:2.5,
+        pointBackgroundColor:'#2dd4bf',
+        pointBorderColor:'#0d1520',
+        pointBorderWidth:2,
+        pointRadius:6,
+        pointHoverRadius:8,
+      }]
+    },
+    options:{
+      responsive:true,
+      scales:{
+        r:{
+          min:0, max:100,
+          ticks:{
+            stepSize:50,
+            display:true,
+            font:{size:10,family:'Montserrat'},
+            color:'rgba(100,116,139,0.8)',
+            backdropColor:'transparent',
+            callback:v=>v===0?'Balanced':v+'%',
+          },
+          grid:{color:'rgba(255,255,255,0.07)'},
+          angleLines:{color:'rgba(255,255,255,0.09)'},
+          pointLabels:{
+            font:{family:'Montserrat',size:12,weight:'700'},
+            color:'#94a3b8',
+            padding:12,
+          },
+        }
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:i=>` ${i.raw}%`}}
+      }
+    }
+  });
+
+  // ── Dimension 0-7 bars ──
+  const dbEl=document.getElementById('dimBlocks');dbEl.innerHTML='';
+  DIMS.forEach(d=>{
+    const s=raw[d], z=zone(s), m=DIM_META[d];
+    const pct=(s/7)*100;
+    const desc=s>=4?m.aDesc:m.bDesc;
+    dbEl.innerHTML+=`
+      <div class="dim-block">
+        <div class="dim-bh">
+          <span class="dim-bname">${ICONS[d]} ${d}</span>
+          <span class="dim-ztag ${ZONE_CSS[z]}">${s}/7 · ${ZONE_LABEL[z]}</span>
+        </div>
+        <div class="dim-poles">
+          <span class="pole-b">← ${m.bLabel}</span>
+          <span class="pole-a">${m.aLabel} →</span>
+        </div>
+        <div class="scale-bar"><div class="sz-sb"></div><div class="sz-b"></div><div class="sz-a"></div><div class="sz-sa"></div></div>
+        <div class="scale-mwrap"><div class="scale-marker" data-pct="${pct}" style="left:0%"></div></div>
+        <div class="scale-zlabels">
+          <span class="szl szl-sb">Strong B</span>
+          <span class="szl szl-b">Standard B</span>
+          <span class="szl szl-a">Standard A</span>
+          <span class="szl szl-sa">Strong A</span>
+        </div>
+        <div class="dim-desc">${desc}</div>
+      </div>`;
+  });
+
+  // ── Recommended activities (spec: top-2 dims, multiply, pick top 7) ──
+  const sorted=[...DIMS].sort((a,b)=>raw[b]-raw[a]);
+  const top2=sorted.slice(0,2);
+  const k1=DIM_ACT_KEY[top2[0]], k2=DIM_ACT_KEY[top2[1]];
+
+  document.getElementById('actBasis').textContent=
+    `Based on your strongest dimensions: ${top2[0]} (${raw[top2[0]]}/7) and ${top2[1]} (${raw[top2[1]]}/7).`;
+
+  const scored=ACTIVITIES.map(act=>{
+    const score=(raw[top2[0]]*act[k1]) + (raw[top2[1]]*act[k2]);
+    const matchDims=[];
+    if(act.C)  matchDims.push('Curiosity');
+    if(act.Adv)matchDims.push('Adventure');
+    if(act.Con)matchDims.push('Connection');
+    if(act.Ref)matchDims.push('Reflection');
+    if(act.Int)matchDims.push('Intention');
+    return{...act,score,matchDims};
+  }).sort((a,b)=>b.score-a.score).slice(0,7);
+
+  const aEl=document.getElementById('actGrid');aEl.innerHTML='';
+  scored.forEach(act=>{
+    aEl.innerHTML+=`
+      <div class="act-item">
+        <div class="act-icon">${act.icon}</div>
+        <div class="act-name">${act.name}</div>
+        <div class="act-dims">${act.matchDims.map(d=>'<span class="act-dim">'+d+'</span>').join('')}</div>
+      </div>`;
+  });
+
+  // ── Travel preferences (additional Qs) ──
+  const pEl=document.getElementById('prefGrid');pEl.innerHTML='';
+  ADDITIONAL.forEach(q=>{
+    const ans=addAns[q.id];
+    if(q.type==='multi'){
+      const sel=ans||[];
+      const tags=sel.map(i=>'<span class="tag">'+q.opts[i]+'</span>').join('');
+      pEl.innerHTML+=`
+        <div class="pref-item" style="grid-column:1/-1">
+          <div class="pref-lbl">Curiosity interests</div>
+          <div class="tag-row">${tags||'<span style="color:var(--muted);font-size:0.8rem">Not answered</span>'}</div>
+        </div>`;
+    } else {
+      const val=ans!==undefined?q.opts[ans]:'—';
+      const labels={A2:"Planning style",A3:"Social media influence",A4:"Hoped-for change"};
+      pEl.innerHTML+=`
+        <div class="pref-item">
+          <div class="pref-lbl">${labels[q.id]||q.stem}</div>
+          <div class="pref-val">${val}</div>
+        </div>`;
+    }
+  });
+
+  show('scr-results');
+
+  // ── Animate markers ──
+  requestAnimationFrame(()=>setTimeout(()=>{
+    document.querySelectorAll('.scale-marker[data-pct]').forEach(el=>{el.style.left=el.dataset.pct+'%';});
+  },160));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Growth Through Travel Assessment | Transformed by Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: #f0faf9;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    .nav {
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo-text { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; color: #1a1a2e; text-decoration: none; }
+    .logo-accent { color: #2a9d8f; }
+    .nav-back { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.85rem; color: #2a9d8f; text-decoration: none; }
+    .nav-back:hover { text-decoration: underline; }
+
+    /* WRAPPER */
+    .wrapper {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* SCREENS */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── WELCOME SCREEN ── */
+    .welcome-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 56px 48px;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    }
+    .welcome-badge {
+      display: inline-block;
+      background: #e8faf9;
+      color: #2a9d8f;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    .welcome-card h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #1a1a2e;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+    .welcome-card p {
+      color: #555;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 16px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .dimensions-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 28px 0 36px;
+    }
+    .dim-tag {
+      background: #f0faf9;
+      border: 1.5px solid #2a9d8f;
+      color: #2a9d8f;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+    .welcome-meta {
+      font-size: 0.85rem;
+      color: #999;
+      margin-top: 16px;
+    }
+
+    /* ── QUESTION SCREEN ── */
+    .progress-bar-wrap {
+      background: #d4ede9;
+      border-radius: 8px;
+      height: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #2a9d8f;
+      border-radius: 8px;
+      transition: width 0.4s ease;
+    }
+    .progress-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .question-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 48px 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    }
+    .question-dimension {
+      display: inline-block;
+      background: #e8faf9;
+      color: #2a9d8f;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 18px;
+    }
+    .question-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      line-height: 1.4;
+      margin-bottom: 32px;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .option-btn {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px 24px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      background: #fafafa;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1rem;
+      color: #333;
+      line-height: 1.5;
+      width: 100%;
+    }
+    .option-btn:hover {
+      border-color: #2a9d8f;
+      background: #f0faf9;
+    }
+    .option-btn.selected {
+      border-color: #2a9d8f;
+      background: #e8faf9;
+      color: #1a1a2e;
+    }
+    .option-letter {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      color: #555;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .option-btn.selected .option-letter {
+      background: #2a9d8f;
+      color: #fff;
+    }
+    .question-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 32px;
+    }
+    .btn-back-q {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #888;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px 0;
+    }
+    .btn-back-q:hover { color: #2a9d8f; }
+
+    /* ── RESULTS SCREEN ── */
+    .results-header {
+      background: #fff;
+      border-radius: 20px;
+      padding: 48px 40px;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+      margin-bottom: 28px;
+    }
+    .results-badge {
+      display: inline-block;
+      background: #2a9d8f;
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .results-header h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #888;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .persona-name {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 16px;
+    }
+    .persona-desc {
+      color: #555;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    .chart-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .chart-card h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #1a1a2e;
+      margin-bottom: 24px;
+    }
+    .chart-wrap {
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .dimensions-detail {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+      margin-bottom: 28px;
+    }
+    .dimensions-detail h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #1a1a2e;
+      margin-bottom: 28px;
+    }
+    .dim-row {
+      margin-bottom: 24px;
+    }
+    .dim-row:last-child { margin-bottom: 0; }
+    .dim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .dim-name {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1a1a2e;
+    }
+    .dim-level {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .dim-level.high { background: #e8faf9; color: #2a9d8f; }
+    .dim-level.moderate { background: #fef9e7; color: #d4a017; }
+    .dim-level.low { background: #fde8e8; color: #c0392b; }
+    .dim-bar-wrap {
+      background: #f0f0f0;
+      border-radius: 8px;
+      height: 10px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .dim-bar-fill {
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #2a9d8f, #38c9b8);
+      transition: width 0.8s ease;
+    }
+    .dim-description {
+      font-size: 0.88rem;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .style-card {
+      background: #1a1a2e;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+      margin-bottom: 28px;
+      color: #fff;
+    }
+    .style-card h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+      color: #2a9d8f;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.85rem;
+    }
+    .style-card .style-type {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .style-card p { color: #aaa; line-height: 1.7; }
+
+    .results-ctas {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .btn {
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+      padding: 14px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      text-decoration: none;
+    }
+    .btn-primary { background: #2a9d8f; color: #fff; border-color: #2a9d8f; }
+    .btn-primary:hover { background: #21867a; border-color: #21867a; }
+    .btn-outline { background: transparent; color: #2a9d8f; border-color: #2a9d8f; }
+    .btn-outline:hover { background: #2a9d8f; color: #fff; }
+
+    @media (max-width: 600px) {
+      .welcome-card, .question-card, .results-header, .chart-card, .dimensions-detail, .style-card {
+        padding: 32px 24px;
+      }
+      .welcome-card h1 { font-size: 1.8rem; }
+      .question-text { font-size: 1.1rem; }
+      .persona-name { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="index.html" class="logo-text">Transformed<span class="logo-accent">byTravels</span></a>
+    <a href="index.html" class="nav-back">← Back to Home</a>
+  </nav>
+
+  <div class="wrapper">
+
+    <!-- ═══════════════ WELCOME SCREEN ═══════════════ -->
+    <div class="screen active" id="screen-welcome">
+      <div class="welcome-card">
+        <div class="welcome-badge">Free Assessment</div>
+        <h1>Growth Through Travel Assessment</h1>
+        <p>
+          Discover your unique travel personality. This assessment measures five dimensions
+          that shape how travel transforms you — helping you plan journeys that truly matter.
+        </p>
+        <div class="dimensions-list">
+          <span class="dim-tag">🔍 Curiosity</span>
+          <span class="dim-tag">⚡ Adventure</span>
+          <span class="dim-tag">🌿 Reflection</span>
+          <span class="dim-tag">🤝 Connection</span>
+          <span class="dim-tag">🎯 Intention</span>
+        </div>
+        <p>For each question, choose the option that feels most like you. There are no right or wrong answers.</p>
+        <br />
+        <button class="btn btn-primary" onclick="startAssessment()" style="font-size:1rem; padding:16px 40px;">
+          Start Assessment
+        </button>
+        <p class="welcome-meta">36 questions &nbsp;·&nbsp; ~8 minutes &nbsp;·&nbsp; Designed by psychologists</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════ QUESTION SCREEN ═══════════════ -->
+    <div class="screen" id="screen-question">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="progress-label">
+        <span id="progressText">Question 1 of 36</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="question-card">
+        <div class="question-dimension" id="qDimension"></div>
+        <div class="question-text" id="qText"></div>
+        <div class="options" id="qOptions"></div>
+        <div class="question-nav">
+          <button class="btn-back-q" id="btnBack" onclick="prevQuestion()">← Previous</button>
+          <span id="qCounter" style="font-family:'Montserrat',sans-serif;font-size:0.85rem;color:#ccc;font-weight:600;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ RESULTS SCREEN ═══════════════ -->
+    <div class="screen" id="screen-results">
+      <div class="results-header">
+        <div class="results-badge">Your Results</div>
+        <h2>Your Travel Persona</h2>
+        <div class="persona-name" id="personaName"></div>
+        <p class="persona-desc" id="personaDesc"></p>
+      </div>
+
+      <div class="chart-card">
+        <h3>Your Travel Dimensions</h3>
+        <div class="chart-wrap">
+          <canvas id="radarChart"></canvas>
+        </div>
+      </div>
+
+      <div class="dimensions-detail">
+        <h3>Dimension Breakdown</h3>
+        <div id="dimensionRows"></div>
+      </div>
+
+      <div class="style-card">
+        <h3>Planning Style</h3>
+        <div class="style-type" id="styleType"></div>
+        <p id="styleDesc"></p>
+      </div>
+
+      <div class="results-ctas">
+        <a href="index.html#contact" class="btn btn-primary">Book a Consultation</a>
+        <button class="btn btn-outline" onclick="resetAssessment()">Retake Assessment</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════
+    // ASSESSMENT DATA  (from Google Sheet)
+    // Option A = 0 points (more of the dimension)
+    // Option B = 1 point  (less of the dimension)
+    // ═══════════════════════════════════════════════════
+    const questions = [
+      // CURIOSITY (7 questions)
+      { id: 1,  dim: "Curiosity",  signal: false, stem: "When traveling to a new place,",          a: "I enjoy learning about the history and culture.",                            b: "I mostly relax and enjoy the experiences planned for the trip." },
+      { id: 2,  dim: "Curiosity",  signal: true,  stem: "When traveling to a new place, I like to:", a: "Understand how local people live.",                                          b: "Focus mainly on scenery and attractions." },
+      { id: 3,  dim: "Curiosity",  signal: false, stem: "When I travel,",                           a: "I enjoy asking questions and learning about the places I visit.",             b: "I enjoy observing and experiencing places without engaging too deeply." },
+      { id: 4,  dim: "Curiosity",  signal: true,  stem: "I am drawn to destinations that",          a: "Teach me something new about the world.",                                    b: "Inspire me through beauty or scenery." },
+      { id: 5,  dim: "Curiosity",  signal: false, stem: "My favorite parts of travel are,",         a: "Experiencing cultures that are unfamiliar to me.",                           b: "Visiting iconic or famous places." },
+      { id: 6,  dim: "Curiosity",  signal: false, stem: "When traveling, I enjoy",                  a: "Discovering the stories behind the places I visit.",                         b: "Experiencing the atmosphere of the places I visit." },
+      { id: 7,  dim: "Curiosity",  signal: false, stem: "When traveling, I seek out",               a: "Museums, historical sites, or cultural experiences.",                        b: "The well-known highlights of a destination." },
+      // ADVENTURE (7 questions)
+      { id: 8,  dim: "Adventure",  signal: false, stem: "I enjoy travel experiences",               a: "That challenge me physically or mentally.",                                  b: "That are comfortable and calming." },
+      { id: 9,  dim: "Adventure",  signal: false, stem: "I prefer destinations that are:",          a: "Remote, hard to reach, or less-visited.",                                    b: "Easy to access." },
+      { id: 10, dim: "Adventure",  signal: true,  stem: "Some of my best travel memories:",         a: "Involve doing something that pushed my limits.",                             b: "Involve relaxing and enjoying the surroundings." },
+      { id: 11, dim: "Adventure",  signal: false, stem: "When I travel, I prefer to",               a: "Explore unfamiliar places and experiences.",                                 b: "Return to places I already know and enjoy." },
+      { id: 12, dim: "Adventure",  signal: false, stem: "I prefer travel that feels",               a: "Adventurous or unpredictable.",                                              b: "Smooth and well-planned." },
+      { id: 13, dim: "Adventure",  signal: true,  stem: "When something goes wrong on travel",      a: "I see it as part of the adventure.",                                         b: "I feel frustrated when things don't go according to plan." },
+      { id: 14, dim: "Adventure",  signal: false, stem: "When I travel,",                           a: "I enjoy activities that feel physically or mentally challenging.",            b: "I prefer activities that are relaxing and easygoing." },
+      // REFLECTION (7 questions)
+      { id: 15, dim: "Reflection", signal: false, stem: "After a trip is over",                     a: "I often reflect on my travel experiences for a long time.",                  b: "I usually move on quickly to the next experience." },
+      { id: 16, dim: "Reflection", signal: true,  stem: "Travel tends to",                          a: "Often change how I see the world.",                                          b: "Mostly provide an enjoyable break from daily life." },
+      { id: 17, dim: "Reflection", signal: false, stem: "During a trip,",                           a: "I sometimes pause to absorb and think about what I'm experiencing.",         b: "I prefer to keep moving and see as much as possible." },
+      { id: 18, dim: "Reflection", signal: false, stem: "When I return home from a trip, I talk about", a: "What I learned and what it meant to me.",                              b: "The places I visited and activities I did." },
+      { id: 19, dim: "Reflection", signal: false, stem: "Travel experiences",                       a: "Often influence how I think about my life.",                                 b: "Deliver fun memories but rarely affect my life afterward." },
+      { id: 20, dim: "Reflection", signal: true,  stem: "When I encounter new lifestyles while traveling,", a: "I sometimes reconsider my own assumptions.",                       b: "I mostly observe them without questioning my own views." },
+      { id: 21, dim: "Reflection", signal: false, stem: "Travel experiences",                       a: "Often lead me to look at my everyday life differently.",                     b: "Leave me refreshed and ready to return to my routine." },
+      // CONNECTION (7 questions)
+      { id: 22, dim: "Connection", signal: true,  stem: "When I travel, I am most rewarded by:",   a: "Meeting local people.",                                                      b: "Seeing famous places." },
+      { id: 23, dim: "Connection", signal: false, stem: "I enjoy travel experiences",               a: "That involve interacting with local communities.",                           b: "That focus mainly on sightseeing or other common activities." },
+      { id: 24, dim: "Connection", signal: false, stem: "When I travel, I prefer to:",              a: "Connect with people from different backgrounds.",                            b: "Experience a place mainly through its landscapes." },
+      { id: 25, dim: "Connection", signal: false, stem: "I enjoy travel experiences",               a: "That feel authentic and personal.",                                          b: "That involve visiting the major sites that everyone talks about." },
+      { id: 26, dim: "Connection", signal: false, stem: "When I travel, I value,",                  a: "Meaningful interactions while traveling.",                                   b: "Efficiency and seeing many places while traveling." },
+      { id: 27, dim: "Connection", signal: false, stem: "When I travel,",                           a: "I enjoy opportunities to share meals or conversations with local people.",   b: "I usually keep my interactions brief and focused on sightseeing." },
+      { id: 28, dim: "Connection", signal: true,  stem: "I feel most engaged while traveling",      a: "When I experience the daily life of a place.",                               b: "When visiting the major attractions of a place." },
+      // INTENTION (7 questions)
+      { id: 29, dim: "Intention",  signal: false, stem: "Before a trip",                            a: "I think about what I hope to gain from the experience.",                     b: "I mainly focus on itineraries with logistics and activity plans." },
+      { id: 30, dim: "Intention",  signal: true,  stem: "Travel is a way for me",                   a: "To grow as a person.",                                                       b: "To relax and have fun." },
+      { id: 31, dim: "Intention",  signal: false, stem: "I usually choose a trip",                  a: "That aligns with my interests or values.",                                   b: "That looks exciting or appealing." },
+      { id: 32, dim: "Intention",  signal: false, stem: "I want my travel experiences to",          a: "Connect to something I care deeply about.",                                  b: "Visit places that are popular or highly recommended." },
+      { id: 33, dim: "Intention",  signal: false, stem: "When I travel,",                           a: "I seek insight or perspective on life.",                                     b: "I seek enjoyment and escape." },
+      { id: 34, dim: "Intention",  signal: false, stem: "When I travel,",                           a: "I research how to engage respectfully with local culture.",                  b: "I mainly look up the best restaurants and attractions." },
+      { id: 35, dim: "Intention",  signal: true,  stem: "When I travel, I tend to think about,",   a: "How a trip might influence my perspective on life.",                          b: "Whether a trip will be enjoyable and relaxing." },
+      // STYLE (unscored)
+      { id: 36, dim: "Style",      signal: false, stem: "When planning a trip,",                    a: "I enjoy researching destinations and designing my own itineraries.",          b: "I prefer having experienced travelers or experts design my itinerary.", unscored: true },
+    ];
+
+    const DIMENSIONS = ["Curiosity","Adventure","Reflection","Connection","Intention"];
+
+    const DIMENSION_INFO = {
+      Curiosity: {
+        icon: "🔍",
+        high: { label: "Highly Curious", desc: "You dive deep into the culture, history, and stories of everywhere you go. You're not satisfied with surfaces — you want to understand the soul of a place." },
+        moderate: { label: "Selectively Curious", desc: "You appreciate learning about places when it catches your interest, balancing cultural exploration with relaxation." },
+        low: { label: "Experience-Focused", desc: "You travel to enjoy the moment — scenery, atmosphere, and famous highlights. Depth comes second to the experience itself." },
+      },
+      Adventure: {
+        icon: "⚡",
+        high: { label: "Bold Adventurer", desc: "You seek the challenging, the remote, and the unpredictable. Comfort zones are for home — on the road, you want to be tested." },
+        moderate: { label: "Flexible Explorer", desc: "You enjoy a mix of adventure and comfort. You'll push limits when inspired, but also appreciate a well-planned experience." },
+        low: { label: "Comfort Traveler", desc: "You value smooth, relaxing journeys. You prefer familiarity, good planning, and experiences that feel easy and restorative." },
+      },
+      Reflection: {
+        icon: "🌿",
+        high: { label: "Deep Reflector", desc: "Travel changes you. You process experiences long after you return home, letting journeys reshape how you see your life and yourself." },
+        moderate: { label: "Thoughtful Wanderer", desc: "You reflect on meaningful moments from your travels and occasionally let them influence your perspective back home." },
+        low: { label: "Memory Collector", desc: "Travel gives you great memories and a refreshing break. You enjoy the experiences in the moment and move forward energized." },
+      },
+      Connection: {
+        icon: "🤝",
+        high: { label: "Community Connector", desc: "Meeting local people is the highlight of travel for you. Authentic interactions, shared meals, and human stories fuel your journeys." },
+        moderate: { label: "Social Explorer", desc: "You enjoy meaningful moments with local people but also appreciate time spent with the landscapes and sites of a destination." },
+        low: { label: "Independent Sightseer", desc: "You prefer to experience places through their iconic sights and scenery. Deep local interactions take a back seat to discovery." },
+      },
+      Intention: {
+        icon: "🎯",
+        high: { label: "Purpose-Driven Traveler", desc: "Every trip has a deeper 'why' for you. You choose destinations intentionally, seeking growth, perspective, and personal meaning." },
+        moderate: { label: "Mindful Wanderer", desc: "You often travel with purpose but also leave room for spontaneity and pleasure. Growth and enjoyment go hand in hand." },
+        low: { label: "Spontaneous Enjoyer", desc: "You travel for the joy of it — fun, escape, and great experiences. You pick destinations that excite you without over-analyzing." },
+      },
+    };
+
+    // Persona combinations based on dominant traits
+    function getPersona(scores) {
+      const levels = {};
+      DIMENSIONS.forEach(d => {
+        const pct = scores[d]; // 0–100, higher = more of the dimension
+        levels[d] = pct >= 60 ? "high" : pct >= 35 ? "moderate" : "low";
+      });
+
+      const h = Object.entries(levels).filter(([,v]) => v === "high").map(([k]) => k);
+      const topTwo = DIMENSIONS.slice().sort((a, b) => scores[b] - scores[a]).slice(0, 2);
+
+      // Persona rules
+      if (h.includes("Curiosity") && h.includes("Intention")) {
+        return { name: "The Conscious Explorer", desc: "You travel with deep purpose and insatiable curiosity. Every destination is a classroom and a mirror — you return home richer in knowledge and perspective. Travel is your most powerful tool for becoming who you want to be." };
+      }
+      if (h.includes("Adventure") && h.includes("Connection")) {
+        return { name: "The Immersive Adventurer", desc: "You crave raw, real experiences — pushing your limits while forging genuine human connections along the way. The remote village, the local guide, the unexpected conversation: these are your favorite souvenirs." };
+      }
+      if (h.includes("Reflection") && h.includes("Intention")) {
+        return { name: "The Transformative Traveler", desc: "Travel is deeply personal for you. You choose journeys that align with who you're becoming, and you take time to let those experiences sink in and reshape you. This is travel as therapy, philosophy, and purpose." };
+      }
+      if (h.includes("Curiosity") && h.includes("Connection")) {
+        return { name: "The Cultural Catalyst", desc: "People and their stories are your compass. You go deep into local life, ask the questions others skip, and leave with a richer understanding of the world — and yourself. You don't just visit places; you inhabit them." };
+      }
+      if (h.includes("Adventure") && h.includes("Reflection")) {
+        return { name: "The Mindful Explorer", desc: "You seek challenge and transformation in equal measure. You'll hike the hard trail and then sit quietly to absorb what it meant. Adventure is your doorway to self-discovery." };
+      }
+      if (h.includes("Curiosity") && h.includes("Adventure")) {
+        return { name: "The Discovery Seeker", desc: "Uncharted territory — cultural and physical — is where you thrive. You want to understand places from the inside out while pushing your own limits. Comfort zones and tourist traps are equally uninspiring to you." };
+      }
+      if (h.length === 0) {
+        return { name: "The Balanced Traveler", desc: "You draw from all aspects of travel without being defined by any single one. You're flexible, open, and can enjoy any style of journey — making you an ideal travel companion and a versatile explorer." };
+      }
+      // fallback on single dominant
+      const top = topTwo[0];
+      const fallbacks = {
+        Curiosity:  { name: "The Cultural Scholar",     desc: "History, culture, and the stories of a place captivate you more than anything else. You come home with knowledge as your best souvenir." },
+        Adventure:  { name: "The Bold Wanderer",        desc: "Remote, challenging, unpredictable — that's where you come alive. You don't travel to relax; you travel to be tested." },
+        Reflection: { name: "The Thoughtful Journey",   desc: "You let travel slow you down in the best way. Experiences settle in you over time and quietly reshape who you are." },
+        Connection: { name: "The People Traveler",      desc: "A trip without meaningful human connection feels hollow. You go to meet the world, not just see it." },
+        Intention:  { name: "The Purpose-Led Explorer", desc: "You're intentional about why you travel and what you want to gain. Every journey is a deliberate step toward growth." },
+      };
+      return fallbacks[top];
+    }
+
+    // ═══════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════
+    let currentQ = 0;
+    let answers = new Array(questions.length).fill(null); // null | 0 | 1
+
+    // ═══════════════════════════════════════════════════
+    // NAVIGATION HELPERS
+    // ═══════════════════════════════════════════════════
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    function startAssessment() {
+      currentQ = 0;
+      answers = new Array(questions.length).fill(null);
+      showScreen('screen-question');
+      renderQuestion();
+    }
+
+    function resetAssessment() {
+      startAssessment();
+      showScreen('screen-welcome');
+    }
+
+    // ═══════════════════════════════════════════════════
+    // QUESTION RENDERING
+    // ═══════════════════════════════════════════════════
+    function renderQuestion() {
+      const q = questions[currentQ];
+      const total = questions.length;
+      const pct = Math.round((currentQ / total) * 100);
+
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressText').textContent = `Question ${currentQ + 1} of ${total}`;
+      document.getElementById('progressPct').textContent = pct + '%';
+      document.getElementById('qCounter').textContent = `${currentQ + 1} / ${total}`;
+      document.getElementById('btnBack').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+
+      // Dimension label
+      const dimEl = document.getElementById('qDimension');
+      dimEl.textContent = q.unscored ? 'Your Style' : (DIMENSION_INFO[q.dim]?.icon || '') + ' ' + q.dim;
+
+      // Question text
+      document.getElementById('qText').textContent = q.stem;
+
+      // Options
+      const opts = document.getElementById('qOptions');
+      opts.innerHTML = '';
+      [{ label: 'A', value: 0, text: q.a }, { label: 'B', value: 1, text: q.b }].forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn' + (answers[currentQ] === opt.value ? ' selected' : '');
+        btn.innerHTML = `<span class="option-letter">${opt.label}</span><span>${opt.text}</span>`;
+        btn.onclick = () => selectAnswer(opt.value);
+        opts.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(value) {
+      answers[currentQ] = value;
+      renderQuestion(); // re-render to show selection
+
+      // Auto-advance after short delay
+      setTimeout(() => {
+        if (currentQ < questions.length - 1) {
+          currentQ++;
+          renderQuestion();
+        } else {
+          showResults();
+        }
+      }, 400);
+    }
+
+    function prevQuestion() {
+      if (currentQ > 0) {
+        currentQ--;
+        renderQuestion();
+      }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // SCORING & RESULTS
+    // ═══════════════════════════════════════════════════
+    function showResults() {
+      // Calculate raw scores per dimension (0 = all A, 7 = all B)
+      const raw = {};
+      const counts = {};
+      DIMENSIONS.forEach(d => { raw[d] = 0; counts[d] = 0; });
+
+      questions.forEach((q, i) => {
+        if (q.unscored) return;
+        if (answers[i] !== null) {
+          raw[q.dim] += answers[i];
+          counts[q.dim]++;
+        }
+      });
+
+      // Convert to 0-100 where 100 = strongest trait (Option A = 0, so invert)
+      const scores = {};
+      DIMENSIONS.forEach(d => {
+        const n = counts[d] || 7;
+        scores[d] = Math.round(((n - raw[d]) / n) * 100);
+      });
+
+      // Style question (q36, index 35)
+      const styleAnswer = answers[35]; // 0 = DIY, 1 = guided
+
+      // Persona
+      const persona = getPersona(scores);
+      document.getElementById('personaName').textContent = persona.name;
+      document.getElementById('personaDesc').textContent = persona.desc;
+
+      // Radar chart
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      if (window._radarChart) window._radarChart.destroy();
+      window._radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: DIMENSIONS,
+          datasets: [{
+            label: 'Your Score',
+            data: DIMENSIONS.map(d => scores[d]),
+            backgroundColor: 'rgba(42,157,143,0.2)',
+            borderColor: '#2a9d8f',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#2a9d8f',
+            pointRadius: 5,
+          }]
+        },
+        options: {
+          scales: {
+            r: {
+              min: 0, max: 100,
+              ticks: { stepSize: 25, display: false },
+              grid: { color: 'rgba(0,0,0,0.08)' },
+              pointLabels: {
+                font: { family: 'Montserrat', size: 13, weight: '700' },
+                color: '#1a1a2e'
+              }
+            }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      // Dimension rows
+      const rows = document.getElementById('dimensionRows');
+      rows.innerHTML = '';
+      DIMENSIONS.forEach(d => {
+        const pct = scores[d];
+        const level = pct >= 60 ? 'high' : pct >= 35 ? 'moderate' : 'low';
+        const info = DIMENSION_INFO[d][level];
+        rows.innerHTML += `
+          <div class="dim-row">
+            <div class="dim-header">
+              <span class="dim-name">${DIMENSION_INFO[d].icon} ${d}</span>
+              <span class="dim-level ${level}">${info.label}</span>
+            </div>
+            <div class="dim-bar-wrap">
+              <div class="dim-bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="dim-description">${info.desc}</div>
+          </div>`;
+      });
+
+      // Style card
+      if (styleAnswer === 0) {
+        document.getElementById('styleType').textContent = 'The Independent Planner';
+        document.getElementById('styleDesc').textContent = 'You love the process of researching and crafting your own itineraries. The planning is part of the journey for you — and you carry deep ownership of the experiences you design.';
+      } else if (styleAnswer === 1) {
+        document.getElementById('styleType').textContent = 'The Guided Traveler';
+        document.getElementById('styleDesc').textContent = 'You trust experts to curate experiences that match your goals. You want to show up ready to be transformed — not bogged down in logistics. This is where Transformed by Travels shines for you.';
+      } else {
+        document.getElementById('styleType').textContent = 'The Flexible Planner';
+        document.getElementById('styleDesc').textContent = 'You adapt your planning style depending on the trip. Sometimes you love diving into the research; other times you prefer to hand it off to someone who knows the destination deeply.';
+      }
+
+      showScreen('screen-results');
+
+      // Animate bars after paint
+      setTimeout(() => {
+        document.querySelectorAll('.dim-bar-fill').forEach(b => {
+          const w = b.style.width;
+          b.style.width = '0%';
+          requestAnimationFrame(() => { b.style.width = w; });
+        });
+      }, 100);
+    }
+  </script>
+
+</body>
+</html>
