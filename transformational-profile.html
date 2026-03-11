@@ -779,7 +779,7 @@ function calcScores() {
 
 function buildResults() {
   const raw = calcScores();
-  saveRecord(raw);
+  saveRecord(raw, arch.name, topActivities);
 
   // Header
   document.getElementById('results-name-title').textContent = `${userName}'s Transformational Travel Profile`;
@@ -802,8 +802,8 @@ function buildResults() {
   // Dimension bars
   buildDimBars(raw);
 
-  // Activities
-  buildActivities(raw);
+  // Activities (returns list for saving)
+  const topActivities = buildActivities(raw);
 
   // Preferences
   buildPrefs();
@@ -913,6 +913,8 @@ function buildActivities(raw) {
       </div>
     </div>
   `).join('');
+
+  return list.map(a => a.name);
 }
 
 function buildPrefs() {
@@ -942,20 +944,34 @@ function buildPrefs() {
 // ═══════════════════════════════════════════════
 // DATA PERSISTENCE
 // ═══════════════════════════════════════════════
-function saveRecord(raw) {
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwr1cYKSgS89MLVXPfchm8ZX-CMDHdKyWywTDEZ1EQdchZUHBVv1HCSJUauekeBvcj_4A/exec';
+
+function saveRecord(raw, archName, topActivities) {
   const record = {
     timestamp: new Date().toISOString(),
     name: userName,
     email: userEmail,
     scores: {...raw},
+    archetype: archName,
+    activities: topActivities,
     answers: {...answers},
     additional: {...addAnswers}
   };
+
+  // Save to localStorage as backup
   try {
     const existing = JSON.parse(localStorage.getItem('ttpResponses') || '[]');
     existing.push(record);
     localStorage.setItem('ttpResponses', JSON.stringify(existing));
   } catch(e) {}
+
+  // Send to Google Sheet
+  fetch(SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(record)
+  }).catch(() => {});
 }
 
 function retake() {
