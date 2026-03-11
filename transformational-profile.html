@@ -551,62 +551,43 @@ function zoneLabel(z, dim) {
 // ═══════════════════════════════════════════════
 // ARCHETYPES
 // ═══════════════════════════════════════════════
-function getArchetype(raw) {
-  const expl = raw.Curiosity + raw.Adventure;   // 0–14
-  const eng  = raw.Reflection;                   // 0–7
-  const intg = raw.Connection + raw.Intention;   // 0–14
-  const eH = expl >= 8;
-  const nH = eng  >= 4;
-  const iH = intg >= 8;
+const ARCHETYPES = {
+  Curiosity: {
+    icon: "🔍",
+    name: "Curious Explorer",
+    tag: "Curiosity",
+    desc: "Curious Explorers travel to understand the world. They enjoy learning about local culture, history, and daily life. Museums, conversations with locals, and discovering how people live are often more interesting to them than simply seeing famous landmarks. Their trips often feel like a journey of discovery, where each destination becomes a classroom for understanding different ways of living."
+  },
+  Connection: {
+    icon: "🤝",
+    name: "Cultural Immersionist",
+    tag: "Connection",
+    desc: "Cultural Immersionists want to step inside a culture rather than just observe it. They prefer experiences that allow them to participate in local life—staying in local neighborhoods, sharing meals, learning traditions, and building relationships. For them, the most meaningful travel experiences come from connection and participation, not observation."
+  },
+  Adventure: {
+    icon: "🏔️",
+    name: "The Adventurous Pathfinder",
+    tag: "Adventure",
+    desc: "Adventurous Pathfinders travel to experience the thrill of the unknown. They seek wild landscapes, challenging hikes, wildlife encounters, and remote destinations that few others visit. For them, travel is about pushing boundaries and feeling alive through exploration, physical activity, and discovery."
+  },
+  Reflection: {
+    icon: "🌙",
+    name: "The Reflective Wanderer",
+    tag: "Reflection",
+    desc: "Reflective Wanderers use travel as a time to think, process, and gain perspective. They appreciate quiet moments—watching a sunrise, journaling, or walking through beautiful landscapes."
+  },
+  Intention: {
+    icon: "🌟",
+    name: "The Transformational Seeker",
+    tag: "Transformation",
+    desc: "Transformational Seekers view travel as a vehicle for personal growth and life change. They often pursue journeys with deeper meaning: pilgrimages, personal quests, wildlife encounters, or destinations that inspire profound shifts in perspective. They are drawn to experiences that challenge their perspectives, shift their identity, or help them see the world—and themselves—differently."
+  }
+};
 
-  if (eH && nH && iH) return {
-    icon:"🌟", name:"Complete Transformational Traveler",
-    tag:"All Three Forces Active",
-    desc:"You bring curiosity, adventure, deep reflection, human connection, and purposeful intention to every journey. Travel is one of your primary tools for growth and understanding.",
-    traits:["Curious & Bold","Deeply Reflective","Purposefully Connected"]
-  };
-  if (eH && nH && !iH) return {
-    icon:"🧭", name:"Conscious Explorer",
-    tag:"Exploration + Engagement",
-    desc:"You seek out new places and challenges, and you take the time to reflect on what those experiences mean. You return from trips with fresh perspectives and a deeper understanding of yourself.",
-    traits:["Intellectually Driven","Introspective","Loves New Challenges"]
-  };
-  if (eH && !nH && iH) return {
-    icon:"🌍", name:"Immersive Voyager",
-    tag:"Exploration + Integration",
-    desc:"You dive headfirst into new cultures and adventures, connecting deeply with the people and communities you encounter. Your travels are rich with experiences and human stories.",
-    traits:["Adventurous Spirit","People-Oriented","Culturally Immersive"]
-  };
-  if (!eH && nH && iH) return {
-    icon:"🕊️", name:"Transformative Pilgrim",
-    tag:"Engagement + Integration",
-    desc:"You travel with deep intentionality. Meaningful connections, quiet reflection, and purposeful experiences define your journeys. You seek transformation through depth, not breadth.",
-    traits:["Highly Intentional","Deeply Connected","Reflective & Purposeful"]
-  };
-  if (eH && !nH && !iH) return {
-    icon:"⚡", name:"Bold Explorer",
-    tag:"Exploration Force",
-    desc:"Adventure and discovery are your travel fuel. You crave new places, physical challenges, and the thrill of the unknown. The world is your playground.",
-    traits:["Thrill-Seeking","Independent","Loves the Unexpected"]
-  };
-  if (!eH && nH && !iH) return {
-    icon:"🌙", name:"Reflective Wanderer",
-    tag:"Engagement Force",
-    desc:"You use travel as a mirror for self-discovery. Whether on a quiet hike or in a busy city, you're always processing and finding meaning in what you experience.",
-    traits:["Introspective","Meaning-Seeker","Thoughtful Traveler"]
-  };
-  if (!eH && !nH && iH) return {
-    icon:"💛", name:"Purposeful Connector",
-    tag:"Integration Force",
-    desc:"People and purpose are at the heart of your travels. You seek authentic connections, shared experiences, and journeys that align with your values.",
-    traits:["Warm & Relational","Values-Driven","Community-Focused"]
-  };
-  return {
-    icon:"🌱", name:"Open Traveler",
-    tag:"Balanced Profile",
-    desc:"You approach travel with an open mind and flexible expectations. You enjoy a variety of experiences and are ready to discover which dimensions of transformational travel resonate most with you.",
-    traits:["Flexible","Open-Minded","Ready to Grow"]
-  };
+function getArchetype(raw) {
+  // Find the dimension with the highest score
+  const topDim = DIMS.reduce((best, d) => raw[d] > raw[best] ? d : best, DIMS[0]);
+  return ARCHETYPES[topDim];
 }
 
 // ═══════════════════════════════════════════════
@@ -791,9 +772,6 @@ function buildResults() {
     <div class="archetype-tag">${arch.tag}</div>
     <h2 class="archetype-name">${arch.name}</h2>
     <p class="archetype-desc">${arch.desc}</p>
-    <div class="archetype-traits">
-      ${arch.traits.map(t => `<span class="trait-pill">${t}</span>`).join('')}
-    </div>
   `;
 
   // Spider chart
