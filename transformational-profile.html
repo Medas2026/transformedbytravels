@@ -99,7 +99,7 @@
     .add-opt { display: flex; align-items: center; gap: 12px; background: var(--s1); border: 1.5px solid var(--bd); border-radius: 8px; padding: 13px 16px; cursor: pointer; transition: all 0.18s; }
     .add-opt:hover { border-color: var(--teal); background: var(--tdim); }
     .add-opt.selected { border-color: var(--teal); background: var(--tdim); }
-    .add-opt input { accent-color: var(--teal); width: 17px; height: 17px; cursor: pointer; flex-shrink: 0; }
+    .add-check { font-size: 1.1rem; color: var(--teal); flex-shrink: 0; line-height: 1; }
     .add-opt span { font-size: 0.95rem; color: var(--text); line-height: 1.4; }
 
     /* RESULTS */
@@ -700,14 +700,19 @@ function renderAdditional() {
           ? (Array.isArray(current) && current.includes(opt))
           : (current === opt);
         return `
-          <label class="add-opt ${checked ? 'selected' : ''}" onclick="handleAddOpt(this, '${q.id}', '${opt.replace(/'/g,"\\'")}', ${isMulti}, ${q.max||1})">
-            <input type="${isMulti ? 'checkbox' : 'radio'}" name="addq" value="${i}" ${checked ? 'checked' : ''} style="pointer-events:none;" />
+          <div class="add-opt ${checked ? 'selected' : ''}" data-idx="${i}">
+            <span class="add-check">${checked ? (isMulti ? '☑' : '◉') : (isMulti ? '☐' : '○')}</span>
             <span>${opt}</span>
-          </label>
+          </div>
         `;
       }).join('')}
     </div>
   `;
+
+  // Attach click listeners after render
+  document.querySelectorAll('#add-opts-list .add-opt').forEach(el => {
+    el.addEventListener('click', () => handleAddOpt(el, q.id, q.opts[+el.dataset.idx], isMulti, q.max || 1));
+  });
 
   const btn = document.getElementById('add-next-btn');
   btn.textContent = currentAddIdx < ADDITIONAL.length - 1 ? 'Next →' : 'See My Results →';
@@ -722,21 +727,21 @@ function handleAddOpt(el, qId, val, isMulti, max) {
     if (idx > -1) {
       arr.splice(idx, 1);
       el.classList.remove('selected');
-      el.querySelector('input').checked = false;
+      el.querySelector('.add-check').textContent = '☐';
     } else {
       if (arr.length >= max) return;
       arr.push(val);
       el.classList.add('selected');
-      el.querySelector('input').checked = true;
+      el.querySelector('.add-check').textContent = '☑';
     }
   } else {
     addAnswers[qId] = val;
-    document.querySelectorAll('.add-opt').forEach(o => {
+    document.querySelectorAll('#add-opts-list .add-opt').forEach(o => {
       o.classList.remove('selected');
-      o.querySelector('input').checked = false;
+      o.querySelector('.add-check').textContent = '○';
     });
     el.classList.add('selected');
-    el.querySelector('input').checked = true;
+    el.querySelector('.add-check').textContent = '◉';
   }
 }
 
