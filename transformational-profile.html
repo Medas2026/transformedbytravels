@@ -780,7 +780,6 @@ function calcScores() {
 
 function buildResults() {
   const raw = calcScores();
-  saveRecord(raw, arch.name, topActivities);
 
   // Header
   document.getElementById('results-name-title').textContent = `${userName}'s Transformational Travel Profile`;
@@ -808,6 +807,9 @@ function buildResults() {
 
   // Preferences
   buildPrefs();
+
+  // Save record after all data is ready
+  saveRecord(raw, arch.name, topActivities);
 }
 
 function buildSpider(raw) {
