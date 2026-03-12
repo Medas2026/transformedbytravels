@@ -6,6 +6,7 @@
   <title>The Transformational Travel Profile | Transformed by Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -334,6 +335,7 @@
         <p>Let's create an itinerary designed around your unique travel profile.</p>
         <div class="cta-btns">
           <a href="https://transformedbytravels.as.me/schedule/50d5eb51/appointment/89344787/calendar/13577706" target="_blank" class="btn btn-primary btn-lg">Book a Discovery Call</a>
+          <button class="btn btn-outline btn-lg" onclick="downloadPDF()">Download PDF Report</button>
           <a href="https://www.transformedbytravels.com" class="btn btn-outline btn-lg">Back to Website</a>
           <button class="btn btn-outline btn-lg" onclick="retake()">Retake Assessment</button>
         </div>
@@ -925,7 +927,7 @@ function buildPrefs() {
 // ═══════════════════════════════════════════════
 // DATA PERSISTENCE
 // ═══════════════════════════════════════════════
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzhSKMSxOEHr-vnBAL7DqaU--m3gSDVKZLe78gHwhhwz_ci63fhUvIuOcdUrJ3hQim9IA/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxT78copGgO-VtmhxU9hRMfYK7Dp0y3MLbgJzuttnWwGj1jHcdEl3wW72t0_Si-BEGPZg/exec';
 
 function saveRecord(raw, archName, topActivities) {
   const record = {
@@ -962,6 +964,20 @@ function retake() {
   answers = {};
   addAnswers = {};
   showScreen('screen-welcome');
+}
+
+function downloadPDF() {
+  const element = document.getElementById('screen-results');
+  const filename = userName.replace(/\s+/g, '_') + '_Transformational_Travel_Profile.pdf';
+  const opt = {
+    margin:       [10, 10, 10, 10],
+    filename:     filename,
+    image:        { type: 'jpeg', quality: 0.95 },
+    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0d1520' },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+  html2pdf().set(opt).from(element).save();
 }
 </script>
 </body>
