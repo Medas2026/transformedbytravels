@@ -552,62 +552,103 @@ function zoneLabel(z, dim) {
 // ARCHETYPES
 // ═══════════════════════════════════════════════
 const ARCHETYPES = {
-  Curiosity: {
-    icon: "🔍",
-    name: "Curious Explorer",
+  TT: {
+    icon: "🦋", name: "The Transformational Traveler",
+    tag: "All Forces Active",
+    desc: "You approach travel as a powerful path to personal growth. You seek experiences that combine curiosity, challenge, connection, immersion, and reflection. For you, travel is not just about seeing the world—it's about becoming a fuller version of yourself.",
+    photos: ["images/archetypes/TT1.png", "images/archetypes/TT2.png"]
+  },
+  MS: {
+    icon: "🏮", name: "Meaning Seeker",
+    tag: "Curiosity + Reflection",
+    desc: "You travel to gain perspective and deeper understanding. Cultural insights, powerful landscapes, and reflective moments help you think about life in new ways. Your journeys often leave you changed.",
+    photos: ["images/archetypes/MS1.png", "images/archetypes/MS2.png"]
+  },
+  NW: {
+    icon: "🌲", name: "Nature Wanderer",
+    tag: "Adventure + Reflection",
+    desc: "Wild landscapes are where you feel most alive. Mountains, oceans, forests, and wildlife create the kind of experiences that stay with you long after the trip ends. Nature gives you both adventure and space to reflect.",
+    photos: ["images/archetypes/NW1.png", "images/archetypes/NW2.png"]
+  },
+  AS: {
+    icon: "⛰️", name: "Adventure Seeker",
+    tag: "Challenge",
+    desc: "You love travel that stretches your comfort zone. Hiking, exploring remote places, and active experiences energize you. The best trips are the ones that leave you feeling exhilarated and alive.",
+    photos: ["images/archetypes/AS1.png", "images/archetypes/AS2.png"]
+  },
+  CE: {
+    icon: "🏛️", name: "Cultural Explorer",
     tag: "Curiosity",
-    desc: "Curious Explorers travel to understand the world. They enjoy learning about local culture, history, and daily life. Museums, conversations with locals, and discovering how people live are often more interesting to them than simply seeing famous landmarks. Their trips often feel like a journey of discovery, where each destination becomes a classroom for understanding different ways of living.",
-    photos: [
-      "https://picsum.photos/seed/curious1/600/400",
-      "https://picsum.photos/seed/curious2/600/400"
-    ]
+    desc: "You travel to learn about the world. History, art, architecture, and traditions fascinate you, and you enjoy discovering the stories behind the places you visit. Each destination becomes an opportunity to expand your understanding.",
+    photos: ["images/archetypes/CE1.png", "images/archetypes/CE2.png"]
   },
-  Connection: {
-    icon: "🤝",
-    name: "Cultural Immersionist",
+  DI: {
+    icon: "📍", name: "Deep Immersion",
+    tag: "Immersion",
+    desc: "You want to experience places from the inside rather than simply observe them. Local food, authentic neighborhoods, and everyday culture matter to you. Your goal is to feel what life is like in a place.",
+    photos: ["images/archetypes/DI1.png", "images/archetypes/DI2.png"]
+  },
+  CON: {
+    icon: "🤝", name: "Connector",
     tag: "Connection",
-    desc: "Cultural Immersionists want to step inside a culture rather than just observe it. They prefer experiences that allow them to participate in local life—staying in local neighborhoods, sharing meals, learning traditions, and building relationships. For them, the most meaningful travel experiences come from connection and participation, not observation.",
-    photos: [
-      "https://picsum.photos/seed/connect1/600/400",
-      "https://picsum.photos/seed/connect2/600/400"
-    ]
+    desc: "People are what make travel meaningful for you. Conversations with locals, shared meals, and unexpected friendships often become the most memorable parts of your trips. You see travel as a way to understand humanity.",
+    photos: ["images/archetypes/CON1.png", "images/archetypes/Con2.png"]
   },
-  Adventure: {
-    icon: "🏔️",
-    name: "The Adventurous Pathfinder",
-    tag: "Adventure",
-    desc: "Adventurous Pathfinders travel to experience the thrill of the unknown. They seek wild landscapes, challenging hikes, wildlife encounters, and remote destinations that few others visit. For them, travel is about pushing boundaries and feeling alive through exploration, physical activity, and discovery.",
-    photos: [
-      "https://picsum.photos/seed/adventure1/600/400",
-      "https://picsum.photos/seed/adventure2/600/400"
-    ]
-  },
-  Reflection: {
-    icon: "🌙",
-    name: "The Reflective Wanderer",
+  REF: {
+    icon: "🌅", name: "Reflector",
     tag: "Reflection",
-    desc: "Reflective Wanderers use travel as a time to think, process, and gain perspective. They appreciate quiet moments—watching a sunrise, journaling, or walking through beautiful landscapes.",
-    photos: [
-      "https://picsum.photos/seed/reflect1/600/400",
-      "https://picsum.photos/seed/reflect2/600/400"
-    ]
+    desc: "Travel gives you space to slow down and think deeply. Quiet moments—watching a sunrise, journaling, or simply observing a place—are as meaningful as the activities themselves. Your journeys often bring clarity and insight.",
+    photos: ["images/archetypes/REF1.png", "images/archetypes/REF2.png"]
   },
-  Intention: {
-    icon: "🌟",
-    name: "The Transformational Seeker",
-    tag: "Transformation",
-    desc: "Transformational Seekers view travel as a vehicle for personal growth and life change. They often pursue journeys with deeper meaning: pilgrimages, personal quests, wildlife encounters, or destinations that inspire profound shifts in perspective. They are drawn to experiences that challenge their perspectives, shift their identity, or help them see the world—and themselves—differently.",
-    photos: [
-      "https://picsum.photos/seed/transform1/600/400",
-      "https://picsum.photos/seed/transform2/600/400"
-    ]
+  CA: {
+    icon: "🛤️", name: "Comfort Adventurer",
+    tag: "Balanced Adventure",
+    desc: "You enjoy a sense of adventure while still appreciating comfort and balance. Scenic hikes, wildlife encounters, and unique experiences appeal to you when they are well planned and accessible. Your trips blend excitement with ease.",
+    photos: ["images/archetypes/CA1.png", "images/archetypes/CA2.png"]
+  },
+  JW: {
+    icon: "✈️", name: "Joyful Wanderer",
+    tag: "Open Explorer",
+    desc: "You travel for the joy of discovery and variety. A little culture, a little scenery, good food, and memorable moments all contribute to a great trip. You enjoy the freedom of letting travel unfold naturally.",
+    photos: ["images/archetypes/JW1.png", "images/archetypes/JW2.png"]
+  },
+  EGT: {
+    icon: "🏖️", name: "Easy Going Traveler",
+    tag: "Relaxed Explorer",
+    desc: "Travel for you is about relaxation and enjoyment rather than pursuing a specific style of exploration. You appreciate pleasant places, good company, and going with the flow. The best trips are the ones that feel effortless.",
+    photos: ["images/archetypes/EGT1.png", "images/archetypes/EGT2.png"]
   }
 };
 
 function getArchetype(raw) {
-  // Find the dimension with the highest score
-  const topDim = DIMS.reduce((best, d) => raw[d] > raw[best] ? d : best, DIMS[0]);
-  return ARCHETYPES[topDim];
+  const C   = raw.Curiosity;
+  const Adv = raw.Adventure;
+  const Ref = raw.Reflection;
+  const Con = raw.Connection;
+  const Int = raw.Intention;
+
+  // Transformational Traveler: all dimensions >= 5
+  if (C >= 5 && Adv >= 5 && Ref >= 5 && Con >= 5 && Int >= 5) return ARCHETYPES.TT;
+  // Meaning Seeker: Curiosity and Reflection both >= 6
+  if (C >= 6 && Ref >= 6) return ARCHETYPES.MS;
+  // Nature Wanderer: Adventure >= 6 and Reflection >= 5
+  if (Adv >= 6 && Ref >= 5) return ARCHETYPES.NW;
+  // Adventure Seeker: Adventure >= 6
+  if (Adv >= 6) return ARCHETYPES.AS;
+  // Cultural Explorer: Curiosity >= 6
+  if (C >= 6) return ARCHETYPES.CE;
+  // Deep Immersion: Connection >= 6
+  if (Con >= 6) return ARCHETYPES.DI;
+  // Connector: Intention >= 6
+  if (Int >= 6) return ARCHETYPES.CON;
+  // Reflector: Reflection >= 6
+  if (Ref >= 6) return ARCHETYPES.REF;
+  // Comfort Adventurer: Adventure 4-5
+  if (Adv >= 4 && Adv <= 5) return ARCHETYPES.CA;
+  // Joyful Wanderer: all dimensions 3-5
+  if (C >= 3 && Adv >= 3 && Ref >= 3 && Con >= 3 && Int >= 3) return ARCHETYPES.JW;
+  // Easy Going Traveler: default
+  return ARCHETYPES.EGT;
 }
 
 // ═══════════════════════════════════════════════
