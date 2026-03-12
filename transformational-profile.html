@@ -1403,7 +1403,9 @@ function loadDestGuide() {
       content.innerHTML = `<p style="margin-bottom:14px;">${html}</p>`;
       content.style.display = 'block';
     } else {
-      content.innerHTML = '<p style="color:#f43f5e;">Unable to generate guide. Please try again.</p>';
+      const msg = data.error || 'Unable to generate guide';
+      const detail = data.detail ? ` (${data.detail})` : '';
+      content.innerHTML = `<p style="color:#f43f5e;">${msg}${detail}. Please try again.</p>`;
       content.style.display = 'block';
     }
     btn.disabled = false;

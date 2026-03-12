@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -7,6 +7,10 @@ export default async function handler(req, res) {
 
   if (!destination || !scores) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(500).json({ error: 'API key not configured' });
   }
 
   const { Curiosity, Adventure, Reflection, Connection, Intention } = scores;
@@ -57,18 +61,23 @@ Keep the tone warm, inspiring, and personal — speak directly to "you". Be spec
       })
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const err = await response.text();
-      console.error('Anthropic API error:', err);
-      return res.status(502).json({ error: 'Failed to generate guide' });
+      console.error('Anthropic API error:', JSON.stringify(data));
+      return res.status(502).json({ error: 'Anthropic API error', detail: data.error?.message });
     }
 
-    const data = await response.json();
-    const text = data.content[0].text;
+    const text = data.content?.[0]?.text;
+    if (!text) {
+      console.error('Unexpected response shape:', JSON.stringify(data));
+      return res.status(502).json({ error: 'Unexpected response from API' });
+    }
+
     return res.status(200).json({ guide: text });
 
   } catch (err) {
-    console.error('Handler error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Handler error:', err.message);
+    return res.status(500).json({ error: 'Internal server error', detail: err.message });
   }
-}
+};
