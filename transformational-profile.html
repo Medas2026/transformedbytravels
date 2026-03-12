@@ -352,6 +352,18 @@
         <div id="prefs-section"></div>
       </div>
 
+      <!-- Feedback -->
+      <div class="result-section">
+        <div class="result-section-title">Share Your Feedback</div>
+        <p class="result-section-sub">Do you have any feedback on the assessment and information you received?</p>
+        <textarea id="feedback-text" maxlength="500" rows="4" placeholder="Share your thoughts here..." style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:12px 16px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.95rem;outline:none;resize:vertical;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" oninput="document.getElementById('feedback-count').textContent=this.value.length"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+          <span style="font-size:0.8rem;color:var(--muted);"><span id="feedback-count">0</span> / 500 characters</span>
+          <button class="btn btn-primary btn-sm" onclick="submitFeedback()">Submit Feedback</button>
+        </div>
+        <p id="feedback-success" style="display:none;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;margin-top:10px;">Thank you for your feedback!</p>
+      </div>
+
       <!-- CTAs -->
       <div class="cta-section">
         <h3>Ready to Plan Your Transformational Journey?</h3>
@@ -1139,6 +1151,29 @@ function saveRecord(raw, archName, topActivities) {
     headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify(record)
   }).catch(() => {});
+}
+
+function submitFeedback() {
+  const text = document.getElementById('feedback-text').value.trim();
+  if (!text) return;
+
+  const record = {
+    type: 'feedback',
+    timestamp: new Date().toISOString(),
+    name: userName,
+    email: userEmail,
+    feedback: text
+  };
+
+  fetch(SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify(record)
+  }).catch(() => {});
+
+  document.getElementById('feedback-text').disabled = true;
+  document.getElementById('feedback-success').style.display = 'block';
 }
 
 function retake() {
