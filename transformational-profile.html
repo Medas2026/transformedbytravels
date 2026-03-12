@@ -154,7 +154,8 @@
     /* PREFERENCES */
     .pref-block { margin-bottom: 20px; }
     .pref-block:last-child { margin-bottom: 0; }
-    .pref-q { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; color: var(--soft); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .pref-q { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.05rem; color: #fff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .pref-change-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--teal); margin-bottom: 6px; }
     .pref-answers { display: flex; flex-wrap: wrap; gap: 8px; }
     .pref-answer { background: var(--s2); border: 1px solid var(--bd); border-radius: 6px; padding: 6px 14px; font-size: 0.88rem; color: var(--text); }
 
@@ -1272,7 +1273,7 @@ function buildPrefs() {
         const text = HOPED_FOR_CHANGE_TEXT[a];
         return `
           <div class="pref-block" style="margin-bottom:18px;">
-            <div class="pref-q" style="margin-bottom:8px;">${a}</div>
+            <div class="pref-change-label">${a}</div>
             ${text ? `<p style="color:var(--soft);font-size:0.92rem;line-height:1.7;">${text}</p>` : ''}
           </div>
         `;
