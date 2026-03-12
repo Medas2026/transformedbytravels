@@ -421,6 +421,18 @@
             <div class="dest-legend-item"><div class="dest-legend-dot" style="background:var(--teal);opacity:0.7;"></div> Your score</div>
             <div class="dest-legend-item"><div class="dest-legend-dot" style="background:#f59e0b;opacity:0.7;"></div> Destination score</div>
           </div>
+          <div style="margin-top:22px;text-align:center;">
+            <button class="btn btn-primary" id="dest-guide-btn" onclick="loadDestGuide()">✦ Get My Personalized Guide</button>
+          </div>
+        </div>
+
+        <!-- AI Guide Panel -->
+        <div id="dest-guide-panel" style="display:none;margin-top:20px;background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%);border:1px solid rgba(45,212,191,0.35);border-radius:12px;padding:28px 24px;">
+          <div id="dest-guide-loading" style="text-align:center;color:var(--soft);font-size:0.95rem;padding:20px 0;">
+            <div style="font-size:1.5rem;margin-bottom:10px;">✦</div>
+            Crafting your personalized guide…
+          </div>
+          <div id="dest-guide-content" style="display:none;color:var(--soft);font-size:0.93rem;line-height:1.8;"></div>
         </div>
       </div>
 
@@ -1106,6 +1118,7 @@ function buildResults() {
   buildPrefs();
 
   // Destination explorer
+  _lastArch = arch.name;
   initDestExplorer(raw);
 
   // Save record after all data is ready
@@ -1345,6 +1358,66 @@ const DEST_DIM_MAP = [
 
 let _lastRaw = null; // stored when results render
 
+let _lastArch = null; // stored when results render
+
+function loadDestGuide() {
+  const continent = document.getElementById('dest-continent').value;
+  const country   = document.getElementById('dest-country').value;
+  const name      = document.getElementById('dest-name').value;
+  if (!name || !_lastRaw) return;
+
+  const panel   = document.getElementById('dest-guide-panel');
+  const loading = document.getElementById('dest-guide-loading');
+  const content = document.getElementById('dest-guide-content');
+  const btn     = document.getElementById('dest-guide-btn');
+
+  panel.style.display   = 'block';
+  loading.style.display = 'block';
+  content.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  fetch('/api/destination-guide', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      destination: name,
+      country,
+      continent,
+      scores: _lastRaw,
+      archetype: _lastArch || 'Transformational Traveler'
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    loading.style.display = 'none';
+    if (data.guide) {
+      // Convert markdown bold (**text**) and bullets to HTML
+      const html = data.guide
+        .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-family:\'Montserrat\',sans-serif;">$1</strong>')
+        .replace(/^- (.+)$/gm, '<li style="margin-bottom:6px;">$1</li>')
+        .replace(/(<li[\s\S]*?<\/li>)+/g, '<ul style="padding-left:18px;margin:10px 0;">$&</ul>')
+        .replace(/\n\n/g, '</p><p style="margin-bottom:14px;">')
+        .replace(/\n/g, '<br>');
+      content.innerHTML = `<p style="margin-bottom:14px;">${html}</p>`;
+      content.style.display = 'block';
+    } else {
+      content.innerHTML = '<p style="color:#f43f5e;">Unable to generate guide. Please try again.</p>';
+      content.style.display = 'block';
+    }
+    btn.disabled = false;
+    btn.textContent = '✦ Regenerate Guide';
+  })
+  .catch(() => {
+    loading.style.display = 'none';
+    content.innerHTML = '<p style="color:#f43f5e;">Something went wrong. Please try again.</p>';
+    content.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '✦ Get My Personalized Guide';
+  });
+}
+
 function initDestExplorer(raw) {
   _lastRaw = raw;
   const continentSel = document.getElementById('dest-continent');
@@ -1360,6 +1433,7 @@ function initDestExplorer(raw) {
   document.getElementById('dest-name').innerHTML = '<option value="">— Select a destination —</option>';
   document.getElementById('dest-name').disabled = true;
   document.getElementById('dest-match-panel').classList.remove('visible');
+  document.getElementById('dest-guide-panel').style.display = 'none';
 }
 
 function destContinentChange() {
@@ -1367,6 +1441,7 @@ function destContinentChange() {
   const countrySel = document.getElementById('dest-country');
   const nameSel = document.getElementById('dest-name');
   document.getElementById('dest-match-panel').classList.remove('visible');
+  document.getElementById('dest-guide-panel').style.display = 'none';
 
   if (!continent) {
     countrySel.innerHTML = '<option value="">— Select a country —</option>';
@@ -1393,6 +1468,7 @@ function destCountryChange() {
   const country = document.getElementById('dest-country').value;
   const nameSel = document.getElementById('dest-name');
   document.getElementById('dest-match-panel').classList.remove('visible');
+  document.getElementById('dest-guide-panel').style.display = 'none';
 
   if (!country) {
     nameSel.innerHTML = '<option value="">— Select a destination —</option>';
