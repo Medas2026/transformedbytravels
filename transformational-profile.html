@@ -516,15 +516,20 @@ const ADDITIONAL = [
     opts:["Rarely","Sometimes","Often","Very often"]
   },
   {
-    id:"A4", type:"multi", max:5,
+    id:"A4", type:"multi", max:3,
     stem:"Which of these changes would you most hope to experience through travel?",
-    hint:"Mark all that apply",
+    hint:"Select your top 1, 2, or 3",
     opts:[
-      "Seeing the world from new perspectives.",
-      "Feeling more confident in unfamiliar situations.",
-      "Connecting more deeply with people.",
-      "Deepening my relationship with nature.",
-      "Reflecting on what matters most in life."
+      "Gain New Perspectives",
+      "Experience Awe and Wonder",
+      "Learn About Other Cultures",
+      "Reconnect with Nature",
+      "Strengthen Relationships",
+      "Build Confidence Through Challenges",
+      "Slow Down and Recharge",
+      "Reflect on Life Priorities",
+      "Learn a Skill or Language",
+      "Overcome a Fear or Barrier"
     ]
   }
 ];
@@ -1213,6 +1218,19 @@ function buildMatrixActivities(raw) {
   `).join('');
 }
 
+const HOPED_FOR_CHANGE_TEXT = {
+  "Gain New Perspectives":            "Travel can help you see the world—and your own life—from a different point of view. Encountering different ways of living, thinking, and problem-solving can shift assumptions and open your mind in lasting ways.",
+  "Experience Awe and Wonder":        "Standing before dramatic landscapes, remarkable wildlife, or extraordinary cultural achievements can create moments of awe that reset your sense of scale and possibility. These experiences are among the most powerful travel has to offer.",
+  "Learn About Other Cultures":       "Travel offers a powerful opportunity to discover how people live, celebrate, and express their traditions. Engaging with local food, art, language, and history deepens your understanding of humanity and your place within it.",
+  "Reconnect with Nature":            "Mountains, forests, and natural environments provide restoration and a sense of grounding for weary travelers. Time in nature can quiet the mind, restore perspective, and rekindle a sense of wonder that everyday life often crowds out.",
+  "Strengthen Relationships":         "Travel can create shared memories that deepen bonds with family, friends, or partners. Navigating new places together, solving problems, and experiencing beauty side by side builds a kind of closeness that ordinary routines rarely allow.",
+  "Build Confidence Through Challenges": "Stepping beyond comfort zones through adventure helps travelers develop resilience and self-assurance. Successfully navigating the unfamiliar — whether a new language, terrain, or culture — proves to yourself that you are more capable than you thought.",
+  "Slow Down and Recharge":           "Time away from daily responsibilities can create space to relax, breathe, and restore energy. Travel gives you permission to pause, be present, and return home with renewed clarity and vitality.",
+  "Reflect on Life Priorities":       "Distance from routine enables deeper contemplation of personal goals and values. Stepping outside your normal context makes it easier to see your life with fresh eyes and reconsider what truly matters.",
+  "Learn a Skill or Language":        "Pursuing focused development — whether linguistic, artistic, or culinary — transforms journeys into educational endeavors. Skills acquired while traveling carry memories and meaning that make them stick long after you return home.",
+  "Overcome a Fear or Barrier":       "Facing previously intimidating situations through travel reveals untapped capabilities and expands self-perception. Each time you move through fear or discomfort, you expand the edge of what feels possible in your life."
+};
+
 function buildPrefs() {
   const labels = {
     A1: "Areas of curiosity",
@@ -1226,6 +1244,25 @@ function buildPrefs() {
     const ans = addAnswers[q.id];
     const display = Array.isArray(ans) ? ans : (ans ? [ans] : []);
     if (!display.length) return '';
+
+    if (q.id === 'A4') {
+      const paras = display.map(a => {
+        const text = HOPED_FOR_CHANGE_TEXT[a];
+        return `
+          <div class="pref-block" style="margin-bottom:18px;">
+            <div class="pref-q" style="margin-bottom:8px;">${a}</div>
+            ${text ? `<p style="color:var(--soft);font-size:0.92rem;line-height:1.7;">${text}</p>` : ''}
+          </div>
+        `;
+      }).join('');
+      return `
+        <div class="pref-block">
+          <div class="pref-q">${labels[q.id]}</div>
+          <div style="margin-top:14px;">${paras}</div>
+        </div>
+      `;
+    }
+
     return `
       <div class="pref-block">
         <div class="pref-q">${labels[q.id]}</div>
