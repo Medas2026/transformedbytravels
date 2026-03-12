@@ -164,6 +164,37 @@
     .cta-section p { color: var(--soft); font-size: 0.93rem; margin-bottom: 24px; }
     .cta-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
+    /* DESTINATION EXPLORER */
+    .dest-explorer { }
+    .dest-dropdowns { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+    .dest-select-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .dest-select-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--soft); }
+    .dest-select { background: var(--s2); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 11px 14px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 0.95rem; outline: none; cursor: pointer; transition: border-color 0.2s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .dest-select:focus { border-color: var(--teal); }
+    .dest-select:disabled { opacity: 0.45; cursor: not-allowed; }
+    .dest-match-panel { display: none; background: var(--s2); border: 1px solid rgba(45,212,191,0.3); border-radius: 12px; padding: 24px 22px; }
+    .dest-match-panel.visible { display: block; }
+    .dest-match-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+    .dest-match-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.15rem; color: #fff; }
+    .dest-match-badge { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.1rem; padding: 6px 16px; border-radius: 20px; }
+    .dest-match-badge.excellent { background: rgba(52,211,153,0.2); color: #34d399; border: 1.5px solid rgba(52,211,153,0.4); }
+    .dest-match-badge.good { background: rgba(45,212,191,0.15); color: var(--teal); border: 1.5px solid rgba(45,212,191,0.35); }
+    .dest-match-badge.moderate { background: rgba(251,146,60,0.15); color: #fb923c; border: 1.5px solid rgba(251,146,60,0.35); }
+    .dest-match-badge.low { background: rgba(244,63,94,0.15); color: #f43f5e; border: 1.5px solid rgba(244,63,94,0.35); }
+    .dest-match-desc { color: var(--soft); font-size: 0.9rem; margin-bottom: 22px; line-height: 1.6; }
+    .dest-dim-list { display: flex; flex-direction: column; gap: 14px; }
+    .dest-dim-row { }
+    .dest-dim-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .dest-dim-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.83rem; color: #fff; }
+    .dest-dim-vals { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.78rem; color: var(--muted); }
+    .dest-dual-bar { display: flex; flex-direction: column; gap: 4px; }
+    .dest-bar-track { position: relative; height: 7px; background: rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; }
+    .dest-bar-user { height: 100%; background: var(--teal); border-radius: 4px; opacity: 0.75; transition: width 0.5s ease; }
+    .dest-bar-dest { height: 100%; background: #f59e0b; border-radius: 4px; opacity: 0.75; transition: width 0.5s ease; }
+    .dest-legend { display: flex; gap: 20px; margin-top: 10px; flex-wrap: wrap; }
+    .dest-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
+    .dest-legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
     /* UTILS */
     .text-center { text-align: center; }
     .mt-4 { margin-top: 16px; }
@@ -350,6 +381,46 @@
         <div class="result-section-title">Your Travel Preferences</div>
         <p class="result-section-sub">Based on your follow-up answers.</p>
         <div id="prefs-section"></div>
+      </div>
+
+      <!-- Destination Explorer -->
+      <div class="result-section dest-explorer">
+        <div class="result-section-title">Destination Explorer</div>
+        <p class="result-section-sub">Select a continent, country, and destination to see how well it matches your travel profile.</p>
+
+        <div class="dest-dropdowns">
+          <div class="dest-select-wrap">
+            <div class="dest-select-label">Continent</div>
+            <select class="dest-select" id="dest-continent" onchange="destContinentChange()">
+              <option value="">— Select a continent —</option>
+            </select>
+          </div>
+          <div class="dest-select-wrap">
+            <div class="dest-select-label">Country</div>
+            <select class="dest-select" id="dest-country" disabled onchange="destCountryChange()">
+              <option value="">— Select a country —</option>
+            </select>
+          </div>
+          <div class="dest-select-wrap">
+            <div class="dest-select-label">Destination</div>
+            <select class="dest-select" id="dest-name" disabled onchange="destNameChange()">
+              <option value="">— Select a destination —</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="dest-match-panel" id="dest-match-panel">
+          <div class="dest-match-header">
+            <div class="dest-match-name" id="dest-match-name"></div>
+            <div class="dest-match-badge" id="dest-match-badge"></div>
+          </div>
+          <p class="dest-match-desc" id="dest-match-desc"></p>
+          <div class="dest-dim-list" id="dest-dim-list"></div>
+          <div class="dest-legend">
+            <div class="dest-legend-item"><div class="dest-legend-dot" style="background:var(--teal);opacity:0.7;"></div> Your score</div>
+            <div class="dest-legend-item"><div class="dest-legend-dot" style="background:#f59e0b;opacity:0.7;"></div> Destination score</div>
+          </div>
+        </div>
       </div>
 
       <!-- Feedback -->
@@ -576,6 +647,49 @@ const TRAVEL_MATRIX = [
   {name:"Photography excursions",                Cur:3,Imm:3,Cha:2,Con:1,Ref:4},
   {name:"Wildlife viewing (casual)",             Cur:2,Imm:3,Cha:1,Con:1,Ref:3},
   {name:"Scenic train journeys",                 Cur:2,Imm:2,Cha:1,Con:1,Ref:3}
+];
+
+// Destinations (Continent, Country, Name, Curiosity, Immersion=Connection, Challenge=Adventure, Connection=Intention, Reflection)
+const DESTINATIONS = [
+  {continent:"South America",  country:"Peru",        name:"Machu Picchu",                   Cur:5,Imm:3,Cha:3,Con:2,Ref:5},
+  {continent:"South America",  country:"Argentina",   name:"Los Glaciares",                  Cur:3,Imm:3,Cha:5,Con:2,Ref:5},
+  {continent:"South America",  country:"Argentina",   name:"Ushuaia",                        Cur:3,Imm:2,Cha:4,Con:2,Ref:5},
+  {continent:"South America",  country:"Argentina",   name:"Valdes Peninsula",               Cur:4,Imm:3,Cha:2,Con:2,Ref:5},
+  {continent:"South America",  country:"Chile",       name:"Torres del Paine NP",            Cur:3,Imm:3,Cha:5,Con:2,Ref:5},
+  {continent:"South America",  country:"Chile",       name:"Strait of Magellan",             Cur:4,Imm:2,Cha:3,Con:1,Ref:5},
+  {continent:"South America",  country:"Chile",       name:"Atacama Desert",                 Cur:3,Imm:2,Cha:3,Con:1,Ref:5},
+  {continent:"South America",  country:"Ecuador",     name:"Galapagos",                      Cur:4,Imm:4,Cha:3,Con:2,Ref:5},
+  {continent:"South America",  country:"Ecuador",     name:"Yasuni National Park",           Cur:5,Imm:4,Cha:3,Con:3,Ref:5},
+  {continent:"South America",  country:"Bolivia",     name:"Salar de Uyuni",                 Cur:3,Imm:2,Cha:3,Con:1,Ref:5},
+  {continent:"South America",  country:"Brazil",      name:"Iguazu Falls",                   Cur:3,Imm:2,Cha:2,Con:2,Ref:5},
+  {continent:"South America",  country:"Brazil",      name:"Amazon Rain Forest",             Cur:4,Imm:4,Cha:3,Con:3,Ref:5},
+  {continent:"South America",  country:"Brazil",      name:"Rio de Janeiro",                 Cur:4,Imm:4,Cha:3,Con:4,Ref:3},
+  {continent:"South America",  country:"Brazil",      name:"Pantanal",                       Cur:4,Imm:3,Cha:3,Con:2,Ref:5},
+  {continent:"Central America",country:"Costa Rica",  name:"Arenal Volcano",                 Cur:3,Imm:3,Cha:4,Con:3,Ref:4},
+  {continent:"Central America",country:"Costa Rica",  name:"Monteverde Rain Forest",         Cur:4,Imm:4,Cha:3,Con:2,Ref:5},
+  {continent:"Central America",country:"Costa Rica",  name:"Corcovado",                      Cur:4,Imm:4,Cha:4,Con:2,Ref:5},
+  {continent:"Central America",country:"Costa Rica",  name:"Osa Peninsula",                  Cur:4,Imm:4,Cha:4,Con:2,Ref:5},
+  {continent:"Central America",country:"Belize",      name:"Great Barrier Reef",             Cur:3,Imm:3,Cha:3,Con:2,Ref:4},
+  {continent:"Central America",country:"Panama",      name:"Bocas Del Toro",                 Cur:3,Imm:4,Cha:2,Con:3,Ref:4},
+  {continent:"Central America",country:"Panama",      name:"Soberanía National Park",        Cur:4,Imm:3,Cha:2,Con:2,Ref:4},
+  {continent:"Central America",country:"Honduras",    name:"Roatan",                         Cur:3,Imm:3,Cha:3,Con:3,Ref:4},
+  {continent:"South Pacific",  country:"Tahiti",      name:"Bora Bora",                      Cur:3,Imm:3,Cha:2,Con:3,Ref:5},
+  {continent:"South Pacific",  country:"Tahiti",      name:"Moorea",                         Cur:3,Imm:4,Cha:3,Con:3,Ref:5},
+  {continent:"South Pacific",  country:"Tahiti",      name:"Fakarava",                       Cur:3,Imm:3,Cha:4,Con:2,Ref:5},
+  {continent:"South Pacific",  country:"Fiji",        name:"Taveuni Island",                 Cur:3,Imm:4,Cha:3,Con:3,Ref:5},
+  {continent:"South Pacific",  country:"Fiji",        name:"Yasawa Islands",                 Cur:2,Imm:4,Cha:3,Con:3,Ref:5},
+  {continent:"South Pacific",  country:"Fiji",        name:"Savusavu Bay",                   Cur:2,Imm:4,Cha:2,Con:3,Ref:4},
+  {continent:"South Pacific",  country:"New Zealand", name:"General NZ",                     Cur:3,Imm:3,Cha:4,Con:3,Ref:5},
+  {continent:"South Pacific",  country:"New Zealand", name:"Milford Sound",                  Cur:2,Imm:3,Cha:3,Con:2,Ref:5},
+  {continent:"South Pacific",  country:"New Zealand", name:"Bay of Islands",                 Cur:3,Imm:3,Cha:2,Con:3,Ref:4},
+  {continent:"South Pacific",  country:"New Zealand", name:"Doubtful Sound",                 Cur:2,Imm:3,Cha:3,Con:2,Ref:5},
+  {continent:"South Pacific",  country:"New Zealand", name:"Mount Cook",                     Cur:3,Imm:3,Cha:4,Con:2,Ref:5},
+  {continent:"South Pacific",  country:"New Zealand", name:"Rotorua",                        Cur:4,Imm:4,Cha:2,Con:3,Ref:4},
+  {continent:"South Pacific",  country:"New Zealand", name:"Abel Tasman National Park",      Cur:3,Imm:4,Cha:3,Con:2,Ref:5},
+  {continent:"South Pacific",  country:"New Zealand", name:"Tongariro National Park",        Cur:3,Imm:3,Cha:5,Con:2,Ref:5},
+  {continent:"South Pacific",  country:"New Zealand", name:"Franz Josef Glacier",            Cur:3,Imm:3,Cha:4,Con:2,Ref:5},
+  {continent:"South Pacific",  country:"New Zealand", name:"Kaikōura",                       Cur:3,Imm:3,Cha:2,Con:2,Ref:5},
+  {continent:"South Pacific",  country:"Micronesia",  name:"Palau",                          Cur:4,Imm:3,Cha:4,Con:2,Ref:5}
 ];
 
 // ═══════════════════════════════════════════════
@@ -963,6 +1077,9 @@ function buildResults() {
   // Preferences
   buildPrefs();
 
+  // Destination explorer
+  initDestExplorer(raw);
+
   // Save record after all data is ready
   saveRecord(raw, arch.name, topActivities);
 }
@@ -1151,6 +1268,163 @@ function saveRecord(raw, archName, topActivities) {
     headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify(record)
   }).catch(() => {});
+}
+
+// ═══════════════════════════════════════════════
+// DESTINATION EXPLORER
+// ═══════════════════════════════════════════════
+
+// Dimension label → DESTINATIONS key mapping
+const DEST_DIM_MAP = [
+  {label:"Curiosity",   key:"Cur",  rawKey:"Curiosity"},
+  {label:"Connection",  key:"Imm",  rawKey:"Connection"},
+  {label:"Adventure",   key:"Cha",  rawKey:"Adventure"},
+  {label:"Intention",   key:"Con",  rawKey:"Intention"},
+  {label:"Reflection",  key:"Ref",  rawKey:"Reflection"},
+];
+
+let _lastRaw = null; // stored when results render
+
+function initDestExplorer(raw) {
+  _lastRaw = raw;
+  const continentSel = document.getElementById('dest-continent');
+  continentSel.innerHTML = '<option value="">— Select a continent —</option>';
+  const continents = [...new Set(DESTINATIONS.map(d => d.continent))].sort();
+  continents.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    continentSel.appendChild(o);
+  });
+  document.getElementById('dest-country').innerHTML = '<option value="">— Select a country —</option>';
+  document.getElementById('dest-country').disabled = true;
+  document.getElementById('dest-name').innerHTML = '<option value="">— Select a destination —</option>';
+  document.getElementById('dest-name').disabled = true;
+  document.getElementById('dest-match-panel').classList.remove('visible');
+}
+
+function destContinentChange() {
+  const continent = document.getElementById('dest-continent').value;
+  const countrySel = document.getElementById('dest-country');
+  const nameSel = document.getElementById('dest-name');
+  document.getElementById('dest-match-panel').classList.remove('visible');
+
+  if (!continent) {
+    countrySel.innerHTML = '<option value="">— Select a country —</option>';
+    countrySel.disabled = true;
+    nameSel.innerHTML = '<option value="">— Select a destination —</option>';
+    nameSel.disabled = true;
+    return;
+  }
+
+  const countries = [...new Set(DESTINATIONS.filter(d => d.continent === continent).map(d => d.country))].sort();
+  countrySel.innerHTML = '<option value="">— Select a country —</option>';
+  countries.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    countrySel.appendChild(o);
+  });
+  countrySel.disabled = false;
+  nameSel.innerHTML = '<option value="">— Select a destination —</option>';
+  nameSel.disabled = true;
+}
+
+function destCountryChange() {
+  const continent = document.getElementById('dest-continent').value;
+  const country = document.getElementById('dest-country').value;
+  const nameSel = document.getElementById('dest-name');
+  document.getElementById('dest-match-panel').classList.remove('visible');
+
+  if (!country) {
+    nameSel.innerHTML = '<option value="">— Select a destination —</option>';
+    nameSel.disabled = true;
+    return;
+  }
+
+  const dests = DESTINATIONS.filter(d => d.continent === continent && d.country === country);
+  nameSel.innerHTML = '<option value="">— Select a destination —</option>';
+  dests.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.name; o.textContent = d.name;
+    nameSel.appendChild(o);
+  });
+  nameSel.disabled = false;
+}
+
+function destNameChange() {
+  const continent = document.getElementById('dest-continent').value;
+  const country = document.getElementById('dest-country').value;
+  const name = document.getElementById('dest-name').value;
+
+  if (!name || !_lastRaw) return;
+
+  const dest = DESTINATIONS.find(d => d.continent === continent && d.country === country && d.name === name);
+  if (!dest) return;
+
+  showDestMatch(dest, _lastRaw);
+}
+
+function showDestMatch(dest, raw) {
+  // Normalize user scores from 0-7 to 0-5 scale
+  const userNorm = {
+    Cur: (raw.Curiosity  / 7) * 5,
+    Imm: (raw.Connection / 7) * 5,
+    Cha: (raw.Adventure  / 7) * 5,
+    Con: (raw.Intention  / 7) * 5,
+    Ref: (raw.Reflection / 7) * 5,
+  };
+
+  // Per-dimension match (0-1): 1 = perfect, 0 = worst
+  let totalMatch = 0;
+  DEST_DIM_MAP.forEach(({key}) => {
+    totalMatch += 1 - Math.abs(userNorm[key] - dest[key]) / 5;
+  });
+  const matchPct = Math.round((totalMatch / 5) * 100);
+
+  // Badge
+  let badgeClass, badgeText, descText;
+  if (matchPct >= 80) {
+    badgeClass = 'excellent'; badgeText = `${matchPct}% Match — Excellent Fit`;
+    descText = `${dest.name} aligns very strongly with your travel profile. The dimension scores are closely matched — this destination could be genuinely transformational for you.`;
+  } else if (matchPct >= 65) {
+    badgeClass = 'good'; badgeText = `${matchPct}% Match — Good Fit`;
+    descText = `${dest.name} is a solid match for your profile. Most dimensions align well, and the differences may actually add interesting variety to your journey.`;
+  } else if (matchPct >= 50) {
+    badgeClass = 'moderate'; badgeText = `${matchPct}% Match — Moderate Fit`;
+    descText = `${dest.name} has some alignment with your profile but also some notable differences. With intentional planning, it could still be a rewarding trip.`;
+  } else {
+    badgeClass = 'low'; badgeText = `${matchPct}% Match — Low Fit`;
+    descText = `${dest.name} doesn't closely match your current travel profile. That said, stepping outside your comfort zone can sometimes create unexpected growth.`;
+  }
+
+  document.getElementById('dest-match-name').textContent = `${dest.name}, ${dest.country}`;
+  const badge = document.getElementById('dest-match-badge');
+  badge.textContent = badgeText;
+  badge.className = `dest-match-badge ${badgeClass}`;
+  document.getElementById('dest-match-desc').textContent = descText;
+
+  // Dimension bars
+  const list = document.getElementById('dest-dim-list');
+  list.innerHTML = '';
+  DEST_DIM_MAP.forEach(({label, key}) => {
+    const uPct = Math.round((userNorm[key] / 5) * 100);
+    const dPct = Math.round((dest[key]     / 5) * 100);
+    const row = document.createElement('div');
+    row.className = 'dest-dim-row';
+    row.innerHTML = `
+      <div class="dest-dim-head">
+        <span class="dest-dim-name">${label}</span>
+        <span class="dest-dim-vals">You: ${userNorm[key].toFixed(1)} &nbsp;|&nbsp; Destination: ${dest[key].toFixed(1)}</span>
+      </div>
+      <div class="dest-dual-bar">
+        <div class="dest-bar-track"><div class="dest-bar-user" style="width:${uPct}%"></div></div>
+        <div class="dest-bar-track"><div class="dest-bar-dest" style="width:${dPct}%"></div></div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  document.getElementById('dest-match-panel').classList.add('visible');
+  document.getElementById('dest-match-panel').scrollIntoView({behavior: 'smooth', block: 'nearest'});
 }
 
 function submitFeedback() {
