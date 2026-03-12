@@ -1378,17 +1378,19 @@ function loadDestGuide() {
   btn.textContent = 'Generating…';
   panel.scrollIntoView({behavior:'smooth', block:'nearest'});
 
-  fetch('/api/destination-guide', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      destination: name,
-      country,
-      continent,
-      scores: _lastRaw,
-      archetype: _lastArch || 'Transformational Traveler'
-    })
-  })
+  var GUIDE_URL = 'https://script.google.com/macros/s/AKfycbxT78copGgO-VtmhxU9hRMfYK7Dp0y3MLbgJzuttnWwGj1jHcdEl3wW72t0_Si-BEGPZg/exec';
+  var params = '?action=destGuide' +
+    '&destination=' + encodeURIComponent(name) +
+    '&country=' + encodeURIComponent(country) +
+    '&continent=' + encodeURIComponent(continent) +
+    '&archetype=' + encodeURIComponent(_lastArch || 'Transformational Traveler') +
+    '&Curiosity=' + (_lastRaw.Curiosity || 0) +
+    '&Adventure=' + (_lastRaw.Adventure || 0) +
+    '&Reflection=' + (_lastRaw.Reflection || 0) +
+    '&Connection=' + (_lastRaw.Connection || 0) +
+    '&Intention=' + (_lastRaw.Intention || 0);
+
+  fetch(GUIDE_URL + params)
   .then(r => r.json())
   .then(data => {
     loading.style.display = 'none';
