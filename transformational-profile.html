@@ -114,8 +114,8 @@
     .archetype-tag { display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); background: var(--tdim); border: 1px solid rgba(45,212,191,0.3); border-radius: 20px; padding: 4px 14px; margin-bottom: 14px; }
     .archetype-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.85rem; color: #fff; margin-bottom: 14px; }
     .archetype-desc { color: var(--soft); font-size: 0.97rem; line-height: 1.75; margin-bottom: 22px; max-width: 520px; margin-left: auto; margin-right: auto; }
-    .archetype-traits { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-    .trait-pill { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.78rem; color: #fff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 5px 14px; }
+    .archetype-photos { display: flex; gap: 12px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+    .archetype-photo { width: calc(50% - 6px); max-width: 260px; height: 180px; object-fit: cover; border-radius: 10px; border: 2px solid rgba(45,212,191,0.3); }
 
     /* SECTION BLOCKS */
     .result-section { background: var(--s1); border: 1px solid var(--bd); border-radius: 14px; padding: 30px 28px; margin-bottom: 28px; }
@@ -558,31 +558,51 @@ const ARCHETYPES = {
     icon: "🔍",
     name: "Curious Explorer",
     tag: "Curiosity",
-    desc: "Curious Explorers travel to understand the world. They enjoy learning about local culture, history, and daily life. Museums, conversations with locals, and discovering how people live are often more interesting to them than simply seeing famous landmarks. Their trips often feel like a journey of discovery, where each destination becomes a classroom for understanding different ways of living."
+    desc: "Curious Explorers travel to understand the world. They enjoy learning about local culture, history, and daily life. Museums, conversations with locals, and discovering how people live are often more interesting to them than simply seeing famous landmarks. Their trips often feel like a journey of discovery, where each destination becomes a classroom for understanding different ways of living.",
+    photos: [
+      "https://images.unsplash.com/photo-1527631746610-bca00a040d60?w=600&q=80",
+      "https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=600&q=80"
+    ]
   },
   Connection: {
     icon: "🤝",
     name: "Cultural Immersionist",
     tag: "Connection",
-    desc: "Cultural Immersionists want to step inside a culture rather than just observe it. They prefer experiences that allow them to participate in local life—staying in local neighborhoods, sharing meals, learning traditions, and building relationships. For them, the most meaningful travel experiences come from connection and participation, not observation."
+    desc: "Cultural Immersionists want to step inside a culture rather than just observe it. They prefer experiences that allow them to participate in local life—staying in local neighborhoods, sharing meals, learning traditions, and building relationships. For them, the most meaningful travel experiences come from connection and participation, not observation.",
+    photos: [
+      "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600&q=80",
+      "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=600&q=80"
+    ]
   },
   Adventure: {
     icon: "🏔️",
     name: "The Adventurous Pathfinder",
     tag: "Adventure",
-    desc: "Adventurous Pathfinders travel to experience the thrill of the unknown. They seek wild landscapes, challenging hikes, wildlife encounters, and remote destinations that few others visit. For them, travel is about pushing boundaries and feeling alive through exploration, physical activity, and discovery."
+    desc: "Adventurous Pathfinders travel to experience the thrill of the unknown. They seek wild landscapes, challenging hikes, wildlife encounters, and remote destinations that few others visit. For them, travel is about pushing boundaries and feeling alive through exploration, physical activity, and discovery.",
+    photos: [
+      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80",
+      "https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&q=80"
+    ]
   },
   Reflection: {
     icon: "🌙",
     name: "The Reflective Wanderer",
     tag: "Reflection",
-    desc: "Reflective Wanderers use travel as a time to think, process, and gain perspective. They appreciate quiet moments—watching a sunrise, journaling, or walking through beautiful landscapes."
+    desc: "Reflective Wanderers use travel as a time to think, process, and gain perspective. They appreciate quiet moments—watching a sunrise, journaling, or walking through beautiful landscapes.",
+    photos: [
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80",
+      "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&q=80"
+    ]
   },
   Intention: {
     icon: "🌟",
     name: "The Transformational Seeker",
     tag: "Transformation",
-    desc: "Transformational Seekers view travel as a vehicle for personal growth and life change. They often pursue journeys with deeper meaning: pilgrimages, personal quests, wildlife encounters, or destinations that inspire profound shifts in perspective. They are drawn to experiences that challenge their perspectives, shift their identity, or help them see the world—and themselves—differently."
+    desc: "Transformational Seekers view travel as a vehicle for personal growth and life change. They often pursue journeys with deeper meaning: pilgrimages, personal quests, wildlife encounters, or destinations that inspire profound shifts in perspective. They are drawn to experiences that challenge their perspectives, shift their identity, or help them see the world—and themselves—differently.",
+    photos: [
+      "https://images.unsplash.com/photo-1476900164809-ff19b8ae5968?w=600&q=80",
+      "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=600&q=80"
+    ]
   }
 };
 
@@ -774,6 +794,9 @@ function buildResults() {
     <div class="archetype-tag">${arch.tag}</div>
     <h2 class="archetype-name">${arch.name}</h2>
     <p class="archetype-desc">${arch.desc}</p>
+    <div class="archetype-photos">
+      ${arch.photos.map(url => `<img src="${url}" alt="${arch.name}" class="archetype-photo" />`).join('')}
+    </div>
   `;
 
   // Spider chart
