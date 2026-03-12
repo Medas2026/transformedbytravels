@@ -338,6 +338,13 @@
         <div class="activities-grid" id="activities-list"></div>
       </div>
 
+      <!-- Top Activities from Matrix -->
+      <div class="result-section">
+        <div class="result-section-title">Your Top Travel Activities</div>
+        <p class="result-section-sub">Your highest-scoring activities based on your full dimension profile.</p>
+        <div class="activities-grid" id="matrix-activities-list"></div>
+      </div>
+
       <!-- Travel Preferences -->
       <div class="result-section">
         <div class="result-section-title">Your Travel Preferences</div>
@@ -514,6 +521,50 @@ const ACTIVITIES = [
 ];
 
 const DIM_ACT_KEY = {Curiosity:"C", Adventure:"Adv", Reflection:"Ref", Connection:"Con", Intention:"Int"};
+
+// Travel Activity Matrix (Curiosity, Immersion=Connection, Challenge=Adventure, Connection=Intention, Reflection)
+const TRAVEL_MATRIX = [
+  {name:"Museums & cultural institutions",       Cur:5,Imm:2,Cha:0,Con:1,Ref:2},
+  {name:"Historic monuments & heritage sites",   Cur:5,Imm:2,Cha:1,Con:1,Ref:2},
+  {name:"Archaeological ruins",                  Cur:5,Imm:2,Cha:2,Con:1,Ref:3},
+  {name:"Architecture walks",                    Cur:4,Imm:2,Cha:1,Con:1,Ref:2},
+  {name:"Cultural performances",                 Cur:4,Imm:2,Cha:0,Con:2,Ref:2},
+  {name:"Guided cultural tours",                 Cur:4,Imm:2,Cha:1,Con:2,Ref:2},
+  {name:"Local markets",                         Cur:3,Imm:5,Cha:1,Con:3,Ref:2},
+  {name:"Cooking classes",                       Cur:3,Imm:4,Cha:1,Con:4,Ref:2},
+  {name:"Homestays or local guesthouses",        Cur:3,Imm:5,Cha:1,Con:3,Ref:3},
+  {name:"Exploring neighborhoods",               Cur:3,Imm:4,Cha:1,Con:2,Ref:2},
+  {name:"Learning traditional crafts",           Cur:3,Imm:4,Cha:1,Con:3,Ref:2},
+  {name:"Visiting farms or villages",            Cur:3,Imm:4,Cha:1,Con:3,Ref:2},
+  {name:"Hiking & trekking",                     Cur:2,Imm:3,Cha:5,Con:1,Ref:3},
+  {name:"Wildlife safaris",                      Cur:3,Imm:4,Cha:3,Con:2,Ref:3},
+  {name:"Kayaking / rafting",                    Cur:1,Imm:3,Cha:5,Con:1,Ref:2},
+  {name:"Cycling exploration",                   Cur:2,Imm:3,Cha:4,Con:1,Ref:2},
+  {name:"Multi-day wilderness expeditions",      Cur:2,Imm:4,Cha:5,Con:1,Ref:4},
+  {name:"Exploring remote landscapes",           Cur:3,Imm:4,Cha:4,Con:1,Ref:4},
+  {name:"Shared meals with locals",              Cur:3,Imm:4,Cha:1,Con:5,Ref:2},
+  {name:"Cultural exchange experiences",         Cur:3,Imm:4,Cha:1,Con:5,Ref:2},
+  {name:"Small-group travel",                    Cur:2,Imm:3,Cha:2,Con:4,Ref:2},
+  {name:"Volunteer travel",                      Cur:3,Imm:4,Cha:2,Con:5,Ref:3},
+  {name:"Festivals and celebrations",            Cur:3,Imm:3,Cha:1,Con:4,Ref:2},
+  {name:"Community-based tourism",               Cur:3,Imm:4,Cha:1,Con:5,Ref:2},
+  {name:"Sunrise / sunset viewing",              Cur:2,Imm:3,Cha:1,Con:1,Ref:5},
+  {name:"Journaling while traveling",            Cur:2,Imm:2,Cha:0,Con:1,Ref:5},
+  {name:"Meditation or mindfulness retreats",    Cur:1,Imm:3,Cha:1,Con:2,Ref:5},
+  {name:"Pilgrimage walks",                      Cur:3,Imm:3,Cha:3,Con:2,Ref:5},
+  {name:"Sacred or contemplative places",        Cur:3,Imm:2,Cha:0,Con:1,Ref:5},
+  {name:"Quiet time in nature",                  Cur:1,Imm:3,Cha:1,Con:1,Ref:5},
+  {name:"Scenic drives",                         Cur:2,Imm:2,Cha:1,Con:1,Ref:3},
+  {name:"Boat tours",                            Cur:2,Imm:3,Cha:1,Con:1,Ref:3},
+  {name:"Beach relaxation",                      Cur:1,Imm:3,Cha:0,Con:2,Ref:3},
+  {name:"Spa / wellness experiences",            Cur:1,Imm:2,Cha:0,Con:1,Ref:4},
+  {name:"Wine tasting / culinary tours",         Cur:3,Imm:3,Cha:0,Con:3,Ref:2},
+  {name:"Café culture / people watching",        Cur:2,Imm:3,Cha:0,Con:3,Ref:3},
+  {name:"Famous landmarks",                      Cur:3,Imm:2,Cha:1,Con:1,Ref:2},
+  {name:"Photography excursions",                Cur:3,Imm:3,Cha:2,Con:1,Ref:4},
+  {name:"Wildlife viewing (casual)",             Cur:2,Imm:3,Cha:1,Con:1,Ref:3},
+  {name:"Scenic train journeys",                 Cur:2,Imm:2,Cha:1,Con:1,Ref:3}
+];
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -894,6 +945,9 @@ function buildResults() {
   // Activities (returns list for saving)
   const topActivities = buildActivities(raw);
 
+  // Top activities from matrix
+  buildMatrixActivities(raw);
+
   // Preferences
   buildPrefs();
 
@@ -1007,6 +1061,27 @@ function buildActivities(raw) {
   `).join('');
 
   return list.map(a => a.name);
+}
+
+function buildMatrixActivities(raw) {
+  // Map dimensions: Curiosity, Immersion=Connection, Challenge=Adventure, Connection=Intention, Reflection
+  const scored = TRAVEL_MATRIX.map(act => {
+    const score = (act.Cur * raw.Curiosity) +
+                  (act.Imm * raw.Connection) +
+                  (act.Cha * raw.Adventure) +
+                  (act.Con * raw.Intention) +
+                  (act.Ref * raw.Reflection);
+    return {...act, score};
+  }).sort((a,b) => b.score - a.score).slice(0,10);
+
+  document.getElementById('matrix-activities-list').innerHTML = scored.map((act, i) => `
+    <div class="activity-row">
+      <div class="activity-icon" style="font-size:1.1rem;color:var(--teal);font-weight:700;min-width:28px;">${i+1}</div>
+      <div class="activity-info">
+        <div class="activity-name">${act.name}</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 function buildPrefs() {
