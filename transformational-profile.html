@@ -172,6 +172,7 @@
       .welcome-title { font-size: 1.7rem; }
       .archetype-name { font-size: 1.4rem; }
       .result-section { padding: 22px 18px; }
+      #dest-grid { grid-template-columns: 1fr !important; }
     }
   </style>
 </head>
@@ -313,6 +314,22 @@
         <div id="dim-bars"></div>
       </div>
 
+      <!-- Trips & Destinations -->
+      <div class="result-section" id="destinations-section">
+        <div class="result-section-title">Trips You Will Love</div>
+        <p class="result-section-sub" id="trips-desc"></p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px;" id="dest-grid">
+          <div>
+            <div class="result-section-title" style="font-size:0.9rem;margin-bottom:10px;">🌍 Global Destinations</div>
+            <p id="dest-global" style="color:var(--soft);font-size:0.92rem;line-height:1.8;"></p>
+          </div>
+          <div>
+            <div class="result-section-title" style="font-size:0.9rem;margin-bottom:10px;">🇺🇸 U.S. Destinations</div>
+            <p id="dest-us" style="color:var(--soft);font-size:0.92rem;line-height:1.8;"></p>
+          </div>
+        </div>
+      </div>
+
       <!-- Activities -->
       <div class="result-section">
         <div class="result-section-title">Recommended Experiences</div>
@@ -350,11 +367,11 @@
 const QUESTIONS = [
   {id:1,  dim:"Curiosity",  stem:"When traveling to a new place,",         a:"I enjoy learning about the history and culture.",                             b:"I mostly relax and enjoy the experiences planned for the trip."},
   {id:2,  dim:"Curiosity",  stem:"When traveling to a new place, I like to:", a:"Understand how local people live.",                                         b:"Focus mainly on scenery and attractions."},
-  {id:3,  dim:"Curiosity",  stem:"When I travel,",                          a:"I enjoy asking questions and learning about the places I visit.",             b:"I enjoy observing and experiencing places without engaging too deeply."},
+  {id:3,  dim:"Curiosity",  stem:"When I travel, I enjoy:",                  a:"Asking questions and exploring beyond the obvious.",                         b:"Observing and experiencing places without digging too deeply."},
   {id:4,  dim:"Curiosity",  stem:"I am drawn to destinations that",         a:"Teach me something new about the world.",                                    b:"Inspire me through beauty or scenery."},
-  {id:5,  dim:"Curiosity",  stem:"My favorite parts of travel are,",        a:"Experiencing cultures that are unfamiliar to me.",                           b:"Visiting iconic or famous places."},
+  {id:5,  dim:"Curiosity",  stem:"My favorite parts of travel are,",        a:"Understanding the culture and everyday life of a place.",                    b:"Seeing the most famous landmarks and attractions."},
   {id:6,  dim:"Curiosity",  stem:"When traveling, I enjoy",                 a:"Discovering the stories behind the places I visit.",                         b:"Experiencing the atmosphere of the places I visit."},
-  {id:7,  dim:"Curiosity",  stem:"When traveling, I seek out",              a:"Museums, historical sites, or cultural experiences.",                        b:"The well-known highlights of a destination."},
+  {id:7,  dim:"Curiosity",  stem:"When traveling, I seek out",              a:"Places where I can learn about the history or culture of a destination.",    b:"The most famous views and landmarks of the destination."},
   {id:8,  dim:"Adventure",  stem:"I enjoy travel experiences",              a:"That challenge me physically or mentally.",                                  b:"That are comfortable and calming."},
   {id:9,  dim:"Adventure",  stem:"I prefer destinations that are:",         a:"Remote, hard to reach, or less-visited.",                                    b:"Easy to access."},
   {id:10, dim:"Adventure",  stem:"Some of my best travel memories:",        a:"Involve doing something that pushed my limits.",                             b:"Involve relaxing and enjoying the surroundings."},
@@ -369,19 +386,19 @@ const QUESTIONS = [
   {id:19, dim:"Reflection", stem:"Travel experiences",                      a:"Often influence how I think about my life.",                                 b:"Deliver fun memories but rarely affect my life afterward."},
   {id:20, dim:"Reflection", stem:"When I encounter new lifestyles while traveling,", a:"I sometimes reconsider my own assumptions.",                        b:"I mostly observe them without questioning my own views."},
   {id:21, dim:"Reflection", stem:"Travel experiences",                      a:"Often lead me to look at my everyday life differently.",                     b:"Leave me refreshed and ready to return to my routine."},
-  {id:22, dim:"Connection", stem:"When I travel, I am most rewarded by:",   a:"Meeting local people and learning about their lives.",                       b:"Focusing on places that are well known and famous."},
-  {id:23, dim:"Connection", stem:"I enjoy travel experiences that",         a:"Allow me to spend time in the everyday life of a place.",                    b:"Allow me to see the most important highlights of a destination."},
+  {id:22, dim:"Connection", stem:"When I travel, I am most rewarded by:",   a:"Meeting local people and learning about their lives.",                       b:"Seeing and photographing famous places."},
+  {id:23, dim:"Connection", stem:"I enjoy travel experiences that",         a:"Let me actively participate in local traditions or daily activities.",        b:"Allow me to observe a place without getting too involved with locals or their traditions."},
   {id:24, dim:"Connection", stem:"When I travel, I prefer to:",             a:"Connect with people from different backgrounds.",                            b:"Experience a place mainly through its landscapes."},
-  {id:25, dim:"Connection", stem:"I enjoy travel experiences",              a:"That feel authentic and personal.",                                          b:"That involve visiting the major sites that everyone talks about."},
+  {id:25, dim:"Connection", stem:"I enjoy travel experiences",              a:"That feel authentic and personal.",                                          b:"That are designed and organized for visitors to enjoy."},
   {id:26, dim:"Connection", stem:"When I travel, I value,",                 a:"Meaningful interactions with people.",                                       b:"Efficiency and seeing many places."},
   {id:27, dim:"Connection", stem:"When I travel,",                          a:"I enjoy opportunities to share meals or conversations with local people.",    b:"I usually keep my interactions brief and focused on my list of sites to see."},
   {id:28, dim:"Connection", stem:"I feel most engaged when traveling",      a:"When I experience the daily life of a place.",                               b:"When visiting the major attractions of a place."},
   {id:29, dim:"Intention",  stem:"Before a trip,",                          a:"I think about what I hope to gain from the experience.",                     b:"I mainly focus on itineraries with logistics and activity plans."},
   {id:30, dim:"Intention",  stem:"Travel is a way for me",                  a:"To grow as a person.",                                                      b:"To relax and have fun."},
   {id:31, dim:"Intention",  stem:"I usually choose a trip",                 a:"That aligns with my interests or values.",                                   b:"That looks exciting or appealing."},
-  {id:32, dim:"Intention",  stem:"I want my travel experiences to",         a:"Connect to something I care deeply about.",                                  b:"Visit places that are popular or highly recommended."},
+  {id:32, dim:"Intention",  stem:"I want my travel experiences to",         a:"Connect to something I care deeply about.",                                  b:"Visit places that are popular or widely renown."},
   {id:33, dim:"Intention",  stem:"When I travel,",                          a:"I seek insight or perspective on life.",                                     b:"I seek enjoyment and escape."},
-  {id:34, dim:"Intention",  stem:"When I travel,",                          a:"I want to learn about the culture and traditions of the places I visit.",    b:"I mainly look up the best restaurants and attractions."},
+  {id:34, dim:"Intention",  stem:"When planning for a trip, I focus on:",   a:"Experiences that align with my interests or personal goals.",                 b:"Activities that look fun and enjoyable."},
   {id:35, dim:"Intention",  stem:"When I travel, I tend to think about,",   a:"How a trip might influence my perspective on life.",                         b:"Whether a trip will be enjoyable and relaxing."}
 ];
 
@@ -553,70 +570,92 @@ function zoneLabel(z, dim) {
 // ═══════════════════════════════════════════════
 const ARCHETYPES = {
   TT: {
-    icon: "🦋", name: "The Transformational Traveler",
-    tag: "All Forces Active",
+    icon: "🦋", name: "The Transformational Traveler", tag: "All Forces Active",
     desc: "You approach travel as a powerful path to personal growth. You seek experiences that combine curiosity, challenge, connection, immersion, and reflection. For you, travel is not just about seeing the world—it's about becoming a fuller version of yourself.",
-    photos: ["images/archetypes/TT1.png", "images/archetypes/TT2.png"]
+    photos: ["images/archetypes/TT1.png", "images/archetypes/TT2.png"],
+    trips: "Trips that combine exploration, meaningful encounters, and time for reflection will resonate most with you. Consider journeys that mix adventure and insight, such as cultural expeditions, wildlife safaris, walking pilgrimages, or small-group trips that emphasize learning and personal growth. Destinations with dramatic landscapes and rich traditions often create the most powerful experiences for you.",
+    global: "Nepal • Peru • Bhutan • Japan",
+    us: "Sedona • Grand Canyon National Park • Santa Fe • Glacier National Park • Denali National Park • Yosemite National Park"
   },
   MS: {
-    icon: "🏮", name: "Meaning Seeker",
-    tag: "Curiosity + Reflection",
+    icon: "🏮", name: "Meaning Seeker", tag: "Curiosity + Reflection",
     desc: "You travel to gain perspective and deeper understanding. Cultural insights, powerful landscapes, and reflective moments help you think about life in new ways. Your journeys often leave you changed.",
-    photos: ["images/archetypes/MS1.png", "images/archetypes/MS2.png"]
+    photos: ["images/archetypes/MS1.png", "images/archetypes/MS2.png"],
+    trips: "You'll be drawn to destinations that offer powerful stories, culture, and perspective. Historic cities, spiritual landscapes, and places that have shaped civilizations can provide the kind of depth you enjoy. Trips that include time for exploration as well as reflection—such as cultural journeys, heritage routes, or visits to iconic historical sites—often leave a lasting impression.",
+    global: "Jerusalem • India • Greece • Cambodia",
+    us: "Washington, D.C. • Gettysburg National Military Park • Boston"
   },
   NW: {
-    icon: "🌲", name: "Nature Wanderer",
-    tag: "Adventure + Reflection",
+    icon: "🌲", name: "Nature Wanderer", tag: "Adventure + Reflection",
     desc: "Wild landscapes are where you feel most alive. Mountains, oceans, forests, and wildlife create the kind of experiences that stay with you long after the trip ends. Nature gives you both adventure and space to reflect.",
-    photos: ["images/archetypes/NW1.png", "images/archetypes/NW2.png"]
+    photos: ["images/archetypes/NW1.png", "images/archetypes/NW2.png"],
+    trips: "Your best trips will place you in the heart of remarkable natural landscapes. National parks, mountain regions, remote coastlines, and wildlife-rich environments are especially appealing. Experiences like scenic hiking, wildlife watching, and quiet time in nature will help you feel connected to the places you visit.",
+    global: "Torres del Paine National Park • Denali National Park • Iceland • New Zealand",
+    us: "Denali National Park • Yellowstone National Park • Glacier National Park"
   },
   AS: {
-    icon: "⛰️", name: "Adventure Seeker",
-    tag: "Challenge",
+    icon: "⛰️", name: "Adventure Seeker", tag: "Challenge",
     desc: "You love travel that stretches your comfort zone. Hiking, exploring remote places, and active experiences energize you. The best trips are the ones that leave you feeling exhilarated and alive.",
-    photos: ["images/archetypes/AS1.png", "images/archetypes/AS2.png"]
+    photos: ["images/archetypes/AS1.png", "images/archetypes/AS2.png"],
+    trips: "You'll love trips that bring excitement and active exploration. Destinations that offer hiking, trekking, paddling, wildlife expeditions, or other outdoor challenges are likely to energize you. The most satisfying journeys are those that allow you to experience the landscape directly rather than simply observe it.",
+    global: "Patagonia • Nepal • Costa Rica • Iceland",
+    us: "Zion National Park • Grand Teton National Park • Arches National Park"
   },
   CE: {
-    icon: "🏛️", name: "Cultural Explorer",
-    tag: "Curiosity",
+    icon: "🏛️", name: "Cultural Explorer", tag: "Curiosity",
     desc: "You travel to learn about the world. History, art, architecture, and traditions fascinate you, and you enjoy discovering the stories behind the places you visit. Each destination becomes an opportunity to expand your understanding.",
-    photos: ["images/archetypes/CE1.png", "images/archetypes/CE2.png"]
+    photos: ["images/archetypes/CE1.png", "images/archetypes/CE2.png"],
+    trips: "Your ideal trips will immerse you in history, art, architecture, and cultural traditions. Cities rich in heritage, archaeological sites, museums, and historic neighborhoods will naturally draw your interest. Guided cultural tours or itineraries that provide context and storytelling often make your travel especially rewarding.",
+    global: "Italy • France • Japan • Turkey",
+    us: "Charleston • New Orleans • Santa Fe"
   },
   DI: {
-    icon: "📍", name: "Deep Immersion",
-    tag: "Immersion",
+    icon: "📍", name: "Deep Immersion", tag: "Immersion",
     desc: "You want to experience places from the inside rather than simply observe them. Local food, authentic neighborhoods, and everyday culture matter to you. Your goal is to feel what life is like in a place.",
-    photos: ["images/archetypes/DI1.png", "images/archetypes/DI2.png"]
+    photos: ["images/archetypes/DI1.png", "images/archetypes/DI2.png"],
+    trips: "Trips that allow you to experience everyday life in a destination will appeal to you most. Staying in local neighborhoods, exploring markets, taking cooking classes, or spending extended time in one place can create the kind of authentic experiences you value. Slower travel often brings the richest rewards.",
+    global: "Vietnam • Morocco • Mexico • Portugal",
+    us: "New Orleans • San Antonio • Savannah"
   },
   CON: {
-    icon: "🤝", name: "Connector",
-    tag: "Connection",
+    icon: "🤝", name: "Connector", tag: "Connection",
     desc: "People are what make travel meaningful for you. Conversations with locals, shared meals, and unexpected friendships often become the most memorable parts of your trips. You see travel as a way to understand humanity.",
-    photos: ["images/archetypes/CON1.png", "images/archetypes/Con2.png"]
+    photos: ["images/archetypes/CON1.png", "images/archetypes/Con2.png"],
+    trips: "Journeys that create opportunities to meet people and share experiences will stand out for you. Small group travel, cultural exchanges, community-based tourism, and shared activities like cooking classes or guided local experiences often lead to memorable connections. The people you meet will often define the destination for you.",
+    global: "Ireland • Thailand • Italy • New Zealand",
+    us: "Nashville • Austin • New Orleans"
   },
   REF: {
-    icon: "🌅", name: "Reflector",
-    tag: "Reflection",
+    icon: "🌅", name: "Reflector", tag: "Reflection",
     desc: "Travel gives you space to slow down and think deeply. Quiet moments—watching a sunrise, journaling, or simply observing a place—are as meaningful as the activities themselves. Your journeys often bring clarity and insight.",
-    photos: ["images/archetypes/REF1.png", "images/archetypes/REF2.png"]
+    photos: ["images/archetypes/REF1.png", "images/archetypes/REF2.png"],
+    trips: "Trips that offer both beauty and quiet space will suit you best. Scenic destinations where you can slow down—coastal retreats, mountain lodges, cultural villages, or peaceful landscapes—allow you to absorb your surroundings and reflect on your experiences. Unhurried travel often leads to your most meaningful moments.",
+    global: "Iceland • Bhutan • Scotland • Canada",
+    us: "Big Sur • Acadia National Park • Sedona"
   },
   CA: {
-    icon: "🛤️", name: "Comfort Adventurer",
-    tag: "Balanced Adventure",
+    icon: "🛤️", name: "Comfort Adventurer", tag: "Balanced Adventure",
     desc: "You enjoy a sense of adventure while still appreciating comfort and balance. Scenic hikes, wildlife encounters, and unique experiences appeal to you when they are well planned and accessible. Your trips blend excitement with ease.",
-    photos: ["images/archetypes/CA1.png", "images/archetypes/CA2.png"]
+    photos: ["images/archetypes/CA1.png", "images/archetypes/CA2.png"],
+    trips: "You'll enjoy trips that blend discovery with comfort and thoughtful planning. Destinations with accessible outdoor activities, scenic landscapes, and well-developed tourism infrastructure are ideal. Guided excursions, wildlife viewing, and moderate hikes can provide a sense of adventure without feeling overwhelming.",
+    global: "Alaska • Norway • Canada • Switzerland",
+    us: "Alaska • Yosemite National Park • Jackson Hole"
   },
   JW: {
-    icon: "✈️", name: "Joyful Wanderer",
-    tag: "Open Explorer",
+    icon: "✈️", name: "Joyful Wanderer", tag: "Open Explorer",
     desc: "You travel for the joy of discovery and variety. A little culture, a little scenery, good food, and memorable moments all contribute to a great trip. You enjoy the freedom of letting travel unfold naturally.",
-    photos: ["images/archetypes/JW1.png", "images/archetypes/JW2.png"]
+    photos: ["images/archetypes/JW1.png", "images/archetypes/JW2.png"],
+    trips: "Trips with variety and flexibility will suit your style best. Destinations that combine culture, scenery, food, and enjoyable activities allow you to explore freely and follow your curiosity. A balanced itinerary with room for spontaneous discoveries often leads to the most memorable experiences.",
+    global: "Spain • Portugal • Australia • Thailand",
+    us: "San Diego • Key West • Charleston"
   },
   EGT: {
-    icon: "🏖️", name: "Easy Going Traveler",
-    tag: "Relaxed Explorer",
+    icon: "🏖️", name: "Easy Going Traveler", tag: "Relaxed Explorer",
     desc: "Travel for you is about relaxation and enjoyment rather than pursuing a specific style of exploration. You appreciate pleasant places, good company, and going with the flow. The best trips are the ones that feel effortless.",
-    photos: ["images/archetypes/EGT1.png", "images/archetypes/EGT2.png"]
+    photos: ["images/archetypes/EGT1.png", "images/archetypes/EGT2.png"],
+    trips: "Relaxing destinations where you can enjoy the atmosphere without a demanding schedule will appeal to you. Beach towns, scenic regions, charming cities, and comfortable resorts often provide the kind of travel experience you enjoy. The best trips are the ones that feel effortless and allow you to simply enjoy being there.",
+    global: "Hawaii • The Bahamas • Southern France • California",
+    us: "Hawaii • Maui • Naples"
   }
 };
 
@@ -843,6 +882,11 @@ function buildResults() {
 
   // Dimension bars
   buildDimBars(raw);
+
+  // Trips & Destinations
+  document.getElementById('trips-desc').textContent  = arch.trips;
+  document.getElementById('dest-global').textContent = arch.global;
+  document.getElementById('dest-us').textContent     = arch.us;
 
   // Activities (returns list for saving)
   const topActivities = buildActivities(raw);
