@@ -111,6 +111,7 @@
     /* ARCHETYPE CARD */
     .archetype-card { background: linear-gradient(135deg, var(--s1) 0%, var(--s2) 100%); border: 1px solid rgba(45,212,191,0.35); border-radius: 16px; padding: 36px 32px; margin-bottom: 40px; text-align: center; }
     .archetype-icon { font-size: 3.5rem; margin-bottom: 12px; }
+    .archetype-icon-img { width: 100px; height: 100px; object-fit: contain; margin: 0 auto 16px; display: block; }
     .archetype-tag { display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); background: var(--tdim); border: 1px solid rgba(45,212,191,0.3); border-radius: 20px; padding: 4px 14px; margin-bottom: 14px; }
     .archetype-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.85rem; color: #fff; margin-bottom: 14px; }
     .archetype-desc { color: var(--soft); font-size: 0.97rem; line-height: 1.75; margin-bottom: 22px; max-width: 520px; margin-left: auto; margin-right: auto; }
@@ -570,7 +571,7 @@ function zoneLabel(z, dim) {
 // ═══════════════════════════════════════════════
 const ARCHETYPES = {
   TT: {
-    icon: "🦋", name: "The Transformational Traveler", tag: "All Forces Active",
+    icon: "🦋", iconImg: "images/archetypes/TT Icon.png", name: "The Transformational Traveler", tag: "All Forces Active",
     desc: "You approach travel as a powerful path to personal growth. You seek experiences that combine curiosity, challenge, connection, immersion, and reflection. For you, travel is not just about seeing the world—it's about becoming a fuller version of yourself.",
     photos: ["images/archetypes/TT1.png", "images/archetypes/TT2.png"],
     trips: "Trips that combine exploration, meaningful encounters, and time for reflection will resonate most with you. Consider journeys that mix adventure and insight, such as cultural expeditions, wildlife safaris, walking pilgrimages, or small-group trips that emphasize learning and personal growth. Destinations with dramatic landscapes and rich traditions often create the most powerful experiences for you.",
@@ -578,7 +579,7 @@ const ARCHETYPES = {
     us: "Sedona • Grand Canyon National Park • Santa Fe • Glacier National Park • Denali National Park • Yosemite National Park"
   },
   MS: {
-    icon: "🏮", name: "Meaning Seeker", tag: "Curiosity + Reflection",
+    icon: "🏮", iconImg: "images/archetypes/MS Icon.png", name: "Meaning Seeker", tag: "Curiosity + Reflection",
     desc: "You travel to gain perspective and deeper understanding. Cultural insights, powerful landscapes, and reflective moments help you think about life in new ways. Your journeys often leave you changed.",
     photos: ["images/archetypes/MS1.png", "images/archetypes/MS2.png"],
     trips: "You'll be drawn to destinations that offer powerful stories, culture, and perspective. Historic cities, spiritual landscapes, and places that have shaped civilizations can provide the kind of depth you enjoy. Trips that include time for exploration as well as reflection—such as cultural journeys, heritage routes, or visits to iconic historical sites—often leave a lasting impression.",
@@ -586,7 +587,7 @@ const ARCHETYPES = {
     us: "Washington, D.C. • Gettysburg National Military Park • Boston"
   },
   NW: {
-    icon: "🌲", name: "Nature Wanderer", tag: "Adventure + Reflection",
+    icon: "🌲", iconImg: "images/archetypes/NW Icon.png", name: "Nature Wanderer", tag: "Adventure + Reflection",
     desc: "Wild landscapes are where you feel most alive. Mountains, oceans, forests, and wildlife create the kind of experiences that stay with you long after the trip ends. Nature gives you both adventure and space to reflect.",
     photos: ["images/archetypes/NW1.png", "images/archetypes/NW2.png"],
     trips: "Your best trips will place you in the heart of remarkable natural landscapes. National parks, mountain regions, remote coastlines, and wildlife-rich environments are especially appealing. Experiences like scenic hiking, wildlife watching, and quiet time in nature will help you feel connected to the places you visit.",
@@ -594,7 +595,7 @@ const ARCHETYPES = {
     us: "Denali National Park • Yellowstone National Park • Glacier National Park"
   },
   AS: {
-    icon: "⛰️", name: "Adventure Seeker", tag: "Challenge",
+    icon: "⛰️", iconImg: null, name: "Adventure Seeker", tag: "Challenge",
     desc: "You love travel that stretches your comfort zone. Hiking, exploring remote places, and active experiences energize you. The best trips are the ones that leave you feeling exhilarated and alive.",
     photos: ["images/archetypes/AS1.png", "images/archetypes/AS2.png"],
     trips: "You'll love trips that bring excitement and active exploration. Destinations that offer hiking, trekking, paddling, wildlife expeditions, or other outdoor challenges are likely to energize you. The most satisfying journeys are those that allow you to experience the landscape directly rather than simply observe it.",
@@ -602,7 +603,7 @@ const ARCHETYPES = {
     us: "Zion National Park • Grand Teton National Park • Arches National Park"
   },
   CE: {
-    icon: "🏛️", name: "Cultural Explorer", tag: "Curiosity",
+    icon: "🏛️", iconImg: "images/archetypes/CE Icon.png", name: "Cultural Explorer", tag: "Curiosity",
     desc: "You travel to learn about the world. History, art, architecture, and traditions fascinate you, and you enjoy discovering the stories behind the places you visit. Each destination becomes an opportunity to expand your understanding.",
     photos: ["images/archetypes/CE1.png", "images/archetypes/CE2.png"],
     trips: "Your ideal trips will immerse you in history, art, architecture, and cultural traditions. Cities rich in heritage, archaeological sites, museums, and historic neighborhoods will naturally draw your interest. Guided cultural tours or itineraries that provide context and storytelling often make your travel especially rewarding.",
@@ -610,7 +611,7 @@ const ARCHETYPES = {
     us: "Charleston • New Orleans • Santa Fe"
   },
   DI: {
-    icon: "📍", name: "Deep Immersion", tag: "Immersion",
+    icon: "📍", iconImg: "images/archetypes/DI Icon.png", name: "Deep Immersion", tag: "Immersion",
     desc: "You want to experience places from the inside rather than simply observe them. Local food, authentic neighborhoods, and everyday culture matter to you. Your goal is to feel what life is like in a place.",
     photos: ["images/archetypes/DI1.png", "images/archetypes/DI2.png"],
     trips: "Trips that allow you to experience everyday life in a destination will appeal to you most. Staying in local neighborhoods, exploring markets, taking cooking classes, or spending extended time in one place can create the kind of authentic experiences you value. Slower travel often brings the richest rewards.",
@@ -618,7 +619,7 @@ const ARCHETYPES = {
     us: "New Orleans • San Antonio • Savannah"
   },
   CON: {
-    icon: "🤝", name: "Connector", tag: "Connection",
+    icon: "🤝", iconImg: "images/archetypes/CON Icon.png", name: "Connector", tag: "Connection",
     desc: "People are what make travel meaningful for you. Conversations with locals, shared meals, and unexpected friendships often become the most memorable parts of your trips. You see travel as a way to understand humanity.",
     photos: ["images/archetypes/CON1.png", "images/archetypes/Con2.png"],
     trips: "Journeys that create opportunities to meet people and share experiences will stand out for you. Small group travel, cultural exchanges, community-based tourism, and shared activities like cooking classes or guided local experiences often lead to memorable connections. The people you meet will often define the destination for you.",
@@ -626,7 +627,7 @@ const ARCHETYPES = {
     us: "Nashville • Austin • New Orleans"
   },
   REF: {
-    icon: "🌅", name: "Reflector", tag: "Reflection",
+    icon: "🌅", iconImg: "images/archetypes/REF Icon.png", name: "Reflector", tag: "Reflection",
     desc: "Travel gives you space to slow down and think deeply. Quiet moments—watching a sunrise, journaling, or simply observing a place—are as meaningful as the activities themselves. Your journeys often bring clarity and insight.",
     photos: ["images/archetypes/REF1.png", "images/archetypes/REF2.png"],
     trips: "Trips that offer both beauty and quiet space will suit you best. Scenic destinations where you can slow down—coastal retreats, mountain lodges, cultural villages, or peaceful landscapes—allow you to absorb your surroundings and reflect on your experiences. Unhurried travel often leads to your most meaningful moments.",
@@ -634,7 +635,7 @@ const ARCHETYPES = {
     us: "Big Sur • Acadia National Park • Sedona"
   },
   CA: {
-    icon: "🛤️", name: "Comfort Adventurer", tag: "Balanced Adventure",
+    icon: "🛤️", iconImg: "images/archetypes/CA Icon.png", name: "Comfort Adventurer", tag: "Balanced Adventure",
     desc: "You enjoy a sense of adventure while still appreciating comfort and balance. Scenic hikes, wildlife encounters, and unique experiences appeal to you when they are well planned and accessible. Your trips blend excitement with ease.",
     photos: ["images/archetypes/CA1.png", "images/archetypes/CA2.png"],
     trips: "You'll enjoy trips that blend discovery with comfort and thoughtful planning. Destinations with accessible outdoor activities, scenic landscapes, and well-developed tourism infrastructure are ideal. Guided excursions, wildlife viewing, and moderate hikes can provide a sense of adventure without feeling overwhelming.",
@@ -642,7 +643,7 @@ const ARCHETYPES = {
     us: "Alaska • Yosemite National Park • Jackson Hole"
   },
   JW: {
-    icon: "✈️", name: "Joyful Wanderer", tag: "Open Explorer",
+    icon: "✈️", iconImg: "images/archetypes/JW Icon.png", name: "Joyful Wanderer", tag: "Open Explorer",
     desc: "You travel for the joy of discovery and variety. A little culture, a little scenery, good food, and memorable moments all contribute to a great trip. You enjoy the freedom of letting travel unfold naturally.",
     photos: ["images/archetypes/JW1.png", "images/archetypes/JW2.png"],
     trips: "Trips with variety and flexibility will suit your style best. Destinations that combine culture, scenery, food, and enjoyable activities allow you to explore freely and follow your curiosity. A balanced itinerary with room for spontaneous discoveries often leads to the most memorable experiences.",
@@ -650,7 +651,7 @@ const ARCHETYPES = {
     us: "San Diego • Key West • Charleston"
   },
   EGT: {
-    icon: "🏖️", name: "Easy Going Traveler", tag: "Relaxed Explorer",
+    icon: "🏖️", iconImg: "images/archetypes/EGT Icon.png", name: "Easy Going Traveler", tag: "Relaxed Explorer",
     desc: "Travel for you is about relaxation and enjoyment rather than pursuing a specific style of exploration. You appreciate pleasant places, good company, and going with the flow. The best trips are the ones that feel effortless.",
     photos: ["images/archetypes/EGT1.png", "images/archetypes/EGT2.png"],
     trips: "Relaxing destinations where you can enjoy the atmosphere without a demanding schedule will appeal to you. Beach towns, scenic regions, charming cities, and comfortable resorts often provide the kind of travel experience you enjoy. The best trips are the ones that feel effortless and allow you to simply enjoy being there.",
@@ -868,7 +869,9 @@ function buildResults() {
   // Archetype
   const arch = getArchetype(raw);
   document.getElementById('archetype-card').innerHTML = `
-    <div class="archetype-icon">${arch.icon}</div>
+    ${arch.iconImg
+      ? `<img src="${arch.iconImg}" alt="${arch.name}" class="archetype-icon-img" />`
+      : `<div class="archetype-icon">${arch.icon}</div>`}
     <div class="archetype-tag">${arch.tag}</div>
     <h2 class="archetype-name">${arch.name}</h2>
     <p class="archetype-desc">${arch.desc}</p>
