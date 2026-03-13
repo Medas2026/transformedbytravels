@@ -670,69 +670,136 @@ const TRAVEL_MATRIX = [
   {name:"Scenic train journeys",                 Cur:2,Imm:2,Cha:1,Con:1,Ref:3}
 ];
 
-// Destinations (Continent, Country, Name, Curiosity, Immersion=Connection, Challenge=Adventure, Connection=Intention, Reflection)
+// Destinations (Continent, Country, Name, Curiosity, Adventure, Connection, Intention, Reflection) — scores 1-10
 const DESTINATIONS = [
-  {continent:"South America",  country:"Peru",        name:"Machu Picchu",                   Cur:5,Imm:3,Cha:3,Con:2,Ref:5},
-  {continent:"South America",  country:"Argentina",   name:"Los Glaciares",                  Cur:3,Imm:3,Cha:5,Con:2,Ref:5},
-  {continent:"South America",  country:"Argentina",   name:"Ushuaia",                        Cur:3,Imm:2,Cha:4,Con:2,Ref:5},
-  {continent:"South America",  country:"Argentina",   name:"Valdes Peninsula",               Cur:4,Imm:3,Cha:2,Con:2,Ref:5},
-  {continent:"South America",  country:"Chile",       name:"Torres del Paine NP",            Cur:3,Imm:3,Cha:5,Con:2,Ref:5},
-  {continent:"South America",  country:"Chile",       name:"Strait of Magellan",             Cur:4,Imm:2,Cha:3,Con:1,Ref:5},
-  {continent:"South America",  country:"Chile",       name:"Atacama Desert",                 Cur:3,Imm:2,Cha:3,Con:1,Ref:5},
-  {continent:"South America",  country:"Ecuador",     name:"Galapagos",                      Cur:4,Imm:4,Cha:3,Con:2,Ref:5},
-  {continent:"South America",  country:"Ecuador",     name:"Yasuni National Park",           Cur:5,Imm:4,Cha:3,Con:3,Ref:5},
-  {continent:"South America",  country:"Bolivia",     name:"Salar de Uyuni",                 Cur:3,Imm:2,Cha:3,Con:1,Ref:5},
-  {continent:"South America",  country:"Brazil",      name:"Iguazu Falls",                   Cur:3,Imm:2,Cha:2,Con:2,Ref:5},
-  {continent:"South America",  country:"Brazil",      name:"Amazon Rain Forest",             Cur:4,Imm:4,Cha:3,Con:3,Ref:5},
-  {continent:"South America",  country:"Brazil",      name:"Rio de Janeiro",                 Cur:4,Imm:4,Cha:3,Con:4,Ref:3},
-  {continent:"South America",  country:"Brazil",      name:"Pantanal",                       Cur:4,Imm:3,Cha:3,Con:2,Ref:5},
-  {continent:"Central America",country:"Costa Rica",  name:"Arenal Volcano",                 Cur:3,Imm:3,Cha:4,Con:3,Ref:4},
-  {continent:"Central America",country:"Costa Rica",  name:"Monteverde Rain Forest",         Cur:4,Imm:4,Cha:3,Con:2,Ref:5},
-  {continent:"Central America",country:"Costa Rica",  name:"Corcovado",                      Cur:4,Imm:4,Cha:4,Con:2,Ref:5},
-  {continent:"Central America",country:"Costa Rica",  name:"Osa Peninsula",                  Cur:4,Imm:4,Cha:4,Con:2,Ref:5},
-  {continent:"Central America",country:"Belize",      name:"Great Barrier Reef",             Cur:3,Imm:3,Cha:3,Con:2,Ref:4},
-  {continent:"Central America",country:"Panama",      name:"Bocas Del Toro",                 Cur:3,Imm:4,Cha:2,Con:3,Ref:4},
-  {continent:"Central America",country:"Panama",      name:"Soberanía National Park",        Cur:4,Imm:3,Cha:2,Con:2,Ref:4},
-  {continent:"Central America",country:"Honduras",    name:"Roatan",                         Cur:3,Imm:3,Cha:3,Con:3,Ref:4},
-  {continent:"South Pacific",  country:"Tahiti",      name:"Bora Bora",                      Cur:3,Imm:3,Cha:2,Con:3,Ref:5},
-  {continent:"South Pacific",  country:"Tahiti",      name:"Moorea",                         Cur:3,Imm:4,Cha:3,Con:3,Ref:5},
-  {continent:"South Pacific",  country:"Tahiti",      name:"Fakarava",                       Cur:3,Imm:3,Cha:4,Con:2,Ref:5},
-  {continent:"South Pacific",  country:"Fiji",        name:"Taveuni Island",                 Cur:3,Imm:4,Cha:3,Con:3,Ref:5},
-  {continent:"South Pacific",  country:"Fiji",        name:"Yasawa Islands",                 Cur:2,Imm:4,Cha:3,Con:3,Ref:5},
-  {continent:"South Pacific",  country:"Fiji",        name:"Savusavu Bay",                   Cur:2,Imm:4,Cha:2,Con:3,Ref:4},
-  {continent:"South Pacific",  country:"New Zealand", name:"General NZ",                     Cur:3,Imm:3,Cha:4,Con:3,Ref:5},
-  {continent:"South Pacific",  country:"New Zealand", name:"Milford Sound",                  Cur:2,Imm:3,Cha:3,Con:2,Ref:5},
-  {continent:"South Pacific",  country:"New Zealand", name:"Bay of Islands",                 Cur:3,Imm:3,Cha:2,Con:3,Ref:4},
-  {continent:"South Pacific",  country:"New Zealand", name:"Doubtful Sound",                 Cur:2,Imm:3,Cha:3,Con:2,Ref:5},
-  {continent:"South Pacific",  country:"New Zealand", name:"Mount Cook",                     Cur:3,Imm:3,Cha:4,Con:2,Ref:5},
-  {continent:"South Pacific",  country:"New Zealand", name:"Rotorua",                        Cur:4,Imm:4,Cha:2,Con:3,Ref:4},
-  {continent:"South Pacific",  country:"New Zealand", name:"Abel Tasman National Park",      Cur:3,Imm:4,Cha:3,Con:2,Ref:5},
-  {continent:"South Pacific",  country:"New Zealand", name:"Tongariro National Park",        Cur:3,Imm:3,Cha:5,Con:2,Ref:5},
-  {continent:"South Pacific",  country:"New Zealand", name:"Franz Josef Glacier",            Cur:3,Imm:3,Cha:4,Con:2,Ref:5},
-  {continent:"South Pacific",  country:"New Zealand", name:"Kaikōura",                       Cur:3,Imm:3,Cha:2,Con:2,Ref:5},
-  {continent:"South Pacific",  country:"Micronesia",  name:"Palau",                          Cur:4,Imm:3,Cha:4,Con:2,Ref:5},
+  // South America
+  {continent:"South America",  country:"Peru",        name:"Machu Picchu",                   Cur:10,Adv:6, Con:6, Int:4, Ref:10},
+  {continent:"South America",  country:"Argentina",   name:"Los Glaciares",                  Cur:6, Adv:10,Con:6, Int:4, Ref:10},
+  {continent:"South America",  country:"Argentina",   name:"Ushuaia",                        Cur:6, Adv:8, Con:4, Int:4, Ref:10},
+  {continent:"South America",  country:"Argentina",   name:"Valdes Peninsula",               Cur:8, Adv:4, Con:6, Int:4, Ref:10},
+  {continent:"South America",  country:"Chile",       name:"Torres del Paine NP",            Cur:6, Adv:10,Con:6, Int:4, Ref:10},
+  {continent:"South America",  country:"Chile",       name:"Strait of Magellan",             Cur:8, Adv:6, Con:4, Int:2, Ref:10},
+  {continent:"South America",  country:"Chile",       name:"Atacama Desert",                 Cur:6, Adv:6, Con:4, Int:2, Ref:10},
+  {continent:"South America",  country:"Ecuador",     name:"Galapagos",                      Cur:8, Adv:6, Con:8, Int:4, Ref:10},
+  {continent:"South America",  country:"Ecuador",     name:"Yasuni National Park",           Cur:10,Adv:6, Con:8, Int:6, Ref:10},
+  {continent:"South America",  country:"Bolivia",     name:"Salar de Uyuni",                 Cur:6, Adv:6, Con:4, Int:2, Ref:10},
+  {continent:"South America",  country:"Brazil",      name:"Iguazu Falls",                   Cur:6, Adv:4, Con:4, Int:4, Ref:10},
+  {continent:"South America",  country:"Brazil",      name:"Amazon Rain Forest",             Cur:8, Adv:6, Con:8, Int:6, Ref:10},
+  {continent:"South America",  country:"Brazil",      name:"Rio de Janeiro",                 Cur:8, Adv:6, Con:8, Int:8, Ref:6},
+  {continent:"South America",  country:"Brazil",      name:"Pantanal",                       Cur:8, Adv:6, Con:6, Int:4, Ref:10},
+  // Central America
+  {continent:"Central America",country:"Costa Rica",  name:"Arenal Volcano",                 Cur:6, Adv:8, Con:6, Int:6, Ref:8},
+  {continent:"Central America",country:"Costa Rica",  name:"Monteverde Rain Forest",         Cur:8, Adv:6, Con:8, Int:4, Ref:10},
+  {continent:"Central America",country:"Costa Rica",  name:"Corcovado",                      Cur:8, Adv:8, Con:8, Int:4, Ref:10},
+  {continent:"Central America",country:"Costa Rica",  name:"Osa Peninsula",                  Cur:8, Adv:8, Con:8, Int:4, Ref:10},
+  {continent:"Central America",country:"Belize",      name:"Belize Barrier Reef",            Cur:6, Adv:6, Con:6, Int:4, Ref:8},
+  {continent:"Central America",country:"Panama",      name:"Bocas Del Toro",                 Cur:6, Adv:4, Con:8, Int:6, Ref:8},
+  {continent:"Central America",country:"Panama",      name:"Soberanía National Park",        Cur:8, Adv:4, Con:6, Int:4, Ref:8},
+  {continent:"Central America",country:"Honduras",    name:"Roatan",                         Cur:6, Adv:6, Con:6, Int:6, Ref:8},
+  // South Pacific
+  {continent:"South Pacific",  country:"Tahiti",      name:"Bora Bora",                      Cur:6, Adv:4, Con:6, Int:6, Ref:10},
+  {continent:"South Pacific",  country:"Tahiti",      name:"Moorea",                         Cur:6, Adv:6, Con:8, Int:6, Ref:10},
+  {continent:"South Pacific",  country:"Tahiti",      name:"Fakarava",                       Cur:6, Adv:8, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"Fiji",        name:"Taveuni Island",                 Cur:6, Adv:6, Con:8, Int:6, Ref:10},
+  {continent:"South Pacific",  country:"Fiji",        name:"Yasawa Islands",                 Cur:4, Adv:6, Con:8, Int:6, Ref:10},
+  {continent:"South Pacific",  country:"Fiji",        name:"Savusavu Bay",                   Cur:4, Adv:4, Con:8, Int:6, Ref:8},
+  {continent:"South Pacific",  country:"New Zealand", name:"Milford Sound",                  Cur:4, Adv:6, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Bay of Islands",                 Cur:6, Adv:4, Con:6, Int:6, Ref:8},
+  {continent:"South Pacific",  country:"New Zealand", name:"Doubtful Sound",                 Cur:4, Adv:6, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Mount Cook",                     Cur:6, Adv:8, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Rotorua",                        Cur:8, Adv:4, Con:8, Int:6, Ref:8},
+  {continent:"South Pacific",  country:"New Zealand", name:"Abel Tasman National Park",      Cur:6, Adv:6, Con:8, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Tongariro National Park",        Cur:6, Adv:10,Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Franz Josef Glacier",            Cur:6, Adv:8, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Kaikōura",                       Cur:6, Adv:4, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"Micronesia",  name:"Palau",                          Cur:8, Adv:8, Con:6, Int:4, Ref:10},
+  // Australia
+  {continent:"Australia",      country:"Australia",   name:"Great Barrier Reef",             Cur:8, Adv:7, Con:6, Int:5, Ref:7},
+  {continent:"Australia",      country:"Australia",   name:"Daintree Rainforest",            Cur:8, Adv:6, Con:6, Int:4, Ref:9},
+  {continent:"Australia",      country:"Australia",   name:"Uluru",                          Cur:8, Adv:4, Con:5, Int:9, Ref:10},
+  {continent:"Australia",      country:"Australia",   name:"Kakadu National Park",           Cur:8, Adv:5, Con:6, Int:7, Ref:8},
+  {continent:"Australia",      country:"Australia",   name:"Tasmania",                       Cur:7, Adv:8, Con:5, Int:4, Ref:9},
+  {continent:"Australia",      country:"Australia",   name:"The Kimberley",                  Cur:7, Adv:9, Con:5, Int:4, Ref:9},
+  {continent:"Australia",      country:"Australia",   name:"Whitsunday Islands",             Cur:6, Adv:6, Con:6, Int:6, Ref:8},
+  // Oceania
+  {continent:"Oceania",        country:"Papua New Guinea", name:"Sepik River",               Cur:10,Adv:8, Con:7, Int:6, Ref:7},
+  {continent:"Oceania",        country:"Vanuatu",     name:"Vanuatu Islands",                Cur:7, Adv:8, Con:7, Int:5, Ref:8},
+  {continent:"Oceania",        country:"Solomon Islands", name:"Solomon Islands",            Cur:8, Adv:7, Con:7, Int:4, Ref:8},
+  {continent:"Oceania",        country:"Samoa",       name:"Samoa",                          Cur:6, Adv:6, Con:8, Int:6, Ref:8},
+  {continent:"Oceania",        country:"Tonga",       name:"Tonga",                          Cur:6, Adv:7, Con:7, Int:5, Ref:9},
+  // Southeast Asia
+  {continent:"Southeast Asia", country:"Indonesia",   name:"Bali",                           Cur:7, Adv:5, Con:7, Int:8, Ref:8},
+  {continent:"Southeast Asia", country:"Indonesia",   name:"Komodo Islands",                 Cur:8, Adv:9, Con:5, Int:5, Ref:7},
+  {continent:"Southeast Asia", country:"Indonesia",   name:"Borobudur",                      Cur:9, Adv:4, Con:6, Int:9, Ref:9},
+  {continent:"Southeast Asia", country:"Cambodia",    name:"Angkor Wat",                     Cur:10,Adv:4, Con:6, Int:8, Ref:8},
+  {continent:"Southeast Asia", country:"Vietnam",     name:"Ha Long Bay",                    Cur:7, Adv:6, Con:5, Int:5, Ref:9},
+  {continent:"Southeast Asia", country:"Vietnam",     name:"Hoi An",                         Cur:8, Adv:4, Con:7, Int:7, Ref:7},
+  {continent:"Southeast Asia", country:"Laos",        name:"Luang Prabang",                  Cur:8, Adv:4, Con:7, Int:8, Ref:9},
+  {continent:"Southeast Asia", country:"Thailand",    name:"Chiang Mai",                     Cur:8, Adv:5, Con:8, Int:7, Ref:7},
+  {continent:"Southeast Asia", country:"Philippines", name:"Palawan",                        Cur:7, Adv:8, Con:6, Int:5, Ref:9},
+  {continent:"Southeast Asia", country:"Myanmar",     name:"Bagan",                          Cur:9, Adv:4, Con:6, Int:9, Ref:9},
+  // Asia
+  {continent:"Asia",           country:"Japan",       name:"Kyoto",                          Cur:9, Adv:4, Con:6, Int:9, Ref:9},
+  {continent:"Asia",           country:"Japan",       name:"Tokyo",                          Cur:10,Adv:5, Con:7, Int:6, Ref:5},
+  {continent:"Asia",           country:"Bhutan",      name:"Bhutan",                         Cur:9, Adv:7, Con:7, Int:10,Ref:10},
+  {continent:"Asia",           country:"Tibet",       name:"Tibet",                          Cur:9, Adv:7, Con:5, Int:10,Ref:10},
+  {continent:"Asia",           country:"Uzbekistan",  name:"Silk Road / Samarkand",          Cur:10,Adv:6, Con:6, Int:8, Ref:8},
+  {continent:"Asia",           country:"India",       name:"Varanasi",                       Cur:9, Adv:5, Con:7, Int:10,Ref:9},
+  {continent:"Asia",           country:"India",       name:"Rajasthan",                      Cur:9, Adv:5, Con:7, Int:8, Ref:7},
+  {continent:"Asia",           country:"Nepal",       name:"Himalayas / Everest Base Camp",  Cur:8, Adv:10,Con:6, Int:9, Ref:10},
+  {continent:"Asia",           country:"China",       name:"Zhangjiajie",                    Cur:8, Adv:7, Con:5, Int:7, Ref:9},
+  {continent:"Asia",           country:"Mongolia",    name:"Gobi Desert & Steppe",           Cur:8, Adv:8, Con:5, Int:7, Ref:10},
+  // Africa
+  {continent:"Africa",         country:"Tanzania",    name:"Serengeti",                      Cur:9, Adv:7, Con:5, Int:7, Ref:9},
+  {continent:"Africa",         country:"Tanzania",    name:"Zanzibar",                       Cur:7, Adv:5, Con:7, Int:7, Ref:8},
+  {continent:"Africa",         country:"Botswana",    name:"Okavango Delta",                 Cur:9, Adv:7, Con:5, Int:6, Ref:9},
+  {continent:"Africa",         country:"Morocco",     name:"Sahara Desert",                  Cur:7, Adv:8, Con:4, Int:7, Ref:10},
+  {continent:"Africa",         country:"Morocco",     name:"Marrakech",                      Cur:9, Adv:5, Con:8, Int:7, Ref:6},
+  {continent:"Africa",         country:"Zimbabwe",    name:"Victoria Falls",                 Cur:7, Adv:8, Con:5, Int:5, Ref:8},
+  {continent:"Africa",         country:"Rwanda",      name:"Gorilla Trekking",               Cur:9, Adv:8, Con:6, Int:8, Ref:8},
+  {continent:"Africa",         country:"South Africa",name:"Cape Town",                      Cur:8, Adv:7, Con:7, Int:6, Ref:7},
+  {continent:"Africa",         country:"Kenya",       name:"Lamu Island",                    Cur:8, Adv:4, Con:8, Int:7, Ref:8},
+  {continent:"Africa",         country:"Ethiopia",    name:"Ethiopian Highlands",            Cur:9, Adv:7, Con:7, Int:8, Ref:9},
   // North America — USA
-  {continent:"North America",  country:"USA",         name:"Grand Canyon",                   Cur:2,Imm:2,Cha:3,Con:1,Ref:5},
-  {continent:"North America",  country:"USA",         name:"Yellowstone National Park",      Cur:3,Imm:2,Cha:2,Con:2,Ref:5},
-  {continent:"North America",  country:"USA",         name:"Alaska / Denali",                Cur:3,Imm:3,Cha:5,Con:2,Ref:5},
-  {continent:"North America",  country:"USA",         name:"Hawaii — Big Island",            Cur:3,Imm:3,Cha:3,Con:2,Ref:5},
-  {continent:"North America",  country:"USA",         name:"Yosemite National Park",         Cur:2,Imm:2,Cha:3,Con:2,Ref:5},
-  {continent:"North America",  country:"USA",         name:"New Orleans",                    Cur:4,Imm:5,Cha:2,Con:5,Ref:2},
-  {continent:"North America",  country:"USA",         name:"New York City",                  Cur:5,Imm:4,Cha:2,Con:4,Ref:1},
-  {continent:"North America",  country:"USA",         name:"Joshua Tree National Park",      Cur:2,Imm:2,Cha:2,Con:1,Ref:5},
-  {continent:"North America",  country:"USA",         name:"Glacier National Park",          Cur:2,Imm:2,Cha:4,Con:2,Ref:5},
-  {continent:"North America",  country:"USA",         name:"Great Smoky Mountains",          Cur:2,Imm:3,Cha:2,Con:2,Ref:5},
+  {continent:"North America",  country:"USA",         name:"Grand Canyon",                   Cur:4, Adv:6, Con:4, Int:2, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Yellowstone National Park",      Cur:6, Adv:4, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Alaska / Denali",                Cur:6, Adv:10,Con:6, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Hawaii — Big Island",            Cur:6, Adv:6, Con:6, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Yosemite National Park",         Cur:4, Adv:6, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"New Orleans",                    Cur:8, Adv:4, Con:10,Int:10,Ref:4},
+  {continent:"North America",  country:"USA",         name:"New York City",                  Cur:10,Adv:4, Con:8, Int:8, Ref:2},
+  {continent:"North America",  country:"USA",         name:"Joshua Tree National Park",      Cur:4, Adv:4, Con:4, Int:2, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Glacier National Park",          Cur:4, Adv:8, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Great Smoky Mountains",          Cur:4, Adv:4, Con:6, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Sedona, Arizona",                Cur:5, Adv:6, Con:4, Int:9, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Olympic National Park",          Cur:6, Adv:7, Con:4, Int:4, Ref:9},
   // North America — Canada
-  {continent:"North America",  country:"Canada",      name:"Banff & Lake Louise",            Cur:2,Imm:2,Cha:4,Con:2,Ref:5},
-  {continent:"North America",  country:"Canada",      name:"Vancouver Island",               Cur:3,Imm:3,Cha:4,Con:2,Ref:5},
-  {continent:"North America",  country:"Canada",      name:"Churchill, Manitoba",            Cur:4,Imm:3,Cha:4,Con:2,Ref:5},
-  {continent:"North America",  country:"Canada",      name:"Quebec City",                    Cur:4,Imm:5,Cha:1,Con:3,Ref:3},
-  {continent:"North America",  country:"Canada",      name:"Haida Gwaii",                    Cur:4,Imm:4,Cha:3,Con:2,Ref:5},
+  {continent:"North America",  country:"Canada",      name:"Banff & Lake Louise",            Cur:4, Adv:8, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"Canada",      name:"Vancouver Island",               Cur:6, Adv:8, Con:6, Int:4, Ref:10},
+  {continent:"North America",  country:"Canada",      name:"Churchill, Manitoba",            Cur:8, Adv:8, Con:6, Int:4, Ref:10},
+  {continent:"North America",  country:"Canada",      name:"Quebec City",                    Cur:8, Adv:2, Con:10,Int:6, Ref:6},
+  {continent:"North America",  country:"Canada",      name:"Haida Gwaii",                    Cur:8, Adv:6, Con:8, Int:4, Ref:10},
   // North America — Mexico
-  {continent:"North America",  country:"Mexico",      name:"Oaxaca",                         Cur:5,Imm:5,Cha:2,Con:4,Ref:3},
-  {continent:"North America",  country:"Mexico",      name:"Copper Canyon",                  Cur:3,Imm:4,Cha:4,Con:3,Ref:4},
-  {continent:"North America",  country:"Mexico",      name:"Yucatán / Chichén Itzá",         Cur:5,Imm:4,Cha:2,Con:3,Ref:3},
-  {continent:"North America",  country:"Mexico",      name:"San Cristóbal de las Casas",     Cur:4,Imm:5,Cha:2,Con:4,Ref:3}
+  {continent:"North America",  country:"Mexico",      name:"Oaxaca",                         Cur:10,Adv:4, Con:10,Int:8, Ref:6},
+  {continent:"North America",  country:"Mexico",      name:"Copper Canyon",                  Cur:6, Adv:8, Con:8, Int:6, Ref:8},
+  {continent:"North America",  country:"Mexico",      name:"Yucatán / Chichén Itzá",         Cur:10,Adv:4, Con:8, Int:6, Ref:6},
+  {continent:"North America",  country:"Mexico",      name:"San Cristóbal de las Casas",     Cur:8, Adv:4, Con:10,Int:8, Ref:6},
+  // Europe
+  {continent:"Europe",         country:"Italy",       name:"Cinque Terre",                   Cur:7, Adv:5, Con:7, Int:6, Ref:7},
+  {continent:"Europe",         country:"Italy",       name:"Amalfi Coast",                   Cur:7, Adv:5, Con:7, Int:6, Ref:8},
+  {continent:"Europe",         country:"Italy",       name:"Dolomites",                      Cur:7, Adv:9, Con:5, Int:5, Ref:9},
+  {continent:"Europe",         country:"Greece",      name:"Santorini",                      Cur:6, Adv:4, Con:7, Int:6, Ref:8},
+  {continent:"Europe",         country:"Iceland",     name:"Iceland Ring Road",              Cur:8, Adv:9, Con:4, Int:6, Ref:10},
+  {continent:"Europe",         country:"Norway",      name:"Norwegian Fjords",               Cur:7, Adv:7, Con:5, Int:5, Ref:10},
+  {continent:"Europe",         country:"Norway",      name:"Svalbard",                       Cur:8, Adv:9, Con:4, Int:5, Ref:10},
+  {continent:"Europe",         country:"Scotland",    name:"Scottish Highlands",             Cur:7, Adv:7, Con:5, Int:6, Ref:9},
+  {continent:"Europe",         country:"Denmark",     name:"Faroe Islands",                  Cur:7, Adv:8, Con:5, Int:5, Ref:10},
+  {continent:"Europe",         country:"Spain",       name:"Camino de Santiago",             Cur:7, Adv:7, Con:8, Int:10,Ref:9},
+  {continent:"Europe",         country:"Spain",       name:"Barcelona",                      Cur:9, Adv:5, Con:8, Int:6, Ref:5},
+  {continent:"Europe",         country:"Portugal",    name:"Azores",                         Cur:7, Adv:8, Con:5, Int:5, Ref:9},
+  {continent:"Europe",         country:"Croatia",     name:"Dubrovnik & Dalmatian Coast",    Cur:7, Adv:5, Con:7, Int:6, Ref:7},
+  {continent:"Europe",         country:"Czech Republic", name:"Prague",                      Cur:9, Adv:4, Con:7, Int:6, Ref:6},
+  {continent:"Europe",         country:"Turkey",      name:"Cappadocia",                     Cur:9, Adv:6, Con:6, Int:8, Ref:9}
 ];
 
 // ═══════════════════════════════════════════════
@@ -1106,10 +1173,37 @@ function buildResults() {
   // Dimension bars
   buildDimBars(raw);
 
-  // Trips & Destinations
-  document.getElementById('trips-desc').textContent  = arch.trips;
-  document.getElementById('dest-global').textContent = arch.global;
-  document.getElementById('dest-us').textContent     = arch.us;
+  // Trips & Destinations — dynamically scored from DESTINATIONS matrix
+  document.getElementById('trips-desc').textContent = arch.trips;
+
+  function scoreDestForUser(dest, r) {
+    const uNorm = {
+      Cur: (r.Curiosity  / 7) * 10,
+      Adv: (r.Adventure  / 7) * 10,
+      Con: (r.Connection / 7) * 10,
+      Int: (r.Intention  / 7) * 10,
+      Ref: (r.Reflection / 7) * 10,
+    };
+    let total = 0;
+    ['Cur','Adv','Con','Int','Ref'].forEach(k => {
+      total += 1 - Math.abs(uNorm[k] - dest[k]) / 10;
+    });
+    return Math.round((total / 5) * 100);
+  }
+
+  const scored = DESTINATIONS.map(d => ({...d, matchPct: scoreDestForUser(d, raw)}));
+  scored.sort((a, b) => b.matchPct - a.matchPct);
+
+  const globalTop = scored.filter(d => !(d.continent === 'North America' && d.country === 'USA')).slice(0, 6);
+  const usTop     = scored.filter(d => d.continent === 'North America' && d.country === 'USA').slice(0, 5);
+
+  document.getElementById('dest-global').innerHTML = globalTop.map(d =>
+    `<span style="display:inline-block;margin-bottom:4px;"><strong style="color:#fff;">${d.name}</strong> <span style="color:var(--muted);font-size:0.83rem;">(${d.country}, ${d.matchPct}% match)</span></span>`
+  ).join('<br>');
+
+  document.getElementById('dest-us').innerHTML = usTop.map(d =>
+    `<span style="display:inline-block;margin-bottom:4px;"><strong style="color:#fff;">${d.name}</strong> <span style="color:var(--muted);font-size:0.83rem;">(${d.matchPct}% match)</span></span>`
+  ).join('<br>');
 
   // Activities (returns list for saving)
   const topActivities = buildActivities(raw);
@@ -1353,9 +1447,9 @@ function saveRecord(raw, archName, topActivities) {
 // Dimension label → DESTINATIONS key mapping
 const DEST_DIM_MAP = [
   {label:"Curiosity",   key:"Cur",  rawKey:"Curiosity"},
-  {label:"Connection",  key:"Imm",  rawKey:"Connection"},
-  {label:"Adventure",   key:"Cha",  rawKey:"Adventure"},
-  {label:"Intention",   key:"Con",  rawKey:"Intention"},
+  {label:"Adventure",   key:"Adv",  rawKey:"Adventure"},
+  {label:"Connection",  key:"Con",  rawKey:"Connection"},
+  {label:"Intention",   key:"Int",  rawKey:"Intention"},
   {label:"Reflection",  key:"Ref",  rawKey:"Reflection"},
 ];
 
@@ -1542,19 +1636,19 @@ function destNameChange() {
 }
 
 function showDestMatch(dest, raw) {
-  // Normalize user scores from 0-7 to 0-5 scale
+  // Normalize user scores from 0-7 to 1-10 scale
   const userNorm = {
-    Cur: (raw.Curiosity  / 7) * 5,
-    Imm: (raw.Connection / 7) * 5,
-    Cha: (raw.Adventure  / 7) * 5,
-    Con: (raw.Intention  / 7) * 5,
-    Ref: (raw.Reflection / 7) * 5,
+    Cur: (raw.Curiosity  / 7) * 10,
+    Adv: (raw.Adventure  / 7) * 10,
+    Con: (raw.Connection / 7) * 10,
+    Int: (raw.Intention  / 7) * 10,
+    Ref: (raw.Reflection / 7) * 10,
   };
 
   // Per-dimension match (0-1): 1 = perfect, 0 = worst
   let totalMatch = 0;
   DEST_DIM_MAP.forEach(({key}) => {
-    totalMatch += 1 - Math.abs(userNorm[key] - dest[key]) / 5;
+    totalMatch += 1 - Math.abs(userNorm[key] - dest[key]) / 10;
   });
   const matchPct = Math.round((totalMatch / 5) * 100);
 
@@ -1584,8 +1678,8 @@ function showDestMatch(dest, raw) {
   const list = document.getElementById('dest-dim-list');
   list.innerHTML = '';
   DEST_DIM_MAP.forEach(({label, key}) => {
-    const uPct = Math.round((userNorm[key] / 5) * 100);
-    const dPct = Math.round((dest[key]     / 5) * 100);
+    const uPct = Math.round((userNorm[key] / 10) * 100);
+    const dPct = Math.round((dest[key]     / 10) * 100);
     const row = document.createElement('div');
     row.className = 'dest-dim-row';
     row.innerHTML = `
