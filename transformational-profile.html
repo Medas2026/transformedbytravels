@@ -1529,7 +1529,7 @@ function buildPrefs() {
 // ═══════════════════════════════════════════════
 // DATA PERSISTENCE
 // ═══════════════════════════════════════════════
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxT78copGgO-VtmhxU9hRMfYK7Dp0y3MLbgJzuttnWwGj1jHcdEl3wW72t0_Si-BEGPZg/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyhR0IcV7T21amFec2ZSKg2U9hhnAGBcArqYL0ncffeXAnoooiM_Ag-NfDk2Pg_QcztKw/exec';
 
 function saveRecord(raw, archName, topActivities) {
   const record = {
@@ -1656,6 +1656,30 @@ function loadDestGuide() {
       content.innerHTML = `<p style="margin-bottom:14px;">${html}</p>`;
       content.style.display = 'block';
       decrementGuideQuota();
+
+      // Log destination lookup to sheet
+      const destObj = DESTINATIONS.find(d => d.continent === continent && d.country === country && d.name === name);
+      const mPct = destObj ? Math.round((DEST_DIM_MAP.reduce((t,{key}) => {
+        const uN = (_lastRaw[DEST_DIM_MAP.find(m=>m.key===key).rawKey] / 7) * 10;
+        return t + (1 - Math.abs(uN - destObj[key]) / 10);
+      }, 0) / 5) * 100) : '';
+      fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify({
+          type: 'destination',
+          timestamp: new Date().toISOString(),
+          name: userName,
+          email: userEmail,
+          archetype: _lastArch || '',
+          continent: continent,
+          country: country,
+          destination: name,
+          matchPct: mPct,
+          hopes: hopesList.join(', ')
+        })
+      }).catch(() => {});
     } else {
       const msg = data.error || 'Unable to generate guide';
       const detail = data.detail ? ` (${data.detail})` : '';
