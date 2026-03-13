@@ -388,7 +388,7 @@
       <div class="result-section dest-explorer">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
           <div class="result-section-title" style="margin-bottom:0;">Destination Explorer</div>
-          <div id="guide-quota-badge" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;padding:4px 12px;border-radius:20px;background:var(--tdim);border:1px solid rgba(45,212,191,0.3);color:var(--teal);">5 guides remaining</div>
+          <div id="guide-quota-badge" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;padding:4px 12px;border-radius:20px;background:var(--tdim);border:1px solid rgba(45,212,191,0.3);color:var(--teal);">10 guides remaining</div>
         </div>
         <p class="result-section-sub">Select a continent, country, and destination to see how well it matches your travel profile.</p>
 
@@ -1467,7 +1467,7 @@ const DEST_DIM_MAP = [
 let _lastRaw = null; // stored when results render
 
 let _lastArch = null; // stored when results render
-const GUIDE_LIMIT = 5;
+const GUIDE_LIMIT = 10;
 
 function getGuideQuota() {
   const key = 'destGuideCount_' + (userEmail || 'guest');
