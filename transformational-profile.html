@@ -386,7 +386,10 @@
 
       <!-- Destination Explorer -->
       <div class="result-section dest-explorer">
-        <div class="result-section-title">Destination Explorer</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+          <div class="result-section-title" style="margin-bottom:0;">Destination Explorer</div>
+          <div id="guide-quota-badge" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;padding:4px 12px;border-radius:20px;background:var(--tdim);border:1px solid rgba(45,212,191,0.3);color:var(--teal);">5 guides remaining</div>
+        </div>
         <p class="result-section-sub">Select a continent, country, and destination to see how well it matches your travel profile.</p>
 
         <div class="dest-dropdowns">
@@ -1359,12 +1362,45 @@ const DEST_DIM_MAP = [
 let _lastRaw = null; // stored when results render
 
 let _lastArch = null; // stored when results render
+const GUIDE_LIMIT = 5;
+
+function getGuideQuota() {
+  const key = 'destGuideCount_' + (userEmail || 'guest');
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+
+function decrementGuideQuota() {
+  const key = 'destGuideCount_' + (userEmail || 'guest');
+  const used = getGuideQuota() + 1;
+  localStorage.setItem(key, used);
+  updateQuotaBadge();
+}
+
+function updateQuotaBadge() {
+  const remaining = GUIDE_LIMIT - getGuideQuota();
+  const badge = document.getElementById('guide-quota-badge');
+  const btn   = document.getElementById('dest-guide-btn');
+  if (!badge) return;
+  if (remaining <= 0) {
+    badge.textContent = 'No guides remaining';
+    badge.style.background = 'rgba(244,63,94,0.15)';
+    badge.style.borderColor = 'rgba(244,63,94,0.35)';
+    badge.style.color = '#f43f5e';
+    if (btn) { btn.disabled = true; btn.textContent = 'Guide limit reached'; }
+  } else {
+    badge.textContent = remaining + ' guide' + (remaining === 1 ? '' : 's') + ' remaining';
+    badge.style.background = remaining <= 2 ? 'rgba(251,146,60,0.15)' : 'var(--tdim)';
+    badge.style.borderColor = remaining <= 2 ? 'rgba(251,146,60,0.35)' : 'rgba(45,212,191,0.3)';
+    badge.style.color = remaining <= 2 ? '#fb923c' : 'var(--teal)';
+  }
+}
 
 function loadDestGuide() {
   const continent = document.getElementById('dest-continent').value;
   const country   = document.getElementById('dest-country').value;
   const name      = document.getElementById('dest-name').value;
   if (!name || !_lastRaw) return;
+  if (getGuideQuota() >= GUIDE_LIMIT) return;
 
   const panel   = document.getElementById('dest-guide-panel');
   const loading = document.getElementById('dest-guide-loading');
@@ -1404,6 +1440,7 @@ function loadDestGuide() {
         .replace(/\n/g, '<br>');
       content.innerHTML = `<p style="margin-bottom:14px;">${html}</p>`;
       content.style.display = 'block';
+      decrementGuideQuota();
     } else {
       const msg = data.error || 'Unable to generate guide';
       const detail = data.detail ? ` (${data.detail})` : '';
@@ -1424,6 +1461,7 @@ function loadDestGuide() {
 
 function initDestExplorer(raw) {
   _lastRaw = raw;
+  updateQuotaBadge();
   const continentSel = document.getElementById('dest-continent');
   continentSel.innerHTML = '<option value="">— Select a continent —</option>';
   const continents = [...new Set(DESTINATIONS.map(d => d.continent))].sort();
