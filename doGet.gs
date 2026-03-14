@@ -35,6 +35,24 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
   }
 
+  if (action === 'hopeCards') {
+    var ss2 = SpreadsheetApp.openById('1FL81Pfr2ScdLO9PSdNm7im4pyrlmUMwtTEOTQYVFjOY');
+    var hSheet = ss2.getSheetByName('Hoped For Changes');
+    var hRows = hSheet.getDataRange().getValues();
+    var hResult = [];
+    for (var j = 1; j < hRows.length; j++) {
+      if (hRows[j][0]) {
+        hResult.push({
+          transformation: hRows[j][0],
+          card1: hRows[j][1],
+          card2: hRows[j][2],
+          card3: hRows[j][3]
+        });
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify(hResult)).setMimeType(ContentService.MimeType.JSON);
+  }
+
   if (action !== 'destGuide') {
     return ContentService.createTextOutput('{"error":"unknown action"}').setMimeType(ContentService.MimeType.JSON);
   }

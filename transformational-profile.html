@@ -159,6 +159,18 @@
     .pref-answers { display: flex; flex-wrap: wrap; gap: 8px; }
     .pref-answer { background: var(--s2); border: 1px solid var(--bd); border-radius: 6px; padding: 6px 14px; font-size: 0.88rem; color: var(--text); }
 
+    /* HOPED-FOR CHANGE CARDS */
+    .hope-card { background: var(--s2); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; margin-bottom: 28px; }
+    .hope-card:last-child { margin-bottom: 0; }
+    .hope-photo { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+    .hope-card-body { padding: 20px; }
+    .hope-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.15rem; color: #fff; margin-bottom: 16px; }
+    .hope-cards-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .hope-sub-card { background: var(--bg); border: 1px solid var(--bd); border-radius: 9px; padding: 14px 16px; }
+    .hope-bullet { font-size: 1.1rem; color: var(--teal); margin-bottom: 8px; }
+    .hope-sub-text { color: var(--soft); font-size: 0.88rem; line-height: 1.65; }
+    @media (max-width: 600px) { .hope-cards-row { grid-template-columns: 1fr; } }
+
     /* CTAs */
     .cta-section { text-align: center; padding: 40px 0 0; }
     .cta-section h3 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.3rem; color: #fff; margin-bottom: 10px; }
@@ -514,6 +526,11 @@
   </div><!-- /wrapper -->
 
 <script>
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0KtnsCV5qa4kYbSHIRabd8PQMRDAZfBlvbiPUzVqxEyjIZwfyE6KDUGiDrbtaHwpyag/exec';
+
 // ═══════════════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════════════
@@ -1283,8 +1300,7 @@ function startAssessment() {
   userName  = first + " " + last;
   userEmail = email;
 
-  var GUIDE_URL_CHECK = 'https://script.google.com/macros/s/AKfycbx0KtnsCV5qa4kYbSHIRabd8PQMRDAZfBlvbiPUzVqxEyjIZwfyE6KDUGiDrbtaHwpyag/exec';
-  fetch(GUIDE_URL_CHECK + '?action=lookup&email=' + encodeURIComponent(email))
+  fetch(APPS_SCRIPT_URL + '?action=lookup&email=' + encodeURIComponent(email))
     .then(r => r.json())
     .then(data => {
       console.log('Lookup result:', JSON.stringify(data));
@@ -1675,41 +1691,48 @@ const HOPED_FOR_CHANGE_TEXT = {
   "Overcome a Fear or Barrier":       "Facing previously intimidating situations through travel reveals untapped capabilities and expands self-perception. Each time you move through fear or discomfort, you expand the edge of what feels possible in your life."
 };
 
-function buildPrefs() {
+async function buildPrefs() {
   const container = document.getElementById('a4-section');
-  container.innerHTML = ADDITIONAL.map(q => {
-    if (q.id !== 'A4') return '';
-    const ans = addAnswers[q.id];
-    const display = Array.isArray(ans) ? ans : (ans ? [ans] : []);
-    if (!display.length) return '';
+  const selected = Array.isArray(addAnswers['A4']) ? addAnswers['A4'] : (addAnswers['A4'] ? [addAnswers['A4']] : []);
+  if (!selected.length) return;
 
-    if (q.id === 'A4') {
-      const paras = display.map(a => {
-        const text = HOPED_FOR_CHANGE_TEXT[a];
-        return `
-          <div class="pref-block" style="margin-bottom:18px;">
-            <div class="pref-change-label">${a}</div>
-            ${text ? `<p style="color:var(--soft);font-size:0.92rem;line-height:1.7;">${text}</p>` : ''}
-          </div>
-        `;
-      }).join('');
+  container.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">Loading your results...</p>';
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL + '?action=hopeCards');
+    const cards = await resp.json();
+    const toSlug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+    container.innerHTML = selected.map(selection => {
+      const row = cards.find(c => c.transformation && c.transformation.toLowerCase().trim() === selection.toLowerCase().trim());
+      if (!row) return `<div class="hope-card"><div class="hope-card-body"><div class="hope-title">${selection}</div></div></div>`;
+      const slug = toSlug(row.transformation);
       return `
-        <div class="pref-block">
-          <p style="color:var(--soft);font-size:0.92rem;line-height:1.75;margin:14px 0 20px;">The journeys that stay with us the longest often change something within us. Travel can shift our perspective, awaken our curiosity, strengthen relationships, or help us reconnect with parts of ourselves that everyday life sometimes quiets. In this section, you shared what you hope travel might bring into your life. These hopes reflect the deeper meaning behind your travels—the experiences you may be seeking beyond the itinerary. When you choose destinations and experiences that align with these intentions, travel can become more than a trip; it can become a powerful catalyst for growth, discovery, and renewal.</p>
-          <div style="margin-top:14px;">${paras}</div>
+        <div class="hope-card">
+          <img class="hope-photo" src="images/hoped-for/${slug}.jpg" alt="${row.transformation}" onerror="this.style.display='none'">
+          <div class="hope-card-body">
+            <div class="hope-title">${row.transformation}</div>
+            <div class="hope-cards-row">
+              <div class="hope-sub-card">
+                <div class="hope-bullet">✦</div>
+                <div class="hope-sub-text">${row.card1}</div>
+              </div>
+              <div class="hope-sub-card">
+                <div class="hope-bullet">✦</div>
+                <div class="hope-sub-text">${row.card2}</div>
+              </div>
+              <div class="hope-sub-card">
+                <div class="hope-bullet">✦</div>
+                <div class="hope-sub-text">${row.card3}</div>
+              </div>
+            </div>
+          </div>
         </div>
       `;
-    }
-
-    return `
-      <div class="pref-block">
-        <div class="pref-q">${labels[q.id]}</div>
-        <div class="pref-answers">
-          ${display.map(a => `<span class="pref-answer">${a}</span>`).join('')}
-        </div>
-      </div>
-    `;
-  }).join('');
+    }).join('');
+  } catch(err) {
+    container.innerHTML = '<p style="color:var(--soft);">Could not load content.</p>';
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -1813,7 +1836,6 @@ function loadDestGuide() {
   btn.textContent = 'Generating…';
   panel.scrollIntoView({behavior:'smooth', block:'nearest'});
 
-  var GUIDE_URL = 'https://script.google.com/macros/s/AKfycbx0KtnsCV5qa4kYbSHIRabd8PQMRDAZfBlvbiPUzVqxEyjIZwfyE6KDUGiDrbtaHwpyag/exec';
   const hopesList = Array.isArray(addAnswers['A4']) ? addAnswers['A4'] : (addAnswers['A4'] ? [addAnswers['A4']] : []);
   var params = '?action=destGuide' +
     '&destination=' + encodeURIComponent(name) +
@@ -1827,7 +1849,7 @@ function loadDestGuide() {
     '&Intention=' + (_lastRaw.Intention || 0) +
     '&hopes=' + encodeURIComponent(hopesList.join('|'));
 
-  fetch(GUIDE_URL + params)
+  fetch(APPS_SCRIPT_URL + params)
   .then(r => r.json())
   .then(data => {
     loading.style.display = 'none';
