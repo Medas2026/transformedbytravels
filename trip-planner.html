@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trip Planner | Transformed by Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --bg:    #0d1520;
+      --s1:    #131f30;
+      --s2:    #1a2a40;
+      --bd:    rgba(255,255,255,0.07);
+      --teal:  #2dd4bf;
+      --tdim:  rgba(45,212,191,0.11);
+      --text:  #e2e8f0;
+      --muted: #64748b;
+      --soft:  #94a3b8;
+    }
+
+    body { font-family: 'Open Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .nav { background: rgba(13,21,32,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--bd); padding: 0 28px; height: 62px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .logo-text { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: #fff; text-decoration: none; }
+    .logo-accent { color: var(--teal); }
+    .nav-back { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.8rem; color: var(--teal); text-decoration: none; }
+    .nav-back:hover { opacity: 0.75; }
+
+    .wrapper { max-width: 700px; margin: 0 auto; padding: 44px 20px 96px; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .welcome-badge { display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); background: var(--tdim); border: 1px solid rgba(45,212,191,0.3); border-radius: 20px; padding: 5px 14px; margin-bottom: 20px; }
+    .welcome-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 2.2rem; line-height: 1.2; color: #fff; margin-bottom: 16px; }
+    .welcome-title span { color: var(--teal); }
+    .welcome-intro { color: var(--soft); font-size: 1.02rem; line-height: 1.75; margin-bottom: 32px; }
+
+    .form-card { background: var(--s1); border: 1px solid var(--bd); border-radius: 12px; padding: 28px 24px; margin-bottom: 28px; }
+    .form-card h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 18px; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.82rem; color: var(--soft); text-transform: uppercase; letter-spacing: 0.06em; }
+    .field input { background: var(--s2); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 7px; padding: 11px 14px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    .field input:focus { border-color: var(--teal); }
+
+    .btn { display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.04em; padding: 13px 30px; border-radius: 7px; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-primary { background: var(--teal); color: #0d1520; }
+    .btn-primary:hover { background: #26bfac; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-lg { padding: 15px 40px; font-size: 1rem; }
+
+    .error-msg { background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); border-radius: 8px; padding: 12px 16px; color: #f43f5e; font-size: 0.9rem; margin-top: 14px; display: none; }
+
+    /* Results */
+    .results-header { margin-bottom: 36px; }
+    .results-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.9rem; color: #fff; margin-bottom: 8px; }
+    .results-header h1 span { color: var(--teal); }
+    .results-header p { color: var(--soft); font-size: 0.97rem; }
+
+    .archetype-pill { display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); background: var(--tdim); border: 1px solid rgba(45,212,191,0.3); border-radius: 20px; padding: 5px 16px; margin-bottom: 16px; }
+
+    .result-section { background: var(--s1); border: 1px solid var(--bd); border-radius: 14px; padding: 30px 28px; margin-bottom: 28px; }
+    .result-section-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: #fff; margin-bottom: 6px; }
+    .result-section-sub { color: var(--soft); font-size: 0.88rem; margin-bottom: 22px; }
+
+    .dest-match-panel { display: none; background: var(--s2); border: 1px solid rgba(45,212,191,0.3); border-radius: 12px; padding: 24px 22px; }
+    .dest-match-panel.visible { display: block; }
+    .dest-match-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+    .dest-match-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.15rem; color: #fff; }
+    .dest-match-badge { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.1rem; padding: 6px 16px; border-radius: 20px; }
+    .dest-match-badge.excellent { background: rgba(52,211,153,0.2); color: #34d399; border: 1.5px solid rgba(52,211,153,0.4); }
+    .dest-match-badge.good { background: rgba(45,212,191,0.15); color: var(--teal); border: 1.5px solid rgba(45,212,191,0.35); }
+    .dest-match-badge.moderate { background: rgba(251,146,60,0.15); color: #fb923c; border: 1.5px solid rgba(251,146,60,0.35); }
+    .dest-match-badge.low { background: rgba(244,63,94,0.15); color: #f43f5e; border: 1.5px solid rgba(244,63,94,0.35); }
+    .dest-match-desc { color: var(--soft); font-size: 0.9rem; margin-bottom: 22px; line-height: 1.6; }
+    .dest-dim-list { display: flex; flex-direction: column; gap: 14px; }
+    .dest-dim-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .dest-dim-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.83rem; color: #fff; }
+    .dest-dim-vals { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.78rem; color: var(--muted); }
+    .dest-dual-bar { display: flex; flex-direction: column; gap: 4px; }
+    .dest-bar-track { position: relative; height: 7px; background: rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; }
+    .dest-bar-user { height: 100%; background: var(--teal); border-radius: 4px; opacity: 0.75; transition: width 0.5s ease; }
+    .dest-bar-dest { height: 100%; background: #f59e0b; border-radius: 4px; opacity: 0.75; transition: width 0.5s ease; }
+    .dest-legend { display: flex; gap: 20px; margin-top: 10px; flex-wrap: wrap; }
+    .dest-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
+    .dest-legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+    .dest-dropdowns { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+    .dest-select-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .dest-select-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--soft); }
+    .dest-select { background: var(--s2); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 11px 14px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 0.95rem; outline: none; cursor: pointer; transition: border-color 0.2s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .dest-select:focus { border-color: var(--teal); }
+    .dest-select:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    @media (max-width: 480px) {
+      .welcome-title { font-size: 1.7rem; }
+      .results-header h1 { font-size: 1.5rem; }
+      .result-section { padding: 22px 18px; }
+      #dest-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="index.html" class="logo-text">Transformed<span class="logo-accent">byTravels</span></a>
+    <a href="index.html" class="nav-back">← Back to Home</a>
+  </nav>
+
+  <div class="wrapper">
+
+    <!-- ══════════════════════════════════════════
+         SCREEN 1: EMAIL LOOKUP
+    ══════════════════════════════════════════ -->
+    <div class="screen active" id="screen-lookup">
+      <div class="welcome-badge">Trip Planner</div>
+      <h1 class="welcome-title">Plan Your Next <span>Transformational Journey</span></h1>
+      <p class="welcome-intro">
+        Already completed the Transformational Travel Profile? Enter your email to retrieve your profile and explore destinations matched to who you are.
+      </p>
+
+      <div class="form-card">
+        <h3>Enter your email to get started</h3>
+        <div class="field">
+          <label>Email Address *</label>
+          <input type="email" id="inp-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')lookupProfile()" />
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="lookupProfile()" id="lookup-btn" style="width:100%;margin-top:6px;">Find My Profile →</button>
+        <div class="error-msg" id="lookup-error"></div>
+      </div>
+
+      <p style="color:var(--muted);font-size:0.85rem;text-align:center;">
+        Haven't taken the assessment yet? <a href="transformational-profile.html" style="color:var(--teal);text-decoration:none;font-weight:600;">Start here →</a>
+      </p>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SCREEN 2: RESULTS
+    ══════════════════════════════════════════ -->
+    <div class="screen" id="screen-results">
+
+      <div class="results-header">
+        <div class="archetype-pill" id="archetype-pill"></div>
+        <h1>Welcome back, <span id="user-name-display"></span></h1>
+        <p>Here are your top destination matches based on your Transformational Travel Profile.</p>
+      </div>
+
+      <!-- Top Recommended Trips -->
+      <div class="result-section">
+        <div class="result-section-title">Trips You Will Love</div>
+        <p class="result-section-sub">Destinations scored and ranked specifically for your travel profile.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px;" id="dest-grid">
+          <div>
+            <div class="result-section-title" style="font-size:0.9rem;margin-bottom:10px;">🌍 Global Destinations</div>
+            <p id="dest-global" style="color:var(--soft);font-size:0.92rem;line-height:1.8;"></p>
+          </div>
+          <div>
+            <div class="result-section-title" style="font-size:0.9rem;margin-bottom:10px;">🇺🇸 U.S. Destinations</div>
+            <p id="dest-us" style="color:var(--soft);font-size:0.92rem;line-height:1.8;"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Destination Explorer -->
+      <div class="result-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+          <div class="result-section-title" style="margin-bottom:0;">Destination Explorer</div>
+          <div id="guide-quota-badge" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;padding:4px 12px;border-radius:20px;background:var(--tdim);border:1px solid rgba(45,212,191,0.3);color:var(--teal);">10 guides remaining</div>
+        </div>
+        <p class="result-section-sub">Select a continent, country, and destination to see how well it matches your travel profile.</p>
+
+        <div class="dest-dropdowns">
+          <div class="dest-select-wrap">
+            <div class="dest-select-label">Continent</div>
+            <select class="dest-select" id="dest-continent" onchange="destContinentChange()">
+              <option value="">— Select a continent —</option>
+            </select>
+          </div>
+          <div class="dest-select-wrap">
+            <div class="dest-select-label">Country</div>
+            <select class="dest-select" id="dest-country" disabled onchange="destCountryChange()">
+              <option value="">— Select a country —</option>
+            </select>
+          </div>
+          <div class="dest-select-wrap">
+            <div class="dest-select-label">Destination</div>
+            <select class="dest-select" id="dest-name" disabled onchange="destNameChange()">
+              <option value="">— Select a destination —</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="dest-match-panel" id="dest-match-panel">
+          <div class="dest-match-header">
+            <div class="dest-match-name" id="dest-match-name"></div>
+            <div class="dest-match-badge" id="dest-match-badge"></div>
+          </div>
+          <p class="dest-match-desc" id="dest-match-desc"></p>
+          <div class="dest-dim-list" id="dest-dim-list"></div>
+          <div class="dest-legend">
+            <div class="dest-legend-item"><div class="dest-legend-dot" style="background:var(--teal);opacity:0.7;"></div> Your score</div>
+            <div class="dest-legend-item"><div class="dest-legend-dot" style="background:#f59e0b;opacity:0.7;"></div> Destination score</div>
+          </div>
+          <div style="margin-top:22px;text-align:center;">
+            <button class="btn btn-primary" id="dest-guide-btn" onclick="loadDestGuide()">✦ Get My Personalized Guide</button>
+          </div>
+        </div>
+
+        <!-- AI Guide Panel -->
+        <div id="dest-guide-panel" style="display:none;margin-top:20px;background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%);border:1px solid rgba(45,212,191,0.35);border-radius:12px;padding:28px 24px;">
+          <div id="dest-guide-loading" style="text-align:center;color:var(--soft);font-size:0.95rem;padding:20px 0;">
+            <div style="font-size:1.5rem;margin-bottom:10px;">✦</div>
+            Crafting your personalized guide…
+          </div>
+          <div id="dest-guide-content" style="display:none;color:var(--soft);font-size:0.93rem;line-height:1.8;"></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:8px;">
+        <button class="btn" onclick="showScreen('screen-lookup')" style="background:transparent;color:var(--muted);font-size:0.85rem;padding:8px 16px;">← Look up a different email</button>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+const LOOKUP_URL  = 'https://script.google.com/macros/s/AKfycbyX8HVqGF05qWEvZHPuwdSNmRo-pggZWLULSyNZn-6aIVipAZMUrn-rkcfWEmdcW-9rww/exec';
+const GUIDE_URL   = 'https://script.google.com/macros/s/AKfycbyX8HVqGF05qWEvZHPuwdSNmRo-pggZWLULSyNZn-6aIVipAZMUrn-rkcfWEmdcW-9rww/exec';
+const SHEET_URL   = 'https://script.google.com/macros/s/AKfycbxKftyQUaPeLwpHhqWI9yAdqmHzCnux1bfuvGCvB6fFkkuzc7uMyIGg8m20j1IeU9EtdQ/exec';
+const GUIDE_LIMIT = 10;
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let userName  = '';
+let userEmail = '';
+let _lastRaw  = null;
+let _lastArch = null;
+let _hopes    = [];
+
+// ═══════════════════════════════════════════════
+// DESTINATIONS
+// ═══════════════════════════════════════════════
+const DESTINATIONS = [
+  // South America
+  {continent:"South America",  country:"Peru",        name:"Machu Picchu",                   Cur:10,Adv:6, Con:6, Int:4, Ref:10},
+  {continent:"South America",  country:"Argentina",   name:"Los Glaciares",                  Cur:6, Adv:10,Con:6, Int:4, Ref:10},
+  {continent:"South America",  country:"Argentina",   name:"Ushuaia",                        Cur:6, Adv:8, Con:4, Int:4, Ref:10},
+  {continent:"South America",  country:"Argentina",   name:"Valdes Peninsula",               Cur:8, Adv:4, Con:6, Int:4, Ref:10},
+  {continent:"South America",  country:"Chile",       name:"Torres del Paine NP",            Cur:6, Adv:10,Con:6, Int:4, Ref:10},
+  {continent:"South America",  country:"Chile",       name:"Strait of Magellan",             Cur:8, Adv:6, Con:4, Int:2, Ref:10},
+  {continent:"South America",  country:"Chile",       name:"Atacama Desert",                 Cur:6, Adv:6, Con:4, Int:2, Ref:10},
+  {continent:"South America",  country:"Ecuador",     name:"Galapagos",                      Cur:8, Adv:6, Con:8, Int:4, Ref:10},
+  {continent:"South America",  country:"Ecuador",     name:"Yasuni National Park",           Cur:10,Adv:6, Con:8, Int:6, Ref:10},
+  {continent:"South America",  country:"Bolivia",     name:"Salar de Uyuni",                 Cur:6, Adv:6, Con:4, Int:2, Ref:10},
+  {continent:"South America",  country:"Brazil",      name:"Iguazu Falls",                   Cur:6, Adv:4, Con:4, Int:4, Ref:10},
+  {continent:"South America",  country:"Brazil",      name:"Amazon Rain Forest",             Cur:8, Adv:6, Con:8, Int:6, Ref:10},
+  {continent:"South America",  country:"Brazil",      name:"Rio de Janeiro",                 Cur:8, Adv:6, Con:8, Int:8, Ref:6},
+  {continent:"South America",  country:"Brazil",      name:"Pantanal",                       Cur:8, Adv:6, Con:6, Int:4, Ref:10},
+  // Central America
+  {continent:"Central America",country:"Costa Rica",  name:"Arenal Volcano",                 Cur:6, Adv:8, Con:6, Int:6, Ref:8},
+  {continent:"Central America",country:"Costa Rica",  name:"Monteverde Rain Forest",         Cur:8, Adv:6, Con:8, Int:4, Ref:10},
+  {continent:"Central America",country:"Costa Rica",  name:"Corcovado",                      Cur:8, Adv:8, Con:8, Int:4, Ref:10},
+  {continent:"Central America",country:"Costa Rica",  name:"Osa Peninsula",                  Cur:8, Adv:8, Con:8, Int:4, Ref:10},
+  {continent:"Central America",country:"Belize",      name:"Belize Barrier Reef",            Cur:6, Adv:6, Con:6, Int:4, Ref:8},
+  {continent:"Central America",country:"Panama",      name:"Bocas Del Toro",                 Cur:6, Adv:4, Con:8, Int:6, Ref:8},
+  {continent:"Central America",country:"Panama",      name:"Soberanía National Park",        Cur:8, Adv:4, Con:6, Int:4, Ref:8},
+  {continent:"Central America",country:"Honduras",    name:"Roatan",                         Cur:6, Adv:6, Con:6, Int:6, Ref:8},
+  // South Pacific
+  {continent:"South Pacific",  country:"Tahiti",      name:"Bora Bora",                      Cur:6, Adv:4, Con:6, Int:6, Ref:10},
+  {continent:"South Pacific",  country:"Tahiti",      name:"Moorea",                         Cur:6, Adv:6, Con:8, Int:6, Ref:10},
+  {continent:"South Pacific",  country:"Tahiti",      name:"Fakarava",                       Cur:6, Adv:8, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"Fiji",        name:"Taveuni Island",                 Cur:6, Adv:6, Con:8, Int:6, Ref:10},
+  {continent:"South Pacific",  country:"Fiji",        name:"Yasawa Islands",                 Cur:4, Adv:6, Con:8, Int:6, Ref:10},
+  {continent:"South Pacific",  country:"Fiji",        name:"Savusavu Bay",                   Cur:4, Adv:4, Con:8, Int:6, Ref:8},
+  {continent:"South Pacific",  country:"New Zealand", name:"Milford Sound",                  Cur:4, Adv:6, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Bay of Islands",                 Cur:6, Adv:4, Con:6, Int:6, Ref:8},
+  {continent:"South Pacific",  country:"New Zealand", name:"Doubtful Sound",                 Cur:4, Adv:6, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Mount Cook",                     Cur:6, Adv:8, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Rotorua",                        Cur:8, Adv:4, Con:8, Int:6, Ref:8},
+  {continent:"South Pacific",  country:"New Zealand", name:"Abel Tasman National Park",      Cur:6, Adv:6, Con:8, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Tongariro National Park",        Cur:6, Adv:10,Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Franz Josef Glacier",            Cur:6, Adv:8, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"New Zealand", name:"Kaikōura",                       Cur:6, Adv:4, Con:6, Int:4, Ref:10},
+  {continent:"South Pacific",  country:"Micronesia",  name:"Palau",                          Cur:8, Adv:8, Con:6, Int:4, Ref:10},
+  // Australia
+  {continent:"Australia",      country:"Australia",   name:"Great Barrier Reef",             Cur:8, Adv:7, Con:6, Int:5, Ref:7},
+  {continent:"Australia",      country:"Australia",   name:"Daintree Rainforest",            Cur:8, Adv:6, Con:6, Int:4, Ref:9},
+  {continent:"Australia",      country:"Australia",   name:"Uluru",                          Cur:8, Adv:4, Con:5, Int:9, Ref:10},
+  {continent:"Australia",      country:"Australia",   name:"Kakadu National Park",           Cur:8, Adv:5, Con:6, Int:7, Ref:8},
+  {continent:"Australia",      country:"Australia",   name:"Tasmania",                       Cur:7, Adv:8, Con:5, Int:4, Ref:9},
+  {continent:"Australia",      country:"Australia",   name:"The Kimberley",                  Cur:7, Adv:9, Con:5, Int:4, Ref:9},
+  {continent:"Australia",      country:"Australia",   name:"Whitsunday Islands",             Cur:6, Adv:6, Con:6, Int:6, Ref:8},
+  {continent:"Australia",      country:"Australia",   name:"Sydney",                         Cur:7, Adv:5, Con:8, Int:5, Ref:4},
+  {continent:"Australia",      country:"Australia",   name:"Melbourne",                      Cur:8, Adv:4, Con:8, Int:5, Ref:4},
+  {continent:"Australia",      country:"Australia",   name:"Kangaroo Island",                Cur:7, Adv:6, Con:4, Int:5, Ref:8},
+  {continent:"Australia",      country:"Australia",   name:"Blue Mountains",                 Cur:6, Adv:7, Con:4, Int:5, Ref:9},
+  // Oceania
+  {continent:"Oceania",        country:"Papua New Guinea", name:"Sepik River",               Cur:10,Adv:8, Con:7, Int:6, Ref:7},
+  {continent:"Oceania",        country:"Vanuatu",     name:"Vanuatu Islands",                Cur:7, Adv:8, Con:7, Int:5, Ref:8},
+  {continent:"Oceania",        country:"Solomon Islands", name:"Solomon Islands",            Cur:8, Adv:7, Con:7, Int:4, Ref:8},
+  {continent:"Oceania",        country:"Samoa",       name:"Samoa",                          Cur:6, Adv:6, Con:8, Int:6, Ref:8},
+  {continent:"Oceania",        country:"Tonga",       name:"Tonga",                          Cur:6, Adv:7, Con:7, Int:5, Ref:9},
+  {continent:"Oceania",        country:"Indonesia",   name:"Raja Ampat / Triton Bay",        Cur:8, Adv:8, Con:4, Int:5, Ref:9},
+  {continent:"Oceania",        country:"Indonesia",   name:"Komodo",                         Cur:8, Adv:9, Con:4, Int:5, Ref:7},
+  {continent:"Oceania",        country:"Indonesia",   name:"Sumatra",                        Cur:8, Adv:7, Con:5, Int:6, Ref:8},
+  {continent:"Oceania",        country:"Indonesia",   name:"Banda Islands",                  Cur:9, Adv:7, Con:4, Int:6, Ref:9},
+  {continent:"Oceania",        country:"Indonesia",   name:"Lembeh Island",                  Cur:8, Adv:7, Con:3, Int:5, Ref:8},
+  {continent:"Oceania",        country:"Malaysia",    name:"Sabah",                          Cur:8, Adv:8, Con:5, Int:6, Ref:8},
+  {continent:"Oceania",        country:"Malaysia",    name:"Sipadan",                        Cur:7, Adv:8, Con:3, Int:5, Ref:8},
+  {continent:"Oceania",        country:"Philippines", name:"Tubbataha Reefs Natural Park",   Cur:8, Adv:8, Con:3, Int:5, Ref:9},
+  {continent:"Oceania",        country:"Philippines", name:"El Nido",                        Cur:7, Adv:8, Con:5, Int:5, Ref:9},
+  // Southeast Asia
+  {continent:"Southeast Asia", country:"Indonesia",   name:"Bali",                           Cur:7, Adv:5, Con:7, Int:8, Ref:8},
+  {continent:"Southeast Asia", country:"Indonesia",   name:"Komodo Islands",                 Cur:8, Adv:9, Con:5, Int:5, Ref:7},
+  {continent:"Southeast Asia", country:"Indonesia",   name:"Borobudur",                      Cur:9, Adv:4, Con:6, Int:9, Ref:9},
+  {continent:"Southeast Asia", country:"Cambodia",    name:"Angkor Wat",                     Cur:10,Adv:4, Con:6, Int:8, Ref:8},
+  {continent:"Southeast Asia", country:"Vietnam",     name:"Ha Long Bay",                    Cur:7, Adv:6, Con:5, Int:5, Ref:9},
+  {continent:"Southeast Asia", country:"Vietnam",     name:"Hoi An",                         Cur:8, Adv:4, Con:7, Int:7, Ref:7},
+  {continent:"Southeast Asia", country:"Laos",        name:"Luang Prabang",                  Cur:8, Adv:4, Con:7, Int:8, Ref:9},
+  {continent:"Southeast Asia", country:"Thailand",    name:"Chiang Mai",                     Cur:8, Adv:5, Con:8, Int:7, Ref:7},
+  {continent:"Southeast Asia", country:"Philippines", name:"Palawan",                        Cur:7, Adv:8, Con:6, Int:5, Ref:9},
+  {continent:"Southeast Asia", country:"Myanmar",     name:"Bagan",                          Cur:9, Adv:4, Con:6, Int:9, Ref:9},
+  {continent:"Southeast Asia", country:"Singapore",   name:"Singapore",                      Cur:8, Adv:4, Con:7, Int:5, Ref:4},
+  {continent:"Southeast Asia", country:"Thailand",    name:"Phang Nga Bay",                  Cur:7, Adv:8, Con:5, Int:5, Ref:8},
+  {continent:"Southeast Asia", country:"Thailand",    name:"Bangkok",                        Cur:9, Adv:5, Con:8, Int:6, Ref:4},
+  // Asia
+  {continent:"Asia",           country:"Japan",       name:"Kyoto",                          Cur:9, Adv:4, Con:6, Int:9, Ref:9},
+  {continent:"Asia",           country:"Japan",       name:"Tokyo",                          Cur:10,Adv:5, Con:7, Int:6, Ref:5},
+  {continent:"Asia",           country:"Bhutan",      name:"Bhutan",                         Cur:9, Adv:7, Con:7, Int:10,Ref:10},
+  {continent:"Asia",           country:"Tibet",       name:"Tibet",                          Cur:9, Adv:7, Con:5, Int:10,Ref:10},
+  {continent:"Asia",           country:"Uzbekistan",  name:"Silk Road / Samarkand",          Cur:10,Adv:6, Con:6, Int:8, Ref:8},
+  {continent:"Asia",           country:"India",       name:"Varanasi",                       Cur:9, Adv:5, Con:7, Int:10,Ref:9},
+  {continent:"Asia",           country:"India",       name:"Rajasthan",                      Cur:9, Adv:5, Con:7, Int:8, Ref:7},
+  {continent:"Asia",           country:"Nepal",       name:"Himalayas / Everest Base Camp",  Cur:8, Adv:10,Con:6, Int:9, Ref:10},
+  {continent:"Asia",           country:"China",       name:"Zhangjiajie",                    Cur:8, Adv:7, Con:5, Int:7, Ref:9},
+  {continent:"Asia",           country:"Mongolia",    name:"Gobi Desert & Steppe",           Cur:8, Adv:8, Con:5, Int:7, Ref:10},
+  {continent:"Asia",           country:"India",       name:"Taj Mahal",                      Cur:9, Adv:3, Con:5, Int:10,Ref:8},
+  {continent:"Asia",           country:"India",       name:"Ranthambore National Park",      Cur:8, Adv:7, Con:4, Int:6, Ref:7},
+  {continent:"Asia",           country:"India",       name:"Kaziranga National Park",        Cur:8, Adv:6, Con:4, Int:6, Ref:8},
+  {continent:"Asia",           country:"Nepal",       name:"Mount Everest",                  Cur:8, Adv:10,Con:5, Int:9, Ref:10},
+  {continent:"Asia",           country:"Nepal",       name:"Chitwan National Park",          Cur:8, Adv:6, Con:5, Int:6, Ref:7},
+  {continent:"Asia",           country:"Bhutan",      name:"Paro Taktsang",                  Cur:9, Adv:7, Con:5, Int:10,Ref:10},
+  {continent:"Asia",           country:"Bhutan",      name:"Thimphu",                        Cur:8, Adv:4, Con:6, Int:9, Ref:7},
+  {continent:"Asia",           country:"Bhutan",      name:"Bumthang",                       Cur:8, Adv:5, Con:5, Int:10,Ref:9},
+  // Africa
+  {continent:"Africa",         country:"Tanzania",    name:"Serengeti",                      Cur:9, Adv:7, Con:5, Int:7, Ref:9},
+  {continent:"Africa",         country:"Tanzania",    name:"Zanzibar",                       Cur:7, Adv:5, Con:7, Int:7, Ref:8},
+  {continent:"Africa",         country:"Botswana",    name:"Okavango Delta",                 Cur:9, Adv:7, Con:5, Int:6, Ref:9},
+  {continent:"Africa",         country:"Morocco",     name:"Sahara Desert",                  Cur:7, Adv:8, Con:4, Int:7, Ref:10},
+  {continent:"Africa",         country:"Morocco",     name:"Marrakech",                      Cur:9, Adv:5, Con:8, Int:7, Ref:6},
+  {continent:"Africa",         country:"Zimbabwe",    name:"Victoria Falls",                 Cur:7, Adv:8, Con:5, Int:5, Ref:8},
+  {continent:"Africa",         country:"Rwanda",      name:"Gorilla Trekking",               Cur:9, Adv:8, Con:6, Int:8, Ref:8},
+  {continent:"Africa",         country:"South Africa",name:"Cape Town",                      Cur:8, Adv:7, Con:7, Int:6, Ref:7},
+  {continent:"Africa",         country:"Kenya",       name:"Lamu Island",                    Cur:8, Adv:4, Con:8, Int:7, Ref:8},
+  {continent:"Africa",         country:"Ethiopia",    name:"Ethiopian Highlands",            Cur:9, Adv:7, Con:7, Int:8, Ref:9},
+  {continent:"Africa",         country:"Kenya",       name:"Maasai Mara National Reserve",   Cur:8, Adv:7, Con:6, Int:7, Ref:8},
+  {continent:"Africa",         country:"Tanzania",    name:"Ngorongoro Conservation Area",   Cur:9, Adv:6, Con:5, Int:7, Ref:9},
+  {continent:"Africa",         country:"Tanzania",    name:"Tarangire National Park",        Cur:8, Adv:6, Con:4, Int:6, Ref:8},
+  {continent:"Africa",         country:"Tanzania",    name:"Mount Kilimanjaro",              Cur:7, Adv:10,Con:5, Int:8, Ref:9},
+  {continent:"Africa",         country:"South Africa",name:"Kruger National Park",           Cur:8, Adv:7, Con:5, Int:6, Ref:8},
+  {continent:"Africa",         country:"Mozambique",  name:"Ilha de Moçambique",             Cur:9, Adv:4, Con:6, Int:7, Ref:7},
+  {continent:"Africa",         country:"Mozambique",  name:"Bazaruto Archipelago",           Cur:7, Adv:6, Con:5, Int:6, Ref:9},
+  {continent:"Africa",         country:"Mozambique",  name:"Gorongosa National Park",        Cur:9, Adv:7, Con:5, Int:8, Ref:8},
+  {continent:"Africa",         country:"Botswana",    name:"Chobe National Park",            Cur:8, Adv:6, Con:4, Int:6, Ref:8},
+  {continent:"Africa",         country:"Zimbabwe",    name:"Mana Pools",                     Cur:9, Adv:9, Con:4, Int:7, Ref:9},
+  {continent:"Africa",         country:"Seychelles",  name:"Seychelles",                     Cur:6, Adv:5, Con:5, Int:6, Ref:9},
+  {continent:"Africa",         country:"Uganda",      name:"Bwindi Impenetrable National Park", Cur:9, Adv:8, Con:5, Int:8, Ref:9},
+  {continent:"Africa",         country:"Uganda",      name:"Kibale National Park",           Cur:8, Adv:7, Con:5, Int:7, Ref:8},
+  {continent:"Africa",         country:"Madagascar",  name:"Madagascar",                     Cur:9, Adv:7, Con:5, Int:7, Ref:8},
+  {continent:"Africa",         country:"Namibia",     name:"Etosha National Park",           Cur:8, Adv:6, Con:4, Int:6, Ref:9},
+  // Caribbean
+  {continent:"Caribbean",      country:"Puerto Rico", name:"Old San Juan",                   Cur:9, Adv:4, Con:7, Int:7, Ref:5},
+  {continent:"Caribbean",      country:"Puerto Rico", name:"El Yunque National Forest",      Cur:7, Adv:7, Con:4, Int:5, Ref:9},
+  {continent:"Caribbean",      country:"Puerto Rico", name:"Rincon",                         Cur:5, Adv:7, Con:6, Int:4, Ref:7},
+  {continent:"Caribbean",      country:"Anguilla",    name:"Anguilla",                       Cur:4, Adv:3, Con:5, Int:5, Ref:8},
+  {continent:"Caribbean",      country:"USA",         name:"St Thomas",                      Cur:5, Adv:5, Con:6, Int:4, Ref:7},
+  {continent:"Caribbean",      country:"USA",         name:"St. John",                       Cur:5, Adv:6, Con:4, Int:5, Ref:10},
+  {continent:"Caribbean",      country:"USA",         name:"St. Croix",                      Cur:7, Adv:6, Con:6, Int:5, Ref:7},
+  {continent:"Caribbean",      country:"Saba",        name:"Saba",                           Cur:7, Adv:8, Con:4, Int:5, Ref:9},
+  {continent:"Caribbean",      country:"Antigua",     name:"Antigua",                        Cur:5, Adv:6, Con:6, Int:5, Ref:8},
+  {continent:"Caribbean",      country:"St Lucia",    name:"St Lucia",                       Cur:6, Adv:6, Con:6, Int:6, Ref:9},
+  {continent:"Caribbean",      country:"Cayman Islands", name:"Grand Cayman",                Cur:5, Adv:7, Con:6, Int:4, Ref:7},
+  {continent:"Caribbean",      country:"Cayman Islands", name:"Little Cayman",               Cur:5, Adv:7, Con:3, Int:4, Ref:9},
+  {continent:"Caribbean",      country:"Aruba",       name:"Aruba",                          Cur:4, Adv:4, Con:6, Int:4, Ref:7},
+  {continent:"Caribbean",      country:"Jamaica",     name:"Jamaica",                        Cur:7, Adv:6, Con:8, Int:6, Ref:7},
+  {continent:"Caribbean",      country:"Bonaire",     name:"Bonaire",                        Cur:6, Adv:8, Con:4, Int:5, Ref:9},
+  {continent:"Caribbean",      country:"British Virgin Islands", name:"Tortola",             Cur:5, Adv:6, Con:5, Int:5, Ref:8},
+  {continent:"Caribbean",      country:"British Virgin Islands", name:"Virgin Gorda",        Cur:6, Adv:5, Con:4, Int:6, Ref:9},
+  // North America — USA
+  {continent:"North America",  country:"USA",         name:"Grand Canyon",                   Cur:4, Adv:6, Con:4, Int:2, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Yellowstone National Park",      Cur:6, Adv:4, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Alaska / Denali",                Cur:6, Adv:10,Con:6, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Hawaii — Big Island",            Cur:6, Adv:6, Con:6, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Yosemite National Park",         Cur:4, Adv:6, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"New Orleans",                    Cur:8, Adv:4, Con:10,Int:10,Ref:4},
+  {continent:"North America",  country:"USA",         name:"New York City",                  Cur:10,Adv:4, Con:8, Int:8, Ref:2},
+  {continent:"North America",  country:"USA",         name:"Joshua Tree National Park",      Cur:4, Adv:4, Con:4, Int:2, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Glacier National Park",          Cur:4, Adv:8, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Great Smoky Mountains",          Cur:4, Adv:4, Con:6, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Sedona, Arizona",                Cur:5, Adv:6, Con:4, Int:9, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Olympic National Park",          Cur:6, Adv:7, Con:4, Int:4, Ref:9},
+  {continent:"North America",  country:"USA",         name:"Acadia National Park",           Cur:5, Adv:6, Con:4, Int:4, Ref:9},
+  {continent:"North America",  country:"USA",         name:"Antelope Canyon",                Cur:5, Adv:4, Con:3, Int:6, Ref:9},
+  {continent:"North America",  country:"USA",         name:"Arches National Park",           Cur:4, Adv:7, Con:3, Int:3, Ref:9},
+  {continent:"North America",  country:"USA",         name:"Aspen",                          Cur:6, Adv:7, Con:6, Int:4, Ref:7},
+  {continent:"North America",  country:"USA",         name:"Badlands National Park",         Cur:5, Adv:5, Con:3, Int:4, Ref:9},
+  {continent:"North America",  country:"USA",         name:"Big Sur",                        Cur:5, Adv:5, Con:4, Int:5, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Boston",                         Cur:9, Adv:3, Con:7, Int:7, Ref:5},
+  {continent:"North America",  country:"USA",         name:"Bryce Canyon National Park",     Cur:5, Adv:6, Con:3, Int:4, Ref:9},
+  {continent:"North America",  country:"USA",         name:"Cape Cod",                       Cur:5, Adv:3, Con:6, Int:4, Ref:8},
+  {continent:"North America",  country:"USA",         name:"Charleston",                     Cur:8, Adv:3, Con:7, Int:6, Ref:6},
+  {continent:"North America",  country:"USA",         name:"Chicago",                        Cur:9, Adv:4, Con:8, Int:6, Ref:4},
+  {continent:"North America",  country:"USA",         name:"Crater Lake National Park",      Cur:5, Adv:5, Con:3, Int:5, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Death Valley National Park",     Cur:5, Adv:6, Con:2, Int:5, Ref:9},
+  {continent:"North America",  country:"USA",         name:"Denali National Park",           Cur:6, Adv:9, Con:3, Int:6, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Finger Lakes",                   Cur:5, Adv:3, Con:6, Int:4, Ref:7},
+  {continent:"North America",  country:"USA",         name:"Grand Teton National Park",      Cur:4, Adv:8, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Hilton Head Island",             Cur:3, Adv:3, Con:6, Int:3, Ref:7},
+  {continent:"North America",  country:"USA",         name:"Jackson Hole",                   Cur:5, Adv:8, Con:5, Int:4, Ref:8},
+  {continent:"North America",  country:"USA",         name:"Key West",                       Cur:6, Adv:4, Con:7, Int:4, Ref:6},
+  {continent:"North America",  country:"USA",         name:"Lake Tahoe",                     Cur:4, Adv:7, Con:6, Int:4, Ref:8},
+  {continent:"North America",  country:"USA",         name:"Las Vegas",                      Cur:5, Adv:4, Con:8, Int:2, Ref:2},
+  {continent:"North America",  country:"USA",         name:"Maui",                           Cur:5, Adv:6, Con:6, Int:5, Ref:8},
+  {continent:"North America",  country:"USA",         name:"Moab",                           Cur:4, Adv:9, Con:3, Int:4, Ref:9},
+  {continent:"North America",  country:"USA",         name:"Monterey",                       Cur:6, Adv:5, Con:5, Int:5, Ref:8},
+  {continent:"North America",  country:"USA",         name:"Monument Valley Navajo Tribal Park", Cur:5, Adv:4, Con:4, Int:7, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Nantucket",                      Cur:5, Adv:3, Con:5, Int:4, Ref:8},
+  {continent:"North America",  country:"USA",         name:"Na Pali Coast State Wilderness Park", Cur:5, Adv:9, Con:3, Int:6, Ref:10},
+  {continent:"North America",  country:"USA",         name:"Niagara Falls",                  Cur:4, Adv:4, Con:5, Int:4, Ref:7},
+  {continent:"North America",  country:"USA",         name:"Outer Banks",                    Cur:5, Adv:5, Con:4, Int:4, Ref:8},
+  {continent:"North America",  country:"USA",         name:"Palm Springs",                   Cur:5, Adv:3, Con:6, Int:4, Ref:6},
+  {continent:"North America",  country:"USA",         name:"Rocky Mountain National Park",   Cur:4, Adv:7, Con:4, Int:4, Ref:9},
+  {continent:"North America",  country:"USA",         name:"San Juan Islands",               Cur:5, Adv:5, Con:5, Int:5, Ref:9},
+  {continent:"North America",  country:"USA",         name:"San Francisco",                  Cur:9, Adv:5, Con:8, Int:6, Ref:5},
+  {continent:"North America",  country:"USA",         name:"Santa Barbara",                  Cur:6, Adv:4, Con:6, Int:5, Ref:7},
+  {continent:"North America",  country:"USA",         name:"Santa Fe",                       Cur:8, Adv:4, Con:7, Int:7, Ref:6},
+  {continent:"North America",  country:"USA",         name:"Savannah",                       Cur:7, Adv:3, Con:7, Int:6, Ref:7},
+  {continent:"North America",  country:"USA",         name:"Seattle",                        Cur:8, Adv:5, Con:7, Int:5, Ref:5},
+  {continent:"North America",  country:"USA",         name:"Taos",                           Cur:8, Adv:5, Con:6, Int:7, Ref:7},
+  {continent:"North America",  country:"USA",         name:"White Sands National Park",      Cur:4, Adv:4, Con:3, Int:5, Ref:9},
+  {continent:"North America",  country:"USA",         name:"Zion National Park",             Cur:4, Adv:8, Con:4, Int:5, Ref:9},
+  // North America — Canada
+  {continent:"North America",  country:"Canada",      name:"Banff & Lake Louise",            Cur:4, Adv:8, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"Canada",      name:"Vancouver Island",               Cur:6, Adv:8, Con:6, Int:4, Ref:10},
+  {continent:"North America",  country:"Canada",      name:"Churchill, Manitoba",            Cur:8, Adv:8, Con:6, Int:4, Ref:10},
+  {continent:"North America",  country:"Canada",      name:"Quebec City",                    Cur:8, Adv:2, Con:10,Int:6, Ref:6},
+  {continent:"North America",  country:"Canada",      name:"Haida Gwaii",                    Cur:8, Adv:6, Con:8, Int:4, Ref:10},
+  {continent:"North America",  country:"Canada",      name:"Banff / Yoho National Park",     Cur:4, Adv:8, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"Canada",      name:"Jasper National Park",           Cur:5, Adv:8, Con:4, Int:4, Ref:10},
+  {continent:"North America",  country:"Canada",      name:"Toronto",                        Cur:8, Adv:4, Con:8, Int:5, Ref:4},
+  {continent:"North America",  country:"Canada",      name:"Vancouver",                      Cur:7, Adv:7, Con:7, Int:5, Ref:6},
+  {continent:"North America",  country:"Canada",      name:"Prince Edward Island",           Cur:6, Adv:3, Con:6, Int:5, Ref:8},
+  {continent:"North America",  country:"Canada",      name:"Tofino",                         Cur:6, Adv:8, Con:4, Int:5, Ref:9},
+  {continent:"North America",  country:"Canada",      name:"Icefields Parkway",              Cur:5, Adv:6, Con:3, Int:4, Ref:10},
+  {continent:"North America",  country:"Canada",      name:"Whistler",                       Cur:5, Adv:9, Con:6, Int:4, Ref:7},
+  {continent:"North America",  country:"Canada",      name:"Gros Morne Newfoundland",        Cur:7, Adv:7, Con:4, Int:5, Ref:10},
+  // North America — Mexico
+  {continent:"North America",  country:"Mexico",      name:"Oaxaca",                         Cur:10,Adv:4, Con:10,Int:8, Ref:6},
+  {continent:"North America",  country:"Mexico",      name:"Copper Canyon",                  Cur:6, Adv:8, Con:8, Int:6, Ref:8},
+  {continent:"North America",  country:"Mexico",      name:"Yucatán / Chichén Itzá",         Cur:10,Adv:4, Con:8, Int:6, Ref:6},
+  {continent:"North America",  country:"Mexico",      name:"San Cristóbal de las Casas",     Cur:8, Adv:4, Con:10,Int:8, Ref:6},
+  {continent:"North America",  country:"Mexico",      name:"Tulum",                          Cur:8, Adv:5, Con:6, Int:7, Ref:7},
+  {continent:"North America",  country:"Mexico",      name:"Cozumel",                        Cur:6, Adv:7, Con:5, Int:4, Ref:7},
+  {continent:"North America",  country:"Mexico",      name:"San Miguel de Allende",          Cur:8, Adv:3, Con:8, Int:7, Ref:6},
+  {continent:"North America",  country:"Mexico",      name:"Baja Peninsula",                 Cur:7, Adv:7, Con:5, Int:5, Ref:8},
+  // Europe
+  {continent:"Europe",         country:"Italy",       name:"Cinque Terre",                   Cur:7, Adv:5, Con:7, Int:6, Ref:7},
+  {continent:"Europe",         country:"Italy",       name:"Amalfi Coast",                   Cur:7, Adv:5, Con:7, Int:6, Ref:8},
+  {continent:"Europe",         country:"Italy",       name:"Dolomites",                      Cur:7, Adv:9, Con:5, Int:5, Ref:9},
+  {continent:"Europe",         country:"Greece",      name:"Santorini",                      Cur:6, Adv:4, Con:7, Int:6, Ref:8},
+  {continent:"Europe",         country:"Iceland",     name:"Iceland Ring Road",              Cur:8, Adv:9, Con:4, Int:6, Ref:10},
+  {continent:"Europe",         country:"Norway",      name:"Norwegian Fjords",               Cur:7, Adv:7, Con:5, Int:5, Ref:10},
+  {continent:"Europe",         country:"Norway",      name:"Svalbard",                       Cur:8, Adv:9, Con:4, Int:5, Ref:10},
+  {continent:"Europe",         country:"Scotland",    name:"Scottish Highlands",             Cur:7, Adv:7, Con:5, Int:6, Ref:9},
+  {continent:"Europe",         country:"Denmark",     name:"Faroe Islands",                  Cur:7, Adv:8, Con:5, Int:5, Ref:10},
+  {continent:"Europe",         country:"Spain",       name:"Camino de Santiago",             Cur:7, Adv:7, Con:8, Int:10,Ref:9},
+  {continent:"Europe",         country:"Spain",       name:"Barcelona",                      Cur:9, Adv:5, Con:8, Int:6, Ref:5},
+  {continent:"Europe",         country:"Portugal",    name:"Azores",                         Cur:7, Adv:8, Con:5, Int:5, Ref:9},
+  {continent:"Europe",         country:"Croatia",     name:"Dubrovnik & Dalmatian Coast",    Cur:7, Adv:5, Con:7, Int:6, Ref:7},
+  {continent:"Europe",         country:"Czech Republic", name:"Prague",                      Cur:9, Adv:4, Con:7, Int:6, Ref:6},
+  {continent:"Europe",         country:"Turkey",      name:"Cappadocia",                     Cur:9, Adv:6, Con:6, Int:8, Ref:9},
+  {continent:"Europe",         country:"France",      name:"Paris",                          Cur:9, Adv:4, Con:8, Int:8, Ref:6},
+  {continent:"Europe",         country:"France",      name:"Bordeaux",                       Cur:7, Adv:3, Con:7, Int:7, Ref:7},
+  {continent:"Europe",         country:"France",      name:"Mont Saint-Michel",              Cur:9, Adv:4, Con:5, Int:9, Ref:8},
+  {continent:"Europe",         country:"Italy",       name:"Rome",                           Cur:10,Adv:3, Con:7, Int:9, Ref:6},
+  {continent:"Europe",         country:"Italy",       name:"Venice",                         Cur:9, Adv:3, Con:7, Int:8, Ref:8},
+  {continent:"Europe",         country:"Italy",       name:"Tuscany / Florence",             Cur:9, Adv:4, Con:7, Int:8, Ref:7},
+  {continent:"Europe",         country:"Greece",      name:"Athens",                         Cur:10,Adv:3, Con:7, Int:9, Ref:6},
+  {continent:"Europe",         country:"Greece",      name:"Meteora",                        Cur:9, Adv:5, Con:4, Int:10,Ref:9},
+  {continent:"Europe",         country:"Greece",      name:"Mykonos",                        Cur:6, Adv:4, Con:9, Int:4, Ref:6},
+  {continent:"Europe",         country:"Greece",      name:"Crete",                          Cur:8, Adv:6, Con:6, Int:6, Ref:7},
+  {continent:"Europe",         country:"Greece",      name:"Corfu",                          Cur:7, Adv:4, Con:6, Int:6, Ref:8},
+  {continent:"Europe",         country:"Greece",      name:"Milos",                          Cur:7, Adv:5, Con:5, Int:6, Ref:8},
+  {continent:"Europe",         country:"Turkey",      name:"Istanbul",                       Cur:10,Adv:4, Con:7, Int:9, Ref:6},
+  {continent:"Europe",         country:"Turkey",      name:"Ephesus",                        Cur:10,Adv:4, Con:5, Int:9, Ref:7},
+  {continent:"Europe",         country:"Turkey",      name:"Antalya",                        Cur:7, Adv:5, Con:7, Int:6, Ref:7},
+  {continent:"Europe",         country:"UK",          name:"London",                         Cur:9, Adv:4, Con:8, Int:7, Ref:5},
+  {continent:"Europe",         country:"UK",          name:"Scottish Highlands",             Cur:7, Adv:7, Con:5, Int:6, Ref:9},
+  {continent:"Europe",         country:"Netherlands", name:"Amsterdam",                      Cur:9, Adv:4, Con:8, Int:7, Ref:5},
+  {continent:"Europe",         country:"Austria",     name:"Vienna",                         Cur:9, Adv:3, Con:6, Int:8, Ref:6},
+  {continent:"Europe",         country:"Switzerland", name:"Swiss Alps",                     Cur:6, Adv:8, Con:4, Int:6, Ref:10},
+  {continent:"Europe",         country:"Croatia",     name:"Dubrovnik",                      Cur:7, Adv:5, Con:7, Int:6, Ref:7},
+  {continent:"Europe",         country:"Iceland",     name:"Iceland",                        Cur:8, Adv:9, Con:4, Int:6, Ref:10},
+  {continent:"Europe",         country:"Norway",      name:"Lofoten Islands",                Cur:7, Adv:8, Con:5, Int:6, Ref:10},
+  {continent:"Europe",         country:"Ireland",     name:"Cliffs of Moher",                Cur:6, Adv:5, Con:4, Int:6, Ref:10},
+  {continent:"Europe",         country:"Ireland",     name:"Ring of Kerry",                  Cur:7, Adv:5, Con:5, Int:6, Ref:9},
+  {continent:"Europe",         country:"Ireland",     name:"Killarney National Park",        Cur:6, Adv:5, Con:5, Int:5, Ref:9},
+  {continent:"Europe",         country:"Ireland",     name:"Blarney Castle",                 Cur:7, Adv:3, Con:5, Int:7, Ref:6},
+  {continent:"Europe",         country:"Cyprus",      name:"Cyprus",                         Cur:7, Adv:5, Con:6, Int:6, Ref:7},
+  {continent:"Europe",         country:"Denmark",     name:"Copenhagen",                     Cur:8, Adv:4, Con:7, Int:6, Ref:6},
+  {continent:"Europe",         country:"Denmark",     name:"Greenland",                      Cur:8, Adv:9, Con:3, Int:6, Ref:10},
+  {continent:"Europe",         country:"Portugal",    name:"Madeira",                        Cur:7, Adv:7, Con:5, Int:6, Ref:9},
+  // UNESCO World Heritage Sites
+  {continent:"UNESCO Sites",   country:"Peru",        name:"Machu Picchu",                   Cur:10,Adv:6, Con:6, Int:8, Ref:10},
+  {continent:"UNESCO Sites",   country:"Ecuador",     name:"Galápagos Islands",              Cur:9, Adv:6, Con:5, Int:7, Ref:10},
+  {continent:"UNESCO Sites",   country:"Brazil",      name:"Iguaçu National Park",           Cur:6, Adv:6, Con:4, Int:6, Ref:9},
+  {continent:"UNESCO Sites",   country:"Argentina",   name:"Iguazú National Park",           Cur:6, Adv:6, Con:4, Int:6, Ref:9},
+  {continent:"UNESCO Sites",   country:"Argentina",   name:"Los Glaciares National Park",    Cur:6, Adv:10,Con:5, Int:6, Ref:10},
+  {continent:"UNESCO Sites",   country:"Chile",       name:"Torres del Paine National Park", Cur:6, Adv:10,Con:5, Int:6, Ref:10},
+  {continent:"UNESCO Sites",   country:"Chile",       name:"Rapa Nui National Park",         Cur:10,Adv:5, Con:4, Int:9, Ref:10},
+  {continent:"UNESCO Sites",   country:"Peru",        name:"Historic Sanctuary of Caral-Supe", Cur:9,Adv:4, Con:4, Int:8, Ref:7},
+  {continent:"UNESCO Sites",   country:"Brazil",      name:"Amazon Conservation Complex",    Cur:8, Adv:6, Con:6, Int:7, Ref:10},
+  {continent:"UNESCO Sites",   country:"Brazil",      name:"Historic Centre of Salvador de Bahia", Cur:8,Adv:4, Con:8, Int:7, Ref:5},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Grand Canyon National Park",     Cur:4, Adv:6, Con:4, Int:5, Ref:10},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Yellowstone National Park",      Cur:6, Adv:4, Con:4, Int:5, Ref:10},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Yosemite National Park",         Cur:4, Adv:6, Con:4, Int:5, Ref:10},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Mesa Verde National Park",       Cur:9, Adv:4, Con:4, Int:8, Ref:7},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Redwood National and State Parks", Cur:5,Adv:5, Con:4, Int:6, Ref:10},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Chaco Culture National Historical Park", Cur:9,Adv:4, Con:3, Int:8, Ref:8},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Great Smoky Mountains National Park", Cur:4,Adv:4, Con:5, Int:4, Ref:9},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Hawaii Volcanoes National Park", Cur:7, Adv:6, Con:4, Int:7, Ref:9},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Papahānaumokuākea",              Cur:8, Adv:6, Con:3, Int:7, Ref:9},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Everglades National Park",       Cur:6, Adv:5, Con:4, Int:6, Ref:8},
+  {continent:"UNESCO Sites",   country:"USA",         name:"Olympic National Park",          Cur:6, Adv:7, Con:4, Int:5, Ref:9},
+  {continent:"UNESCO Sites",   country:"USA/Canada",  name:"Waterton-Glacier International Peace Park", Cur:5,Adv:8, Con:4, Int:5, Ref:10},
+  {continent:"UNESCO Sites",   country:"Mexico",      name:"Teotihuacan",                    Cur:9, Adv:4, Con:5, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"Mexico",      name:"Chichen Itza",                   Cur:9, Adv:4, Con:5, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"Mexico",      name:"Historic Centre of Oaxaca",      Cur:9, Adv:4, Con:8, Int:8, Ref:6},
+  {continent:"UNESCO Sites",   country:"Mexico",      name:"Sian Ka'an",                     Cur:7, Adv:7, Con:4, Int:6, Ref:9},
+  {continent:"UNESCO Sites",   country:"Canada",      name:"Gros Morne National Park",       Cur:7, Adv:7, Con:4, Int:5, Ref:10},
+  {continent:"UNESCO Sites",   country:"Canada",      name:"Canadian Rocky Mountain Parks",  Cur:5, Adv:8, Con:4, Int:5, Ref:10},
+  {continent:"UNESCO Sites",   country:"Canada",      name:"Banff National Park",            Cur:4, Adv:8, Con:4, Int:4, Ref:10},
+  {continent:"UNESCO Sites",   country:"Canada",      name:"Nahanni National Park Reserve",  Cur:7, Adv:9, Con:3, Int:6, Ref:10},
+  {continent:"UNESCO Sites",   country:"Canada",      name:"Burgess Shale",                  Cur:8, Adv:5, Con:3, Int:6, Ref:8},
+  {continent:"UNESCO Sites",   country:"Greece",      name:"Acropolis of Athens",            Cur:10,Adv:3, Con:6, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"Italy",       name:"Historic Centre of Rome",        Cur:10,Adv:3, Con:7, Int:9, Ref:6},
+  {continent:"UNESCO Sites",   country:"Italy",       name:"Venice and its Lagoon",          Cur:9, Adv:3, Con:7, Int:8, Ref:8},
+  {continent:"UNESCO Sites",   country:"Italy",       name:"Historic Centre of Florence",    Cur:10,Adv:3, Con:6, Int:9, Ref:6},
+  {continent:"UNESCO Sites",   country:"Italy",       name:"Cinque Terre",                   Cur:7, Adv:5, Con:7, Int:6, Ref:7},
+  {continent:"UNESCO Sites",   country:"United Kingdom", name:"Stonehenge",                  Cur:8, Adv:3, Con:4, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"United Kingdom", name:"Giant's Causeway",            Cur:7, Adv:5, Con:4, Int:7, Ref:9},
+  {continent:"UNESCO Sites",   country:"Spain",       name:"Alhambra",                       Cur:10,Adv:3, Con:6, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"France",      name:"Mont-Saint-Michel",              Cur:9, Adv:4, Con:5, Int:9, Ref:8},
+  {continent:"UNESCO Sites",   country:"France",      name:"Palace of Versailles",           Cur:9, Adv:3, Con:5, Int:8, Ref:6},
+  {continent:"UNESCO Sites",   country:"Croatia",     name:"Plitvice Lakes National Park",   Cur:6, Adv:5, Con:4, Int:6, Ref:10},
+  {continent:"UNESCO Sites",   country:"Switzerland", name:"Swiss Alps Jungfrau-Aletsch",    Cur:6, Adv:8, Con:4, Int:6, Ref:10},
+  {continent:"UNESCO Sites",   country:"Czech Republic", name:"Historic Centre of Prague",   Cur:9, Adv:3, Con:7, Int:7, Ref:6},
+  {continent:"UNESCO Sites",   country:"Portugal",    name:"Douro Valley",                   Cur:7, Adv:4, Con:6, Int:7, Ref:8},
+  {continent:"UNESCO Sites",   country:"Austria",     name:"Historic Centre of Vienna",      Cur:9, Adv:3, Con:6, Int:8, Ref:6},
+  {continent:"UNESCO Sites",   country:"Turkey",      name:"Historic Areas of Istanbul",     Cur:10,Adv:4, Con:7, Int:9, Ref:6},
+  {continent:"UNESCO Sites",   country:"Turkey",      name:"Göreme National Park",           Cur:9, Adv:6, Con:5, Int:9, Ref:9},
+  {continent:"UNESCO Sites",   country:"Jordan",      name:"Petra",                          Cur:10,Adv:5, Con:5, Int:9, Ref:8},
+  {continent:"UNESCO Sites",   country:"Jordan",      name:"Wadi Rum Protected Area",        Cur:8, Adv:7, Con:4, Int:8, Ref:10},
+  {continent:"UNESCO Sites",   country:"Israel/Palestine", name:"Old City of Jerusalem",     Cur:10,Adv:4, Con:6, Int:10,Ref:8},
+  {continent:"UNESCO Sites",   country:"Israel",      name:"Masada",                         Cur:9, Adv:5, Con:4, Int:9, Ref:8},
+  {continent:"UNESCO Sites",   country:"Lebanon",     name:"Baalbek",                        Cur:10,Adv:4, Con:4, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"Iran",        name:"Persepolis",                     Cur:10,Adv:4, Con:4, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"Yemen",       name:"Socotra Archipelago",            Cur:10,Adv:7, Con:4, Int:7, Ref:9},
+  {continent:"UNESCO Sites",   country:"Tanzania",    name:"Serengeti National Park",        Cur:9, Adv:7, Con:5, Int:7, Ref:9},
+  {continent:"UNESCO Sites",   country:"Tanzania",    name:"Ngorongoro Conservation Area",   Cur:9, Adv:6, Con:5, Int:7, Ref:9},
+  {continent:"UNESCO Sites",   country:"Tanzania",    name:"Mount Kilimanjaro National Park", Cur:7,Adv:10,Con:5, Int:8, Ref:9},
+  {continent:"UNESCO Sites",   country:"Zambia/Zimbabwe", name:"Victoria Falls",             Cur:7, Adv:8, Con:5, Int:6, Ref:8},
+  {continent:"UNESCO Sites",   country:"Egypt",       name:"Pyramids of Giza",               Cur:10,Adv:4, Con:5, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"Mali",        name:"Timbuktu",                       Cur:10,Adv:6, Con:5, Int:9, Ref:8},
+  {continent:"UNESCO Sites",   country:"Uganda",      name:"Bwindi Impenetrable National Park", Cur:9,Adv:8, Con:5, Int:8, Ref:9},
+  {continent:"UNESCO Sites",   country:"Botswana",    name:"Okavango Delta",                 Cur:9, Adv:7, Con:5, Int:6, Ref:9},
+  {continent:"UNESCO Sites",   country:"South Africa",name:"Robben Island",                  Cur:8, Adv:3, Con:6, Int:9, Ref:6},
+  {continent:"UNESCO Sites",   country:"Ethiopia",    name:"Simien National Park",           Cur:8, Adv:8, Con:5, Int:7, Ref:9},
+  {continent:"UNESCO Sites",   country:"Seychelles",  name:"Aldabra Atoll",                  Cur:8, Adv:7, Con:4, Int:6, Ref:9},
+  {continent:"UNESCO Sites",   country:"Madagascar",  name:"Tsingy de Bemaraha",             Cur:9, Adv:9, Con:3, Int:7, Ref:9},
+  {continent:"UNESCO Sites",   country:"India",       name:"Taj Mahal",                      Cur:9, Adv:3, Con:5, Int:10,Ref:8},
+  {continent:"UNESCO Sites",   country:"India",       name:"Ajanta Caves",                   Cur:10,Adv:4, Con:4, Int:9, Ref:8},
+  {continent:"UNESCO Sites",   country:"India",       name:"Fatehpur Sikri",                 Cur:9, Adv:4, Con:4, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"India",       name:"Konark Sun Temple",              Cur:9, Adv:3, Con:4, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"India",       name:"Kaziranga National Park",        Cur:8, Adv:6, Con:4, Int:6, Ref:8},
+  {continent:"UNESCO Sites",   country:"India",       name:"Sundarbans National Park",       Cur:8, Adv:7, Con:4, Int:6, Ref:8},
+  {continent:"UNESCO Sites",   country:"Nepal",       name:"Sagarmatha National Park",       Cur:8, Adv:10,Con:5, Int:9, Ref:10},
+  {continent:"UNESCO Sites",   country:"Sri Lanka",   name:"Sigiriya",                       Cur:9, Adv:5, Con:5, Int:9, Ref:8},
+  {continent:"UNESCO Sites",   country:"Cambodia",    name:"Angkor",                         Cur:10,Adv:4, Con:6, Int:9, Ref:8},
+  {continent:"UNESCO Sites",   country:"Vietnam",     name:"Ha Long Bay",                    Cur:7, Adv:6, Con:5, Int:5, Ref:9},
+  {continent:"UNESCO Sites",   country:"Vietnam",     name:"Phong Nha-Ke Bang National Park", Cur:8,Adv:8, Con:4, Int:5, Ref:9},
+  {continent:"UNESCO Sites",   country:"Indonesia",   name:"Komodo National Park",           Cur:8, Adv:9, Con:4, Int:5, Ref:7},
+  {continent:"UNESCO Sites",   country:"Indonesia",   name:"Borobudur Temple Compounds",     Cur:9, Adv:4, Con:5, Int:10,Ref:9},
+  {continent:"UNESCO Sites",   country:"Malaysia",    name:"Gunung Mulu National Park",      Cur:8, Adv:8, Con:4, Int:5, Ref:8},
+  {continent:"UNESCO Sites",   country:"Thailand",    name:"Historic City of Ayutthaya",     Cur:9, Adv:4, Con:5, Int:8, Ref:7},
+  {continent:"UNESCO Sites",   country:"Philippines", name:"Rice Terraces of the Philippine Cordilleras", Cur:8,Adv:6, Con:7, Int:8, Ref:9},
+  {continent:"UNESCO Sites",   country:"China",       name:"Great Wall",                     Cur:9, Adv:6, Con:5, Int:9, Ref:8},
+  {continent:"UNESCO Sites",   country:"China",       name:"Terracotta Army",                Cur:10,Adv:3, Con:4, Int:9, Ref:7},
+  {continent:"UNESCO Sites",   country:"China",       name:"Forbidden City",                 Cur:10,Adv:3, Con:5, Int:9, Ref:6},
+  {continent:"UNESCO Sites",   country:"China",       name:"Huangshan",                      Cur:8, Adv:6, Con:4, Int:8, Ref:10},
+  {continent:"UNESCO Sites",   country:"China",       name:"Jiuzhaigou Valley Scenic Area",  Cur:7, Adv:6, Con:4, Int:7, Ref:10},
+  {continent:"UNESCO Sites",   country:"Japan",       name:"Mount Fuji",                     Cur:7, Adv:8, Con:5, Int:9, Ref:10},
+  {continent:"UNESCO Sites",   country:"Japan",       name:"Historic Monuments of Ancient Nara", Cur:9,Adv:3, Con:5, Int:9, Ref:8},
+  {continent:"UNESCO Sites",   country:"Japan",       name:"Yakushima",                      Cur:7, Adv:6, Con:4, Int:8, Ref:10},
+  {continent:"UNESCO Sites",   country:"Japan",       name:"Shirakami-Sanchi",               Cur:7, Adv:6, Con:3, Int:7, Ref:10},
+  {continent:"UNESCO Sites",   country:"Australia",   name:"Great Barrier Reef",             Cur:8, Adv:7, Con:5, Int:5, Ref:7},
+  {continent:"UNESCO Sites",   country:"Australia",   name:"Uluru-Kata Tjuta National Park", Cur:8, Adv:4, Con:5, Int:9, Ref:10},
+  {continent:"UNESCO Sites",   country:"Australia",   name:"Tasmanian Wilderness",           Cur:7, Adv:8, Con:4, Int:5, Ref:10},
+  {continent:"UNESCO Sites",   country:"New Zealand", name:"Tongariro National Park",        Cur:6, Adv:10,Con:5, Int:6, Ref:10},
+  {continent:"UNESCO Sites",   country:"New Zealand", name:"Te Wahipounamu",                 Cur:6, Adv:8, Con:4, Int:6, Ref:10},
+  {continent:"UNESCO Sites",   country:"Russia",      name:"Lake Baikal",                    Cur:7, Adv:7, Con:4, Int:6, Ref:10},
+  {continent:"UNESCO Sites",   country:"Russia",      name:"Wrangel Island Reserve",         Cur:8, Adv:9, Con:3, Int:5, Ref:10}
+];
+
+const DEST_DIM_MAP = [
+  {label:"Curiosity",   key:"Cur",  rawKey:"Curiosity"},
+  {label:"Adventure",   key:"Adv",  rawKey:"Adventure"},
+  {label:"Connection",  key:"Con",  rawKey:"Connection"},
+  {label:"Intention",   key:"Int",  rawKey:"Intention"},
+  {label:"Reflection",  key:"Ref",  rawKey:"Reflection"},
+];
+
+// ═══════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function scoreDestForUser(dest, r) {
+  const uNorm = {
+    Cur: (r.Curiosity  / 7) * 10,
+    Adv: (r.Adventure  / 7) * 10,
+    Con: (r.Connection / 7) * 10,
+    Int: (r.Intention  / 7) * 10,
+    Ref: (r.Reflection / 7) * 10,
+  };
+  let total = 0;
+  ['Cur','Adv','Con','Int','Ref'].forEach(k => {
+    total += 1 - Math.abs(uNorm[k] - dest[k]) / 10;
+  });
+  return Math.round((total / 5) * 100);
+}
+
+// ═══════════════════════════════════════════════
+// QUOTA
+// ═══════════════════════════════════════════════
+function getGuideQuota() {
+  const key = 'destGuideCount_' + (userEmail || 'guest');
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+
+function decrementGuideQuota() {
+  const key = 'destGuideCount_' + (userEmail || 'guest');
+  localStorage.setItem(key, getGuideQuota() + 1);
+  updateQuotaBadge();
+}
+
+function updateQuotaBadge() {
+  const remaining = GUIDE_LIMIT - getGuideQuota();
+  const badge = document.getElementById('guide-quota-badge');
+  const btn   = document.getElementById('dest-guide-btn');
+  if (!badge) return;
+  if (remaining <= 0) {
+    badge.textContent = 'No guides remaining';
+    badge.style.background = 'rgba(244,63,94,0.15)';
+    badge.style.borderColor = 'rgba(244,63,94,0.35)';
+    badge.style.color = '#f43f5e';
+    if (btn) { btn.disabled = true; btn.textContent = 'Guide limit reached'; }
+  } else {
+    badge.textContent = remaining + ' guide' + (remaining === 1 ? '' : 's') + ' remaining';
+    badge.style.background = remaining <= 2 ? 'rgba(251,146,60,0.15)' : 'var(--tdim)';
+    badge.style.borderColor = remaining <= 2 ? 'rgba(251,146,60,0.35)' : 'rgba(45,212,191,0.3)';
+    badge.style.color = remaining <= 2 ? '#fb923c' : 'var(--teal)';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// LOOKUP
+// ═══════════════════════════════════════════════
+function lookupProfile() {
+  const email = document.getElementById('inp-email').value.trim().toLowerCase();
+  if (!email) return;
+
+  const btn = document.getElementById('lookup-btn');
+  const err = document.getElementById('lookup-error');
+  btn.disabled = true;
+  btn.textContent = 'Looking up…';
+  err.style.display = 'none';
+
+  fetch(LOOKUP_URL + '?action=lookup&email=' + encodeURIComponent(email))
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        err.textContent = data.error === 'not found'
+          ? 'No assessment found for that email. Please take the assessment first.'
+          : 'Something went wrong. Please try again.';
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Find My Profile →';
+        return;
+      }
+      // Store profile
+      userEmail  = email;
+      userName   = data.name || '';
+      _lastRaw   = data.scores;
+      _lastArch  = data.archetype || 'Transformational Traveler';
+      _hopes     = data.hopes ? data.hopes.split(', ').filter(h => h) : [];
+
+      buildResults();
+      showScreen('screen-results');
+    })
+    .catch(() => {
+      err.textContent = 'Unable to connect. Please try again.';
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Find My Profile →';
+    });
+}
+
+// ═══════════════════════════════════════════════
+// BUILD RESULTS
+// ═══════════════════════════════════════════════
+function buildResults() {
+  document.getElementById('user-name-display').textContent = userName;
+  document.getElementById('archetype-pill').textContent = _lastArch;
+
+  const scored = DESTINATIONS.map(d => ({...d, matchPct: scoreDestForUser(d, _lastRaw)}));
+  scored.sort((a, b) => b.matchPct - a.matchPct);
+
+  const globalTop = scored.filter(d => !(d.continent === 'North America' && d.country === 'USA')).slice(0, 6);
+  const usTop     = scored.filter(d => d.continent === 'North America' && d.country === 'USA').slice(0, 5);
+
+  document.getElementById('dest-global').innerHTML = globalTop.map(d =>
+    `<span style="display:inline-block;margin-bottom:4px;"><strong style="color:#fff;">${d.name}</strong> <span style="color:var(--muted);font-size:0.83rem;">(${d.country}, ${d.matchPct}% match)</span></span>`
+  ).join('<br>');
+
+  document.getElementById('dest-us').innerHTML = usTop.map(d =>
+    `<span style="display:inline-block;margin-bottom:4px;"><strong style="color:#fff;">${d.name}</strong> <span style="color:var(--muted);font-size:0.83rem;">(${d.matchPct}% match)</span></span>`
+  ).join('<br>');
+
+  initDestExplorer();
+}
+
+// ═══════════════════════════════════════════════
+// DESTINATION EXPLORER
+// ═══════════════════════════════════════════════
+function initDestExplorer() {
+  updateQuotaBadge();
+  const continentSel = document.getElementById('dest-continent');
+  continentSel.innerHTML = '<option value="">— Select a continent —</option>';
+  const continents = [...new Set(DESTINATIONS.map(d => d.continent))].sort();
+  continents.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    continentSel.appendChild(o);
+  });
+  document.getElementById('dest-country').innerHTML = '<option value="">— Select a country —</option>';
+  document.getElementById('dest-country').disabled = true;
+  document.getElementById('dest-name').innerHTML = '<option value="">— Select a destination —</option>';
+  document.getElementById('dest-name').disabled = true;
+  document.getElementById('dest-match-panel').classList.remove('visible');
+  document.getElementById('dest-guide-panel').style.display = 'none';
+}
+
+function destContinentChange() {
+  const continent = document.getElementById('dest-continent').value;
+  const countrySel = document.getElementById('dest-country');
+  const nameSel = document.getElementById('dest-name');
+  document.getElementById('dest-match-panel').classList.remove('visible');
+  document.getElementById('dest-guide-panel').style.display = 'none';
+
+  if (!continent) {
+    countrySel.innerHTML = '<option value="">— Select a country —</option>';
+    countrySel.disabled = true;
+    nameSel.innerHTML = '<option value="">— Select a destination —</option>';
+    nameSel.disabled = true;
+    return;
+  }
+
+  const countries = [...new Set(DESTINATIONS.filter(d => d.continent === continent).map(d => d.country))].sort();
+  countrySel.innerHTML = '<option value="">— Select a country —</option>';
+  countries.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    countrySel.appendChild(o);
+  });
+  countrySel.disabled = false;
+  nameSel.innerHTML = '<option value="">— Select a destination —</option>';
+  nameSel.disabled = true;
+}
+
+function destCountryChange() {
+  const continent = document.getElementById('dest-continent').value;
+  const country = document.getElementById('dest-country').value;
+  const nameSel = document.getElementById('dest-name');
+  document.getElementById('dest-match-panel').classList.remove('visible');
+  document.getElementById('dest-guide-panel').style.display = 'none';
+
+  if (!country) {
+    nameSel.innerHTML = '<option value="">— Select a destination —</option>';
+    nameSel.disabled = true;
+    return;
+  }
+
+  const dests = DESTINATIONS.filter(d => d.continent === continent && d.country === country);
+  nameSel.innerHTML = '<option value="">— Select a destination —</option>';
+  dests.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.name; o.textContent = d.name;
+    nameSel.appendChild(o);
+  });
+  nameSel.disabled = false;
+}
+
+function destNameChange() {
+  const continent = document.getElementById('dest-continent').value;
+  const country = document.getElementById('dest-country').value;
+  const name = document.getElementById('dest-name').value;
+  if (!name || !_lastRaw) return;
+  const dest = DESTINATIONS.find(d => d.continent === continent && d.country === country && d.name === name);
+  if (!dest) return;
+  showDestMatch(dest, _lastRaw);
+}
+
+function showDestMatch(dest, raw) {
+  const userNorm = {
+    Cur: (raw.Curiosity  / 7) * 10,
+    Adv: (raw.Adventure  / 7) * 10,
+    Con: (raw.Connection / 7) * 10,
+    Int: (raw.Intention  / 7) * 10,
+    Ref: (raw.Reflection / 7) * 10,
+  };
+
+  let totalMatch = 0;
+  DEST_DIM_MAP.forEach(({key}) => {
+    totalMatch += 1 - Math.abs(userNorm[key] - dest[key]) / 10;
+  });
+  const matchPct = Math.round((totalMatch / 5) * 100);
+
+  let badgeClass, badgeText, descText;
+  if (matchPct >= 80) {
+    badgeClass = 'excellent'; badgeText = `${matchPct}% Match — Excellent Fit`;
+    descText = `${dest.name} aligns very strongly with your travel profile. The dimension scores are closely matched — this destination could be genuinely transformational for you.`;
+  } else if (matchPct >= 65) {
+    badgeClass = 'good'; badgeText = `${matchPct}% Match — Good Fit`;
+    descText = `${dest.name} is a solid match for your profile. Most dimensions align well, and the differences may actually add interesting variety to your journey.`;
+  } else if (matchPct >= 50) {
+    badgeClass = 'moderate'; badgeText = `${matchPct}% Match — Moderate Fit`;
+    descText = `${dest.name} has some alignment with your profile but also some notable differences. With intentional planning, it could still be a rewarding trip.`;
+  } else {
+    badgeClass = 'low'; badgeText = `${matchPct}% Match — Low Fit`;
+    descText = `${dest.name} doesn't closely match your current travel profile. That said, stepping outside your comfort zone can sometimes create unexpected growth.`;
+  }
+
+  document.getElementById('dest-match-name').textContent = `${dest.name}, ${dest.country}`;
+  const badge = document.getElementById('dest-match-badge');
+  badge.textContent = badgeText;
+  badge.className = `dest-match-badge ${badgeClass}`;
+  document.getElementById('dest-match-desc').textContent = descText;
+
+  const list = document.getElementById('dest-dim-list');
+  list.innerHTML = '';
+  DEST_DIM_MAP.forEach(({label, key}) => {
+    const uPct = Math.round((userNorm[key] / 10) * 100);
+    const dPct = Math.round((dest[key]     / 10) * 100);
+    const row = document.createElement('div');
+    row.className = 'dest-dim-row';
+    row.innerHTML = `
+      <div class="dest-dim-head">
+        <span class="dest-dim-name">${label}</span>
+        <span class="dest-dim-vals">You: ${userNorm[key].toFixed(1)} &nbsp;|&nbsp; Destination: ${dest[key].toFixed(1)}</span>
+      </div>
+      <div class="dest-dual-bar">
+        <div class="dest-bar-track"><div class="dest-bar-user" style="width:${uPct}%"></div></div>
+        <div class="dest-bar-track"><div class="dest-bar-dest" style="width:${dPct}%"></div></div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  document.getElementById('dest-match-panel').classList.add('visible');
+  document.getElementById('dest-match-panel').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+}
+
+// ═══════════════════════════════════════════════
+// GUIDE
+// ═══════════════════════════════════════════════
+function loadDestGuide() {
+  const continent = document.getElementById('dest-continent').value;
+  const country   = document.getElementById('dest-country').value;
+  const name      = document.getElementById('dest-name').value;
+  if (!name || !_lastRaw) return;
+  if (getGuideQuota() >= GUIDE_LIMIT) return;
+
+  const panel   = document.getElementById('dest-guide-panel');
+  const loading = document.getElementById('dest-guide-loading');
+  const content = document.getElementById('dest-guide-content');
+  const btn     = document.getElementById('dest-guide-btn');
+
+  panel.style.display   = 'block';
+  loading.style.display = 'block';
+  content.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  const params = '?action=destGuide' +
+    '&destination=' + encodeURIComponent(name) +
+    '&country=' + encodeURIComponent(country) +
+    '&continent=' + encodeURIComponent(continent) +
+    '&archetype=' + encodeURIComponent(_lastArch || 'Transformational Traveler') +
+    '&Curiosity=' + (_lastRaw.Curiosity || 0) +
+    '&Adventure=' + (_lastRaw.Adventure || 0) +
+    '&Reflection=' + (_lastRaw.Reflection || 0) +
+    '&Connection=' + (_lastRaw.Connection || 0) +
+    '&Intention='  + (_lastRaw.Intention  || 0) +
+    '&hopes=' + encodeURIComponent(_hopes.join('|'));
+
+  fetch(GUIDE_URL + params)
+  .then(r => r.json())
+  .then(data => {
+    loading.style.display = 'none';
+    if (data.guide) {
+      const html = data.guide
+        .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-family:\'Montserrat\',sans-serif;">$1</strong>')
+        .replace(/^- (.+)$/gm, '<li style="margin-bottom:6px;">$1</li>')
+        .replace(/(<li[\s\S]*?<\/li>)+/g, '<ul style="padding-left:18px;margin:10px 0;">$&</ul>')
+        .replace(/\n\n/g, '</p><p style="margin-bottom:14px;">')
+        .replace(/\n/g, '<br>');
+      content.innerHTML = `<p style="margin-bottom:14px;">${html}</p>`;
+      content.style.display = 'block';
+      decrementGuideQuota();
+
+      // Log to sheet
+      const destObj = DESTINATIONS.find(d => d.continent === continent && d.country === country && d.name === name);
+      const mPct = destObj ? scoreDestForUser(destObj, _lastRaw) : '';
+      fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify({
+          type: 'destination',
+          timestamp: new Date().toISOString(),
+          name: userName,
+          email: userEmail,
+          archetype: _lastArch || '',
+          continent: continent,
+          country: country,
+          destination: name,
+          matchPct: mPct,
+          hopes: _hopes.join(', ')
+        })
+      }).catch(() => {});
+    } else {
+      content.innerHTML = `<p style="color:#f43f5e;">${data.error || 'Unable to generate guide'}. Please try again.</p>`;
+      content.style.display = 'block';
+    }
+    btn.disabled = false;
+    btn.textContent = '✦ Regenerate Guide';
+  })
+  .catch(() => {
+    loading.style.display = 'none';
+    content.innerHTML = '<p style="color:#f43f5e;">Something went wrong. Please try again.</p>';
+    content.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '✦ Get My Personalized Guide';
+  });
+}
+</script>
+</body>
+</html>
