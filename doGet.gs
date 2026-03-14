@@ -29,7 +29,8 @@ function doGet(e) {
         Connection: Number(found[7]),
         Intention:  Number(found[8])
       },
-      hopes: found[13] || ''
+      hopes: found[13] || '',
+      date: found[0] ? new Date(found[0]).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'}) : ''
     };
     return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
   }

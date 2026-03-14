@@ -272,6 +272,21 @@
     </div>
 
     <!-- ══════════════════════════════════════════
+         SCREEN 1B: RETURNING USER
+    ══════════════════════════════════════════ -->
+    <div class="screen" id="screen-returning">
+      <div class="welcome-badge">Welcome Back</div>
+      <h1 class="welcome-title">You've already completed <span>the assessment</span></h1>
+      <div class="instructions-box" style="margin-bottom:28px;">
+        <p id="returning-msg" style="color:var(--text);font-size:0.97rem;line-height:1.75;"></p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <button class="btn btn-primary btn-lg" onclick="proceedToAssessment()" style="width:100%;">Retake the Assessment</button>
+        <button class="btn btn-outline btn-lg" onclick="goToDestinations()" style="width:100%;">Explore Destinations →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
          SCREEN 2: QUESTIONS (35)
     ══════════════════════════════════════════ -->
     <div class="screen" id="screen-questions">
@@ -1236,13 +1251,35 @@ function startAssessment() {
   userName  = first + " " + last;
   userEmail = email;
 
+  var GUIDE_URL_CHECK = 'https://script.google.com/macros/s/AKfycbyX8HVqGF05qWEvZHPuwdSNmRo-pggZWLULSyNZn-6aIVipAZMUrn-rkcfWEmdcW-9rww/exec';
+  fetch(GUIDE_URL_CHECK + '?action=lookup&email=' + encodeURIComponent(email))
+    .then(r => r.json())
+    .then(data => {
+      if (!data.error) {
+        const dateStr = data.date || 'a previous date';
+        document.getElementById('returning-msg').textContent =
+          'Hi ' + first + ', we found a previous assessment completed on ' + dateStr + '. Would you like to retake the assessment or jump straight to exploring destinations?';
+        showScreen('screen-returning');
+      } else {
+        proceedToAssessment();
+      }
+    })
+    .catch(() => {
+      proceedToAssessment();
+    });
+}
+
+function proceedToAssessment() {
   shuffledQ = shuffle(QUESTIONS);
   currentQIdx = 0;
   answers = {};
   addAnswers = {A1:[], A2:null, A3:null, A4:[]};
-
   showScreen('screen-questions');
   renderQuestion();
+}
+
+function goToDestinations() {
+  window.location.href = 'trip-planner.html';
 }
 
 function renderQuestion() {

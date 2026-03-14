@@ -702,9 +702,11 @@ function lookupProfile() {
     .then(r => r.json())
     .then(data => {
       if (data.error) {
-        err.textContent = data.error === 'not found'
-          ? 'No assessment found for that email. Please take the assessment first.'
-          : 'Something went wrong. Please try again.';
+        if (data.error === 'not found') {
+          err.innerHTML = 'No assessment found for that email. <a href="transformational-profile.html" style="color:var(--teal);font-weight:600;">Take the assessment first →</a>';
+        } else {
+          err.textContent = 'Something went wrong. Please try again.';
+        }
         err.style.display = 'block';
         btn.disabled = false;
         btn.textContent = 'Find My Profile →';
