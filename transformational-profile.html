@@ -1251,7 +1251,7 @@ function startAssessment() {
   userName  = first + " " + last;
   userEmail = email;
 
-  var GUIDE_URL_CHECK = 'https://script.google.com/macros/s/AKfycbyX8HVqGF05qWEvZHPuwdSNmRo-pggZWLULSyNZn-6aIVipAZMUrn-rkcfWEmdcW-9rww/exec';
+  var GUIDE_URL_CHECK = 'https://script.google.com/macros/s/AKfycbxKftyQUaPeLwpHhqWI9yAdqmHzCnux1bfuvGCvB6fFkkuzc7uMyIGg8m20j1IeU9EtdQ/exec';
   fetch(GUIDE_URL_CHECK + '?action=lookup&email=' + encodeURIComponent(email))
     .then(r => r.json())
     .then(data => {
