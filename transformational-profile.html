@@ -1281,7 +1281,7 @@ function proceedToAssessment() {
 }
 
 function goToDestinations() {
-  window.location.href = 'trip-planner.html';
+  window.location.href = 'trip-planner.html?email=' + encodeURIComponent(userEmail);
 }
 
 function renderQuestion() {

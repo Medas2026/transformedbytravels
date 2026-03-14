@@ -686,33 +686,50 @@ function updateQuotaBadge() {
 }
 
 // ═══════════════════════════════════════════════
+// AUTO-LOOKUP FROM URL PARAM
+// ═══════════════════════════════════════════════
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get('email');
+  if (email) {
+    document.getElementById('inp-email').value = email;
+    window.addEventListener('DOMContentLoaded', function() {
+      doLookup(email);
+    });
+    doLookup(email);
+  }
+})();
+
+// ═══════════════════════════════════════════════
 // LOOKUP
 // ═══════════════════════════════════════════════
 function lookupProfile() {
   const email = document.getElementById('inp-email').value.trim().toLowerCase();
   if (!email) return;
+  doLookup(email);
+}
 
+function doLookup(email) {
   const btn = document.getElementById('lookup-btn');
   const err = document.getElementById('lookup-error');
-  btn.disabled = true;
-  btn.textContent = 'Looking up…';
-  err.style.display = 'none';
+  if (btn) { btn.disabled = true; btn.textContent = 'Looking up…'; }
+  if (err) err.style.display = 'none';
 
   fetch(LOOKUP_URL + '?action=lookup&email=' + encodeURIComponent(email))
     .then(r => r.json())
     .then(data => {
       if (data.error) {
-        if (data.error === 'not found') {
-          err.innerHTML = 'No assessment found for that email. <a href="transformational-profile.html" style="color:var(--teal);font-weight:600;">Take the assessment first →</a>';
-        } else {
-          err.textContent = 'Something went wrong. Please try again.';
+        if (err) {
+          if (data.error === 'not found') {
+            err.innerHTML = 'No assessment found for that email. <a href="transformational-profile.html" style="color:var(--teal);font-weight:600;">Take the assessment first →</a>';
+          } else {
+            err.textContent = 'Something went wrong. Please try again.';
+          }
+          err.style.display = 'block';
         }
-        err.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Find My Profile →';
+        if (btn) { btn.disabled = false; btn.textContent = 'Find My Profile →'; }
         return;
       }
-      // Store profile
       userEmail  = email;
       userName   = data.name || '';
       _lastRaw   = data.scores;
@@ -723,10 +740,8 @@ function lookupProfile() {
       showScreen('screen-results');
     })
     .catch(() => {
-      err.textContent = 'Unable to connect. Please try again.';
-      err.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Find My Profile →';
+      if (err) { err.textContent = 'Unable to connect. Please try again.'; err.style.display = 'block'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Find My Profile →'; }
     });
 }
 
