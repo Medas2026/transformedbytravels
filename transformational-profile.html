@@ -196,6 +196,13 @@
     .dest-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
     .dest-legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 
+    /* SECTION HEADERS */
+    .section-header { margin: 48px 0 28px; }
+    .section-header h2 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.5rem; color: #fff; margin-bottom: 8px; }
+    .section-header h2 span { color: var(--teal); }
+    .section-header p { color: var(--soft); font-size: 0.95rem; }
+    .section-divider { border: none; border-top: 1px solid var(--bd); margin: 48px 0 0; }
+
     /* UTILS */
     .text-center { text-align: center; }
     .mt-4 { margin-top: 16px; }
@@ -337,6 +344,12 @@
         <p>Here's what your answers reveal about how you travel and grow.</p>
       </div>
 
+      <!-- HEADER 1 -->
+      <div class="section-header">
+        <h2>Let's Start out With Your <span>Transformational Travel Profile</span></h2>
+        <p>It's always best to know where your journey begins from</p>
+      </div>
+
       <!-- Archetype -->
       <div class="archetype-card" id="archetype-card"></div>
 
@@ -363,6 +376,12 @@
         <div id="dim-bars"></div>
       </div>
 
+      <!-- HEADER 2 -->
+      <hr class="section-divider">
+      <div class="section-header">
+        <h2>Here is What You Would Enjoy Doing on <span>Your Next Vacation</span></h2>
+      </div>
+
       <!-- Activities -->
       <div class="result-section">
         <div class="result-section-title">Recommended Experiences</div>
@@ -377,11 +396,23 @@
         <div class="activities-grid" id="matrix-activities-list"></div>
       </div>
 
-      <!-- Travel Preferences -->
+      <!-- HEADER 3 -->
+      <hr class="section-divider">
+      <div class="section-header">
+        <h2>Here is What You Want to Do <span>For Yourself When You Travel</span></h2>
+      </div>
+
+      <!-- Hoped-for Change -->
       <div class="result-section">
-        <div class="result-section-title">Your Travel Preferences</div>
-        <p class="result-section-sub">Based on your follow-up answers.</p>
-        <div id="prefs-section"></div>
+        <div class="result-section-title">Hoped-for Change Through Travel</div>
+        <div id="a4-section"></div>
+      </div>
+
+      <!-- HEADER 4 -->
+      <hr class="section-divider">
+      <div class="section-header">
+        <h2>Here are Trips That You Might Find <span>Fabulous</span></h2>
+        <p>Pick one of these or choose your own</p>
       </div>
 
       <!-- Trips & Destinations -->
@@ -1645,15 +1676,9 @@ const HOPED_FOR_CHANGE_TEXT = {
 };
 
 function buildPrefs() {
-  const labels = {
-    A1: "Areas of curiosity",
-    A2: "Trip planning style",
-    A3: "Social media influence",
-    A4: "Hoped-for change through travel"
-  };
-
-  const container = document.getElementById('prefs-section');
+  const container = document.getElementById('a4-section');
   container.innerHTML = ADDITIONAL.map(q => {
+    if (q.id !== 'A4') return '';
     const ans = addAnswers[q.id];
     const display = Array.isArray(ans) ? ans : (ans ? [ans] : []);
     if (!display.length) return '';
@@ -1670,7 +1695,6 @@ function buildPrefs() {
       }).join('');
       return `
         <div class="pref-block">
-          <div class="pref-q">${labels[q.id]}</div>
           <p style="color:var(--soft);font-size:0.92rem;line-height:1.75;margin:14px 0 20px;">The journeys that stay with us the longest often change something within us. Travel can shift our perspective, awaken our curiosity, strengthen relationships, or help us reconnect with parts of ourselves that everyday life sometimes quiets. In this section, you shared what you hope travel might bring into your life. These hopes reflect the deeper meaning behind your travels—the experiences you may be seeking beyond the itinerary. When you choose destinations and experiences that align with these intentions, travel can become more than a trip; it can become a powerful catalyst for growth, discovery, and renewal.</p>
           <div style="margin-top:14px;">${paras}</div>
         </div>
