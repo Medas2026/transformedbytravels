@@ -1252,7 +1252,7 @@ function startAssessment() {
   userName  = first + " " + last;
   userEmail = email;
 
-  var GUIDE_URL_CHECK = 'https://script.google.com/macros/s/AKfycbxKftyQUaPeLwpHhqWI9yAdqmHzCnux1bfuvGCvB6fFkkuzc7uMyIGg8m20j1IeU9EtdQ/exec';
+  var GUIDE_URL_CHECK = 'https://script.google.com/macros/s/AKfycbx0KtnsCV5qa4kYbSHIRabd8PQMRDAZfBlvbiPUzVqxEyjIZwfyE6KDUGiDrbtaHwpyag/exec';
   fetch(GUIDE_URL_CHECK + '?action=lookup&email=' + encodeURIComponent(email))
     .then(r => r.json())
     .then(data => {
@@ -1789,7 +1789,7 @@ function loadDestGuide() {
   btn.textContent = 'Generating…';
   panel.scrollIntoView({behavior:'smooth', block:'nearest'});
 
-  var GUIDE_URL = 'https://script.google.com/macros/s/AKfycbyX8HVqGF05qWEvZHPuwdSNmRo-pggZWLULSyNZn-6aIVipAZMUrn-rkcfWEmdcW-9rww/exec';
+  var GUIDE_URL = 'https://script.google.com/macros/s/AKfycbx0KtnsCV5qa4kYbSHIRabd8PQMRDAZfBlvbiPUzVqxEyjIZwfyE6KDUGiDrbtaHwpyag/exec';
   const hopesList = Array.isArray(addAnswers['A4']) ? addAnswers['A4'] : (addAnswers['A4'] ? [addAnswers['A4']] : []);
   var params = '?action=destGuide' +
     '&destination=' + encodeURIComponent(name) +
