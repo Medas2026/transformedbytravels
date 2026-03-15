@@ -37,7 +37,7 @@ function doGet(e) {
 
   if (action === 'hopeCards') {
     var ss2 = SpreadsheetApp.openById('1FL81Pfr2ScdLO9PSdNm7im4pyrlmUMwtTEOTQYVFjOY');
-    var hSheet = ss2.getSheetByName('Hoped For Changes');
+    var hSheet = ss2.getSheetByName('Hoped For Change');
     var hRows = hSheet.getDataRange().getValues();
     var hResult = [];
     for (var j = 1; j < hRows.length; j++) {
