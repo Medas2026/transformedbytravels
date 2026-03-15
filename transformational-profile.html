@@ -1704,8 +1704,28 @@ function buildActivities(raw) {
   return list.map(a => a.name);
 }
 
+const PASSION_ICONS = {
+  "Scuba Diving":                    "🤿",
+  "Mountain Climbing/Mountaineering":"⛰️",
+  "Day Hiking":                      "🥾",
+  "Photography":                     "📷",
+  "Sailing":                         "⛵",
+  "Canoeing/Kayaking":               "🛶",
+  "Mountain Biking":                 "🚵",
+  "Wildlife Tracking":               "🦁",
+  "Sports Fishing":                  "🎣",
+  "History and Art Tracker":         "🏛️",
+  "Archaeology and Science":         "🔍",
+  "Birding":                         "🦅",
+  "Culinary Travel":                 "🍽️",
+  "Wine Tasting":                    "🍷",
+  "Pilgrimage":                      "🕌",
+  "Volunteerism":                    "🤝"
+};
+
 function buildMatrixActivities(raw) {
-  // Map dimensions: Curiosity, Immersion=Connection, Challenge=Adventure, Connection=Intention, Reflection
+  const passions = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]);
+
   const scored = TRAVEL_MATRIX.map(act => {
     const score = (act.Cur * raw.Curiosity) +
                   (act.Imm * raw.Connection) +
@@ -1715,14 +1735,26 @@ function buildMatrixActivities(raw) {
     return {...act, score};
   }).sort((a,b) => b.score - a.score).slice(0,10);
 
-  document.getElementById('matrix-activities-list').innerHTML = scored.map((act, i) => `
+  const passionRows = passions.map((p, i) => `
     <div class="activity-row">
-      <div class="activity-icon" style="font-size:1.1rem;color:var(--teal);font-weight:700;min-width:28px;">${i+1}</div>
+      <div class="activity-icon">${PASSION_ICONS[p] || '⭐'}</div>
+      <div class="activity-info">
+        <div class="activity-name">${p}</div>
+        <div style="font-size:0.78rem;color:var(--teal);margin-top:3px;">Your Travel Passion</div>
+      </div>
+    </div>
+  `).join('');
+
+  const matrixRows = scored.map((act, i) => `
+    <div class="activity-row">
+      <div class="activity-icon" style="font-size:1.1rem;color:var(--teal);font-weight:700;min-width:28px;">${i + 1 + passions.length}</div>
       <div class="activity-info">
         <div class="activity-name">${act.name}</div>
       </div>
     </div>
   `).join('');
+
+  document.getElementById('matrix-activities-list').innerHTML = passionRows + matrixRows;
 }
 
 const HOPED_FOR_CHANGE_TEXT = {
