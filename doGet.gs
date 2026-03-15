@@ -71,8 +71,13 @@ function doGet(e) {
   if (hopesRaw) {
     hopesLine = ' They hope travel will help them: ' + hopesRaw.split('|').join(', ') + '.';
   }
+  var passionsRaw = e.parameter.passions || '';
+  var passionsLine = '';
+  if (passionsRaw) {
+    passionsLine = ' Their travel passions include: ' + passionsRaw.split('|').join(', ') + '. Include a short paragraph on how they can pursue these passions at this destination.';
+  }
 
-  var prompt = 'You are a transformational travel expert. A traveler with archetype ' + archetype + ' has these dimension scores out of 7: Curiosity ' + C + ', Adventure ' + Adv + ', Reflection ' + R + ', Connection ' + Con + ', Intention ' + I + '.' + hopesLine + ' They are exploring ' + destination + ' in ' + country + ', ' + continent + '. Write a personalized 260-word destination guide with these four sections: (1) Why ' + destination + ' Could Transform You - 2 sentences. (2) Experiences Tailored to Your Profile - 4 bullet points of specific activities matching their highest scores. (3) Your Growth Edge Here - 1 sentence on what will challenge them. (4) How to Travel Here as a ' + archetype + ' - 2 sentences of mindset advice. Use bold headers. Speak directly to the traveler as you.';
+  var prompt = 'You are a transformational travel expert. A traveler with archetype ' + archetype + ' has these dimension scores out of 7: Curiosity ' + C + ', Adventure ' + Adv + ', Reflection ' + R + ', Connection ' + Con + ', Intention ' + I + '.' + hopesLine + passionsLine + ' They are exploring ' + destination + ' in ' + country + ', ' + continent + '. Write a personalized destination guide with these five sections: (1) Why ' + destination + ' Could Transform You - 2 sentences. (2) Experiences Tailored to Your Profile - 4 bullet points of specific activities matching their highest scores. (3) Your Growth Edge Here - 1 sentence on what will challenge them. (4) How to Travel Here as a ' + archetype + ' - 2 sentences of mindset advice. (5) Best Time to Visit & Climate - 2 sentences covering the monthly climate and ideal travel seasons.' + (passionsRaw ? ' (6) Pursuing Your Passions Here - 1 paragraph on how to pursue their specific travel passions at this destination.' : '') + ' Use bold headers. Speak directly to the traveler as you.';
 
   var apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
   var options = {
@@ -84,7 +89,7 @@ function doGet(e) {
     },
     payload: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 600,
+      max_tokens: 1000,
       messages: [{ role: 'user', content: prompt }]
     }),
     muteHttpExceptions: true

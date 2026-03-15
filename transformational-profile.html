@@ -1932,6 +1932,7 @@ function loadDestGuide() {
   panel.scrollIntoView({behavior:'smooth', block:'nearest'});
 
   const hopesList = Array.isArray(addAnswers['A4']) ? addAnswers['A4'] : (addAnswers['A4'] ? [addAnswers['A4']] : []);
+  const passionsList = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]).map(p => PASSION_LABELS[p]);
   var params = '?action=destGuide' +
     '&destination=' + encodeURIComponent(name) +
     '&country=' + encodeURIComponent(country) +
@@ -1942,7 +1943,8 @@ function loadDestGuide() {
     '&Reflection=' + (_lastRaw.Reflection || 0) +
     '&Connection=' + (_lastRaw.Connection || 0) +
     '&Intention=' + (_lastRaw.Intention || 0) +
-    '&hopes=' + encodeURIComponent(hopesList.join('|'));
+    '&hopes=' + encodeURIComponent(hopesList.join('|')) +
+    '&passions=' + encodeURIComponent(passionsList.join('|'));
 
   fetch('/api/dest-guide' + params)
   .then(r => r.json())
