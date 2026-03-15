@@ -108,7 +108,10 @@ module.exports = function handler(req, res) {
   }
 
   const { name, email, archetype, archetypeTag, archetypeDesc, scores } = req.body;
+  console.log('send-email called:', { name, email, archetype });
+  console.log('RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
   if (!email || !name) {
+    console.log('Missing name or email');
     return res.status(400).json({ error: 'Missing name or email' });
   }
 
@@ -137,6 +140,7 @@ module.exports = function handler(req, res) {
     response.on('end', () => {
       try {
         const parsed = JSON.parse(data);
+        console.log('Resend response status:', response.statusCode, 'body:', data);
         if (response.statusCode >= 200 && response.statusCode < 300) {
           res.status(200).json({ success: true, id: parsed.id });
         } else {
@@ -149,6 +153,7 @@ module.exports = function handler(req, res) {
   });
 
   request.on('error', (err) => {
+    console.log('Request error:', err.message);
     res.status(500).json({ error: err.message });
   });
 
