@@ -159,6 +159,16 @@
     .pref-answers { display: flex; flex-wrap: wrap; gap: 8px; }
     .pref-answer { background: var(--s2); border: 1px solid var(--bd); border-radius: 6px; padding: 6px 14px; font-size: 0.88rem; color: var(--text); }
 
+    /* PASSION DESTINATIONS */
+    .passion-group { margin-bottom: 28px; }
+    .passion-group:last-child { margin-bottom: 0; }
+    .passion-group-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: var(--teal); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .passion-dest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .passion-dest-card { background: var(--bg); border: 1px solid var(--bd); border-radius: 9px; padding: 14px 16px; }
+    .passion-dest-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.92rem; color: #fff; margin-bottom: 5px; }
+    .passion-dest-desc { color: var(--soft); font-size: 0.85rem; line-height: 1.6; }
+    @media (max-width: 600px) { .passion-dest-grid { grid-template-columns: 1fr; } }
+
     /* HOPED-FOR CHANGE CARDS */
     .hope-card { background: var(--s2); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; margin-bottom: 28px; }
     .hope-card:last-child { margin-bottom: 0; }
@@ -406,6 +416,12 @@
         <div class="result-section-title">Your Top Travel Activities</div>
         <p class="result-section-sub">Your highest-scoring activities based on your full dimension profile.</p>
         <div class="activities-grid" id="matrix-activities-list"></div>
+      </div>
+
+      <!-- Passion Destinations -->
+      <div class="result-section" id="passion-dests-section" style="display:none;">
+        <div class="result-section-title">Top Destinations for Your Passions</div>
+        <div id="passion-dests-container"></div>
       </div>
 
       <!-- HEADER 3 -->
@@ -1598,6 +1614,9 @@ function buildResults() {
   // Preferences
   buildPrefs();
 
+  // Passion destinations
+  buildPassionDests();
+
   // Destination explorer
   _lastArch = getDisplayArchetype(arch.name);
   initDestExplorer(raw);
@@ -1837,6 +1856,42 @@ async function buildPrefs() {
     }).join('');
   } catch(err) {
     container.innerHTML = '<p style="color:var(--soft);">Could not load content.</p>';
+  }
+}
+
+async function buildPassionDests() {
+  const passions = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]);
+  if (!passions.length) return;
+
+  const section = document.getElementById('passion-dests-section');
+  const container = document.getElementById('passion-dests-container');
+  section.style.display = 'block';
+  container.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">Loading...</p>';
+
+  try {
+    const resp = await fetch('/api/passion-dests');
+    const rows = await resp.json();
+
+    container.innerHTML = passions.map(passion => {
+      const label = PASSION_LABELS[passion];
+      const dests = rows.filter(r => r.passion && r.passion.toLowerCase().trim() === passion.toLowerCase().trim());
+      if (!dests.length) return '';
+      return `
+        <div class="passion-group">
+          <div class="passion-group-title">${PASSION_ICONS[passion] || '✦'} ${label}</div>
+          <div class="passion-dest-grid">
+            ${dests.map(d => `
+              <div class="passion-dest-card">
+                <div class="passion-dest-name">${d.destination}</div>
+                <div class="passion-dest-desc">${d.description}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch(err) {
+    container.innerHTML = '<p style="color:var(--soft);">Could not load passion destinations.</p>';
   }
 }
 

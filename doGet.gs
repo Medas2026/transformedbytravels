@@ -35,6 +35,23 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
   }
 
+  if (action === 'passionDests') {
+    var ss3 = SpreadsheetApp.openById('1FL81Pfr2ScdLO9PSdNm7im4pyrlmUMwtTEOTQYVFjOY');
+    var pSheet = ss3.getSheetByName('Passion Destinations');
+    var pRows = pSheet.getDataRange().getValues();
+    var pResult = [];
+    for (var k = 1; k < pRows.length; k++) {
+      if (pRows[k][0]) {
+        pResult.push({
+          passion:     pRows[k][0],
+          destination: pRows[k][1],
+          description: pRows[k][2]
+        });
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify(pResult)).setMimeType(ContentService.MimeType.JSON);
+  }
+
   if (action === 'hopeCards') {
     var ss2 = SpreadsheetApp.openById('1FL81Pfr2ScdLO9PSdNm7im4pyrlmUMwtTEOTQYVFjOY');
     var hSheet = ss2.getSheetByName('Hoped For Change');
