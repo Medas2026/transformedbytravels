@@ -1699,7 +1699,7 @@ async function buildPrefs() {
   container.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">Loading your results...</p>';
 
   try {
-    const resp = await fetch(APPS_SCRIPT_URL + '?action=hopeCards');
+    const resp = await fetch('/api/hope-cards');
     const cards = await resp.json();
     const toSlug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
