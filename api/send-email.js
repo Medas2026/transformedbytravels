@@ -106,7 +106,7 @@ module.exports = function handler(req, res) {
     const html = buildEmailHTML(name, archetype, archetypeTag, archetypeDesc, scores);
 
     sendViaResend({
-      from: 'onboarding@resend.dev',
+      from: 'YourResults@TransformedbyTravels.com',
       to: email,
       subject: name + ', your Transformational Travel Profile is ready',
       html: html
