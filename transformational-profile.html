@@ -1944,7 +1944,7 @@ function loadDestGuide() {
     '&Intention=' + (_lastRaw.Intention || 0) +
     '&hopes=' + encodeURIComponent(hopesList.join('|'));
 
-  fetch(APPS_SCRIPT_URL + params)
+  fetch('/api/dest-guide' + params)
   .then(r => r.json())
   .then(data => {
     loading.style.display = 'none';
