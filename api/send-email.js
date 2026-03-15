@@ -107,7 +107,20 @@ module.exports = function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { name, email, archetype, archetypeTag, archetypeDesc, scores } = req.body;
+  // Parse body if not already parsed
+  const parseBody = (callback) => {
+    if (req.body && typeof req.body === 'object') {
+      return callback(req.body);
+    }
+    let raw = '';
+    req.on('data', chunk => { raw += chunk; });
+    req.on('end', () => {
+      try { callback(JSON.parse(raw)); }
+      catch(e) { res.status(400).json({ error: 'Invalid JSON body' }); }
+    });
+  };
+
+  parseBody(({ name, email, archetype, archetypeTag, archetypeDesc, scores }) => {
   console.log('send-email called:', { name, email, archetype });
   console.log('RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
   if (!email || !name) {
@@ -159,4 +172,5 @@ module.exports = function handler(req, res) {
 
   request.write(payload);
   request.end();
+  }); // end parseBody
 };
