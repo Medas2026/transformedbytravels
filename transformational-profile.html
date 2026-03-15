@@ -1572,12 +1572,22 @@ function buildResults() {
   const usTop     = scored.filter(d => d.continent === 'North America' && d.country === 'USA').slice(0, 5);
 
   document.getElementById('dest-global').innerHTML = globalTop.map(d =>
-    `<span style="display:inline-block;margin-bottom:4px;"><strong style="color:#fff;">${d.name}</strong> <span style="color:var(--muted);font-size:0.83rem;">(${d.country}, ${d.matchPct}% match)</span></span>`
-  ).join('<br>');
+    `<div style="margin-bottom:8px;">
+      <button onclick="loadDestGuideDirect(${JSON.stringify(d.name)},${JSON.stringify(d.country)},${JSON.stringify(d.continent)})" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
+        <strong style="color:var(--teal);text-decoration:underline;font-size:0.95rem;">${d.name}</strong>
+      </button>
+      <span style="color:var(--muted);font-size:0.83rem;"> (${d.country}, ${d.matchPct}% match)</span>
+    </div>`
+  ).join('');
 
   document.getElementById('dest-us').innerHTML = usTop.map(d =>
-    `<span style="display:inline-block;margin-bottom:4px;"><strong style="color:#fff;">${d.name}</strong> <span style="color:var(--muted);font-size:0.83rem;">(${d.matchPct}% match)</span></span>`
-  ).join('<br>');
+    `<div style="margin-bottom:8px;">
+      <button onclick="loadDestGuideDirect(${JSON.stringify(d.name)},${JSON.stringify(d.country)},${JSON.stringify(d.continent)})" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
+        <strong style="color:var(--teal);text-decoration:underline;font-size:0.95rem;">${d.name}</strong>
+      </button>
+      <span style="color:var(--muted);font-size:0.83rem;"> (${d.matchPct}% match)</span>
+    </div>`
+  ).join('');
 
   // Activities (returns list for saving)
   const topActivities = buildActivities(raw);
@@ -1912,11 +1922,21 @@ function updateQuotaBadge() {
   }
 }
 
+function loadDestGuideDirect(name, country, continent) {
+  document.getElementById('dest-guide-panel').scrollIntoView({behavior:'smooth', block:'nearest'});
+  _loadDestGuideCore(name, country, continent);
+}
+
 function loadDestGuide() {
   const continent = document.getElementById('dest-continent').value;
   const country   = document.getElementById('dest-country').value;
   const name      = document.getElementById('dest-name').value;
   if (!name || !_lastRaw) return;
+  _loadDestGuideCore(name, country, continent);
+}
+
+function _loadDestGuideCore(name, country, continent) {
+  if (!_lastRaw) return;
   if (getGuideQuota() >= GUIDE_LIMIT) return;
 
   const panel   = document.getElementById('dest-guide-panel');
