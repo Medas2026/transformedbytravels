@@ -1960,6 +1960,19 @@ function loadDestGuide() {
       content.style.display = 'block';
       decrementGuideQuota();
 
+      // Email the destination guide
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'destination',
+          name: userName,
+          email: userEmail,
+          destination: name,
+          guideHtml: content.innerHTML
+        })
+      }).catch(() => {});
+
       // Log destination lookup to sheet
       const destObj = DESTINATIONS.find(d => d.continent === continent && d.country === country && d.name === name);
       const mPct = destObj ? Math.round((DEST_DIM_MAP.reduce((t,{key}) => {

@@ -91,19 +91,46 @@ module.exports = function handler(req, res) {
     console.log('API key present:', !!apiKey);
 
     const b = req.body || {};
+    const type = b.type || 'profile';
     const name = b.name || '';
     const email = b.email || '';
+
+    console.log('type:', type, 'name:', name, 'email:', email);
+
+    if (!email || !name) {
+      return res.status(400).json({ error: 'Missing name or email', body: b });
+    }
+
+    if (type === 'destination') {
+      const destination = b.destination || 'Your Destination';
+      const guideHtml = b.guideHtml || '';
+      const destEmailHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#f1f5f9;">' +
+        '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">' +
+        '<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">' +
+        '<tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">' +
+        '<img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>' +
+        '<tr><td style="padding:36px 40px;">' +
+        '<h2 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 24px;">Your Guide to ' + destination + '</h2>' +
+        '<div style="font-family:Arial,sans-serif;font-size:14px;color:#334155;line-height:1.75;">' + guideHtml + '</div>' +
+        '</td></tr>' +
+        '<tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">' +
+        '<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>' +
+        '</td></tr></table></td></tr></table></body></html>';
+
+      sendViaResend({
+        from: 'YourResults@transformedbytravels.com',
+        to: email,
+        subject: 'Destination: ' + destination,
+        html: destEmailHtml
+      }, apiKey, res);
+      return;
+    }
+
     const archetype = b.archetype || '';
     const archetypePassions = b.archetypePassions || '';
     const archetypeTag = b.archetypeTag || '';
     const archetypeDesc = b.archetypeDesc || '';
     const scores = b.scores || {};
-
-    console.log('name:', name, 'email:', email);
-
-    if (!email || !name) {
-      return res.status(400).json({ error: 'Missing name or email', body: b });
-    }
 
     const html = buildEmailHTML(name, archetype, archetypePassions, archetypeTag, archetypeDesc, scores);
 
