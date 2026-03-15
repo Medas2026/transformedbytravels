@@ -18,9 +18,8 @@ function get(url, redirectsLeft, callback) {
 
 module.exports = function handler(req, res) {
   const base = 'https://script.google.com/macros/s/AKfycbxxqhkHPKSnj48H6tpFtWbbCsrs6zkNvrmSIcw3NGdWhSNBehqjAsqMUIIbTpAUShx6mA/exec';
-  const params = new URLSearchParams(req.query || {});
-  params.set('action', 'destGuide');
-  const url = base + '?' + params.toString();
+  const qs = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  const url = base + qs;
 
   get(url, 10, (err, data) => {
     if (err) {
