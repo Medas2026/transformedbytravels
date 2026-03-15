@@ -1534,7 +1534,7 @@ function buildResults() {
       ? `<img src="${arch.iconImg}" alt="${arch.name}" class="archetype-icon-img" />`
       : `<div class="archetype-icon">${arch.icon}</div>`}
     <div class="archetype-tag">${arch.tag}</div>
-    <h2 class="archetype-name">${getDisplayArchetype(arch.name)}</h2>
+    <h2 class="archetype-name">${arch.name}${(addAnswers['A1']||[]).filter(p=>PASSION_LABELS[p]).length ? '<br><span style="font-size:1.2rem;color:var(--teal);">' + (addAnswers['A1']||[]).filter(p=>PASSION_LABELS[p]).map(p=>PASSION_LABELS[p]).join(' / ') + '</span>' : ''}</h2>
     <p class="archetype-desc">${arch.desc}</p>
     <div class="archetype-photos">
       ${arch.photos.map(url => `<img src="${url}" alt="${arch.name}" class="archetype-photo" />`).join('')}
@@ -1603,7 +1603,8 @@ function buildResults() {
     body: JSON.stringify({
       name: userName,
       email: userEmail,
-      archetype: getDisplayArchetype(arch.name),
+      archetype: arch.name,
+      archetypePassions: (addAnswers['A1']||[]).filter(p=>PASSION_LABELS[p]).map(p=>PASSION_LABELS[p]).join(' / '),
       archetypeTag: arch.tag,
       archetypeDesc: arch.desc,
       scores: raw

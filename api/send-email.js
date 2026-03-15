@@ -1,6 +1,6 @@
 const https = require('https');
 
-function buildEmailHTML(name, archetype, archetypeTag, archetypeDesc, scores) {
+function buildEmailHTML(name, archetype, archetypePassions, archetypeTag, archetypeDesc, scores) {
   const dims = ['Curiosity', 'Adventure', 'Reflection', 'Connection', 'Intention'];
   const dimRows = dims.map(d => {
     const score = Number((scores || {})[d] || 0);
@@ -26,7 +26,8 @@ function buildEmailHTML(name, archetype, archetypeTag, archetypeDesc, scores) {
     '<table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:12px;">' +
     '<tr><td style="padding:32px;text-align:center;">' +
     '<p style="font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#2dd4bf;margin:0 0 10px;">' + (archetypeTag || '') + '</p>' +
-    '<h2 style="font-family:Georgia,serif;font-size:26px;color:#ffffff;margin:0 0 16px;">' + (archetype || '') + '</h2>' +
+    '<h2 style="font-family:Georgia,serif;font-size:26px;color:#ffffff;margin:0 0 8px;">' + (archetype || '') + '</h2>' +
+    (archetypePassions ? '<p style="font-family:Arial,sans-serif;font-size:16px;color:#2dd4bf;font-weight:bold;margin:0 0 16px;">' + archetypePassions + '</p>' : '<div style="margin-bottom:16px;"></div>') +
     '<p style="font-family:Arial,sans-serif;font-size:14px;color:#94a3b8;line-height:1.7;margin:0;">' + (archetypeDesc || '') + '</p>' +
     '</td></tr></table></td></tr>' +
     '<tr><td style="padding:0 40px 36px;">' +
@@ -93,6 +94,7 @@ module.exports = function handler(req, res) {
     const name = b.name || '';
     const email = b.email || '';
     const archetype = b.archetype || '';
+    const archetypePassions = b.archetypePassions || '';
     const archetypeTag = b.archetypeTag || '';
     const archetypeDesc = b.archetypeDesc || '';
     const scores = b.scores || {};
@@ -103,7 +105,7 @@ module.exports = function handler(req, res) {
       return res.status(400).json({ error: 'Missing name or email', body: b });
     }
 
-    const html = buildEmailHTML(name, archetype, archetypeTag, archetypeDesc, scores);
+    const html = buildEmailHTML(name, archetype, archetypePassions, archetypeTag, archetypeDesc, scores);
 
     sendViaResend({
       from: 'YourResults@transformedbytravels.com',
