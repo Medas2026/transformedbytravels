@@ -530,6 +530,31 @@
 // ═══════════════════════════════════════════════
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxqhkHPKSnj48H6tpFtWbbCsrs6zkNvrmSIcw3NGdWhSNBehqjAsqMUIIbTpAUShx6mA/exec';
 
+const PASSION_LABELS = {
+  "Scuba Diving":                    "Diver",
+  "Mountain Climbing/Mountaineering":"Mountaineer",
+  "Day Hiking":                      "Hiker",
+  "Photography":                     "Photographer",
+  "Sailing":                         "Sailor",
+  "Canoeing/Kayaking":               "Paddler",
+  "Mountain Biking":                 "Mountain Biker",
+  "Wildlife Tracking":               "Wildlife Tracker",
+  "Sports Fishing":                  "Angler",
+  "History and Art Tracker":         "History & Art Tracker",
+  "Archaeology and Science":         "Archaeologist",
+  "Birding":                         "Birder",
+  "Culinary Travel":                 "Culinary Traveler",
+  "Wine Tasting":                    "Wine Enthusiast",
+  "Pilgrimage":                      "Pilgrim",
+  "Volunteerism":                    "Volunteer"
+};
+
+function getDisplayArchetype(archName) {
+  const passions = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]);
+  if (!passions.length) return archName;
+  return archName + '/' + passions.map(p => PASSION_LABELS[p]).join('/');
+}
+
 // ═══════════════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════════════
@@ -1509,7 +1534,7 @@ function buildResults() {
       ? `<img src="${arch.iconImg}" alt="${arch.name}" class="archetype-icon-img" />`
       : `<div class="archetype-icon">${arch.icon}</div>`}
     <div class="archetype-tag">${arch.tag}</div>
-    <h2 class="archetype-name">${arch.name}</h2>
+    <h2 class="archetype-name">${getDisplayArchetype(arch.name)}</h2>
     <p class="archetype-desc">${arch.desc}</p>
     <div class="archetype-photos">
       ${arch.photos.map(url => `<img src="${url}" alt="${arch.name}" class="archetype-photo" />`).join('')}
@@ -1564,11 +1589,11 @@ function buildResults() {
   buildPrefs();
 
   // Destination explorer
-  _lastArch = arch.name;
+  _lastArch = getDisplayArchetype(arch.name);
   initDestExplorer(raw);
 
   // Save record after all data is ready
-  saveRecord(raw, arch.name, topActivities);
+  saveRecord(raw, getDisplayArchetype(arch.name), topActivities);
 }
 
 function buildSpider(raw) {
