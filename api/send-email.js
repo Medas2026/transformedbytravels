@@ -103,7 +103,7 @@ module.exports = function handler(req, res) {
 
     if (type === 'destination') {
       const destination = b.destination || 'Your Destination';
-      const guideHtml = b.guideHtml || '';
+      const guideHtml = (b.guideHtml || '').replace(/color:#fff/g, 'color:#0f172a').replace(/color: #fff/g, 'color:#0f172a');
       const destEmailHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#f1f5f9;">' +
         '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">' +
         '<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">' +
