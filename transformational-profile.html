@@ -1596,6 +1596,7 @@ function buildResults() {
   saveRecord(raw, getDisplayArchetype(arch.name), topActivities);
 
   // Send results email
+  console.log('Sending email to:', userEmail, 'name:', userName);
   fetch('/api/send-email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
