@@ -1594,6 +1594,20 @@ function buildResults() {
 
   // Save record after all data is ready
   saveRecord(raw, getDisplayArchetype(arch.name), topActivities);
+
+  // Send results email
+  fetch('/api/send-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: userName,
+      email: userEmail,
+      archetype: getDisplayArchetype(arch.name),
+      archetypeTag: arch.tag,
+      archetypeDesc: arch.desc,
+      scores: raw
+    })
+  }).catch(() => {}); // fire and forget — don't block UI on failure
 }
 
 function buildSpider(raw) {
