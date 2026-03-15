@@ -109,7 +109,7 @@ module.exports = function handler(req, res) {
       from: 'YourResults@transformedbytravels.com',
       to: email,
       subject: name + ', your Transformational Travel Profile is ready',
-      html: html
+      html: html.replace('trip-planner.html', 'trip-planner.html?email=' + encodeURIComponent(email))
     }, apiKey, res);
 
   } catch(err) {
