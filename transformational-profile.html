@@ -1419,6 +1419,7 @@ function handleAddOpt(el, qId, val, isMulti, max) {
   if (isMulti) {
     if (!Array.isArray(addAnswers[qId])) addAnswers[qId] = [];
     const arr = addAnswers[qId];
+    const noneOpt = "I don't have any travel passions";
     const idx = arr.indexOf(val);
     if (idx > -1) {
       arr.splice(idx, 1);
@@ -1426,6 +1427,28 @@ function handleAddOpt(el, qId, val, isMulti, max) {
       el.querySelector('.add-check').textContent = '☐';
     } else {
       if (arr.length >= max) return;
+      // If selecting "none", deselect all others
+      if (val === noneOpt) {
+        addAnswers[qId] = [val];
+        document.querySelectorAll('#add-opts-list .add-opt').forEach(o => {
+          o.classList.remove('selected');
+          o.querySelector('.add-check').textContent = '☐';
+        });
+        el.classList.add('selected');
+        el.querySelector('.add-check').textContent = '☑';
+        return;
+      }
+      // If selecting any other option, deselect "none"
+      const noneIdx = arr.indexOf(noneOpt);
+      if (noneIdx > -1) {
+        arr.splice(noneIdx, 1);
+        document.querySelectorAll('#add-opts-list .add-opt').forEach(o => {
+          if (o.querySelector('span:last-child').textContent === noneOpt) {
+            o.classList.remove('selected');
+            o.querySelector('.add-check').textContent = '☐';
+          }
+        });
+      }
       arr.push(val);
       el.classList.add('selected');
       el.querySelector('.add-check').textContent = '☑';
