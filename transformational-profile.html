@@ -404,17 +404,10 @@
         <h2>Here is What You Would Enjoy Doing on <span>Your Next Vacation</span></h2>
       </div>
 
-      <!-- Activities -->
-      <div class="result-section">
-        <div class="result-section-title">Recommended Experiences</div>
-        <p class="result-section-sub">Travel activities most aligned with your profile.</p>
-        <div class="activities-grid" id="activities-list"></div>
-      </div>
-
-      <!-- Top Activities from Matrix -->
+      <!-- Top Activities -->
       <div class="result-section">
         <div class="result-section-title">Your Top Travel Activities</div>
-        <p class="result-section-sub">Your highest-scoring activities based on your full dimension profile.</p>
+        <p class="result-section-sub">Activities most aligned with your full dimension profile, with your passions featured first.</p>
         <div class="activities-grid" id="matrix-activities-list"></div>
       </div>
 
@@ -1732,20 +1725,6 @@ function buildActivities(raw) {
   // Fallback if nothing scores
   const list = scored.length ? scored : ACTIVITIES.slice(0,7);
 
-  const matchedDims = (act) => DIMS.filter(d => act[DIM_ACT_KEY[d]] === 1);
-
-  document.getElementById('activities-list').innerHTML = list.map(act => `
-    <div class="activity-row">
-      <div class="activity-icon">${act.icon}</div>
-      <div class="activity-info">
-        <div class="activity-name">${act.name}</div>
-        <div class="activity-dims">
-          ${matchedDims(act).map(d => `<span class="dim-pill">${d}</span>`).join('')}
-        </div>
-      </div>
-    </div>
-  `).join('');
-
   return list.map(a => a.name);
 }
 
@@ -1790,14 +1769,27 @@ function buildMatrixActivities(raw) {
     </div>
   `).join('');
 
-  const matrixRows = scored.map((act, i) => `
+  const DIM_PILL_MAP = [
+    {key:'Cur', label:'Curiosity'},
+    {key:'Imm', label:'Connection'},
+    {key:'Cha', label:'Adventure'},
+    {key:'Con', label:'Intention'},
+    {key:'Ref', label:'Reflection'}
+  ];
+
+  const matrixRows = scored.map((act, i) => {
+    const pills = DIM_PILL_MAP.filter(d => act[d.key] >= 3).map(d =>
+      `<span class="dim-pill">${d.label}</span>`
+    ).join('');
+    return `
     <div class="activity-row">
       <div class="activity-icon" style="font-size:1.1rem;color:var(--teal);font-weight:700;min-width:28px;">${i + 1 + passions.length}</div>
       <div class="activity-info">
         <div class="activity-name">${act.name}</div>
+        ${pills ? `<div class="activity-dims">${pills}</div>` : ''}
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   document.getElementById('matrix-activities-list').innerHTML = passionRows + matrixRows;
 }
