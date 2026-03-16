@@ -1984,7 +1984,11 @@ function loadDestGuide() {
 
 function _loadDestGuideCore(name, country, continent) {
   if (!_lastRaw) return;
-  if (getGuideQuota() >= GUIDE_LIMIT) return;
+  if (getGuideQuota() >= GUIDE_LIMIT) {
+    alert('You have used all your destination guides. Contact us to get more!');
+    document.getElementById('destinations-section').scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
 
   const panel   = document.getElementById('dest-guide-panel');
   const loading = document.getElementById('dest-guide-loading');
