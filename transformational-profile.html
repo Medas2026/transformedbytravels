@@ -1589,7 +1589,7 @@ function buildResults() {
 
   document.getElementById('dest-global').innerHTML = globalTop.map(d =>
     `<div style="margin-bottom:8px;">
-      <button onclick="loadDestGuideDirect(${JSON.stringify(d.name)},${JSON.stringify(d.country)},${JSON.stringify(d.continent)})" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
+      <button onclick='loadDestGuideDirect(${JSON.stringify(d.name)},${JSON.stringify(d.country)},${JSON.stringify(d.continent)})' style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
         <strong style="color:var(--teal);text-decoration:underline;font-size:0.95rem;">${d.name}</strong>
       </button>
       <span style="color:var(--muted);font-size:0.83rem;"> (${d.country}, ${d.matchPct}% match)</span>
@@ -1598,7 +1598,7 @@ function buildResults() {
 
   document.getElementById('dest-us').innerHTML = usTop.map(d =>
     `<div style="margin-bottom:8px;">
-      <button onclick="loadDestGuideDirect(${JSON.stringify(d.name)},${JSON.stringify(d.country)},${JSON.stringify(d.continent)})" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
+      <button onclick='loadDestGuideDirect(${JSON.stringify(d.name)},${JSON.stringify(d.country)},${JSON.stringify(d.continent)})' style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
         <strong style="color:var(--teal);text-decoration:underline;font-size:0.95rem;">${d.name}</strong>
       </button>
       <span style="color:var(--muted);font-size:0.83rem;"> (${d.matchPct}% match)</span>
@@ -1881,8 +1881,8 @@ async function buildPassionDests() {
           <div class="passion-group-title">${PASSION_ICONS[passion] || '✦'} ${label}</div>
           <div class="passion-dest-grid">
             ${dests.map(d => `
-              <div class="passion-dest-card">
-                <div class="passion-dest-name">${d.destination}</div>
+              <div class="passion-dest-card" onclick='loadDestGuideDirect(${JSON.stringify(d.destination)},"","")' style="cursor:pointer;">
+                <div class="passion-dest-name" style="color:var(--teal);text-decoration:underline;">${d.destination}</div>
                 <div class="passion-dest-desc">${d.description}</div>
               </div>
             `).join('')}
