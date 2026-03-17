@@ -1546,15 +1546,31 @@ function nextAdditional() {
   } else {
     buildResults();
     showScreen('screen-results');
-    // Update button label if returning user
+    // Silently save assessment results to Airtable
     if (userEmail) {
-      fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail))
-        .then(r => r.json())
-        .then(data => {
-          if (data.record) {
-            document.getElementById('create-account-btn').textContent = 'Update My Profile';
-          }
-        }).catch(() => {});
+      const hopesList    = Array.isArray(addAnswers['A5']) ? addAnswers['A5'] : (addAnswers['A5'] ? [addAnswers['A5']] : []);
+      const passionsList = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]);
+      const raw  = calcScores();
+      const arch = getArchetype(raw);
+      fetch('/api/airtable-traveler', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email:     userEmail,
+          name:      userName,
+          archetype: arch.name,
+          passions:  passionsList.join(', '),
+          lifeStage: addAnswers['A2'] || '',
+          hopes:     hopesList.join(', '),
+          scores:    raw
+        })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.record || data.success) {
+          document.getElementById('create-account-btn').textContent = 'Update My Profile';
+        }
+      }).catch(() => {});
     }
   }
 }
