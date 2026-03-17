@@ -68,6 +68,42 @@
     /* COMING SOON */
     .coming-soon { text-align: center; padding: 60px 20px; color: var(--soft); }
     .coming-soon h3 { font-family: 'Montserrat', sans-serif; font-size: 1.1rem; color: #fff; margin-bottom: 10px; }
+
+    /* TRIP PLANNING */
+    .arch-banner { background: linear-gradient(135deg, var(--s1) 0%, var(--s2) 100%); border: 1px solid rgba(45,212,191,0.3); border-radius: 14px; padding: 24px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 20px; }
+    .arch-banner-icon { font-size: 2.8rem; min-width: 50px; text-align: center; }
+    .arch-banner-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--teal); margin-bottom: 6px; }
+    .arch-banner-tag { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .arch-banner-desc { color: var(--soft); font-size: 0.88rem; line-height: 1.65; }
+
+    .trips-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .trips-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: #fff; }
+    .btn-new-trip { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.82rem; background: var(--teal); color: #0f172a; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; }
+    .btn-new-trip:hover { opacity: 0.9; }
+
+    .trip-card { background: var(--s1); border: 1px solid var(--bd); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; cursor: pointer; transition: border-color 0.2s; display: flex; justify-content: space-between; align-items: center; }
+    .trip-card:hover { border-color: rgba(45,212,191,0.4); }
+    .trip-card-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 4px; }
+    .trip-card-dates { font-size: 0.82rem; color: var(--soft); }
+    .trip-card-arrow { color: var(--teal); font-size: 1.1rem; }
+
+    .trip-detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .btn-back { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.8rem; color: var(--teal); background: none; border: 1px solid rgba(45,212,191,0.4); border-radius: 6px; padding: 6px 14px; cursor: pointer; }
+    .trip-detail-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.05rem; color: #fff; }
+
+    .trip-field-group { margin-bottom: 16px; }
+    .trip-field-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 6px; }
+    .trip-input { width: 100%; background: var(--s2); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 0.9rem; outline: none; }
+    .trip-input:focus { border-color: var(--teal); }
+    .trip-textarea { width: 100%; background: var(--s2); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 0.9rem; outline: none; resize: vertical; min-height: 100px; }
+    .trip-textarea:focus { border-color: var(--teal); }
+    .places-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 500px) { .places-grid { grid-template-columns: 1fr; } }
+
+    .dna-btn { width: 100%; background: linear-gradient(135deg, rgba(45,212,191,0.15), rgba(45,212,191,0.05)); border: 1px solid rgba(45,212,191,0.5); border-radius: 10px; padding: 14px; color: var(--teal); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 8px; }
+    .dna-btn:hover { background: rgba(45,212,191,0.2); }
+    .dna-panel { background: linear-gradient(135deg, var(--s1) 0%, var(--s2) 100%); border: 1px solid rgba(45,212,191,0.35); border-radius: 12px; padding: 24px; margin-top: 16px; }
+    .dna-panel-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--teal); margin-bottom: 14px; }
   </style>
 </head>
 <body>
@@ -195,10 +231,89 @@
 
       <!-- Trip Planning Page -->
       <div class="page" id="page-planning">
-        <div class="coming-soon">
-          <h3>Trip Planning</h3>
-          <p>Coming soon — personalized destination planning based on your profile.</p>
+
+        <!-- Archetype Banner -->
+        <div class="arch-banner" id="trip-arch-banner" style="display:none;">
+          <div class="arch-banner-icon" id="trip-arch-icon"></div>
+          <div>
+            <div class="arch-banner-name" id="trip-arch-name"></div>
+            <div class="arch-banner-tag" id="trip-arch-tag"></div>
+            <div class="arch-banner-desc" id="trip-arch-desc"></div>
+          </div>
         </div>
+
+        <!-- Trip List -->
+        <div id="trip-list-section">
+          <div class="trips-header">
+            <div class="trips-title">Your Trips</div>
+            <button class="btn-new-trip" onclick="showNewTripForm()">+ New Trip</button>
+          </div>
+          <div id="trip-list-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading trips…</div>
+          <div id="trip-list"></div>
+        </div>
+
+        <!-- Trip Detail -->
+        <div id="trip-detail" style="display:none;">
+          <div class="trip-detail-header">
+            <button class="btn-back" onclick="closeTripDetail()">← Back</button>
+            <div class="trip-detail-title" id="trip-detail-title">New Trip</div>
+          </div>
+
+          <div class="profile-section">
+            <div class="trip-field-group">
+              <div class="trip-field-label">Trip Name</div>
+              <input id="td-name" class="trip-input" placeholder="e.g. Paris – June 2026" />
+            </div>
+            <div class="trip-field-group">
+              <div class="trip-field-label">Destination</div>
+              <input id="td-destination" class="trip-input" placeholder="City, Country or Region" />
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="trip-field-group">
+                <div class="trip-field-label">Start Date</div>
+                <input id="td-start" type="date" class="trip-input" />
+              </div>
+              <div class="trip-field-group">
+                <div class="trip-field-label">End Date</div>
+                <input id="td-end" type="date" class="trip-input" />
+              </div>
+            </div>
+            <div class="trip-field-group">
+              <div class="trip-field-label">Home Airport Code</div>
+              <input id="td-airport" class="trip-input" placeholder="e.g. ORD" style="max-width:180px;" />
+            </div>
+            <div class="trip-field-group">
+              <div class="trip-field-label">Notes</div>
+              <textarea id="td-notes" class="trip-textarea" placeholder="Ideas, wishes, things to research…"></textarea>
+            </div>
+            <div class="trip-field-group">
+              <div class="trip-field-label">Places to Visit (up to 5)</div>
+              <div class="places-grid">
+                <input id="td-place1" class="trip-input" placeholder="Place 1" />
+                <input id="td-place2" class="trip-input" placeholder="Place 2" />
+                <input id="td-place3" class="trip-input" placeholder="Place 3" />
+                <input id="td-place4" class="trip-input" placeholder="Place 4" />
+                <input id="td-place5" class="trip-input" placeholder="Place 5" />
+              </div>
+            </div>
+
+            <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
+            <button onclick="saveTrip()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;margin-bottom:8px;">Save Trip</button>
+          </div>
+
+          <!-- Destination DNA -->
+          <div class="profile-section" style="margin-top:16px;">
+            <div class="profile-section-title">Destination DNA</div>
+            <p style="color:var(--soft);font-size:0.87rem;margin-bottom:16px;">Generate a personalized guide for your destination based on your unique Traveler DNA.</p>
+            <button class="dna-btn" onclick="generateDestDNA()">✦ Generate My Destination DNA</button>
+            <div id="trip-dna-panel" style="display:none;" class="dna-panel">
+              <div class="dna-panel-title">Your Destination DNA</div>
+              <div id="trip-dna-loading" style="color:var(--soft);font-size:0.9rem;">Generating your guide…</div>
+              <div id="trip-dna-content" style="display:none;color:var(--soft);font-size:0.9rem;line-height:1.8;"></div>
+            </div>
+          </div>
+
+        </div><!-- /trip-detail -->
       </div>
 
       <!-- Start a Trip Page -->
@@ -232,8 +347,23 @@
 const AUTH0_DOMAIN   = 'dev-oys4h8z7qa7irffk.us.auth0.com';
 const AUTH0_CLIENT_ID = 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd';
 
-let auth0Client = null;
-let userEmail   = null;
+let auth0Client  = null;
+let userEmail    = null;
+let portalProfile = null;
+
+const ARCHETYPE_DATA = {
+  "The Transformational Traveler": { icon: "🦋", tag: "All Forces Active",     desc: "You approach travel as a powerful path to personal growth. You seek experiences that combine curiosity, challenge, connection, immersion, and reflection." },
+  "Meaning Seeker":                { icon: "🏮", tag: "Curiosity + Reflection", desc: "You travel to gain perspective and deeper understanding. Cultural insights, powerful landscapes, and reflective moments help you think about life in new ways." },
+  "Nature Wanderer":               { icon: "🌲", tag: "Adventure + Reflection", desc: "Wild landscapes are where you feel most alive. Mountains, oceans, forests, and wildlife create the kind of experiences that stay with you long after the trip ends." },
+  "Adventure Seeker":              { icon: "⛰️", tag: "Challenge",              desc: "You love travel that stretches your comfort zone. Hiking, exploring remote places, and active experiences energize you." },
+  "Cultural Explorer":             { icon: "🏛️", tag: "Curiosity",              desc: "You travel to learn about the world. History, art, architecture, and traditions fascinate you, and you enjoy discovering the stories behind the places you visit." },
+  "Deep Immersion":                { icon: "📍", tag: "Immersion",              desc: "You want to experience places from the inside rather than simply observe them. Local food, authentic neighborhoods, and everyday culture matter to you." },
+  "Connector":                     { icon: "🤝", tag: "Connection",             desc: "People are what make travel meaningful for you. Conversations with locals, shared meals, and unexpected friendships often become the most memorable parts of your trips." },
+  "Reflector":                     { icon: "🌅", tag: "Reflection",             desc: "Travel gives you space to slow down and think deeply. Quiet moments—watching a sunrise, journaling, or simply observing a place—are as meaningful as the activities themselves." },
+  "Comfort Adventurer":            { icon: "🛤️", tag: "Balanced Adventure",    desc: "You enjoy a sense of adventure while still appreciating comfort and balance. Scenic hikes, wildlife encounters, and unique experiences appeal to you when well planned." },
+  "Joyful Wanderer":               { icon: "✈️", tag: "Open Explorer",          desc: "You travel for the joy of discovery and variety. A little culture, a little scenery, good food, and memorable moments all contribute to a great trip." },
+  "Easy Going Traveler":           { icon: "🏖️", tag: "Relaxed Explorer",       desc: "Travel for you is about relaxation and enjoyment. You appreciate pleasant places, good company, and going with the flow." }
+};
 
 async function initAuth0() {
   auth0Client = await auth0.createAuth0Client({
@@ -287,6 +417,7 @@ async function loadProfile(email) {
 
     if (data.record) {
       const f = data.record.fields;
+      portalProfile = f;
       document.getElementById('pf-name').textContent       = f['Traveler Name'] || '—';
       document.getElementById('pf-email').textContent      = f['Traveler Email'] || '—';
       document.getElementById('pf-phone').textContent      = f['Phone Number'] || '—';
@@ -373,6 +504,7 @@ function showPage(name) {
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelector(`[data-page="${name}"]`).classList.add('active');
+  if (name === 'planning') loadTrips();
 }
 
 async function logout() {
@@ -382,6 +514,203 @@ async function logout() {
 }
 
 initAuth0();
+
+// ═══════════════════════════════════════════════
+// TRIP PLANNING
+// ═══════════════════════════════════════════════
+let currentTripId   = null;
+let tripsLoaded     = false;
+
+function loadTrips() {
+  // Populate archetype banner from profile
+  if (portalProfile) {
+    const arch = ARCHETYPE_DATA[portalProfile['Archetype']];
+    if (arch) {
+      document.getElementById('trip-arch-icon').textContent = arch.icon;
+      document.getElementById('trip-arch-name').textContent = portalProfile['Archetype'];
+      document.getElementById('trip-arch-tag').textContent  = arch.tag;
+      document.getElementById('trip-arch-desc').textContent = arch.desc;
+      document.getElementById('trip-arch-banner').style.display = 'flex';
+    }
+  }
+
+  if (tripsLoaded) return;
+  fetch('/api/trips?email=' + encodeURIComponent(userEmail))
+    .then(r => r.json())
+    .then(data => {
+      tripsLoaded = true;
+      document.getElementById('trip-list-loading').style.display = 'none';
+      renderTripList(data.records || []);
+    })
+    .catch(() => {
+      document.getElementById('trip-list-loading').textContent = 'Could not load trips.';
+    });
+}
+
+function renderTripList(records) {
+  const list = document.getElementById('trip-list');
+  if (!records.length) {
+    list.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">No trips yet. Click "+ New Trip" to create your first one.</p>';
+    return;
+  }
+  list.innerHTML = records.map(r => {
+    const f     = r.fields;
+    const name  = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
+    const start = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '';
+    const end   = f['End Date']   ? new Date(f['End Date']).toLocaleDateString('en-US',   {month:'short', year:'numeric'}) : '';
+    const dates = start && end ? `${start} – ${end}` : (start || '');
+    return `<div class="trip-card" onclick='openTrip(${JSON.stringify(r)})'>
+      <div>
+        <div class="trip-card-name">${name}</div>
+        <div class="trip-card-dates">${dates}</div>
+      </div>
+      <div class="trip-card-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+function openTrip(record) {
+  currentTripId = record.id;
+  const f = record.fields;
+  document.getElementById('trip-detail-title').textContent = f['Trip Name'] || 'Trip Details';
+  document.getElementById('td-name').value        = f['Trip Name']    || '';
+  document.getElementById('td-destination').value = f['Destination']  || '';
+  document.getElementById('td-start').value       = f['Start Date']   || '';
+  document.getElementById('td-end').value         = f['End Date']     || '';
+  document.getElementById('td-airport').value     = f['Airport Code'] || '';
+  document.getElementById('td-notes').value       = f['Notes']        || '';
+  document.getElementById('td-place1').value      = f['Place 1']      || '';
+  document.getElementById('td-place2').value      = f['Place 2']      || '';
+  document.getElementById('td-place3').value      = f['Place 3']      || '';
+  document.getElementById('td-place4').value      = f['Place 4']      || '';
+  document.getElementById('td-place5').value      = f['Place 5']      || '';
+  document.getElementById('trip-dna-panel').style.display = 'none';
+  document.getElementById('trip-list-section').style.display = 'none';
+  document.getElementById('trip-detail').style.display = 'block';
+}
+
+function showNewTripForm() {
+  currentTripId = null;
+  document.getElementById('trip-detail-title').textContent = 'New Trip';
+  ['td-name','td-destination','td-start','td-end','td-airport','td-notes',
+   'td-place1','td-place2','td-place3','td-place4','td-place5'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('trip-dna-panel').style.display = 'none';
+  document.getElementById('trip-list-section').style.display = 'none';
+  document.getElementById('trip-detail').style.display = 'block';
+}
+
+function closeTripDetail() {
+  document.getElementById('trip-detail').style.display = 'none';
+  document.getElementById('trip-list-section').style.display = 'block';
+  // Refresh list
+  tripsLoaded = false;
+  document.getElementById('trip-list-loading').style.display = 'block';
+  loadTrips();
+}
+
+async function saveTrip() {
+  const msg = document.getElementById('trip-save-msg');
+  msg.style.display = 'block';
+  msg.style.color   = 'var(--teal)';
+  msg.textContent   = 'Saving…';
+
+  const payload = {
+    tripName:    document.getElementById('td-name').value,
+    destination: document.getElementById('td-destination').value,
+    startDate:   document.getElementById('td-start').value,
+    endDate:     document.getElementById('td-end').value,
+    airportCode: document.getElementById('td-airport').value,
+    notes:       document.getElementById('td-notes').value,
+    place1:      document.getElementById('td-place1').value,
+    place2:      document.getElementById('td-place2').value,
+    place3:      document.getElementById('td-place3').value,
+    place4:      document.getElementById('td-place4').value,
+    place5:      document.getElementById('td-place5').value
+  };
+
+  if (currentTripId) {
+    payload.id = currentTripId;
+  } else {
+    payload.email = userEmail;
+  }
+
+  try {
+    const resp = await fetch('/api/trips', {
+      method: currentTripId ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    if (data.success) {
+      if (!currentTripId && data.record) currentTripId = data.record.id;
+      document.getElementById('trip-detail-title').textContent = payload.tripName || 'Trip Details';
+      msg.textContent = '✓ Saved!';
+      setTimeout(() => { msg.style.display = 'none'; }, 2000);
+    } else {
+      msg.style.color = '#f43f5e';
+      msg.textContent = 'Error: ' + (data.error || 'Could not save');
+    }
+  } catch(err) {
+    msg.style.color = '#f43f5e';
+    msg.textContent = 'Error: ' + err.message;
+  }
+}
+
+async function generateDestDNA() {
+  const destination = document.getElementById('td-destination').value.trim();
+  if (!destination) {
+    alert('Please enter a destination first.');
+    return;
+  }
+
+  const panel   = document.getElementById('trip-dna-panel');
+  const loading = document.getElementById('trip-dna-loading');
+  const content = document.getElementById('trip-dna-content');
+
+  panel.style.display   = 'block';
+  loading.style.display = 'block';
+  content.style.display = 'none';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const p = portalProfile || {};
+  const hopes    = (p['Hopes to Experience'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
+  const passions = (p['Passions'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
+
+  const params = '?action=destGuide'
+    + '&destination=' + encodeURIComponent(destination)
+    + '&country='     + encodeURIComponent('')
+    + '&continent='   + encodeURIComponent('')
+    + '&archetype='   + encodeURIComponent(p['Archetype'] || '')
+    + '&Curiosity='   + (p['DS-1 Curiosity']  || 0)
+    + '&Adventure='   + (p['DS-2 Adventure']  || 0)
+    + '&Reflection='  + (p['DS-3 Reflection'] || 0)
+    + '&Connection='  + (p['DS-4 Connection'] || 0)
+    + '&Intention='   + (p['DS-5 Intention']  || 0)
+    + '&hopes='       + encodeURIComponent(hopes)
+    + '&passions='    + encodeURIComponent(passions);
+
+  try {
+    const resp = await fetch('/api/dest-guide' + params);
+    const data = await resp.json();
+    loading.style.display = 'none';
+    if (data.guide) {
+      const html = data.guide
+        .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-family:\'Montserrat\',sans-serif;">$1</strong>')
+        .replace(/^- (.+)$/gm, '<li style="margin-bottom:6px;">$1</li>')
+        .replace(/(<li[\s\S]*?<\/li>)+/g, '<ul style="padding-left:18px;margin:10px 0;">$&</ul>')
+        .replace(/\n\n/g, '</p><p style="margin-bottom:14px;">')
+        .replace(/\n/g, '<br>');
+      content.innerHTML = `<p style="margin-bottom:14px;">${html}</p>`;
+      content.style.display = 'block';
+    } else {
+      loading.textContent = 'Could not generate guide. Try again.';
+    }
+  } catch(err) {
+    loading.textContent = 'Error: ' + err.message;
+  }
+}
 </script>
 </body>
 </html>
