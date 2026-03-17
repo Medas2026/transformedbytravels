@@ -1363,12 +1363,11 @@ function startAssessment() {
   userName  = first + " " + last;
   userEmail = email;
 
-  fetch(APPS_SCRIPT_URL + '?action=lookup&email=' + encodeURIComponent(email))
+  fetch('/api/airtable-traveler?email=' + encodeURIComponent(email))
     .then(r => r.json())
     .then(data => {
-      console.log('Lookup result:', JSON.stringify(data));
-      if (!data.error) {
-        const dateStr = data.date || 'a previous date';
+      if (data.record) {
+        const dateStr = data.record.fields['Assessment Date'] || 'a previous date';
         document.getElementById('returning-msg').textContent =
           'Hi ' + first + ', we found a previous assessment completed on ' + dateStr + '. Would you like to retake the assessment or jump straight to exploring destinations?';
         showScreen('screen-returning');
