@@ -86,11 +86,11 @@ function buildFields(b) {
   };
 
   if (b.scores) {
-    fields.Curiosity   = Number(b.scores.Curiosity  || 0);
-    fields.Adventure   = Number(b.scores.Adventure  || 0);
-    fields.Reflection  = Number(b.scores.Reflection || 0);
-    fields.Connection  = Number(b.scores.Connection || 0);
-    fields.Intention   = Number(b.scores.Intention  || 0);
+    fields['DS-1 Curiosity']   = Number(b.scores.Curiosity  || 0);
+    fields['DS-2 Adventure']   = Number(b.scores.Adventure  || 0);
+    fields['DS-3 Reflection']  = Number(b.scores.Reflection || 0);
+    fields['DS-4 Connection']  = Number(b.scores.Connection || 0);
+    fields['DS-5 Intention']   = Number(b.scores.Intention  || 0);
   }
 
   return fields;
