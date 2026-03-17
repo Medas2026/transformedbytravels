@@ -22,6 +22,7 @@ function airtableRequest(method, path, body, callback) {
     let data = '';
     res.on('data', chunk => { data += chunk; });
     res.on('end', () => {
+      console.log('Airtable status:', res.statusCode, 'body:', data.slice(0, 200));
       try {
         callback(null, JSON.parse(data), res.statusCode);
       } catch(e) {
