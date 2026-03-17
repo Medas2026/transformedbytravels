@@ -242,14 +242,14 @@ async function loadProfile(email) {
 
     if (data.record) {
       const f = data.record.fields;
-      document.getElementById('pf-name').textContent       = f['Name'] || '—';
+      document.getElementById('pf-name').textContent       = f['Traveler Name'] || '—';
       document.getElementById('pf-email').textContent      = f['Traveler Email'] || '—';
       document.getElementById('pf-lifestage').textContent  = f['Life Stage'] || '—';
       document.getElementById('pf-date').textContent       = f['Assessment Date'] || '—';
       document.getElementById('pf-status').textContent     = f['Package Status'] || 'Not yet purchased';
       document.getElementById('pf-archetype').textContent  = f['Archetype'] || '—';
       document.getElementById('pf-passions').textContent   = f['Passions'] || '—';
-      document.getElementById('pf-hopes').textContent      = f['Hope to Experience'] || '—';
+      document.getElementById('pf-hopes').textContent      = f['Hopes to Experience'] || '—';
       document.getElementById('pf-curiosity').textContent  = f['DS-1 Curiosity'] + '/7' || '—';
       document.getElementById('pf-adventure').textContent  = f['DS-2 Adventure'] + '/7' || '—';
       document.getElementById('pf-reflection').textContent = f['DS-3 Reflection'] + '/7' || '—';
