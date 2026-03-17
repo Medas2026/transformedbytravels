@@ -75,6 +75,7 @@ module.exports = function handler(req, res) {
 
       airtableRequest('PATCH', `/${recordId}`, { fields }, (err2, data2, status2) => {
         if (err2) return res.status(500).json({ error: err2.message });
+        if (data2.error) return res.status(500).json({ error: data2.error, detail: data2 });
         res.status(200).json({ success: true, action: 'updated', record: data2 });
       });
 
@@ -84,6 +85,7 @@ module.exports = function handler(req, res) {
 
       airtableRequest('POST', '', { fields }, (err2, data2, status2) => {
         if (err2) return res.status(500).json({ error: err2.message });
+        if (data2.error) return res.status(500).json({ error: data2.error, detail: data2 });
         res.status(200).json({ success: true, action: 'created', record: data2 });
       });
     }
