@@ -101,7 +101,7 @@ function buildFields(b) {
     'Archetype':         b.archetype || '',
     'Passions':          b.passions || '',
     'Life Stage':        b.lifeStage || '',
-    'Hope to Experience': b.hopes || '',
+    'Hopes': b.hopes || '',
     'Assessment Date':   new Date().toISOString().split('T')[0]
   };
 
