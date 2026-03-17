@@ -539,12 +539,10 @@
         <!-- Create Account Modal -->
         <div id="create-account-modal" style="display:none;margin-top:28px;background:var(--s1);border:1px solid rgba(45,212,191,0.3);border-radius:14px;padding:28px 24px;">
           <h3 style="font-family:'Montserrat',sans-serif;font-size:1.1rem;color:#fff;margin-bottom:8px;">Save Your Profile</h3>
-          <p style="color:var(--soft);font-size:0.9rem;margin-bottom:20px;">Create your account to access the Growth Through Travel portal and save your results.</p>
+          <p style="color:var(--soft);font-size:0.9rem;margin-bottom:20px;">Your results will be saved and you'll be taken to your Growth Through Travel portal.</p>
           <div style="display:flex;flex-direction:column;gap:12px;">
-            <input id="account-password" type="password" placeholder="Choose a password" style="background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.95rem;outline:none;" />
-            <input id="account-password2" type="password" placeholder="Confirm password" style="background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.95rem;outline:none;" />
             <div id="account-msg" style="font-size:0.85rem;color:var(--teal);display:none;"></div>
-            <button class="btn btn-primary" onclick="createAccount()">Create Account →</button>
+            <button class="btn btn-primary" onclick="createAccount()">Save &amp; Go to My Portal →</button>
             <button class="btn btn-outline" onclick="document.getElementById('create-account-modal').style.display='none'">Cancel</button>
           </div>
         </div>
@@ -2294,25 +2292,10 @@ function showCreateAccount() {
 }
 
 async function createAccount() {
-  const password  = document.getElementById('account-password').value;
-  const password2 = document.getElementById('account-password2').value;
-  const msg       = document.getElementById('account-msg');
-
+  const msg = document.getElementById('account-msg');
   msg.style.display = 'block';
   msg.style.color   = 'var(--teal)';
-
-  if (!password || password.length < 8) {
-    msg.style.color = '#f43f5e';
-    msg.textContent = 'Password must be at least 8 characters.';
-    return;
-  }
-  if (password !== password2) {
-    msg.style.color = '#f43f5e';
-    msg.textContent = 'Passwords do not match.';
-    return;
-  }
-
-  msg.textContent = 'Creating your account…';
+  msg.textContent   = 'Saving your profile…';
 
   try {
     // Save to Airtable
