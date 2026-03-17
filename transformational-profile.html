@@ -621,6 +621,18 @@ const ADDITIONAL = [
   },
   {
     id:"A2", type:"single",
+    stem:"Which of the following best describes your current life stage?",
+    opts:[
+      "Student / Under 25",
+      "Early Career / Young Professional (approximately 25–34)",
+      "Family with Young Children (approximately 30–44)",
+      "Family with Older Children or Teenagers (approximately 40–54)",
+      "Empty Nester (children have grown up and left home; typically 50–64)",
+      "Retired (typically 65+)"
+    ]
+  },
+  {
+    id:"A3", type:"single",
     stem:"How would you like to go about planning your next trip?",
     opts:[
       "Work with an agent or travel planner and have everything ready to travel.",
@@ -630,12 +642,12 @@ const ADDITIONAL = [
     ]
   },
   {
-    id:"A3", type:"single",
+    id:"A4", type:"single",
     stem:"How often do social media posts influence your travel ideas?",
     opts:["Rarely","Sometimes","Often","Very often"]
   },
   {
-    id:"A4", type:"multi", max:3,
+    id:"A5", type:"multi", max:3,
     stem:"Which of these changes would you most hope to experience through travel?",
     hint:"Select your top 1, 2, or 3",
     opts:[
@@ -1361,7 +1373,7 @@ function proceedToAssessment() {
   shuffledQ = shuffle(QUESTIONS);
   currentQIdx = 0;
   answers = {};
-  addAnswers = {A1:[], A2:null, A3:null, A4:[]};
+  addAnswers = {A1:[], A2:null, A3:null, A4:null, A5:[]};
   showScreen('screen-questions');
   renderQuestion();
 }
@@ -1815,7 +1827,7 @@ const HOPED_FOR_CHANGE_TEXT = {
 
 async function buildPrefs() {
   const container = document.getElementById('a4-section');
-  const selected = Array.isArray(addAnswers['A4']) ? addAnswers['A4'] : (addAnswers['A4'] ? [addAnswers['A4']] : []);
+  const selected = Array.isArray(addAnswers['A5']) ? addAnswers['A5'] : (addAnswers['A5'] ? [addAnswers['A5']] : []);
   if (!selected.length) return;
 
   container.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">Loading your results...</p>';
@@ -2008,7 +2020,7 @@ function _loadDestGuideCore(name, country, continent) {
   btn.textContent = 'Generating…';
   panel.scrollIntoView({behavior:'smooth', block:'nearest'});
 
-  const hopesList = Array.isArray(addAnswers['A4']) ? addAnswers['A4'] : (addAnswers['A4'] ? [addAnswers['A4']] : []);
+  const hopesList = Array.isArray(addAnswers['A5']) ? addAnswers['A5'] : (addAnswers['A5'] ? [addAnswers['A5']] : []);
   const passionsList = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]).map(p => PASSION_LABELS[p]);
   var params = '?action=destGuide' +
     '&destination=' + encodeURIComponent(name) +
