@@ -71,7 +71,7 @@
 
     /* TRIP PLANNING */
     .arch-banner { background: linear-gradient(135deg, var(--s1) 0%, var(--s2) 100%); border: 1px solid rgba(45,212,191,0.3); border-radius: 14px; padding: 24px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 20px; }
-    .arch-banner-icon { font-size: 2.8rem; min-width: 50px; text-align: center; }
+    .arch-banner-icon { width: 70px; height: 70px; object-fit: contain; flex-shrink: 0; }
     .arch-banner-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--teal); margin-bottom: 6px; }
     .arch-banner-tag { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
     .arch-banner-desc { color: var(--soft); font-size: 0.88rem; line-height: 1.65; }
@@ -234,7 +234,7 @@
 
         <!-- Archetype Banner -->
         <div class="arch-banner" id="trip-arch-banner" style="display:none;">
-          <div class="arch-banner-icon" id="trip-arch-icon"></div>
+          <img class="arch-banner-icon" id="trip-arch-icon" src="" alt="" />
           <div>
             <div class="arch-banner-name" id="trip-arch-name"></div>
             <div class="arch-banner-tag" id="trip-arch-tag"></div>
@@ -265,19 +265,28 @@
               <input id="td-name" class="trip-input" placeholder="e.g. Paris – June 2026" />
             </div>
             <div class="trip-field-group">
-              <div class="trip-field-label">Destination</div>
-              <input id="td-destination" class="trip-input" placeholder="City, Country or Region" />
+              <div class="trip-field-label">Country <span style="color:#f43f5e;">*</span></div>
+              <select id="td-country" class="trip-input">
+                <option value="">— Select a Country —</option>
+                <option>Afghanistan</option><option>Albania</option><option>Algeria</option><option>Andorra</option><option>Angola</option><option>Antigua and Barbuda</option><option>Argentina</option><option>Armenia</option><option>Australia</option><option>Austria</option><option>Azerbaijan</option><option>Bahamas</option><option>Bahrain</option><option>Bangladesh</option><option>Barbados</option><option>Belarus</option><option>Belgium</option><option>Belize</option><option>Benin</option><option>Bhutan</option><option>Bolivia</option><option>Bosnia and Herzegovina</option><option>Botswana</option><option>Brazil</option><option>Brunei</option><option>Bulgaria</option><option>Burkina Faso</option><option>Burundi</option><option>Cabo Verde</option><option>Cambodia</option><option>Cameroon</option><option>Canada</option><option>Central African Republic</option><option>Chad</option><option>Chile</option><option>China</option><option>Colombia</option><option>Comoros</option><option>Congo (Brazzaville)</option><option>Congo (Kinshasa)</option><option>Costa Rica</option><option>Croatia</option><option>Cuba</option><option>Cyprus</option><option>Czech Republic</option><option>Denmark</option><option>Djibouti</option><option>Dominica</option><option>Dominican Republic</option><option>Ecuador</option><option>Egypt</option><option>El Salvador</option><option>Equatorial Guinea</option><option>Eritrea</option><option>Estonia</option><option>Eswatini</option><option>Ethiopia</option><option>Fiji</option><option>Finland</option><option>France</option><option>Gabon</option><option>Gambia</option><option>Georgia</option><option>Germany</option><option>Ghana</option><option>Greece</option><option>Grenada</option><option>Guatemala</option><option>Guinea</option><option>Guinea-Bissau</option><option>Guyana</option><option>Haiti</option><option>Honduras</option><option>Hungary</option><option>Iceland</option><option>India</option><option>Indonesia</option><option>Iran</option><option>Iraq</option><option>Ireland</option><option>Israel</option><option>Italy</option><option>Jamaica</option><option>Japan</option><option>Jordan</option><option>Kazakhstan</option><option>Kenya</option><option>Kiribati</option><option>Kuwait</option><option>Kyrgyzstan</option><option>Laos</option><option>Latvia</option><option>Lebanon</option><option>Lesotho</option><option>Liberia</option><option>Libya</option><option>Liechtenstein</option><option>Lithuania</option><option>Luxembourg</option><option>Madagascar</option><option>Malawi</option><option>Malaysia</option><option>Maldives</option><option>Mali</option><option>Malta</option><option>Marshall Islands</option><option>Mauritania</option><option>Mauritius</option><option>Mexico</option><option>Micronesia</option><option>Moldova</option><option>Monaco</option><option>Mongolia</option><option>Montenegro</option><option>Morocco</option><option>Mozambique</option><option>Myanmar</option><option>Namibia</option><option>Nauru</option><option>Nepal</option><option>Netherlands</option><option>New Zealand</option><option>Nicaragua</option><option>Niger</option><option>Nigeria</option><option>North Korea</option><option>North Macedonia</option><option>Norway</option><option>Oman</option><option>Pakistan</option><option>Palau</option><option>Palestine</option><option>Panama</option><option>Papua New Guinea</option><option>Paraguay</option><option>Peru</option><option>Philippines</option><option>Poland</option><option>Portugal</option><option>Qatar</option><option>Romania</option><option>Russia</option><option>Rwanda</option><option>Saint Kitts and Nevis</option><option>Saint Lucia</option><option>Saint Vincent and the Grenadines</option><option>Samoa</option><option>San Marino</option><option>Sao Tome and Principe</option><option>Saudi Arabia</option><option>Senegal</option><option>Serbia</option><option>Seychelles</option><option>Sierra Leone</option><option>Singapore</option><option>Slovakia</option><option>Slovenia</option><option>Solomon Islands</option><option>Somalia</option><option>South Africa</option><option>South Korea</option><option>South Sudan</option><option>Spain</option><option>Sri Lanka</option><option>Sudan</option><option>Suriname</option><option>Sweden</option><option>Switzerland</option><option>Syria</option><option>Taiwan</option><option>Tajikistan</option><option>Tanzania</option><option>Thailand</option><option>Timor-Leste</option><option>Togo</option><option>Tonga</option><option>Trinidad and Tobago</option><option>Tunisia</option><option>Turkey</option><option>Turkmenistan</option><option>Tuvalu</option><option>Uganda</option><option>Ukraine</option><option>United Arab Emirates</option><option>United Kingdom</option><option>United States</option><option>Uruguay</option><option>Uzbekistan</option><option>Vanuatu</option><option>Vatican City</option><option>Venezuela</option><option>Vietnam</option><option>Yemen</option><option>Zambia</option><option>Zimbabwe</option>
+              </select>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-              <div class="trip-field-group">
+            <div class="trip-field-group">
+              <div class="trip-field-label">Destination <span style="color:#f43f5e;">*</span></div>
+              <input id="td-destination" class="trip-input" placeholder="City, region or specific place" />
+            </div>
+            <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:end;">
+              <div class="trip-field-group" style="margin-bottom:0;">
                 <div class="trip-field-label">Start Date</div>
-                <input id="td-start" type="date" class="trip-input" />
+                <input id="td-start" type="date" class="trip-input" onchange="updateDuration()" />
               </div>
-              <div class="trip-field-group">
+              <div id="trip-duration" style="text-align:center;padding-bottom:10px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;white-space:nowrap;"></div>
+              <div class="trip-field-group" style="margin-bottom:0;">
                 <div class="trip-field-label">End Date</div>
-                <input id="td-end" type="date" class="trip-input" />
+                <input id="td-end" type="date" class="trip-input" onchange="updateDuration()" />
               </div>
             </div>
+            <div style="margin-bottom:16px;"></div>
             <div class="trip-field-group">
               <div class="trip-field-label">Home Airport Code</div>
               <input id="td-airport" class="trip-input" placeholder="e.g. ORD" style="max-width:180px;" />
@@ -352,17 +361,17 @@ let userEmail    = null;
 let portalProfile = null;
 
 const ARCHETYPE_DATA = {
-  "The Transformational Traveler": { icon: "🦋", tag: "All Forces Active",     desc: "You approach travel as a powerful path to personal growth. You seek experiences that combine curiosity, challenge, connection, immersion, and reflection." },
-  "Meaning Seeker":                { icon: "🏮", tag: "Curiosity + Reflection", desc: "You travel to gain perspective and deeper understanding. Cultural insights, powerful landscapes, and reflective moments help you think about life in new ways." },
-  "Nature Wanderer":               { icon: "🌲", tag: "Adventure + Reflection", desc: "Wild landscapes are where you feel most alive. Mountains, oceans, forests, and wildlife create the kind of experiences that stay with you long after the trip ends." },
-  "Adventure Seeker":              { icon: "⛰️", tag: "Challenge",              desc: "You love travel that stretches your comfort zone. Hiking, exploring remote places, and active experiences energize you." },
-  "Cultural Explorer":             { icon: "🏛️", tag: "Curiosity",              desc: "You travel to learn about the world. History, art, architecture, and traditions fascinate you, and you enjoy discovering the stories behind the places you visit." },
-  "Deep Immersion":                { icon: "📍", tag: "Immersion",              desc: "You want to experience places from the inside rather than simply observe them. Local food, authentic neighborhoods, and everyday culture matter to you." },
-  "Connector":                     { icon: "🤝", tag: "Connection",             desc: "People are what make travel meaningful for you. Conversations with locals, shared meals, and unexpected friendships often become the most memorable parts of your trips." },
-  "Reflector":                     { icon: "🌅", tag: "Reflection",             desc: "Travel gives you space to slow down and think deeply. Quiet moments—watching a sunrise, journaling, or simply observing a place—are as meaningful as the activities themselves." },
-  "Comfort Adventurer":            { icon: "🛤️", tag: "Balanced Adventure",    desc: "You enjoy a sense of adventure while still appreciating comfort and balance. Scenic hikes, wildlife encounters, and unique experiences appeal to you when well planned." },
-  "Joyful Wanderer":               { icon: "✈️", tag: "Open Explorer",          desc: "You travel for the joy of discovery and variety. A little culture, a little scenery, good food, and memorable moments all contribute to a great trip." },
-  "Easy Going Traveler":           { icon: "🏖️", tag: "Relaxed Explorer",       desc: "Travel for you is about relaxation and enjoyment. You appreciate pleasant places, good company, and going with the flow." }
+  "The Transformational Traveler": { iconImg: "images/archetypes/TT Icon.png",  tag: "All Forces Active",     desc: "You approach travel as a powerful path to personal growth. You seek experiences that combine curiosity, challenge, connection, immersion, and reflection." },
+  "Meaning Seeker":                { iconImg: "images/archetypes/MS Icon.png",  tag: "Curiosity + Reflection", desc: "You travel to gain perspective and deeper understanding. Cultural insights, powerful landscapes, and reflective moments help you think about life in new ways." },
+  "Nature Wanderer":               { iconImg: "images/archetypes/NW Icon.png",  tag: "Adventure + Reflection", desc: "Wild landscapes are where you feel most alive. Mountains, oceans, forests, and wildlife create the kind of experiences that stay with you long after the trip ends." },
+  "Adventure Seeker":              { iconImg: "images/archetypes/AS Icon.png",  tag: "Challenge",              desc: "You love travel that stretches your comfort zone. Hiking, exploring remote places, and active experiences energize you." },
+  "Cultural Explorer":             { iconImg: "images/archetypes/CE Icon.png",  tag: "Curiosity",              desc: "You travel to learn about the world. History, art, architecture, and traditions fascinate you, and you enjoy discovering the stories behind the places you visit." },
+  "Deep Immersion":                { iconImg: "images/archetypes/DI Icon.png",  tag: "Immersion",              desc: "You want to experience places from the inside rather than simply observe them. Local food, authentic neighborhoods, and everyday culture matter to you." },
+  "Connector":                     { iconImg: "images/archetypes/CON Icon.png", tag: "Connection",             desc: "People are what make travel meaningful for you. Conversations with locals, shared meals, and unexpected friendships often become the most memorable parts of your trips." },
+  "Reflector":                     { iconImg: "images/archetypes/REF Icon.png", tag: "Reflection",             desc: "Travel gives you space to slow down and think deeply. Quiet moments—watching a sunrise, journaling, or simply observing a place—are as meaningful as the activities themselves." },
+  "Comfort Adventurer":            { iconImg: "images/archetypes/CA Icon.png",  tag: "Balanced Adventure",    desc: "You enjoy a sense of adventure while still appreciating comfort and balance. Scenic hikes, wildlife encounters, and unique experiences appeal to you when well planned." },
+  "Joyful Wanderer":               { iconImg: "images/archetypes/JW Icon.png",  tag: "Open Explorer",          desc: "You travel for the joy of discovery and variety. A little culture, a little scenery, good food, and memorable moments all contribute to a great trip." },
+  "Easy Going Traveler":           { iconImg: "images/archetypes/EGT Icon.png", tag: "Relaxed Explorer",       desc: "Travel for you is about relaxation and enjoyment. You appreciate pleasant places, good company, and going with the flow." }
 };
 
 async function initAuth0() {
@@ -526,7 +535,7 @@ function loadTrips() {
   if (portalProfile) {
     const arch = ARCHETYPE_DATA[portalProfile['Archetype']];
     if (arch) {
-      document.getElementById('trip-arch-icon').textContent = arch.icon;
+      document.getElementById('trip-arch-icon').src = arch.iconImg;
       document.getElementById('trip-arch-name').textContent = portalProfile['Archetype'];
       document.getElementById('trip-arch-tag').textContent  = arch.tag;
       document.getElementById('trip-arch-desc').textContent = arch.desc;
@@ -569,11 +578,24 @@ function renderTripList(records) {
   }).join('');
 }
 
+function updateDuration() {
+  const s = document.getElementById('td-start').value;
+  const e = document.getElementById('td-end').value;
+  const el = document.getElementById('trip-duration');
+  if (s && e) {
+    const nights = Math.round((new Date(e) - new Date(s)) / 86400000);
+    el.textContent = nights > 0 ? `← ${nights} night${nights !== 1 ? 's' : ''} →` : '';
+  } else {
+    el.textContent = '';
+  }
+}
+
 function openTrip(record) {
   currentTripId = record.id;
   const f = record.fields;
   document.getElementById('trip-detail-title').textContent = f['Trip Name'] || 'Trip Details';
   document.getElementById('td-name').value        = f['Trip Name']    || '';
+  document.getElementById('td-country').value     = f['Country']      || '';
   document.getElementById('td-destination').value = f['Destination']  || '';
   document.getElementById('td-start').value       = f['Start Date']   || '';
   document.getElementById('td-end').value         = f['End Date']     || '';
@@ -584,6 +606,7 @@ function openTrip(record) {
   document.getElementById('td-place3').value      = f['Place 3']      || '';
   document.getElementById('td-place4').value      = f['Place 4']      || '';
   document.getElementById('td-place5').value      = f['Place 5']      || '';
+  updateDuration();
   document.getElementById('trip-dna-panel').style.display = 'none';
   document.getElementById('trip-list-section').style.display = 'none';
   document.getElementById('trip-detail').style.display = 'block';
@@ -592,7 +615,7 @@ function openTrip(record) {
 function showNewTripForm() {
   currentTripId = null;
   document.getElementById('trip-detail-title').textContent = 'New Trip';
-  ['td-name','td-destination','td-start','td-end','td-airport','td-notes',
+  ['td-name','td-country','td-destination','td-start','td-end','td-airport','td-notes',
    'td-place1','td-place2','td-place3','td-place4','td-place5'].forEach(id => {
     document.getElementById(id).value = '';
   });
@@ -616,9 +639,15 @@ async function saveTrip() {
   msg.style.color   = 'var(--teal)';
   msg.textContent   = 'Saving…';
 
+  const country     = document.getElementById('td-country').value;
+  const destination = document.getElementById('td-destination').value.trim();
+  if (!country) { msg.style.color='#f43f5e'; msg.textContent='Please select a country.'; return; }
+  if (!destination) { msg.style.color='#f43f5e'; msg.textContent='Please enter a destination.'; return; }
+
   const payload = {
     tripName:    document.getElementById('td-name').value,
-    destination: document.getElementById('td-destination').value,
+    country:     country,
+    destination: destination,
     startDate:   document.getElementById('td-start').value,
     endDate:     document.getElementById('td-end').value,
     airportCode: document.getElementById('td-airport').value,
@@ -660,6 +689,7 @@ async function saveTrip() {
 
 async function generateDestDNA() {
   const destination = document.getElementById('td-destination').value.trim();
+  const country     = document.getElementById('td-country').value;
   if (!destination) {
     alert('Please enter a destination first.');
     return;
@@ -680,7 +710,7 @@ async function generateDestDNA() {
 
   const params = '?action=destGuide'
     + '&destination=' + encodeURIComponent(destination)
-    + '&country='     + encodeURIComponent('')
+    + '&country='     + encodeURIComponent(country)
     + '&continent='   + encodeURIComponent('')
     + '&archetype='   + encodeURIComponent(p['Archetype'] || '')
     + '&Curiosity='   + (p['DS-1 Curiosity']  || 0)

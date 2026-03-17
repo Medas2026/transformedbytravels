@@ -101,6 +101,7 @@ function buildFields(b) {
   const fields = {};
   if (b.tripName    !== undefined) fields['Trip Name']    = b.tripName;
   if (b.destination !== undefined) fields['Destination']  = b.destination;
+  if (b.country     !== undefined) fields['Country']      = b.country;
   if (b.startDate   !== undefined) fields['Start Date']   = b.startDate;
   if (b.endDate     !== undefined) fields['End Date']     = b.endDate;
   if (b.airportCode !== undefined) fields['Airport Code'] = b.airportCode;
