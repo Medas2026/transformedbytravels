@@ -41,6 +41,22 @@ module.exports = function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  // GET — load profile by email
+  if (req.method === 'GET') {
+    const email = ((req.query && req.query.email) || '').toLowerCase().trim();
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
+    airtableRequest('GET', filter, null, (err, data) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (data.records && data.records.length > 0) {
+        res.status(200).json({ record: data.records[0] });
+      } else {
+        res.status(200).json({ record: null });
+      }
+    });
+    return;
+  }
+
   const b = req.body || {};
   const email = (b.email || '').toLowerCase().trim();
 

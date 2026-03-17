@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Portal | Transformed by Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:    #0d1520;
+      --s1:    #131f30;
+      --s2:    #1a2a40;
+      --bd:    rgba(255,255,255,0.07);
+      --teal:  #2dd4bf;
+      --tdim:  rgba(45,212,191,0.11);
+      --text:  #e2e8f0;
+      --muted: #64748b;
+      --soft:  #94a3b8;
+    }
+    body { font-family: 'Open Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* NAV */
+    .nav { background: rgba(13,21,32,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--bd); padding: 0 28px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: #fff; text-decoration: none; }
+    .nav-logo span { color: var(--teal); }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { font-size: 0.85rem; color: var(--soft); }
+    .btn-logout { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.78rem; color: var(--teal); background: none; border: 1px solid var(--teal); border-radius: 6px; padding: 6px 14px; cursor: pointer; }
+    .btn-logout:hover { background: var(--tdim); }
+
+    /* LAYOUT */
+    .wrapper { max-width: 900px; margin: 0 auto; padding: 40px 20px 80px; display: grid; grid-template-columns: 220px 1fr; gap: 32px; }
+    @media (max-width: 640px) { .wrapper { grid-template-columns: 1fr; } }
+
+    /* SIDEBAR MENU */
+    .sidebar { display: flex; flex-direction: column; gap: 8px; }
+    .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.88rem; color: var(--soft); border: 1px solid transparent; transition: all 0.2s; text-decoration: none; }
+    .menu-item:hover { background: var(--s1); color: var(--text); border-color: var(--bd); }
+    .menu-item.active { background: var(--tdim); color: var(--teal); border-color: rgba(45,212,191,0.3); }
+    .menu-icon { font-size: 1.1rem; min-width: 22px; }
+
+    /* MAIN CONTENT */
+    .main { }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* WELCOME CARD */
+    .welcome-card { background: var(--s1); border: 1px solid var(--bd); border-radius: 14px; padding: 28px; margin-bottom: 24px; }
+    .welcome-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.5rem; color: #fff; margin-bottom: 6px; }
+    .welcome-sub { color: var(--soft); font-size: 0.9rem; }
+
+    /* PROFILE CARD */
+    .profile-section { background: var(--s1); border: 1px solid var(--bd); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+    .profile-section-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: #fff; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--bd); }
+    .profile-field { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); gap: 16px; }
+    .profile-field:last-child { border-bottom: none; }
+    .field-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); min-width: 140px; }
+    .field-value { color: var(--text); font-size: 0.9rem; text-align: right; }
+
+    /* LOADING */
+    .loading { text-align: center; padding: 60px 20px; color: var(--soft); font-size: 0.95rem; }
+
+    /* STATUS BADGE */
+    .status-badge { display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; background: var(--tdim); border: 1px solid rgba(45,212,191,0.3); color: var(--teal); }
+
+    /* COMING SOON */
+    .coming-soon { text-align: center; padding: 60px 20px; color: var(--soft); }
+    .coming-soon h3 { font-family: 'Montserrat', sans-serif; font-size: 1.1rem; color: #fff; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="https://transformedbytravels.com" class="nav-logo">Transformed by <span>Travels</span></a>
+    <div class="nav-right">
+      <span class="nav-user" id="nav-user-email"></span>
+      <button class="btn-logout" onclick="logout()">Log Out</button>
+    </div>
+  </nav>
+
+  <div class="wrapper">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="menu-item active" onclick="showPage('profile')" data-page="profile">
+        <span class="menu-icon">👤</span> Your Profile
+      </div>
+      <div class="menu-item" onclick="showPage('assessment')" data-page="assessment">
+        <span class="menu-icon">📋</span> Take Assessment
+      </div>
+      <div class="menu-item" onclick="showPage('workshop')" data-page="workshop">
+        <span class="menu-icon">🌱</span> Growth Workshop
+      </div>
+      <div class="menu-item" onclick="showPage('planning')" data-page="planning">
+        <span class="menu-icon">🗺️</span> Trip Planning
+      </div>
+      <div class="menu-item" onclick="showPage('start-trip')" data-page="start-trip">
+        <span class="menu-icon">✈️</span> Start a Trip
+      </div>
+      <div class="menu-item" onclick="showPage('end-trip')" data-page="end-trip">
+        <span class="menu-icon">🏠</span> End a Trip
+      </div>
+      <div class="menu-item" onclick="showPage('integration')" data-page="integration">
+        <span class="menu-icon">💡</span> Integration Workshop
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+      <!-- Profile Page -->
+      <div class="page active" id="page-profile">
+        <div class="loading" id="profile-loading">Loading your profile…</div>
+        <div id="profile-content" style="display:none;">
+
+          <div class="profile-section">
+            <div class="profile-section-title">Your Identity</div>
+            <div class="profile-field"><span class="field-label">Name</span><span class="field-value" id="pf-name">—</span></div>
+            <div class="profile-field"><span class="field-label">Email</span><span class="field-value" id="pf-email">—</span></div>
+            <div class="profile-field"><span class="field-label">Life Stage</span><span class="field-value" id="pf-lifestage">—</span></div>
+            <div class="profile-field"><span class="field-label">Assessment Date</span><span class="field-value" id="pf-date">—</span></div>
+            <div class="profile-field"><span class="field-label">Package Status</span><span class="field-value" id="pf-status">—</span></div>
+          </div>
+
+          <div class="profile-section">
+            <div class="profile-section-title">Your Traveler DNA</div>
+            <div class="profile-field"><span class="field-label">Archetype</span><span class="field-value" id="pf-archetype">—</span></div>
+            <div class="profile-field"><span class="field-label">Passions</span><span class="field-value" id="pf-passions">—</span></div>
+            <div class="profile-field"><span class="field-label">Hope to Experience</span><span class="field-value" id="pf-hopes">—</span></div>
+          </div>
+
+          <div class="profile-section">
+            <div class="profile-section-title">Dimension Scores</div>
+            <div class="profile-field"><span class="field-label">Curiosity</span><span class="field-value" id="pf-curiosity">—</span></div>
+            <div class="profile-field"><span class="field-label">Adventure</span><span class="field-value" id="pf-adventure">—</span></div>
+            <div class="profile-field"><span class="field-label">Reflection</span><span class="field-value" id="pf-reflection">—</span></div>
+            <div class="profile-field"><span class="field-label">Connection</span><span class="field-value" id="pf-connection">—</span></div>
+            <div class="profile-field"><span class="field-label">Intention</span><span class="field-value" id="pf-intention">—</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Assessment Page -->
+      <div class="page" id="page-assessment">
+        <div class="coming-soon">
+          <h3>Take Your Assessment</h3>
+          <p>Click below to take or retake your Transformational Travel Profile.</p>
+          <br>
+          <a href="/transformational-profile.html" class="menu-item" style="display:inline-flex;margin-top:12px;">Go to Assessment →</a>
+        </div>
+      </div>
+
+      <!-- Workshop Page -->
+      <div class="page" id="page-workshop">
+        <div class="coming-soon">
+          <h3>Growth Through Travel Workshop</h3>
+          <p>Coming soon — book your workshop session to begin your transformation journey.</p>
+        </div>
+      </div>
+
+      <!-- Trip Planning Page -->
+      <div class="page" id="page-planning">
+        <div class="coming-soon">
+          <h3>Trip Planning</h3>
+          <p>Coming soon — personalized destination planning based on your profile.</p>
+        </div>
+      </div>
+
+      <!-- Start a Trip Page -->
+      <div class="page" id="page-start-trip">
+        <div class="coming-soon">
+          <h3>Start a Trip</h3>
+          <p>Coming soon — begin your trip and activate your journal prompts.</p>
+        </div>
+      </div>
+
+      <!-- End a Trip Page -->
+      <div class="page" id="page-end-trip">
+        <div class="coming-soon">
+          <h3>End a Trip</h3>
+          <p>Coming soon — close your trip and receive your transformation summary.</p>
+        </div>
+      </div>
+
+      <!-- Integration Workshop Page -->
+      <div class="page" id="page-integration">
+        <div class="coming-soon">
+          <h3>Integration Workshop</h3>
+          <p>Coming soon — process and integrate what you experienced on your trip.</p>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /wrapper -->
+
+<script>
+const AUTH0_DOMAIN   = 'dev-oys4h8z7qa7irffk.us.auth0.com';
+const AUTH0_CLIENT_ID = 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd';
+
+let auth0Client = null;
+let userEmail   = null;
+
+async function initAuth0() {
+  auth0Client = await auth0.createAuth0Client({
+    domain:   AUTH0_DOMAIN,
+    clientId: AUTH0_CLIENT_ID,
+    authorizationParams: {
+      redirect_uri: window.location.origin + '/portal.html'
+    }
+  });
+
+  // Handle redirect callback
+  if (window.location.search.includes('code=')) {
+    await auth0Client.handleRedirectCallback();
+    window.history.replaceState({}, document.title, '/portal.html');
+  }
+
+  const isAuthenticated = await auth0Client.isAuthenticated();
+
+  if (!isAuthenticated) {
+    await auth0Client.loginWithRedirect();
+    return;
+  }
+
+  const user = await auth0Client.getUser();
+  userEmail  = user.email;
+  document.getElementById('nav-user-email').textContent = user.email;
+
+  loadProfile(user.email);
+}
+
+async function loadProfile(email) {
+  try {
+    const resp = await fetch('/api/airtable-traveler?email=' + encodeURIComponent(email));
+    const data = await resp.json();
+
+    document.getElementById('profile-loading').style.display = 'none';
+    document.getElementById('profile-content').style.display  = 'block';
+
+    if (data.record) {
+      const f = data.record.fields;
+      document.getElementById('pf-name').textContent       = f['Name'] || '—';
+      document.getElementById('pf-email').textContent      = f['Traveler Email'] || '—';
+      document.getElementById('pf-lifestage').textContent  = f['Life Stage'] || '—';
+      document.getElementById('pf-date').textContent       = f['Assessment Date'] || '—';
+      document.getElementById('pf-status').textContent     = f['Package Status'] || 'Not yet purchased';
+      document.getElementById('pf-archetype').textContent  = f['Archetype'] || '—';
+      document.getElementById('pf-passions').textContent   = f['Passions'] || '—';
+      document.getElementById('pf-hopes').textContent      = f['Hope to Experience'] || '—';
+      document.getElementById('pf-curiosity').textContent  = f['DS-1 Curiosity'] + '/7' || '—';
+      document.getElementById('pf-adventure').textContent  = f['DS-2 Adventure'] + '/7' || '—';
+      document.getElementById('pf-reflection').textContent = f['DS-3 Reflection'] + '/7' || '—';
+      document.getElementById('pf-connection').textContent = f['DS-4 Connection'] + '/7' || '—';
+      document.getElementById('pf-intention').textContent  = f['DS-5 Intention'] + '/7' || '—';
+    } else {
+      document.getElementById('profile-content').innerHTML =
+        '<p style="color:var(--soft);">No profile found. Please take the assessment first.</p>';
+    }
+  } catch(err) {
+    document.getElementById('profile-loading').textContent = 'Error loading profile: ' + err.message;
+  }
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelector(`[data-page="${name}"]`).classList.add('active');
+}
+
+async function logout() {
+  await auth0Client.logout({
+    logoutParams: { returnTo: 'https://transformedbytravels.com' }
+  });
+}
+
+initAuth0();
+</script>
+</body>
+</html>
