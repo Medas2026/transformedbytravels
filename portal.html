@@ -163,6 +163,7 @@
               <div class="profile-field"><span class="field-label">Email</span><span class="field-value" id="pf-email">—</span></div>
               <div class="profile-field"><span class="field-label">Phone</span><span class="field-value" id="pf-phone">—</span></div>
               <div class="profile-field"><span class="field-label">Address</span><span class="field-value" id="pf-address">—</span></div>
+              <div class="profile-field"><span class="field-label">Home Airport</span><span class="field-value" id="pf-airport">—</span></div>
               <div class="profile-field"><span class="field-label">Life Stage</span><span class="field-value" id="pf-lifestage">—</span></div>
               <div class="profile-field"><span class="field-label">Assessment Date</span><span class="field-value" id="pf-date">—</span></div>
               <div class="profile-field"><span class="field-label">Package Status</span><span class="field-value" id="pf-status">—</span></div>
@@ -182,6 +183,11 @@
                 <div>
                   <div class="field-label" style="margin-bottom:6px;">Address</div>
                   <input id="edit-address" type="text" style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;" />
+                </div>
+                <div>
+                  <div class="field-label" style="margin-bottom:6px;">Home Airport Code</div>
+                  <input id="edit-airport" type="text" maxlength="4" placeholder="e.g. ORD" style="width:120px;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;text-transform:uppercase;" />
+                  <div style="margin-top:6px;font-size:0.78rem;color:var(--muted);">Don't know your code? <a href="https://www.iata.org/en/publications/directories/code-search/" target="_blank" style="color:var(--teal);">Look it up →</a></div>
                 </div>
                 <div id="edit-profile-msg" style="font-size:0.85rem;color:var(--teal);display:none;"></div>
                 <div style="display:flex;gap:10px;">
@@ -206,6 +212,10 @@
             <div class="profile-field"><span class="field-label">Reflection</span><span class="field-value" id="pf-reflection">—</span></div>
             <div class="profile-field"><span class="field-label">Connection</span><span class="field-value" id="pf-connection">—</span></div>
             <div class="profile-field"><span class="field-label">Intention</span><span class="field-value" id="pf-intention">—</span></div>
+          </div>
+
+          <div style="text-align:center;margin-top:8px;">
+            <button onclick="showPage('planning')" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;border:none;border-radius:8px;padding:12px 40px;cursor:pointer;">Done</button>
           </div>
 
         </div>
@@ -288,8 +298,9 @@
             </div>
             <div style="margin-bottom:16px;"></div>
             <div class="trip-field-group">
-              <div class="trip-field-label">Home Airport Code</div>
-              <input id="td-airport" class="trip-input" placeholder="e.g. ORD" style="max-width:180px;" />
+              <div class="trip-field-label">Destination Airport Code</div>
+              <input id="td-airport" class="trip-input" placeholder="e.g. CDG" style="max-width:180px;text-transform:uppercase;" />
+              <div style="margin-top:6px;font-size:0.78rem;color:var(--muted);">Don't know the code? <a href="https://www.iata.org/en/publications/directories/code-search/" target="_blank" style="color:var(--teal);">Look it up →</a></div>
             </div>
             <div class="trip-field-group">
               <div class="trip-field-label">Notes</div>
@@ -431,6 +442,7 @@ async function loadProfile(email) {
       document.getElementById('pf-email').textContent      = f['Traveler Email'] || '—';
       document.getElementById('pf-phone').textContent      = f['Phone Number'] || '—';
       document.getElementById('pf-address').textContent    = f['Address'] || '—';
+      document.getElementById('pf-airport').textContent    = f['Home Airport'] || '—';
       document.getElementById('pf-lifestage').textContent  = f['Life Stage'] || '—';
       document.getElementById('pf-date').textContent       = f['Assessment Date'] || '—';
       document.getElementById('pf-status').textContent     = f['Package Status'] || 'Not yet purchased';
@@ -463,6 +475,7 @@ function toggleEditProfile() {
     document.getElementById('edit-name').value    = document.getElementById('pf-name').textContent.replace('—','');
     document.getElementById('edit-phone').value   = document.getElementById('pf-phone').textContent.replace('—','');
     document.getElementById('edit-address').value = document.getElementById('pf-address').textContent.replace('—','');
+    document.getElementById('edit-airport').value = document.getElementById('pf-airport').textContent.replace('—','');
     viewMode.style.display = 'none';
     editMode.style.display = 'block';
     btn.textContent = 'Cancel';
@@ -488,7 +501,8 @@ async function saveProfile() {
         profileEdit: true,
         name:        document.getElementById('edit-name').value,
         phone:       document.getElementById('edit-phone').value,
-        address:     document.getElementById('edit-address').value
+        address:     document.getElementById('edit-address').value,
+        homeAirport: document.getElementById('edit-airport').value.toUpperCase()
       })
     });
     const data = await resp.json();
@@ -496,6 +510,7 @@ async function saveProfile() {
       document.getElementById('pf-name').textContent    = document.getElementById('edit-name').value || '—';
       document.getElementById('pf-phone').textContent   = document.getElementById('edit-phone').value || '—';
       document.getElementById('pf-address').textContent = document.getElementById('edit-address').value || '—';
+      document.getElementById('pf-airport').textContent = document.getElementById('edit-airport').value.toUpperCase() || '—';
       msg.textContent = '✓ Saved!';
       setTimeout(() => { toggleEditProfile(); msg.style.display = 'none'; }, 1000);
     } else {

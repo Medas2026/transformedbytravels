@@ -98,8 +98,9 @@ function buildFields(b) {
   // Profile edit — only update contact fields
   if (b.profileEdit) {
     const fields = { 'Traveler Name': b.name || '' };
-    if (b.phone   !== undefined) fields['Phone Number'] = b.phone;
-    if (b.address !== undefined) fields['Address']      = b.address;
+    if (b.phone       !== undefined) fields['Phone Number']  = b.phone;
+    if (b.address     !== undefined) fields['Address']       = b.address;
+    if (b.homeAirport !== undefined) fields['Home Airport']  = b.homeAirport;
     return fields;
   }
 
