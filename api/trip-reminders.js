@@ -73,7 +73,7 @@ module.exports = async function handler(req, res) {
 
   // Find Planning trips starting tomorrow or today
   const formula = encodeURIComponent(
-    `AND({Status}="Planning", OR({Start Date}="${tomorrowStr}", {Start Date}="${todayStr}"))`
+    `AND({Status of Trip}="Planning", OR({Start Date}="${tomorrowStr}", {Start Date}="${todayStr}"))`
   );
 
   airtableRequest(`?filterByFormula=${formula}`, (err, data) => {

@@ -564,7 +564,7 @@ function loadTripsByStatus(status, mode) {
     .then(r => r.json())
     .then(data => {
       document.getElementById(loadingId).style.display = 'none';
-      const records = (data.records || []).filter(r => r.fields['Status'] === status);
+      const records = (data.records || []).filter(r => r.fields['Status of Trip'] === status);
       if (!records.length) {
         const msg = mode === 'start'
           ? 'No planned trips found. Go to Trip Planning to create one.'
@@ -623,7 +623,7 @@ function checkActiveTripBanner() {
   fetch('/api/trips?email=' + encodeURIComponent(userEmail))
     .then(r => r.json())
     .then(data => {
-      const active = (data.records || []).find(r => r.fields['Status'] === 'Active');
+      const active = (data.records || []).find(r => r.fields['Status of Trip'] === 'Active');
       const banner = document.getElementById('active-trip-banner');
       if (active) {
         const f    = active.fields;

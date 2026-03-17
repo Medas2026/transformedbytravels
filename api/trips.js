@@ -85,7 +85,7 @@ module.exports = function handler(req, res) {
     fields['Traveler Email'] = email;
     fields['Create Date']    = today;
     fields['Last Modified']  = today;
-    fields['Status']         = 'Planning';
+    fields['Status of Trip'] = 'Planning';
     airtableRequest('POST', '', { fields }, (err, data) => {
       if (err) return res.status(500).json({ error: err.message });
       if (data.error) return res.status(500).json({ error: data.error, detail: data });
@@ -104,7 +104,7 @@ function buildFields(b) {
   if (b.country     !== undefined) fields['Country']      = b.country;
   if (b.startDate   !== undefined) fields['Start Date']   = b.startDate;
   if (b.endDate     !== undefined) fields['End Date']     = b.endDate;
-  if (b.airportCode !== undefined) fields['Airport Code'] = b.airportCode;
+  if (b.airportCode !== undefined) fields['Destination Airport'] = b.airportCode;
   if (b.notes       !== undefined) fields['Notes']        = b.notes;
   if (b.place1      !== undefined) fields['Place 1']      = b.place1;
   if (b.place2      !== undefined) fields['Place 2']      = b.place2;

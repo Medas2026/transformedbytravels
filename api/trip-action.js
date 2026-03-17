@@ -90,7 +90,7 @@ module.exports = function handler(req, res) {
   const status = action === 'start' ? 'Active' : 'Completed';
 
   // Update trip status
-  const fields = { 'Status': status };
+  const fields = { 'Status of Trip': status };
   if (action === 'start') fields['Start Date'] = today;
   if (action === 'end')   fields['End Date']   = today;
 
