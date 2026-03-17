@@ -1546,6 +1546,16 @@ function nextAdditional() {
   } else {
     buildResults();
     showScreen('screen-results');
+    // Update button label if returning user
+    if (userEmail) {
+      fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail))
+        .then(r => r.json())
+        .then(data => {
+          if (data.record) {
+            document.getElementById('create-account-btn').textContent = 'Update My Profile';
+          }
+        }).catch(() => {});
+    }
   }
 }
 
