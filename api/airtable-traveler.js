@@ -95,22 +95,31 @@ module.exports = function handler(req, res) {
 };
 
 function buildFields(b) {
+  // Profile edit — only update contact fields
+  if (b.profileEdit) {
+    const fields = { 'Traveler Name': b.name || '' };
+    if (b.phone   !== undefined) fields['Phone Number'] = b.phone;
+    if (b.address !== undefined) fields['Address']      = b.address;
+    return fields;
+  }
+
+  // Full assessment save
   const fields = {
-    'Traveler Email':    (b.email || '').toLowerCase().trim(),
-    'Traveler Name':     b.name || '',
-    'Archetype':         b.archetype || '',
-    'Passions':          b.passions || '',
-    'Life Stage':        b.lifeStage || '',
+    'Traveler Email':      (b.email || '').toLowerCase().trim(),
+    'Traveler Name':       b.name || '',
+    'Archetype':           b.archetype || '',
+    'Passions':            b.passions || '',
+    'Life Stage':          b.lifeStage || '',
     'Hopes to Experience': b.hopes || '',
-    'Assessment Date':   new Date().toISOString().split('T')[0]
+    'Assessment Date':     new Date().toISOString().split('T')[0]
   };
 
   if (b.scores) {
-    fields['DS-1 Curiosity']   = Number(b.scores.Curiosity  || 0);
-    fields['DS-2 Adventure']   = Number(b.scores.Adventure  || 0);
-    fields['DS-3 Reflection']  = Number(b.scores.Reflection || 0);
-    fields['DS-4 Connection']  = Number(b.scores.Connection || 0);
-    fields['DS-5 Intention']   = Number(b.scores.Intention  || 0);
+    fields['DS-1 Curiosity']  = Number(b.scores.Curiosity  || 0);
+    fields['DS-2 Adventure']  = Number(b.scores.Adventure  || 0);
+    fields['DS-3 Reflection'] = Number(b.scores.Reflection || 0);
+    fields['DS-4 Connection'] = Number(b.scores.Connection || 0);
+    fields['DS-5 Intention']  = Number(b.scores.Intention  || 0);
   }
 
   return fields;

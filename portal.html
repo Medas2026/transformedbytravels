@@ -116,12 +116,44 @@
         <div id="profile-content" style="display:none;">
 
           <div class="profile-section">
-            <div class="profile-section-title">Your Identity</div>
-            <div class="profile-field"><span class="field-label">Name</span><span class="field-value" id="pf-name">—</span></div>
-            <div class="profile-field"><span class="field-label">Email</span><span class="field-value" id="pf-email">—</span></div>
-            <div class="profile-field"><span class="field-label">Life Stage</span><span class="field-value" id="pf-lifestage">—</span></div>
-            <div class="profile-field"><span class="field-label">Assessment Date</span><span class="field-value" id="pf-date">—</span></div>
-            <div class="profile-field"><span class="field-label">Package Status</span><span class="field-value" id="pf-status">—</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--bd);">
+              <div class="profile-section-title" style="margin-bottom:0;padding-bottom:0;border-bottom:none;">Your Identity</div>
+              <button onclick="toggleEditProfile()" id="edit-profile-btn" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);background:none;border:1px solid var(--teal);border-radius:6px;padding:5px 14px;cursor:pointer;">Edit</button>
+            </div>
+
+            <!-- View Mode -->
+            <div id="profile-view-mode">
+              <div class="profile-field"><span class="field-label">Name</span><span class="field-value" id="pf-name">—</span></div>
+              <div class="profile-field"><span class="field-label">Email</span><span class="field-value" id="pf-email">—</span></div>
+              <div class="profile-field"><span class="field-label">Phone</span><span class="field-value" id="pf-phone">—</span></div>
+              <div class="profile-field"><span class="field-label">Address</span><span class="field-value" id="pf-address">—</span></div>
+              <div class="profile-field"><span class="field-label">Life Stage</span><span class="field-value" id="pf-lifestage">—</span></div>
+              <div class="profile-field"><span class="field-label">Assessment Date</span><span class="field-value" id="pf-date">—</span></div>
+              <div class="profile-field"><span class="field-label">Package Status</span><span class="field-value" id="pf-status">—</span></div>
+            </div>
+
+            <!-- Edit Mode -->
+            <div id="profile-edit-mode" style="display:none;">
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div>
+                  <div class="field-label" style="margin-bottom:6px;">Name</div>
+                  <input id="edit-name" type="text" style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;" />
+                </div>
+                <div>
+                  <div class="field-label" style="margin-bottom:6px;">Phone</div>
+                  <input id="edit-phone" type="text" style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;" />
+                </div>
+                <div>
+                  <div class="field-label" style="margin-bottom:6px;">Address</div>
+                  <input id="edit-address" type="text" style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;" />
+                </div>
+                <div id="edit-profile-msg" style="font-size:0.85rem;color:var(--teal);display:none;"></div>
+                <div style="display:flex;gap:10px;">
+                  <button onclick="saveProfile()" style="flex:1;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:10px;cursor:pointer;">Save Changes</button>
+                  <button onclick="toggleEditProfile()" style="flex:1;background:none;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:1px solid var(--teal);border-radius:8px;padding:10px;cursor:pointer;">Cancel</button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="profile-section">
@@ -244,6 +276,8 @@ async function loadProfile(email) {
       const f = data.record.fields;
       document.getElementById('pf-name').textContent       = f['Traveler Name'] || '—';
       document.getElementById('pf-email').textContent      = f['Traveler Email'] || '—';
+      document.getElementById('pf-phone').textContent      = f['Phone Number'] || '—';
+      document.getElementById('pf-address').textContent    = f['Address'] || '—';
       document.getElementById('pf-lifestage').textContent  = f['Life Stage'] || '—';
       document.getElementById('pf-date').textContent       = f['Assessment Date'] || '—';
       document.getElementById('pf-status').textContent     = f['Package Status'] || 'Not yet purchased';
@@ -261,6 +295,63 @@ async function loadProfile(email) {
     }
   } catch(err) {
     document.getElementById('profile-loading').textContent = 'Error loading profile: ' + err.message;
+  }
+}
+
+let currentRecordId = null;
+
+function toggleEditProfile() {
+  const viewMode = document.getElementById('profile-view-mode');
+  const editMode = document.getElementById('profile-edit-mode');
+  const btn      = document.getElementById('edit-profile-btn');
+
+  if (editMode.style.display === 'none') {
+    // Switch to edit mode — pre-fill fields
+    document.getElementById('edit-name').value    = document.getElementById('pf-name').textContent.replace('—','');
+    document.getElementById('edit-phone').value   = document.getElementById('pf-phone').textContent.replace('—','');
+    document.getElementById('edit-address').value = document.getElementById('pf-address').textContent.replace('—','');
+    viewMode.style.display = 'none';
+    editMode.style.display = 'block';
+    btn.textContent = 'Cancel';
+  } else {
+    viewMode.style.display = 'block';
+    editMode.style.display = 'none';
+    btn.textContent = 'Edit';
+  }
+}
+
+async function saveProfile() {
+  const msg = document.getElementById('edit-profile-msg');
+  msg.style.display = 'block';
+  msg.style.color   = 'var(--teal)';
+  msg.textContent   = 'Saving…';
+
+  try {
+    const resp = await fetch('/api/airtable-traveler', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email:       userEmail,
+        profileEdit: true,
+        name:        document.getElementById('edit-name').value,
+        phone:       document.getElementById('edit-phone').value,
+        address:     document.getElementById('edit-address').value
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      document.getElementById('pf-name').textContent    = document.getElementById('edit-name').value || '—';
+      document.getElementById('pf-phone').textContent   = document.getElementById('edit-phone').value || '—';
+      document.getElementById('pf-address').textContent = document.getElementById('edit-address').value || '—';
+      msg.textContent = '✓ Saved!';
+      setTimeout(() => { toggleEditProfile(); msg.style.display = 'none'; }, 1000);
+    } else {
+      msg.style.color = '#f43f5e';
+      msg.textContent = 'Error: ' + (data.error || 'Could not save');
+    }
+  } catch(err) {
+    msg.style.color = '#f43f5e';
+    msg.textContent = 'Error: ' + err.message;
   }
 }
 
