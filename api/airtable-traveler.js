@@ -5,6 +5,7 @@ const TABLE_NAME = 'Traveler';
 
 function airtableRequest(method, path, body, callback) {
   const apiKey = process.env.AIRTABLE_API_KEY;
+  console.log('API key present:', !!apiKey, 'starts with:', apiKey ? apiKey.substring(0, 6) : 'none');
   const bodyStr = body ? JSON.stringify(body) : '';
   const options = {
     hostname: 'api.airtable.com',
