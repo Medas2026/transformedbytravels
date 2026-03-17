@@ -261,6 +261,19 @@ async function initAuth0() {
   userEmail  = user.email;
   document.getElementById('nav-user-email').textContent = user.email;
 
+  // If coming from assessment signup, save the pending profile first
+  const pending = sessionStorage.getItem('pendingProfile');
+  if (pending) {
+    sessionStorage.removeItem('pendingProfile');
+    try {
+      await fetch('/api/airtable-traveler', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: pending
+      });
+    } catch(e) { /* non-fatal — profile page will show empty and they can retake */ }
+  }
+
   loadProfile(user.email);
 }
 

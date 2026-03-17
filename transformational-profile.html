@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -538,11 +539,11 @@
 
         <!-- Create Account Modal -->
         <div id="create-account-modal" style="display:none;margin-top:28px;background:var(--s1);border:1px solid rgba(45,212,191,0.3);border-radius:14px;padding:28px 24px;">
-          <h3 style="font-family:'Montserrat',sans-serif;font-size:1.1rem;color:#fff;margin-bottom:8px;">Save Your Profile</h3>
-          <p style="color:var(--soft);font-size:0.9rem;margin-bottom:20px;">Your results will be saved and you'll be taken to your Growth Through Travel portal.</p>
+          <h3 style="font-family:'Montserrat',sans-serif;font-size:1.1rem;color:#fff;margin-bottom:8px;">Create Your Account</h3>
+          <p style="color:var(--soft);font-size:0.9rem;margin-bottom:20px;">You'll be taken to a quick sign-up screen. When done, your profile will be saved automatically and you'll land in your portal.</p>
           <div style="display:flex;flex-direction:column;gap:12px;">
             <div id="account-msg" style="font-size:0.85rem;color:var(--teal);display:none;"></div>
-            <button class="btn btn-primary" onclick="createAccount()">Save &amp; Go to My Portal →</button>
+            <button class="btn btn-primary" onclick="createAccount()">Sign Up &amp; Go to My Portal →</button>
             <button class="btn btn-outline" onclick="document.getElementById('create-account-modal').style.display='none'">Cancel</button>
           </div>
         </div>
@@ -2304,40 +2305,42 @@ async function createAccount() {
   const msg = document.getElementById('account-msg');
   msg.style.display = 'block';
   msg.style.color   = 'var(--teal)';
-  msg.textContent   = 'Saving your profile…';
+  msg.textContent   = 'Preparing your account…';
 
   try {
-    // Save to Airtable
-    const hopesList = Array.isArray(addAnswers['A5']) ? addAnswers['A5'] : (addAnswers['A5'] ? [addAnswers['A5']] : []);
+    const hopesList    = Array.isArray(addAnswers['A5']) ? addAnswers['A5'] : (addAnswers['A5'] ? [addAnswers['A5']] : []);
     const passionsList = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]);
-    const raw = calcScores();
+    const raw  = calcScores();
     const arch = getArchetype(raw);
 
-    const resp = await fetch('/api/airtable-traveler', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email:     userEmail,
-        name:      userName,
-        archetype: arch.name,
-        passions:  passionsList.join(', '),
-        lifeStage: addAnswers['A2'] || '',
-        hopes:     hopesList.join(', '),
-        scores:    raw
-      })
+    // Store profile data so portal can save it after Auth0 signup
+    sessionStorage.setItem('pendingProfile', JSON.stringify({
+      email:     userEmail,
+      name:      userName,
+      archetype: arch.name,
+      passions:  passionsList.join(', '),
+      lifeStage: addAnswers['A2'] || '',
+      hopes:     hopesList.join(', '),
+      scores:    raw
+    }));
+
+    // Redirect to Auth0 signup with email pre-filled
+    const auth0Client = await auth0.createAuth0Client({
+      domain:   'dev-oys4h8z7qa7irffk.us.auth0.com',
+      clientId: 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd',
+      authorizationParams: {
+        redirect_uri: window.location.origin + '/portal.html'
+      }
     });
 
-    const data = await resp.json();
+    await auth0Client.loginWithRedirect({
+      authorizationParams: {
+        screen_hint: 'signup',
+        login_hint:  userEmail,
+        redirect_uri: window.location.origin + '/portal.html'
+      }
+    });
 
-    if (data.success) {
-      msg.textContent = '✓ Profile saved! Redirecting to your portal…';
-      document.getElementById('create-account-btn').textContent = 'Account Created ✓';
-      document.getElementById('create-account-btn').disabled = true;
-      setTimeout(() => { window.location.href = '/portal.html'; }, 2000);
-    } else {
-      msg.style.color = '#f43f5e';
-      msg.textContent = 'Error: ' + (data.error || 'Could not save profile.');
-    }
   } catch(err) {
     msg.style.color = '#f43f5e';
     msg.textContent = 'Error: ' + err.message;
