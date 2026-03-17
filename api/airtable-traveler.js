@@ -47,7 +47,7 @@ module.exports = function handler(req, res) {
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   // First check if traveler already exists
-  const filter = `?filterByFormula=${encodeURIComponent(`({Email}="${email}")`)}`;
+  const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
 
   airtableRequest('GET', filter, null, (err, data, status) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -76,7 +76,7 @@ module.exports = function handler(req, res) {
 
 function buildFields(b) {
   const fields = {
-    Email:       (b.email || '').toLowerCase().trim(),
+    'Traveler Email': (b.email || '').toLowerCase().trim(),
     Name:        b.name || '',
     Archetype:   b.archetype || '',
     Passions:    b.passions || '',
