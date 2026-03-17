@@ -1,0 +1,97 @@
+const https = require('https');
+
+const BASE_ID = 'appdlxcWb45dIqNK2';
+const TABLE_NAME = 'Travelers';
+
+function airtableRequest(method, path, body, callback) {
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  const bodyStr = body ? JSON.stringify(body) : '';
+  const options = {
+    hostname: 'api.airtable.com',
+    path: `/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}${path}`,
+    method: method,
+    headers: {
+      'Authorization': 'Bearer ' + apiKey,
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(bodyStr)
+    }
+  };
+
+  const req = https.request(options, (res) => {
+    let data = '';
+    res.on('data', chunk => { data += chunk; });
+    res.on('end', () => {
+      try {
+        callback(null, JSON.parse(data), res.statusCode);
+      } catch(e) {
+        callback(e);
+      }
+    });
+  });
+
+  req.on('error', callback);
+  if (bodyStr) req.write(bodyStr);
+  req.end();
+}
+
+module.exports = function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const b = req.body || {};
+  const email = (b.email || '').toLowerCase().trim();
+
+  if (!email) return res.status(400).json({ error: 'Email required' });
+
+  // First check if traveler already exists
+  const filter = `?filterByFormula=${encodeURIComponent(`({Email}="${email}")`)}`;
+
+  airtableRequest('GET', filter, null, (err, data, status) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    if (data.records && data.records.length > 0) {
+      // Traveler exists — update their record
+      const recordId = data.records[0].id;
+      const fields = buildFields(b);
+
+      airtableRequest('PATCH', `/${recordId}`, { fields }, (err2, data2, status2) => {
+        if (err2) return res.status(500).json({ error: err2.message });
+        res.status(200).json({ success: true, action: 'updated', record: data2 });
+      });
+
+    } else {
+      // New traveler — create record
+      const fields = buildFields(b);
+
+      airtableRequest('POST', '', { fields }, (err2, data2, status2) => {
+        if (err2) return res.status(500).json({ error: err2.message });
+        res.status(200).json({ success: true, action: 'created', record: data2 });
+      });
+    }
+  });
+};
+
+function buildFields(b) {
+  const fields = {
+    Email:       (b.email || '').toLowerCase().trim(),
+    Name:        b.name || '',
+    Archetype:   b.archetype || '',
+    Passions:    b.passions || '',
+    'Life Stage': b.lifeStage || '',
+    'Hope to Experience': b.hopes || '',
+    'Assessment Date': new Date().toISOString().split('T')[0]
+  };
+
+  if (b.scores) {
+    fields.Curiosity   = Number(b.scores.Curiosity  || 0);
+    fields.Adventure   = Number(b.scores.Adventure  || 0);
+    fields.Reflection  = Number(b.scores.Reflection || 0);
+    fields.Connection  = Number(b.scores.Connection || 0);
+    fields.Intention   = Number(b.scores.Intention  || 0);
+  }
+
+  return fields;
+}
