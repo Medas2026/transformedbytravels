@@ -96,13 +96,13 @@ module.exports = function handler(req, res) {
 
 function buildFields(b) {
   const fields = {
-    'Traveler Email': (b.email || '').toLowerCase().trim(),
-    Name:        b.name || '',
-    Archetype:   b.archetype || '',
-    Passions:    b.passions || '',
-    'Life Stage': b.lifeStage || '',
+    'Traveler Email':    (b.email || '').toLowerCase().trim(),
+    'Traveler Name':     b.name || '',
+    'Archetype':         b.archetype || '',
+    'Passions':          b.passions || '',
+    'Life Stage':        b.lifeStage || '',
     'Hope to Experience': b.hopes || '',
-    'Assessment Date': new Date().toISOString().split('T')[0]
+    'Assessment Date':   new Date().toISOString().split('T')[0]
   };
 
   if (b.scores) {
