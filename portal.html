@@ -151,6 +151,12 @@
         <div class="loading" id="profile-loading">Loading your profile…</div>
         <div id="profile-content" style="display:none;">
 
+          <!-- Active Trip Banner -->
+          <div id="active-trip-banner" style="display:none;background:linear-gradient(135deg,rgba(45,212,191,0.15),rgba(45,212,191,0.05));border:1px solid rgba(45,212,191,0.4);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:none;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--teal);margin-bottom:4px;">✈️ Trip in Progress</div>
+            <div id="active-trip-name" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;"></div>
+          </div>
+
           <div class="profile-section">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--bd);">
               <div class="profile-section-title" style="margin-bottom:0;padding-bottom:0;border-bottom:none;">Your Identity</div>
@@ -338,17 +344,21 @@
 
       <!-- Start a Trip Page -->
       <div class="page" id="page-start-trip">
-        <div class="coming-soon">
-          <h3>Start a Trip</h3>
-          <p>Coming soon — begin your trip and activate your journal prompts.</p>
+        <div class="profile-section">
+          <div class="profile-section-title">Start a Trip</div>
+          <p style="color:var(--soft);font-size:0.9rem;margin-bottom:20px;">Select a planned trip to begin. We'll mark it as active and send you a confirmation.</p>
+          <div id="start-trip-loading" style="color:var(--soft);font-size:0.9rem;">Loading your trips…</div>
+          <div id="start-trip-list"></div>
         </div>
       </div>
 
       <!-- End a Trip Page -->
       <div class="page" id="page-end-trip">
-        <div class="coming-soon">
-          <h3>End a Trip</h3>
-          <p>Coming soon — close your trip and receive your transformation summary.</p>
+        <div class="profile-section">
+          <div class="profile-section-title">End a Trip</div>
+          <p style="color:var(--soft);font-size:0.9rem;margin-bottom:20px;">Select an active trip to complete. We'll send you a welcome home email and open your Integration Workshop.</p>
+          <div id="end-trip-loading" style="color:var(--soft);font-size:0.9rem;">Loading your trips…</div>
+          <div id="end-trip-list"></div>
         </div>
       </div>
 
@@ -454,6 +464,7 @@ async function loadProfile(email) {
       document.getElementById('pf-reflection').textContent = f['DS-3 Reflection'] + '/7' || '—';
       document.getElementById('pf-connection').textContent = f['DS-4 Connection'] + '/7' || '—';
       document.getElementById('pf-intention').textContent  = f['DS-5 Intention'] + '/7' || '—';
+      checkActiveTripBanner();
     } else {
       document.getElementById('profile-content').innerHTML =
         '<p style="color:var(--soft);">No profile found. Please take the assessment first.</p>';
@@ -528,13 +539,101 @@ function showPage(name) {
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelector(`[data-page="${name}"]`).classList.add('active');
-  if (name === 'planning') loadTrips();
+  if (name === 'planning')   loadTrips();
+  if (name === 'start-trip') loadTripsByStatus('Planning', 'start');
+  if (name === 'end-trip')   loadTripsByStatus('Active',   'end');
 }
 
 async function logout() {
   await auth0Client.logout({
     logoutParams: { returnTo: 'https://transformedbytravels.com' }
   });
+}
+
+// ═══════════════════════════════════════════════
+// START / END TRIP
+// ═══════════════════════════════════════════════
+function loadTripsByStatus(status, mode) {
+  const loadingId = mode === 'start' ? 'start-trip-loading' : 'end-trip-loading';
+  const listId    = mode === 'start' ? 'start-trip-list'    : 'end-trip-list';
+
+  document.getElementById(loadingId).style.display = 'block';
+  document.getElementById(listId).innerHTML = '';
+
+  fetch('/api/trips?email=' + encodeURIComponent(userEmail))
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById(loadingId).style.display = 'none';
+      const records = (data.records || []).filter(r => r.fields['Status'] === status);
+      if (!records.length) {
+        const msg = mode === 'start'
+          ? 'No planned trips found. Go to Trip Planning to create one.'
+          : 'No active trips found.';
+        document.getElementById(listId).innerHTML = `<p style="color:var(--soft);font-size:0.9rem;">${msg}</p>`;
+        return;
+      }
+      document.getElementById(listId).innerHTML = records.map(r => {
+        const f     = r.fields;
+        const name  = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
+        const dest  = [f['Destination'], f['Country']].filter(Boolean).join(', ');
+        const start = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}) : '';
+        const btnLabel = mode === 'start' ? 'Start My Trip ✈️' : 'End My Trip 🏠';
+        return `<div class="trip-card" style="flex-direction:column;align-items:flex-start;gap:12px;">
+          <div>
+            <div class="trip-card-name">${name}</div>
+            <div class="trip-card-dates">${dest}${start ? ' · ' + start : ''}</div>
+          </div>
+          <button onclick="doTripAction('${r.id}','${mode}')" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;">${btnLabel}</button>
+        </div>`;
+      }).join('');
+    })
+    .catch(() => {
+      document.getElementById(loadingId).textContent = 'Could not load trips.';
+    });
+}
+
+async function doTripAction(tripId, mode) {
+  const listId = mode === 'start' ? 'start-trip-list' : 'end-trip-list';
+  document.getElementById(listId).innerHTML = `<p style="color:var(--soft);font-size:0.9rem;">${mode === 'start' ? 'Starting your trip…' : 'Ending your trip…'}</p>`;
+
+  try {
+    const resp = await fetch('/api/trip-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: mode, tripId, email: userEmail })
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      const msg = mode === 'start'
+        ? `✓ Your trip to <strong>${data.tripName}</strong> has started! A confirmation email is on its way. Bon voyage!`
+        : `✓ Welcome home from <strong>${data.tripName}</strong>! Check your email — and don't forget your Integration Workshop.`;
+      document.getElementById(listId).innerHTML = `<p style="color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;line-height:1.6;">${msg}</p>`;
+      // Refresh active trip banner
+      checkActiveTripBanner();
+    } else {
+      document.getElementById(listId).innerHTML = `<p style="color:#f43f5e;">Error: ${data.error || 'Could not update trip.'}</p>`;
+    }
+  } catch(err) {
+    document.getElementById(listId).innerHTML = `<p style="color:#f43f5e;">Error: ${err.message}</p>`;
+  }
+}
+
+function checkActiveTripBanner() {
+  fetch('/api/trips?email=' + encodeURIComponent(userEmail))
+    .then(r => r.json())
+    .then(data => {
+      const active = (data.records || []).find(r => r.fields['Status'] === 'Active');
+      const banner = document.getElementById('active-trip-banner');
+      if (active) {
+        const f    = active.fields;
+        const name = f['Trip Name'] || [f['Destination'], f['Country']].filter(Boolean).join(', ') || 'Active Trip';
+        document.getElementById('active-trip-name').textContent = name;
+        banner.style.display = 'block';
+      } else {
+        banner.style.display = 'none';
+      }
+    }).catch(() => {});
 }
 
 initAuth0();
