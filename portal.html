@@ -563,6 +563,7 @@ function loadTripsByStatus(status, mode) {
   fetch('/api/trips?email=' + encodeURIComponent(userEmail))
     .then(r => r.json())
     .then(data => {
+      console.log('trips data:', JSON.stringify(data.records && data.records.map(r => ({id:r.id, status: r.fields['Status of Trip']}))));
       document.getElementById(loadingId).style.display = 'none';
       const records = (data.records || []).filter(r => r.fields['Status of Trip'] === status);
       if (!records.length) {
