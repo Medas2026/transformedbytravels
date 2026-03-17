@@ -1,7 +1,7 @@
 const https = require('https');
 
 const BASE_ID = 'appdlxcWb45dIqNK2';
-const TABLE_NAME = 'Travelers';
+const TABLE_NAME = 'Traveler';
 
 function airtableRequest(method, path, body, callback) {
   const apiKey = process.env.AIRTABLE_API_KEY;
