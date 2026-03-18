@@ -211,6 +211,16 @@
             </div>
           </div>
 
+          <!-- Subscription Section -->
+          <div class="profile-section">
+            <div class="profile-section-title">Account &amp; Subscription</div>
+            <div class="profile-field"><span class="field-label">Subscription Active</span><span class="field-value" id="pf-sub-active">—</span></div>
+            <div class="profile-field"><span class="field-label">Subscription End Date</span><span class="field-value" id="pf-sub-end">—</span></div>
+            <div class="profile-field"><span class="field-label">Trips Remaining</span><span class="field-value" id="pf-trips-remaining">—</span></div>
+            <div class="profile-field"><span class="field-label">DNA Queries Remaining</span><span class="field-value" id="pf-dna-remaining">—</span></div>
+            <div class="profile-field"><span class="field-label">Workshops Purchased</span><span class="field-value" id="pf-workshops">—</span></div>
+          </div>
+
           <div class="profile-section">
             <div class="profile-section-title">Your Traveler DNA</div>
             <div class="profile-field"><span class="field-label">Archetype</span><span class="field-value" id="pf-archetype">—</span></div>
@@ -465,6 +475,12 @@ async function loadProfile(email) {
       document.getElementById('pf-lifestage').textContent  = f['Life Stage'] || '—';
       document.getElementById('pf-date').textContent       = f['Assessment Date'] || '—';
       document.getElementById('pf-status').textContent     = f['Package Status'] || 'Not yet purchased';
+      document.getElementById('pf-sub-active').textContent    = f['Subscription Active'] ? 'Yes' : 'No';
+      document.getElementById('pf-sub-end').textContent       = f['Subscription End Date'] || '—';
+      document.getElementById('pf-trips-remaining').textContent = f['Trips Remaining'] !== undefined ? f['Trips Remaining'] : '—';
+      document.getElementById('pf-dna-remaining').textContent  = f['DNA Queries Remaining'] !== undefined ? f['DNA Queries Remaining'] : '—';
+      const workshops = Array.isArray(f['Workshop Purchased']) ? f['Workshop Purchased'].join(', ') : (f['Workshop Purchased'] || '—');
+      document.getElementById('pf-workshops').textContent     = workshops;
       document.getElementById('pf-archetype').textContent  = f['Archetype'] || '—';
       document.getElementById('pf-passions').textContent   = f['Passions'] || '—';
       document.getElementById('pf-hopes').textContent      = f['Hopes to Experience'] || '—';
