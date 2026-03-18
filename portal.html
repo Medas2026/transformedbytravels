@@ -400,8 +400,10 @@ const ARCHETYPE_DATA = {
 
 async function initAuth0() {
   auth0Client = await auth0.createAuth0Client({
-    domain:   AUTH0_DOMAIN,
-    clientId: AUTH0_CLIENT_ID,
+    domain:         AUTH0_DOMAIN,
+    clientId:       AUTH0_CLIENT_ID,
+    useRefreshTokens: true,
+    cacheLocation:  'localstorage',
     authorizationParams: {
       redirect_uri: window.location.origin + '/portal.html'
     }

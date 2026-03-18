@@ -2384,23 +2384,27 @@ const PASSION_LABEL_REVERSE = Object.fromEntries(
 );
 
 async function initReportMode() {
-  // Auth0 check
   const auth0Client = await auth0.createAuth0Client({
     domain:   'dev-oys4h8z7qa7irffk.us.auth0.com',
     clientId: 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd',
+    useRefreshTokens: true,
+    cacheLocation: 'localstorage',
     authorizationParams: { redirect_uri: window.location.origin + '/transformational-profile.html' }
   });
 
   if (window.location.search.includes('code=')) {
     await auth0Client.handleRedirectCallback();
-    // Restore report mode flag after redirect
     window.history.replaceState({}, document.title, '/transformational-profile.html?report=1');
   }
 
-  const isAuthenticated = await auth0Client.isAuthenticated();
+  let isAuthenticated = false;
+  try {
+    isAuthenticated = await auth0Client.isAuthenticated();
+  } catch(e) { isAuthenticated = false; }
+
   if (!isAuthenticated) {
     sessionStorage.setItem('returnToReport', '1');
-    await auth0Client.loginWithRedirect();
+    await auth0Client.loginWithRedirect({ authorizationParams: { redirect_uri: window.location.origin + '/transformational-profile.html' } });
     return;
   }
 
