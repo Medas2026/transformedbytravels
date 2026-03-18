@@ -838,6 +838,17 @@ async function generateDestDNA() {
   const loading = document.getElementById('trip-dna-loading');
   const content = document.getElementById('trip-dna-content');
 
+  // Check query limit
+  const remaining = Number((portalProfile || {})['DNA Queries Remaining'] || 0);
+  if (remaining <= 0) {
+    panel.style.display   = 'block';
+    loading.style.display = 'none';
+    content.style.display = 'block';
+    content.innerHTML = '<p style="color:#f87171;font-family:\'Montserrat\',sans-serif;font-weight:600;">You have no Destination DNA queries remaining. Upgrade your plan to get more.</p>';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+
   panel.style.display   = 'block';
   loading.style.display = 'block';
   content.style.display = 'none';
