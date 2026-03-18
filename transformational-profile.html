@@ -1926,30 +1926,33 @@ async function buildPrefs() {
 // Maps long life stage answer → short Airtable Age Band name
 const LIFE_STAGE_TO_AGE_BAND = {
   'Early Career / Young Professional (approximately 25–34)':              'Early Career',
-  'Family with Young Children (approximately 30–44)':                     'Family with younger children',
-  'Family with Older Children or Teenagers (approximately 40–54)':        'Family with older chlidren',
-  'Empty Nester (children have grown up and left home; typically 50–64)': 'Empty Nester',
+  'Family with Young Children (approximately 30–44)':                     'Family with Young Children',
+  'Family with Older Children or Teenagers (approximately 40–54)':        'Family with Older Children',
+  'Empty Nester (children have grown up and left home; typically 50–64)': 'Empty Nesters',
   'Retired (typically 65+)':                                              'Retired'
 };
 
 const AGE_BAND_IMAGES = {
   'Early Career':               'images/Age Group photos/Early Career.png',
-  'Family with younger children': 'images/Age Group photos/Family with younger children.png',
-  'Family with older chlidren':   'images/Age Group photos/Family with older chlidren.png',
-  'Empty Nester':               'images/Age Group photos/Empty Nester.png',
+  'Family with Young Children': 'images/Age Group photos/Family with Young Children.png',
+  'Family with Older Children': 'images/Age Group photos/Family with Older Children.png',
+  'Empty Nesters':              'images/Age Group photos/Empty Nesters.png',
   'Retired':                    'images/Age Group photos/Retired.png'
 };
 
 async function buildAgeBand() {
   const lifeStage = addAnswers['A2'];
+  console.log('buildAgeBand lifeStage:', lifeStage);
   if (!lifeStage) return;
 
   const bandName = LIFE_STAGE_TO_AGE_BAND[lifeStage];
+  console.log('buildAgeBand bandName:', bandName);
   if (!bandName) return;
 
   try {
     const resp = await fetch('/api/age-band?name=' + encodeURIComponent(bandName));
     const data = await resp.json();
+    console.log('buildAgeBand data:', data);
     if (!data.record) return;
 
     const f        = data.record.fields;
