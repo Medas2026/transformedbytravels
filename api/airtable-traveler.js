@@ -95,6 +95,14 @@ module.exports = function handler(req, res) {
 };
 
 function buildFields(b, isNew) {
+  // DNA query counter update
+  if (b.dnaQueryUpdate) {
+    return {
+      'DNA Queries To Date':   Number(b.dnaToDate   || 0),
+      'DNA Queries Remaining': Number(b.dnaRemaining || 0)
+    };
+  }
+
   // Profile edit — only update contact fields
   if (b.profileEdit) {
     const fields = { 'Traveler Name': b.name || '' };

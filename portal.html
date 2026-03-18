@@ -865,6 +865,31 @@ async function generateDestDNA() {
     const data = await resp.json();
     loading.style.display = 'none';
     if (data.guide) {
+      // Increment DNA query counters
+      const p = portalProfile || {};
+      const toDate    = Number(p['DNA Queries To Date']  || 0) + 1;
+      const remaining = Math.max(0, Number(p['DNA Queries Remaining'] || 0) - 1);
+      fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail))
+        .then(r => r.json()).then(rd => {
+          if (rd.record) {
+            fetch('/api/airtable-traveler', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: userEmail,
+                dnaQueryUpdate: true,
+                dnaToDate: toDate,
+                dnaRemaining: remaining
+              })
+            });
+            if (portalProfile) {
+              portalProfile['DNA Queries To Date']  = toDate;
+              portalProfile['DNA Queries Remaining'] = remaining;
+            }
+          }
+        }).catch(() => {});
+    }
+    if (data.guide) {
       const html = data.guide
         .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-family:\'Montserrat\',sans-serif;">$1</strong>')
         .replace(/^- (.+)$/gm, '<li style="margin-bottom:6px;">$1</li>')
