@@ -1942,17 +1942,14 @@ const AGE_BAND_IMAGES = {
 
 async function buildAgeBand() {
   const lifeStage = addAnswers['A2'];
-  console.log('buildAgeBand lifeStage:', lifeStage);
   if (!lifeStage) return;
 
   const bandName = LIFE_STAGE_TO_AGE_BAND[lifeStage];
-  console.log('buildAgeBand bandName:', bandName);
   if (!bandName) return;
 
   try {
     const resp = await fetch('/api/age-band?name=' + encodeURIComponent(bandName));
     const data = await resp.json();
-    console.log('buildAgeBand data:', data);
     if (!data.record) return;
 
     const f        = data.record.fields;
