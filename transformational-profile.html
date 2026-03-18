@@ -2388,16 +2388,18 @@ async function initReportMode() {
   const auth0Client = await auth0.createAuth0Client({
     domain:   'dev-oys4h8z7qa7irffk.us.auth0.com',
     clientId: 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd',
-    authorizationParams: { redirect_uri: window.location.origin + '/transformational-profile.html?report=1' }
+    authorizationParams: { redirect_uri: window.location.origin + '/transformational-profile.html' }
   });
 
   if (window.location.search.includes('code=')) {
     await auth0Client.handleRedirectCallback();
+    // Restore report mode flag after redirect
     window.history.replaceState({}, document.title, '/transformational-profile.html?report=1');
   }
 
   const isAuthenticated = await auth0Client.isAuthenticated();
   if (!isAuthenticated) {
+    sessionStorage.setItem('returnToReport', '1');
     await auth0Client.loginWithRedirect();
     return;
   }
@@ -2460,7 +2462,11 @@ async function initReportMode() {
 }
 
 // On page load — check for report mode
-if (new URLSearchParams(window.location.search).get('report') === '1') {
+const _reportParam = new URLSearchParams(window.location.search).get('report') === '1';
+const _reportSession = sessionStorage.getItem('returnToReport') === '1';
+
+if (_reportParam || _reportSession) {
+  sessionStorage.removeItem('returnToReport');
   // Hide welcome screen immediately, show loading
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-welcome').innerHTML =
