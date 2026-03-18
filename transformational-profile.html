@@ -2410,12 +2410,9 @@ async function initReportMode() {
 
   const user = await auth0Client.getUser();
   userEmail = user.email;
-  console.log('Report mode: got user', userEmail);
-
   // Load profile from Airtable
   const resp = await fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail));
   const data = await resp.json();
-  console.log('Report mode: airtable data', JSON.stringify(data).slice(0, 200));
 
   if (!data.record) {
     document.getElementById('screen-welcome').innerHTML =
@@ -2452,9 +2449,6 @@ async function initReportMode() {
     Intention:  Number(f['DS-5 Intention']  || 0)
   };
   window._reportRaw = airtableRaw;
-
-  console.log('Report mode: raw scores', JSON.stringify(airtableRaw));
-  console.log('Report mode: passions', JSON.stringify(addAnswers['A1']));
 
   // Show report mode UI
   document.getElementById('report-back-btn').style.display = 'block';
