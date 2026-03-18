@@ -362,6 +362,9 @@
          SCREEN 4: RESULTS
     ══════════════════════════════════════════ -->
     <div class="screen" id="screen-results">
+      <div id="report-back-btn" style="display:none;margin-bottom:20px;">
+        <a href="/portal.html" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:#2dd4bf;text-decoration:none;">← Back to My Portal</a>
+      </div>
       <div class="results-header">
         <h1 id="results-name-title">Your Transformational Travel Profile</h1>
         <p>Here's what your answers reveal about how you travel and grow.</p>
@@ -2370,6 +2373,94 @@ function retake() {
   answers = {};
   addAnswers = {};
   showScreen('screen-welcome');
+}
+
+// ═══════════════════════════════════════════════
+// REPORT MODE — load from Airtable via ?report=1
+// ═══════════════════════════════════════════════
+const PASSION_LABEL_REVERSE = Object.fromEntries(
+  Object.entries(PASSION_LABELS).map(([key, label]) => [label, key])
+);
+
+async function initReportMode() {
+  // Auth0 check
+  const auth0Client = await auth0.createAuth0Client({
+    domain:   'dev-oys4h8z7qa7irffk.us.auth0.com',
+    clientId: 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd',
+    authorizationParams: { redirect_uri: window.location.origin + '/transformational-profile.html?report=1' }
+  });
+
+  if (window.location.search.includes('code=')) {
+    await auth0Client.handleRedirectCallback();
+    window.history.replaceState({}, document.title, '/transformational-profile.html?report=1');
+  }
+
+  const isAuthenticated = await auth0Client.isAuthenticated();
+  if (!isAuthenticated) {
+    await auth0Client.loginWithRedirect();
+    return;
+  }
+
+  const user = await auth0Client.getUser();
+  userEmail = user.email;
+
+  // Load profile from Airtable
+  const resp = await fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail));
+  const data = await resp.json();
+
+  if (!data.record) {
+    document.getElementById('screen-welcome').innerHTML =
+      '<div style="text-align:center;padding:60px 20px;color:#94a3b8;font-family:Montserrat,sans-serif;">' +
+      '<p style="font-size:1.1rem;">No profile found. Please take the assessment first.</p>' +
+      '<a href="/portal.html" style="color:#2dd4bf;margin-top:16px;display:inline-block;">← Back to Portal</a></div>';
+    return;
+  }
+
+  const f = data.record.fields;
+  userName = f['Traveler Name'] || 'Traveler';
+
+  // Reconstruct scores
+  answers   = {};
+  addAnswers = { A1: [], A2: f['Life Stage'] || '', A3: null, A4: null, A5: [] };
+
+  // Reconstruct passions (labels → keys)
+  const passionLabels = (f['Passions'] || '').split(',').map(s => s.trim()).filter(Boolean);
+  addAnswers['A1'] = passionLabels.map(label => {
+    // reverse lookup: label value → key
+    return Object.keys(PASSION_LABELS).find(k => PASSION_LABELS[k] === label) || label;
+  }).filter(Boolean);
+
+  // Reconstruct hopes
+  addAnswers['A5'] = (f['Hopes to Experience'] || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  // Reconstruct raw scores for rendering (inject via answers object simulation)
+  // Override calcScores to return Airtable values directly
+  const airtableRaw = {
+    Curiosity:  Number(f['DS-1 Curiosity']  || 0),
+    Adventure:  Number(f['DS-2 Adventure']  || 0),
+    Reflection: Number(f['DS-3 Reflection'] || 0),
+    Connection: Number(f['DS-4 Connection'] || 0),
+    Intention:  Number(f['DS-5 Intention']  || 0)
+  };
+  window._reportRaw = airtableRaw;
+
+  // Show report mode UI
+  document.getElementById('report-back-btn').style.display = 'block';
+  document.getElementById('create-account-btn').style.display = 'none';
+  document.getElementById('screen-welcome').classList.remove('active');
+
+  buildResults();
+  showScreen('screen-results');
+}
+
+// On page load — check for report mode
+if (new URLSearchParams(window.location.search).get('report') === '1') {
+  // Patch calcScores to return Airtable data when in report mode
+  const _origCalcScores = calcScores;
+  window.calcScores = function() {
+    return window._reportRaw || _origCalcScores();
+  };
+  initReportMode().catch(err => console.error('Report mode error:', err));
 }
 
 function downloadPDF() {
