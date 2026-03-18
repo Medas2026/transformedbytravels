@@ -1559,13 +1559,14 @@ function nextAdditional() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email:     userEmail,
-          name:      userName,
-          archetype: arch.name,
-          passions:  passionsList.join(', '),
-          lifeStage: addAnswers['A2'] || '',
-          hopes:     hopesList.join(', '),
-          scores:    raw
+          email:      userEmail,
+          name:       userName,
+          archetype:  arch.name,
+          passions:   passionsList.join(', '),
+          lifeStage:  addAnswers['A2'] || '',
+          hopes:      hopesList.join(', '),
+          scores:     raw,
+          itemScores: {...answers}
         })
       })
       .then(r => r.json())
@@ -2335,13 +2336,14 @@ async function createAccount() {
 
     // Store profile data so portal can save it after Auth0 signup
     sessionStorage.setItem('pendingProfile', JSON.stringify({
-      email:     userEmail,
-      name:      userName,
-      archetype: arch.name,
-      passions:  passionsList.join(', '),
-      lifeStage: addAnswers['A2'] || '',
-      hopes:     hopesList.join(', '),
-      scores:    raw
+      email:      userEmail,
+      name:       userName,
+      archetype:  arch.name,
+      passions:   passionsList.join(', '),
+      lifeStage:  addAnswers['A2'] || '',
+      hopes:      hopesList.join(', '),
+      scores:     raw,
+      itemScores: {...answers}
     }));
 
     // Redirect to Auth0 signup with email pre-filled

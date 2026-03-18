@@ -115,6 +115,10 @@ function buildFields(b) {
     'Assessment Date':     new Date().toISOString().split('T')[0]
   };
 
+  if (b.itemScores) {
+    fields['Item Scores'] = typeof b.itemScores === 'string' ? b.itemScores : JSON.stringify(b.itemScores);
+  }
+
   if (b.scores) {
     fields['DS-1 Curiosity']  = Number(b.scores.Curiosity  || 0);
     fields['DS-2 Adventure']  = Number(b.scores.Adventure  || 0);
