@@ -1582,6 +1582,7 @@ function nextAdditional() {
 // SCORING & RESULTS
 // ═══════════════════════════════════════════════
 function calcScores() {
+  if (window._reportRaw) return window._reportRaw;
   const raw = {Curiosity:0, Adventure:0, Reflection:0, Connection:0, Intention:0};
   for (const q of QUESTIONS) {
     if (answers[q.id] !== undefined) raw[q.dim] += answers[q.id];
@@ -2455,11 +2456,11 @@ async function initReportMode() {
 
 // On page load — check for report mode
 if (new URLSearchParams(window.location.search).get('report') === '1') {
-  // Patch calcScores to return Airtable data when in report mode
-  const _origCalcScores = calcScores;
-  window.calcScores = function() {
-    return window._reportRaw || _origCalcScores();
-  };
+  // Hide welcome screen immediately, show loading
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-welcome').innerHTML =
+    '<div style="text-align:center;padding:80px 20px;color:#94a3b8;font-family:Montserrat,sans-serif;font-size:1rem;">Loading your report…</div>';
+  document.getElementById('screen-welcome').classList.add('active');
   initReportMode().catch(err => console.error('Report mode error:', err));
 }
 
