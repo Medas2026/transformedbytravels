@@ -379,6 +379,14 @@
       <!-- Archetype -->
       <div class="archetype-card" id="archetype-card"></div>
 
+      <!-- Age Band -->
+      <div id="age-band-section" style="display:none;" class="result-section">
+        <div class="result-section-title" id="age-band-name"></div>
+        <p id="age-band-approach" style="color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:18px;"></p>
+        <img id="age-band-photo" src="" alt="" style="width:100%;max-width:560px;border-radius:12px;display:block;margin:0 auto 20px;" />
+        <p id="age-band-desc" style="color:var(--soft);font-size:0.95rem;line-height:1.75;"></p>
+      </div>
+
       <!-- Spider Chart -->
       <div class="result-section">
         <div class="result-section-title">Your Five Travel Dimensions</div>
@@ -1668,6 +1676,9 @@ function buildResults() {
   // Preferences
   buildPrefs();
 
+  // Age Band
+  buildAgeBand();
+
   // Passion destinations
   buildPassionDests();
 
@@ -1910,6 +1921,54 @@ async function buildPrefs() {
   } catch(err) {
     container.innerHTML = '<p style="color:var(--soft);">Could not load content.</p>';
   }
+}
+
+// Maps long life stage answer → short Airtable Age Band name
+const LIFE_STAGE_TO_AGE_BAND = {
+  'Early Career / Young Professional (approximately 25–34)':              'Early Career',
+  'Family with Young Children (approximately 30–44)':                     'Family with younger children',
+  'Family with Older Children or Teenagers (approximately 40–54)':        'Family with older chlidren',
+  'Empty Nester (children have grown up and left home; typically 50–64)': 'Empty Nester',
+  'Retired (typically 65+)':                                              'Retired'
+};
+
+const AGE_BAND_IMAGES = {
+  'Early Career':               'images/Age Group photos/Early Career.png',
+  'Family with younger children': 'images/Age Group photos/Family with younger children.png',
+  'Family with older chlidren':   'images/Age Group photos/Family with older chlidren.png',
+  'Empty Nester':               'images/Age Group photos/Empty Nester.png',
+  'Retired':                    'images/Age Group photos/Retired.png'
+};
+
+async function buildAgeBand() {
+  const lifeStage = addAnswers['A2'];
+  if (!lifeStage) return;
+
+  const bandName = LIFE_STAGE_TO_AGE_BAND[lifeStage];
+  if (!bandName) return;
+
+  try {
+    const resp = await fetch('/api/age-band?name=' + encodeURIComponent(bandName));
+    const data = await resp.json();
+    if (!data.record) return;
+
+    const f        = data.record.fields;
+    const name     = f['Name']        || bandName;
+    const approach = f['Approach']    || '';
+    const desc     = f['Description'] || '';
+    const imgSrc   = AGE_BAND_IMAGES[name] || '';
+
+    document.getElementById('age-band-name').textContent     = name;
+    document.getElementById('age-band-approach').textContent = approach;
+    document.getElementById('age-band-desc').textContent     = desc;
+    if (imgSrc) {
+      document.getElementById('age-band-photo').src          = imgSrc;
+      document.getElementById('age-band-photo').style.display = 'block';
+    } else {
+      document.getElementById('age-band-photo').style.display = 'none';
+    }
+    document.getElementById('age-band-section').style.display = 'block';
+  } catch(e) { /* non-fatal */ }
 }
 
 async function buildPassionDests() {
