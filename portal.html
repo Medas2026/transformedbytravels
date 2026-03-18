@@ -256,9 +256,46 @@
 
       <!-- Workshop Page -->
       <div class="page" id="page-workshop">
-        <div class="coming-soon">
-          <h3>Growth Through Travel Workshop</h3>
-          <p>Coming soon — book your workshop session to begin your transformation journey.</p>
+        <div id="ws-loading-GROWTH" style="text-align:center;padding:40px;color:#94a3b8;font-family:'Montserrat',sans-serif;">Loading workshop…</div>
+        <div id="ws-player-GROWTH" style="display:none;">
+          <!-- Progress -->
+          <div style="margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:#94a3b8;margin-bottom:6px;">
+              <span id="ws-counter-GROWTH">Slide 1 of 1</span>
+              <span id="ws-pct-GROWTH">0%</span>
+            </div>
+            <div style="background:#1e293b;border-radius:4px;height:6px;">
+              <div id="ws-fill-GROWTH" style="background:#2dd4bf;height:6px;border-radius:4px;transition:width 0.3s;width:0%;"></div>
+            </div>
+          </div>
+          <!-- Title -->
+          <h2 id="ws-title-GROWTH" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.2rem;color:#fff;margin-bottom:16px;display:none;"></h2>
+          <!-- Image -->
+          <img id="ws-image-GROWTH" src="" alt="" style="width:100%;border-radius:12px;display:none;margin-bottom:16px;" />
+          <!-- Personalized Text -->
+          <p id="ws-personalized-GROWTH" style="color:#2dd4bf;font-size:0.95rem;line-height:1.7;display:none;margin-bottom:12px;font-style:italic;"></p>
+          <!-- Body Text -->
+          <p id="ws-body-GROWTH" style="color:#94a3b8;font-size:0.9rem;line-height:1.75;display:none;margin-bottom:16px;"></p>
+          <!-- Video -->
+          <div id="ws-video-wrap-GROWTH" style="display:none;margin-bottom:16px;">
+            <iframe id="ws-video-GROWTH" width="100%" height="220" frameborder="0" allowfullscreen style="border-radius:12px;"></iframe>
+          </div>
+          <!-- Question -->
+          <div id="ws-question-wrap-GROWTH" style="display:none;margin-bottom:16px;">
+            <p id="ws-question-prompt-GROWTH" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
+            <textarea id="ws-response-GROWTH" rows="5" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
+          </div>
+          <!-- Navigation -->
+          <div style="display:flex;gap:12px;margin-top:20px;">
+            <button id="ws-prev-GROWTH" onclick="wsPrev('GROWTH')" style="flex:1;padding:14px;background:none;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;cursor:pointer;">← Back</button>
+            <button id="ws-next-GROWTH" onclick="wsNext('GROWTH')" style="flex:2;padding:14px;background:#2dd4bf;border:none;border-radius:8px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Next →</button>
+          </div>
+        </div>
+        <!-- Complete -->
+        <div id="ws-complete-GROWTH" style="display:none;text-align:center;padding:40px 20px;">
+          <div style="font-size:3rem;margin-bottom:16px;">🎉</div>
+          <h3 style="font-family:'Montserrat',sans-serif;font-weight:800;color:#fff;margin-bottom:12px;">Workshop Complete!</h3>
+          <p style="color:#94a3b8;font-size:0.95rem;line-height:1.7;">Your responses have been saved. You can return to review them anytime.</p>
         </div>
       </div>
 
@@ -381,9 +418,46 @@
 
       <!-- Integration Workshop Page -->
       <div class="page" id="page-integration">
-        <div class="coming-soon">
-          <h3>Integration Workshop</h3>
-          <p>Coming soon — process and integrate what you experienced on your trip.</p>
+        <div id="ws-loading-INTEGRATION" style="text-align:center;padding:40px;color:#94a3b8;font-family:'Montserrat',sans-serif;">Loading workshop…</div>
+        <div id="ws-player-INTEGRATION" style="display:none;">
+          <!-- Progress -->
+          <div style="margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:#94a3b8;margin-bottom:6px;">
+              <span id="ws-counter-INTEGRATION">Slide 1 of 1</span>
+              <span id="ws-pct-INTEGRATION">0%</span>
+            </div>
+            <div style="background:#1e293b;border-radius:4px;height:6px;">
+              <div id="ws-fill-INTEGRATION" style="background:#2dd4bf;height:6px;border-radius:4px;transition:width 0.3s;width:0%;"></div>
+            </div>
+          </div>
+          <!-- Title -->
+          <h2 id="ws-title-INTEGRATION" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.2rem;color:#fff;margin-bottom:16px;display:none;"></h2>
+          <!-- Image -->
+          <img id="ws-image-INTEGRATION" src="" alt="" style="width:100%;border-radius:12px;display:none;margin-bottom:16px;" />
+          <!-- Personalized Text -->
+          <p id="ws-personalized-INTEGRATION" style="color:#2dd4bf;font-size:0.95rem;line-height:1.7;display:none;margin-bottom:12px;font-style:italic;"></p>
+          <!-- Body Text -->
+          <p id="ws-body-INTEGRATION" style="color:#94a3b8;font-size:0.9rem;line-height:1.75;display:none;margin-bottom:16px;"></p>
+          <!-- Video -->
+          <div id="ws-video-wrap-INTEGRATION" style="display:none;margin-bottom:16px;">
+            <iframe id="ws-video-INTEGRATION" width="100%" height="220" frameborder="0" allowfullscreen style="border-radius:12px;"></iframe>
+          </div>
+          <!-- Question -->
+          <div id="ws-question-wrap-INTEGRATION" style="display:none;margin-bottom:16px;">
+            <p id="ws-question-prompt-INTEGRATION" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
+            <textarea id="ws-response-INTEGRATION" rows="5" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
+          </div>
+          <!-- Navigation -->
+          <div style="display:flex;gap:12px;margin-top:20px;">
+            <button id="ws-prev-INTEGRATION" onclick="wsPrev('INTEGRATION')" style="flex:1;padding:14px;background:none;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;cursor:pointer;">← Back</button>
+            <button id="ws-next-INTEGRATION" onclick="wsNext('INTEGRATION')" style="flex:2;padding:14px;background:#2dd4bf;border:none;border-radius:8px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Next →</button>
+          </div>
+        </div>
+        <!-- Complete -->
+        <div id="ws-complete-INTEGRATION" style="display:none;text-align:center;padding:40px 20px;">
+          <div style="font-size:3rem;margin-bottom:16px;">🎉</div>
+          <h3 style="font-family:'Montserrat',sans-serif;font-weight:800;color:#fff;margin-bottom:12px;">Workshop Complete!</h3>
+          <p style="color:#94a3b8;font-size:0.95rem;line-height:1.7;">Your responses have been saved. You can return to review them anytime.</p>
         </div>
       </div>
 
@@ -564,9 +638,11 @@ function showPage(name) {
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelector(`[data-page="${name}"]`).classList.add('active');
-  if (name === 'planning')   loadTrips();
-  if (name === 'start-trip') loadTripsByStatus('Planning', 'start');
-  if (name === 'end-trip')   loadTripsByStatus('Active',   'end');
+  if (name === 'planning')     loadTrips();
+  if (name === 'start-trip')   loadTripsByStatus('Planning', 'start');
+  if (name === 'end-trip')     loadTripsByStatus('Active',   'end');
+  if (name === 'workshop')     loadWorkshop('GROWTH');
+  if (name === 'integration')  loadWorkshop('INTEGRATION');
 }
 
 async function logout() {
@@ -914,6 +990,161 @@ async function generateDestDNA() {
     }
   } catch(err) {
     loading.textContent = 'Error: ' + err.message;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// WORKSHOP PLAYER
+// ═══════════════════════════════════════════════
+const wsState = {};  // keyed by workshop code
+
+async function loadWorkshop(code) {
+  // Only load once per session
+  if (wsState[code] && wsState[code].loaded) {
+    wsRenderSlide(code);
+    return;
+  }
+
+  try {
+    const [slidesResp, responsesResp] = await Promise.all([
+      fetch('/api/workshop-slides?code=' + encodeURIComponent(code)),
+      fetch('/api/workshop-responses?email=' + encodeURIComponent(userEmail) + '&code=' + encodeURIComponent(code))
+    ]);
+    const slidesData    = await slidesResp.json();
+    const responsesData = await responsesResp.json();
+
+    wsState[code] = {
+      loaded:    true,
+      slides:    slidesData.slides || [],
+      responses: responsesData.responses || {},
+      index:     0
+    };
+
+    document.getElementById('ws-loading-' + code).style.display = 'none';
+
+    if (wsState[code].slides.length === 0) {
+      document.getElementById('ws-loading-' + code).textContent = 'No slides found for this workshop yet.';
+      document.getElementById('ws-loading-' + code).style.display = 'block';
+      return;
+    }
+
+    document.getElementById('ws-player-' + code).style.display = 'block';
+    wsRenderSlide(code);
+  } catch(err) {
+    document.getElementById('ws-loading-' + code).textContent = 'Error loading workshop: ' + err.message;
+  }
+}
+
+function wsRenderSlide(code) {
+  const state = wsState[code];
+  const slide = state.slides[state.index];
+  const total = state.slides.length;
+  const p     = portalProfile || {};
+
+  // Progress
+  const pct = Math.round(((state.index + 1) / total) * 100);
+  document.getElementById('ws-counter-' + code).textContent   = `Slide ${state.index + 1} of ${total}`;
+  document.getElementById('ws-pct-'     + code).textContent   = pct + '%';
+  document.getElementById('ws-fill-'    + code).style.width   = pct + '%';
+
+  // Title
+  const titleEl = document.getElementById('ws-title-' + code);
+  titleEl.textContent    = slide['Title'] || '';
+  titleEl.style.display  = slide['Title'] ? 'block' : 'none';
+
+  // Image
+  const imgEl = document.getElementById('ws-image-' + code);
+  if (slide['Image URL']) {
+    imgEl.src          = slide['Image URL'];
+    imgEl.style.display = 'block';
+  } else {
+    imgEl.style.display = 'none';
+  }
+
+  // Personalized text — substitute {placeholders}
+  const persEl = document.getElementById('ws-personalized-' + code);
+  if (slide['Personalized Text']) {
+    persEl.textContent = (slide['Personalized Text'] || '')
+      .replace(/\{name\}/gi,      p['Traveler Name'] || '')
+      .replace(/\{archetype\}/gi, p['Archetype']     || '')
+      .replace(/\{passion\}/gi,   (p['Passions']            || '').split(',')[0]?.trim() || '')
+      .replace(/\{lifeStage\}/gi, p['Life Stage']    || '')
+      .replace(/\{hopes\}/gi,     (p['Hopes to Experience'] || '').split(',')[0]?.trim() || '');
+    persEl.style.display = 'block';
+  } else {
+    persEl.style.display = 'none';
+  }
+
+  // Body text
+  const bodyEl = document.getElementById('ws-body-' + code);
+  bodyEl.textContent   = slide['Body Text'] || '';
+  bodyEl.style.display = slide['Body Text'] ? 'block' : 'none';
+
+  // Video
+  const videoWrap = document.getElementById('ws-video-wrap-' + code);
+  if (slide['Slide Type'] === 'Video' && slide['Video URL']) {
+    document.getElementById('ws-video-' + code).src = slide['Video URL'];
+    videoWrap.style.display = 'block';
+  } else {
+    document.getElementById('ws-video-' + code).src = '';
+    videoWrap.style.display = 'none';
+  }
+
+  // Question
+  const questionWrap = document.getElementById('ws-question-wrap-' + code);
+  if (slide['Slide Type'] === 'Question') {
+    document.getElementById('ws-question-prompt-' + code).textContent = slide['Question Prompt'] || '';
+    const saved = state.responses[slide['Question ID']];
+    document.getElementById('ws-response-' + code).value = saved ? saved.response : '';
+    questionWrap.style.display = 'block';
+    document.getElementById('ws-next-' + code).textContent = 'Save & Continue →';
+  } else {
+    questionWrap.style.display = 'none';
+    document.getElementById('ws-next-' + code).textContent =
+      state.index === total - 1 ? 'Finish ✓' : 'Next →';
+  }
+
+  // Prev button
+  document.getElementById('ws-prev-' + code).style.visibility =
+    state.index === 0 ? 'hidden' : 'visible';
+}
+
+async function wsNext(code) {
+  const state = wsState[code];
+  const slide = state.slides[state.index];
+
+  // Save response if this is a question slide
+  if (slide['Slide Type'] === 'Question') {
+    const response = document.getElementById('ws-response-' + code).value.trim();
+    if (response) {
+      state.responses[slide['Question ID']] = { response };
+      fetch('/api/workshop-responses', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          email:        userEmail,
+          workshopCode: code,
+          questionId:   slide['Question ID'],
+          response
+        })
+      }).catch(() => {});
+    }
+  }
+
+  if (state.index < state.slides.length - 1) {
+    state.index++;
+    wsRenderSlide(code);
+  } else {
+    document.getElementById('ws-player-'   + code).style.display = 'none';
+    document.getElementById('ws-complete-' + code).style.display = 'block';
+  }
+}
+
+function wsPrev(code) {
+  const state = wsState[code];
+  if (state.index > 0) {
+    state.index--;
+    wsRenderSlide(code);
   }
 }
 </script>
