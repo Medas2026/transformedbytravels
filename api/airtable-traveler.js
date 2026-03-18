@@ -71,9 +71,9 @@ module.exports = function handler(req, res) {
     if (err) return res.status(500).json({ error: err.message });
 
     if (data.records && data.records.length > 0) {
-      // Traveler exists — update their record
+      // Traveler exists — update their record (do not touch query counts)
       const recordId = data.records[0].id;
-      const fields = buildFields(b);
+      const fields = buildFields(b, false);
 
       airtableRequest('PATCH', `/${recordId}`, { fields }, (err2, data2, status2) => {
         if (err2) return res.status(500).json({ error: err2.message });
@@ -82,8 +82,8 @@ module.exports = function handler(req, res) {
       });
 
     } else {
-      // New traveler — create record
-      const fields = buildFields(b);
+      // New traveler — create record, initialise query counts
+      const fields = buildFields(b, true);
 
       airtableRequest('POST', '', { fields }, (err2, data2, status2) => {
         if (err2) return res.status(500).json({ error: err2.message });
@@ -94,7 +94,7 @@ module.exports = function handler(req, res) {
   });
 };
 
-function buildFields(b) {
+function buildFields(b, isNew) {
   // Profile edit — only update contact fields
   if (b.profileEdit) {
     const fields = { 'Traveler Name': b.name || '' };
@@ -125,6 +125,11 @@ function buildFields(b) {
     fields['DS-3 Reflection'] = Number(b.scores.Reflection || 0);
     fields['DS-4 Connection'] = Number(b.scores.Connection || 0);
     fields['DS-5 Intention']  = Number(b.scores.Intention  || 0);
+  }
+
+  if (isNew) {
+    fields['DNA Queries To Date']  = 0;
+    fields['DNA Queries Remaining'] = 10;
   }
 
   return fields;
