@@ -339,6 +339,9 @@
       </div>
 
       <div class="options-grid" id="options-grid"></div>
+      <div style="text-align:center;margin-top:16px;">
+        <button id="q-back-btn" onclick="goBackQuestion()" style="display:none;background:none;border:none;color:#64748b;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">← Back</button>
+      </div>
     </div>
 
     <!-- ══════════════════════════════════════════
@@ -358,7 +361,10 @@
 
       <div id="add-q-container"></div>
 
-      <button class="btn btn-primary" id="add-next-btn" onclick="nextAdditional()">Next →</button>
+      <div style="display:flex;align-items:center;gap:16px;margin-top:20px;">
+        <button onclick="goBackAdditional()" style="background:none;border:none;color:#64748b;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">← Back</button>
+        <button class="btn btn-primary" id="add-next-btn" onclick="nextAdditional()">Next →</button>
+      </div>
       <p id="add-error" style="color:#f43f5e;font-size:0.85rem;margin-top:10px;display:none;">Please make a selection to continue.</p>
     </div>
 
@@ -805,6 +811,7 @@ let userEmail = "";
 let shuffledQ = [];
 let currentQIdx = 0;
 let answers = {};       // {qId: 0|1}
+let qFlips  = {};       // {idx: bool} — saved random flip per question
 let addAnswers = {};    // {A1:[],A2:"",...}
 let currentAddIdx = 0;
 let spiderChartInst = null;
@@ -1032,19 +1039,44 @@ function renderQuestion() {
   document.getElementById('q-dim').textContent      = q.dim;
   document.getElementById('q-stem').textContent     = q.stem;
 
-  // Randomise A/B order
-  const flip = Math.random() < 0.5;
+  // Randomise A/B order — save flip so going back shows same order
+  if (qFlips[idx] === undefined) qFlips[idx] = Math.random() < 0.5;
+  const flip = qFlips[idx];
   const opts = flip
     ? [{label:"A", text:q.b, score:0}, {label:"B", text:q.a, score:1}]
     : [{label:"A", text:q.a, score:1}, {label:"B", text:q.b, score:0}];
 
+  const prevScore = answers[q.id];
   const grid = document.getElementById('options-grid');
   grid.innerHTML = opts.map((o,i) => `
-    <button class="opt-btn" onclick="selectOption(${q.id}, ${o.score}, this)">
+    <button class="opt-btn${prevScore !== undefined && o.score === prevScore ? ' selected' : ''}" onclick="selectOption(${q.id}, ${o.score}, this)">
       <div class="opt-label">Option ${o.label}</div>
       ${o.text}
     </button>
   `).join('');
+
+  // Show/hide back button
+  const qBackBtn = document.getElementById('q-back-btn');
+  if (qBackBtn) qBackBtn.style.display = idx === 0 ? 'none' : 'block';
+}
+
+function goBackQuestion() {
+  if (currentQIdx > 0) {
+    currentQIdx--;
+    renderQuestion();
+  }
+}
+
+function goBackAdditional() {
+  if (currentAddIdx > 0) {
+    currentAddIdx--;
+    renderAdditional();
+  } else {
+    // Go back to last main question
+    currentQIdx = shuffledQ.length - 1;
+    showScreen('screen-questions');
+    renderQuestion();
+  }
 }
 
 function selectOption(qId, score, el) {
