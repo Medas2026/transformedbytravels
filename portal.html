@@ -283,6 +283,17 @@
           <div id="ws-video-wrap-GROWTH" style="display:none;margin-bottom:16px;">
             <iframe id="ws-video-GROWTH" width="100%" height="220" frameborder="0" allowfullscreen style="border-radius:12px;"></iframe>
           </div>
+          <!-- Archetype -->
+          <div id="ws-archetype-wrap-GROWTH" style="display:none;background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%);border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:20px;margin-bottom:16px;display:none;">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+              <img id="ws-arch-icon-GROWTH" src="" alt="" style="width:60px;height:60px;object-fit:contain;" />
+              <div>
+                <div id="ws-arch-tag-GROWTH" style="font-family:'Montserrat',sans-serif;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:4px;"></div>
+                <div id="ws-arch-name-GROWTH" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;color:var(--teal);"></div>
+              </div>
+            </div>
+            <p id="ws-arch-desc-GROWTH" style="color:var(--soft);font-size:0.92rem;line-height:1.75;margin:0;"></p>
+          </div>
           <!-- Question -->
           <div id="ws-question-wrap-GROWTH" style="display:none;margin-bottom:16px;">
             <p id="ws-question-prompt-GROWTH" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
@@ -430,6 +441,17 @@
           <!-- Video -->
           <div id="ws-video-wrap-INTEGRATION" style="display:none;margin-bottom:16px;">
             <iframe id="ws-video-INTEGRATION" width="100%" height="220" frameborder="0" allowfullscreen style="border-radius:12px;"></iframe>
+          </div>
+          <!-- Archetype -->
+          <div id="ws-archetype-wrap-INTEGRATION" style="display:none;background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%);border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:20px;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+              <img id="ws-arch-icon-INTEGRATION" src="" alt="" style="width:60px;height:60px;object-fit:contain;" />
+              <div>
+                <div id="ws-arch-tag-INTEGRATION" style="font-family:'Montserrat',sans-serif;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:4px;"></div>
+                <div id="ws-arch-name-INTEGRATION" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;color:var(--teal);"></div>
+              </div>
+            </div>
+            <p id="ws-arch-desc-INTEGRATION" style="color:var(--soft);font-size:0.92rem;line-height:1.75;margin:0;"></p>
           </div>
           <!-- Question -->
           <div id="ws-question-wrap-INTEGRATION" style="display:none;margin-bottom:16px;">
@@ -1081,6 +1103,20 @@ function wsRenderSlide(code) {
   } else {
     document.getElementById('ws-video-' + code).src = '';
     videoWrap.style.display = 'none';
+  }
+
+  // ARCHETYPE slide — render from portalProfile
+  const archWrap = document.getElementById('ws-archetype-wrap-' + code);
+  if (slide['Slide Type'] === 'ARCHETYPE') {
+    const archName = p['Archetype'] || '';
+    const arch     = ARCHETYPE_DATA[archName] || {};
+    document.getElementById('ws-arch-icon-'  + code).src         = arch.iconImg || '';
+    document.getElementById('ws-arch-name-'  + code).textContent = archName;
+    document.getElementById('ws-arch-tag-'   + code).textContent = arch.tag  || '';
+    document.getElementById('ws-arch-desc-'  + code).textContent = arch.desc || '';
+    archWrap.style.display = 'block';
+  } else {
+    archWrap.style.display = 'none';
   }
 
   // Question
