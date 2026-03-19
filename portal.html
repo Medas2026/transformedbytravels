@@ -309,6 +309,12 @@
           <div id="ws-question-wrap-PRE_TRIP" style="display:none;margin-bottom:16px;">
             <p id="ws-question-prompt-PRE_TRIP" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
             <textarea id="ws-response-PRE_TRIP" rows="5" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
+            <div id="ws-mic-row-PRE_TRIP" style="display:none;margin-top:10px;display:flex;align-items:center;gap:10px;">
+              <button id="ws-mic-PRE_TRIP" onclick="wsMicToggle('PRE_TRIP')" style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">
+                <span id="ws-mic-icon-PRE_TRIP">🎤</span> Speak your answer
+              </button>
+              <span id="ws-mic-status-PRE_TRIP" style="font-size:0.8rem;color:#64748b;"></span>
+            </div>
           </div>
           <!-- Navigation -->
           <div style="display:flex;gap:12px;margin-top:20px;">
@@ -479,6 +485,12 @@
           <div id="ws-question-wrap-INTEGRATION" style="display:none;margin-bottom:16px;">
             <p id="ws-question-prompt-INTEGRATION" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
             <textarea id="ws-response-INTEGRATION" rows="5" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
+            <div id="ws-mic-row-INTEGRATION" style="display:none;margin-top:10px;display:flex;align-items:center;gap:10px;">
+              <button id="ws-mic-INTEGRATION" onclick="wsMicToggle('INTEGRATION')" style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">
+                <span id="ws-mic-icon-INTEGRATION">🎤</span> Speak your answer
+              </button>
+              <span id="ws-mic-status-INTEGRATION" style="font-size:0.8rem;color:#64748b;"></span>
+            </div>
           </div>
           <!-- Navigation -->
           <div style="display:flex;gap:12px;margin-top:20px;">
@@ -1197,9 +1209,15 @@ function wsRenderSlide(code) {
     document.getElementById('ws-question-prompt-' + code).textContent = slide['Question Prompt'] || '';
     const saved = state.responses[slide['Question ID']];
     document.getElementById('ws-response-' + code).value = saved ? saved.response : '';
+    wsMicStop(code);  // stop any active recording when slide changes
+    const micRow = document.getElementById('ws-mic-row-' + code);
+    if (micRow) micRow.style.display = wsMicSupported ? 'flex' : 'none';
     questionWrap.style.display = 'block';
     document.getElementById('ws-next-' + code).textContent = 'Save & Continue →';
   } else {
+    wsMicStop(code);
+    const micRow = document.getElementById('ws-mic-row-' + code);
+    if (micRow) micRow.style.display = 'none';
     questionWrap.style.display = 'none';
     document.getElementById('ws-next-' + code).textContent =
       state.index === total - 1 ? 'Finish ✓' : 'Next →';
@@ -1216,6 +1234,7 @@ async function wsNext(code) {
 
   // Save response if this is a question slide
   const slideType = (slide['Slide Type'] || '').toUpperCase();
+  wsMicStop(code);
   if (slideType === 'QUESTION') {
     const response = document.getElementById('ws-response-' + code).value.trim();
     if (response) {
@@ -1263,6 +1282,71 @@ function wsDismissResume(code) {
   document.getElementById('ws-player-' + code).style.display = 'block';
   wsState[code].index = 0;
   wsRenderSlide(code);
+}
+
+// ── Voice Input ─────────────────────────────────────────────────────────────
+const wsMicSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+const wsMicActive    = {};  // code → SpeechRecognition instance or null
+
+function wsMicToggle(code) {
+  if (!wsMicSupported) return;
+
+  if (wsMicActive[code]) {
+    wsMicActive[code].stop();
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recog = new SpeechRecognition();
+  recog.continuous      = true;
+  recog.interimResults  = true;
+  recog.lang            = 'en-US';
+
+  const textarea  = document.getElementById('ws-response-' + code);
+  const statusEl  = document.getElementById('ws-mic-status-' + code);
+  const btnEl     = document.getElementById('ws-mic-' + code);
+  const iconEl    = document.getElementById('ws-mic-icon-' + code);
+  const base      = textarea.value;  // preserve any existing typed text
+
+  recog.onstart = () => {
+    wsMicActive[code] = recog;
+    btnEl.style.borderColor  = '#f43f5e';
+    btnEl.style.color        = '#f43f5e';
+    iconEl.textContent       = '⏹';
+    statusEl.textContent     = 'Listening…';
+  };
+
+  recog.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t;
+      else interim += t;
+    }
+    textarea.value = base + (base && final ? ' ' : '') + final + interim;
+  };
+
+  recog.onerror = (e) => {
+    statusEl.textContent = e.error === 'not-allowed' ? 'Microphone access denied.' : 'Error: ' + e.error;
+    wsMicStop(code);
+  };
+
+  recog.onend = () => wsMicStop(code);
+
+  recog.start();
+}
+
+function wsMicStop(code) {
+  if (wsMicActive[code]) {
+    try { wsMicActive[code].stop(); } catch(e) {}
+    wsMicActive[code] = null;
+  }
+  const btnEl    = document.getElementById('ws-mic-' + code);
+  const iconEl   = document.getElementById('ws-mic-icon-' + code);
+  const statusEl = document.getElementById('ws-mic-status-' + code);
+  if (btnEl)    { btnEl.style.borderColor = ''; btnEl.style.color = ''; }
+  if (iconEl)   { iconEl.textContent = '🎤'; }
+  if (statusEl) { statusEl.textContent = ''; }
 }
 
 function wsSaveProgress(code) {
