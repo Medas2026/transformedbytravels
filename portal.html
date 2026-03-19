@@ -8,6 +8,7 @@
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
   <script src="/js/airports.js"></script>
   <script src="/js/destinations.js"></script>
+  <script src="/js/dest-picker.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -336,46 +337,7 @@
               <div class="trip-field-label">Trip Name</div>
               <input id="td-name" class="trip-input" placeholder="e.g. Paris – June 2026" />
             </div>
-            <div class="trip-field-group">
-              <div class="trip-field-label">Continent <span style="color:#f43f5e;">*</span></div>
-              <select id="td-continent" class="trip-input" onchange="onContinentChange()">
-                <option value="">— Select Continent —</option>
-              </select>
-            </div>
-            <div class="trip-field-group">
-              <div class="trip-field-label">Country <span style="color:#f43f5e;">*</span></div>
-              <select id="td-country" class="trip-input" onchange="onCountryChange()" disabled>
-                <option value="">— Select Country —</option>
-              </select>
-            </div>
-            <div class="trip-field-group">
-              <div class="trip-field-label">Destination <span style="color:#f43f5e;">*</span></div>
-              <select id="td-destination" class="trip-input" onchange="onDestinationChange()" disabled>
-                <option value="">— Select Destination —</option>
-              </select>
-            </div>
-            <div class="trip-field-group">
-              <div class="trip-field-label">Passion Focus</div>
-              <select id="td-passion" class="trip-input">
-                <option value="">— Any / Auto-select —</option>
-                <option value="Scuba Diving">Scuba Diving</option>
-                <option value="Mountain Climbing/Mountaineering">Mountain Climbing/Mountaineering</option>
-                <option value="Day Hiking">Day Hiking</option>
-                <option value="Photography">Photography</option>
-                <option value="Sailing">Sailing</option>
-                <option value="Canoeing/Kayaking">Canoeing/Kayaking</option>
-                <option value="Mountain Biking">Mountain Biking</option>
-                <option value="Wildlife Tracking">Wildlife Tracking</option>
-                <option value="Sports Fishing">Sports Fishing</option>
-                <option value="History and Art Tracker">History and Art Tracker</option>
-                <option value="Archaeology and Science">Archaeology and Science</option>
-                <option value="Birding">Birding</option>
-                <option value="Culinary Travel">Culinary Travel</option>
-                <option value="Wine Tasting">Wine Tasting</option>
-                <option value="Pilgrimage">Pilgrimage</option>
-                <option value="Volunteerism">Volunteerism</option>
-              </select>
-            </div>
+            <div id="trip-dest-picker"></div>
             <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:end;">
               <div class="trip-field-group" style="margin-bottom:0;">
                 <div class="trip-field-label">Start Date</div>
@@ -388,11 +350,7 @@
               </div>
             </div>
             <div style="margin-bottom:16px;"></div>
-            <div class="trip-field-group">
-              <div class="trip-field-label">Destination Airport Code</div>
-              <input id="td-airport" class="trip-input" placeholder="e.g. CDG" style="max-width:180px;text-transform:uppercase;" />
-              <div style="margin-top:6px;font-size:0.78rem;color:var(--muted);">Don't know the code? <a href="https://www.iata.org/en/publications/directories/code-search/" target="_blank" style="color:var(--teal);">Look it up →</a></div>
-            </div>
+
             <div class="trip-field-group">
               <div class="trip-field-label">Notes</div>
               <textarea id="td-notes" class="trip-textarea" placeholder="Ideas, wishes, things to research…"></textarea>
@@ -770,7 +728,7 @@ function checkActiveTripBanner() {
 }
 
 initAuth0();
-initDestinationSelectors();
+initDestPicker({ containerId:'trip-dest-picker', idPrefix:'tdp', showPassion:true, showAirport:true });
 
 // ═══════════════════════════════════════════════
 // TRIP PLANNING
@@ -843,12 +801,10 @@ function openTrip(record) {
   const f = record.fields;
   document.getElementById('trip-detail-title').textContent = f['Trip Name'] || 'Trip Details';
   document.getElementById('td-name').value        = f['Trip Name']    || '';
-  loadTripSelectors(f['Country'] || '', f['Destination'] || '');
-  const passionEl = document.getElementById('td-passion');
-  if (passionEl && f['Passion Focus']) passionEl.value = f['Passion Focus'];
+  dpSetValues('tdp', { continent: f['Continent']||'', country: f['Country']||'', destination: f['Destination']||'', airport: f['Destination Airport']||'', passion: f['Passion Focus']||'' });
   document.getElementById('td-start').value       = f['Start Date']   || '';
   document.getElementById('td-end').value         = f['End Date']     || '';
-  document.getElementById('td-airport').value     = f['Airport Code'] || '';
+  // airport loaded via dpSetValues
   document.getElementById('td-notes').value       = f['Notes']        || '';
   document.getElementById('td-place1').value      = f['Place 1']      || '';
   document.getElementById('td-place2').value      = f['Place 2']      || '';
@@ -864,18 +820,11 @@ function openTrip(record) {
 function showNewTripForm() {
   currentTripId = null;
   document.getElementById('trip-detail-title').textContent = 'New Trip';
-  ['td-name','td-start','td-end','td-airport','td-notes',
+  ['td-name','td-start','td-end','td-notes',
    'td-place1','td-place2','td-place3','td-place4','td-place5'].forEach(id => {
     document.getElementById(id).value = '';
   });
-  ['td-continent','td-country','td-destination','td-passion'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  const ctrySel = document.getElementById('td-country');
-  const destSel = document.getElementById('td-destination');
-  if (ctrySel) { ctrySel.innerHTML = '<option value="">— Select Country —</option>'; ctrySel.disabled = true; }
-  if (destSel) { destSel.innerHTML = '<option value="">— Select Destination —</option>'; destSel.disabled = true; }
+  dpClear('tdp');
   [{
   });
   document.getElementById('trip-dna-panel').style.display = 'none';
@@ -898,18 +847,16 @@ async function saveTrip() {
   msg.style.color   = 'var(--teal)';
   msg.textContent   = 'Saving…';
 
-  const country     = document.getElementById('td-country').value;
-  const destination = document.getElementById('td-destination').value.trim();
+  const { destination, country, continent, airport, passion } = dpGetValues('tdp');
   if (!country) { msg.style.color='#f43f5e'; msg.textContent='Please select a country.'; return; }
   if (!destination) { msg.style.color='#f43f5e'; msg.textContent='Please enter a destination.'; return; }
 
   const payload = {
     tripName:    document.getElementById('td-name').value,
-    country:     country,
-    destination: destination,
+    country, destination, continent, airport, passion,
     startDate:   document.getElementById('td-start').value,
     endDate:     document.getElementById('td-end').value,
-    airportCode: document.getElementById('td-airport').value,
+    airportCode: airport,
     notes:       document.getElementById('td-notes').value,
     place1:      document.getElementById('td-place1').value,
     place2:      document.getElementById('td-place2').value,
@@ -947,89 +894,10 @@ async function saveTrip() {
 }
 
 // ═══════════════════════════════════════════════
-// DESTINATION CASCADING SELECTORS
+// DESTINATION DNA QUERY
 // ═══════════════════════════════════════════════
-function initDestinationSelectors() {
-  if (typeof DESTINATIONS === 'undefined') return;
-  const continents = [...new Set(DESTINATIONS.map(r => r[2]))].sort();
-  const sel = document.getElementById('td-continent');
-  if (!sel) return;
-  continents.forEach(c => {
-    const o = document.createElement('option');
-    o.value = o.textContent = c;
-    sel.appendChild(o);
-  });
-}
-
-function onContinentChange() {
-  const continent = document.getElementById('td-continent').value;
-  const countrySel = document.getElementById('td-country');
-  const destSel    = document.getElementById('td-destination');
-  countrySel.innerHTML = '<option value="">— Select Country —</option>';
-  destSel.innerHTML    = '<option value="">— Select Destination —</option>';
-  destSel.disabled = true;
-  if (!continent) { countrySel.disabled = true; return; }
-  const countries = [...new Set(
-    DESTINATIONS.filter(r => r[2] === continent).map(r => r[1])
-  )].sort();
-  countries.forEach(c => {
-    const o = document.createElement('option');
-    o.value = o.textContent = c;
-    countrySel.appendChild(o);
-  });
-  countrySel.disabled = false;
-}
-
-function onCountryChange() {
-  const continent = document.getElementById('td-continent').value;
-  const country   = document.getElementById('td-country').value;
-  const destSel   = document.getElementById('td-destination');
-  destSel.innerHTML = '<option value="">— Select Destination —</option>';
-  if (!country) { destSel.disabled = true; return; }
-  const dests = DESTINATIONS.filter(r => r[2] === continent && r[1] === country);
-  dests.forEach(r => {
-    const o = document.createElement('option');
-    o.value = o.textContent = r[0];
-    destSel.appendChild(o);
-  });
-  destSel.disabled = false;
-}
-
-function onDestinationChange() {
-  const continent = document.getElementById('td-continent').value;
-  const country   = document.getElementById('td-country').value;
-  const dest      = document.getElementById('td-destination').value;
-  if (!dest) return;
-  const row = DESTINATIONS.find(r => r[2] === continent && r[1] === country && r[0] === dest);
-  if (!row) return;
-  // Auto-fill airport code
-  const airportEl = document.getElementById('td-airport');
-  if (airportEl && !airportEl.value) airportEl.value = row[3];
-  // Pre-select passion if not already chosen
-  const passionEl = document.getElementById('td-passion');
-  if (passionEl && !passionEl.value) passionEl.value = row[6];
-}
-
-function loadTripSelectors(country, destination) {
-  if (typeof DESTINATIONS === 'undefined') return;
-  const row = DESTINATIONS.find(r => r[1] === country && r[0] === destination);
-  if (!row) return;
-  const contSel  = document.getElementById('td-continent');
-  const ctrySel  = document.getElementById('td-country');
-  const destSel  = document.getElementById('td-destination');
-  if (!contSel) return;
-  contSel.value = row[2];
-  onContinentChange();
-  ctrySel.value = row[1];
-  onCountryChange();
-  destSel.value = row[0];
-}
-
 async function generateDestDNA() {
-  const destination = document.getElementById('td-destination').value.trim();
-  const country     = document.getElementById('td-country').value;
-  const continent   = document.getElementById('td-continent').value;
-  const passion     = document.getElementById('td-passion').value;
+  const { destination, country, continent, airport, passion } = dpGetValues('tdp');
   if (!destination) {
     alert('Please select a destination first.');
     return;
@@ -1039,14 +907,14 @@ async function generateDestDNA() {
   const loading = document.getElementById('trip-dna-loading');
   const content = document.getElementById('trip-dna-content');
 
-  // Check query limit
-  const _dnaRaw = (portalProfile || {})['DNA Queries Remaining'];
+  // Check query limit (use cached profile — only blocks when explicitly 0)
+  const _dnaRaw   = (portalProfile || {})['DNA Queries Remaining'];
   const remaining = (_dnaRaw === null || _dnaRaw === undefined || _dnaRaw === '') ? Infinity : Number(_dnaRaw);
   if (remaining <= 0) {
     panel.style.display   = 'block';
     loading.style.display = 'none';
     content.style.display = 'block';
-    content.innerHTML = '<p style="color:#f87171;font-family:\'Montserrat\',sans-serif;font-weight:600;">You have no Destination DNA queries remaining. Upgrade your plan to get more.</p>';
+    content.innerHTML = '<p style=\'color:#f87171;font-family:\'Montserrat\',sans-serif;font-weight:600;\'>You have no Destination DNA queries remaining. Upgrade your plan to get more.</p>';
     panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     return;
   }
@@ -1056,8 +924,8 @@ async function generateDestDNA() {
   content.style.display = 'none';
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  const p = portalProfile || {};
-  const hopes    = (p['Hopes to Experience'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
+  const p       = portalProfile || {};
+  const hopes   = (p['Hopes to Experience'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
   const passions = (p['Passions'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
 
   const params = '?action=destGuide'
@@ -1078,52 +946,39 @@ async function generateDestDNA() {
     const resp = await fetch('/api/dest-guide' + params);
     const data = await resp.json();
     loading.style.display = 'none';
+
     if (data.guide) {
-      // Increment DNA query counters
-      const p = portalProfile || {};
-      const toDate    = Number(p['DNA Queries To Date']  || 0) + 1;
-      const remaining = Math.max(0, Number(p['DNA Queries Remaining'] || 0) - 1);
-      fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail))
-        .then(r => r.json()).then(rd => {
-          if (rd.record) {
-            fetch('/api/airtable-traveler', {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: userEmail,
-                dnaQueryUpdate: true,
-                dnaToDate: toDate,
-                dnaRemaining: remaining
-              })
-            });
-            if (portalProfile) {
-              portalProfile['DNA Queries To Date']  = toDate;
-              portalProfile['DNA Queries Remaining'] = remaining;
-            }
-          }
-        }).catch(() => {});
-    }
-    if (data.guide) {
+      // Decrement DNA counter
+      dnaDecrement(userEmail, portalProfile).then(result => {
+        if (result && portalProfile) {
+          portalProfile['DNA Queries To Date']  = result.toDate;
+          portalProfile['DNA Queries Remaining'] = result.remaining;
+          const badge = document.getElementById('pf-dna-remaining');
+          if (badge) badge.textContent = result.remaining;
+        }
+      });
+
       // Travel time estimate
       let travelBadge = '';
-      const homeAirport = ((portalProfile || {})['Home Airport'] || '').trim().toUpperCase();
-      const destAirport = (document.getElementById('td-airport').value || '').trim().toUpperCase();
+      const homeAirport = (p['Home Airport'] || '').trim().toUpperCase();
+      const destAirport = airport;
       if (homeAirport && destAirport && typeof estimateTravelTime === 'function') {
         const tt = estimateTravelTime(homeAirport, destAirport);
         if (tt) {
           travelBadge = `<div style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.35);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;gap:18px;flex-wrap:wrap;align-items:center;">
-            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.05rem;color:var(--teal);">${tt.rangeLabel}</div>
+            <div style="font-family:\'Montserrat\',sans-serif;font-weight:700;font-size:1.05rem;color:var(--teal);">${tt.rangeLabel}</div>
             <div style="font-size:0.85rem;color:var(--soft);">✈ ${homeAirport} → ${destAirport} &nbsp;·&nbsp; ~${tt.miles.toLocaleString()} miles &nbsp;·&nbsp; ${tt.stopsNote}</div>
           </div>`;
         }
       }
-      const html = data.guide
+
+      const guideHtml = data.guide
         .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-family:\'Montserrat\',sans-serif;">$1</strong>')
         .replace(/^- (.+)$/gm, '<li style="margin-bottom:6px;">$1</li>')
         .replace(/(<li[\s\S]*?<\/li>)+/g, '<ul style="padding-left:18px;margin:10px 0;">$&</ul>')
         .replace(/\n\n/g, '</p><p style="margin-bottom:14px;">')
         .replace(/\n/g, '<br>');
-      content.innerHTML = travelBadge + `<p style="margin-bottom:14px;">${html}</p>`;
+      content.innerHTML  = travelBadge + `<p style="margin-bottom:14px;">${guideHtml}</p>`;
       content.style.display = 'block';
     } else {
       loading.textContent = 'Could not generate guide. Try again.';
