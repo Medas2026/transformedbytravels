@@ -260,6 +260,12 @@
       <!-- Workshop Page -->
       <div class="page" id="page-workshop">
         <div id="ws-loading-PRE_TRIP" style="text-align:center;padding:40px;color:#94a3b8;font-family:'Montserrat',sans-serif;">Loading workshop…</div>
+        <!-- Resume / Chapter Nav Banner -->
+        <div id="ws-resume-PRE_TRIP" style="display:none;background:#1e293b;border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:18px;margin-bottom:16px;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;color:#2dd4bf;margin-bottom:10px;">Welcome back! Pick up where you left off:</div>
+          <div id="ws-chapters-PRE_TRIP" style="display:flex;flex-direction:column;gap:8px;"></div>
+          <button onclick="wsDismissResume('PRE_TRIP')" style="margin-top:12px;width:100%;padding:10px;background:none;border:1px solid #334155;border-radius:8px;color:#64748b;font-family:'Montserrat',sans-serif;font-size:0.82rem;cursor:pointer;">Start from the beginning</button>
+        </div>
         <div id="ws-player-PRE_TRIP" style="display:none;">
           <!-- Progress -->
           <div style="margin-bottom:20px;">
@@ -293,6 +299,11 @@
               </div>
             </div>
             <p id="ws-arch-desc-PRE_TRIP" style="color:var(--soft);font-size:0.92rem;line-height:1.75;margin:0;"></p>
+          </div>
+          <!-- Chapter -->
+          <div id="ws-chapter-wrap-PRE_TRIP" style="display:none;margin-bottom:16px;text-align:center;padding:28px 16px;background:linear-gradient(135deg,#0f2238 0%,#0f172a 100%);border-radius:12px;border-left:4px solid #2dd4bf;">
+            <div id="ws-chapter-num-PRE_TRIP" style="font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#2dd4bf;margin-bottom:8px;"></div>
+            <div id="ws-chapter-title-PRE_TRIP" style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:800;color:#fff;"></div>
           </div>
           <!-- Question -->
           <div id="ws-question-wrap-PRE_TRIP" style="display:none;margin-bottom:16px;">
@@ -419,6 +430,12 @@
       <!-- Integration Workshop Page -->
       <div class="page" id="page-integration">
         <div id="ws-loading-INTEGRATION" style="text-align:center;padding:40px;color:#94a3b8;font-family:'Montserrat',sans-serif;">Loading workshop…</div>
+        <!-- Resume / Chapter Nav Banner -->
+        <div id="ws-resume-INTEGRATION" style="display:none;background:#1e293b;border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:18px;margin-bottom:16px;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;color:#2dd4bf;margin-bottom:10px;">Welcome back! Pick up where you left off:</div>
+          <div id="ws-chapters-INTEGRATION" style="display:flex;flex-direction:column;gap:8px;"></div>
+          <button onclick="wsDismissResume('INTEGRATION')" style="margin-top:12px;width:100%;padding:10px;background:none;border:1px solid #334155;border-radius:8px;color:#64748b;font-family:'Montserrat',sans-serif;font-size:0.82rem;cursor:pointer;">Start from the beginning</button>
+        </div>
         <div id="ws-player-INTEGRATION" style="display:none;">
           <!-- Progress -->
           <div style="margin-bottom:20px;">
@@ -452,6 +469,11 @@
               </div>
             </div>
             <p id="ws-arch-desc-INTEGRATION" style="color:var(--soft);font-size:0.92rem;line-height:1.75;margin:0;"></p>
+          </div>
+          <!-- Chapter -->
+          <div id="ws-chapter-wrap-INTEGRATION" style="display:none;margin-bottom:16px;text-align:center;padding:28px 16px;background:linear-gradient(135deg,#0f2238 0%,#0f172a 100%);border-radius:12px;border-left:4px solid #2dd4bf;">
+            <div id="ws-chapter-num-INTEGRATION" style="font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#2dd4bf;margin-bottom:8px;"></div>
+            <div id="ws-chapter-title-INTEGRATION" style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:800;color:#fff;"></div>
           </div>
           <!-- Question -->
           <div id="ws-question-wrap-INTEGRATION" style="display:none;margin-bottom:16px;">
@@ -1028,23 +1050,57 @@ async function loadWorkshop(code) {
     const slidesData    = await slidesResp.json();
     const responsesData = await responsesResp.json();
 
+    const slides    = slidesData.slides    || [];
+    const lastSlide = Number(slidesData.lastSlide) || 0;
+
     wsState[code] = {
-      loaded:    true,
-      slides:    slidesData.slides || [],
-      responses: responsesData.responses || {},
-      index:     0
+      loaded:       true,
+      slides,
+      responses:    responsesData.responses || {},
+      index:        0,
+      regRecordId:  slidesData.regRecordId  || '',
+      lastSlide
     };
 
     document.getElementById('ws-loading-' + code).style.display = 'none';
 
-    if (wsState[code].slides.length === 0) {
+    if (slides.length === 0) {
       document.getElementById('ws-loading-' + code).textContent = 'No slides found for this workshop yet.';
       document.getElementById('ws-loading-' + code).style.display = 'block';
       return;
     }
 
-    document.getElementById('ws-player-' + code).style.display = 'block';
-    wsRenderSlide(code);
+    // Build chapter list and show resume banner if traveler has prior progress
+    wsState[code].chapters = slides
+      .map((s, i) => ({ index: i, title: s['Title'] || '', slideNum: s['Slide Number'] || (i + 1), type: (s['Slide Type'] || '').toUpperCase() }))
+      .filter(c => c.type === 'CHAPTER');
+
+    if (lastSlide > 0 && wsState[code].chapters.length > 0) {
+      const chapContainer = document.getElementById('ws-chapters-' + code);
+      chapContainer.innerHTML = '';
+      let chapCount = 0;
+      wsState[code].chapters.forEach(c => {
+        if (c.index <= lastSlide) {
+          chapCount++;
+          const btn = document.createElement('button');
+          btn.textContent = c.title || ('Chapter ' + chapCount);
+          btn.style.cssText = 'padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-family:\'Montserrat\',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;text-align:left;';
+          btn.onclick = () => wsJumpTo(code, c.index);
+          chapContainer.appendChild(btn);
+        }
+      });
+      // Also add "Continue from slide X" if not at a chapter boundary
+      const resumeBtn = document.createElement('button');
+      resumeBtn.textContent = `Continue from slide ${lastSlide + 1} →`;
+      resumeBtn.style.cssText = 'padding:10px 14px;background:#2dd4bf;border:none;border-radius:8px;color:#0f172a;font-family:\'Montserrat\',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;text-align:left;';
+      resumeBtn.onclick = () => wsJumpTo(code, Math.min(lastSlide, slides.length - 1));
+      chapContainer.prepend(resumeBtn);
+
+      document.getElementById('ws-resume-' + code).style.display = 'block';
+    } else {
+      document.getElementById('ws-player-' + code).style.display = 'block';
+      wsRenderSlide(code);
+    }
   } catch(err) {
     document.getElementById('ws-loading-' + code).textContent = 'Error loading workshop: ' + err.message;
   }
@@ -1123,6 +1179,18 @@ function wsRenderSlide(code) {
     archWrap.style.display = 'none';
   }
 
+  // Chapter
+  const chapterWrap = document.getElementById('ws-chapter-wrap-' + code);
+  if (slideType === 'CHAPTER') {
+    const chapterNum = (state.chapters || []).filter(c => c.index <= state.index).length;
+    document.getElementById('ws-chapter-num-'   + code).textContent = 'Chapter ' + chapterNum;
+    document.getElementById('ws-chapter-title-' + code).textContent = slide['Title'] || '';
+    titleEl.style.display = 'none'; // chapter title shown in its own block
+    chapterWrap.style.display = 'block';
+  } else {
+    chapterWrap.style.display = 'none';
+  }
+
   // Question
   const questionWrap = document.getElementById('ws-question-wrap-' + code);
   if (slideType === 'QUESTION') {
@@ -1167,6 +1235,7 @@ async function wsNext(code) {
 
   if (state.index < state.slides.length - 1) {
     state.index++;
+    wsSaveProgress(code);
     wsRenderSlide(code);
   } else {
     document.getElementById('ws-player-'   + code).style.display = 'none';
@@ -1180,6 +1249,33 @@ function wsPrev(code) {
     state.index--;
     wsRenderSlide(code);
   }
+}
+
+function wsJumpTo(code, index) {
+  document.getElementById('ws-resume-' + code).style.display = 'none';
+  document.getElementById('ws-player-' + code).style.display = 'block';
+  wsState[code].index = index;
+  wsRenderSlide(code);
+}
+
+function wsDismissResume(code) {
+  document.getElementById('ws-resume-' + code).style.display = 'none';
+  document.getElementById('ws-player-' + code).style.display = 'block';
+  wsState[code].index = 0;
+  wsRenderSlide(code);
+}
+
+function wsSaveProgress(code) {
+  const state = wsState[code];
+  if (!state.regRecordId) return;
+  // Only update if we've moved further than before
+  if (state.index <= (state.lastSlide || 0)) return;
+  state.lastSlide = state.index;
+  fetch('/api/workshop-slides', {
+    method:  'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ regRecordId: state.regRecordId, lastSlide: state.index })
+  }).catch(() => {});
 }
 </script>
 </body>
