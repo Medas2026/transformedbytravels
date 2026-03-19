@@ -1099,7 +1099,7 @@ function wsRenderSlide(code) {
 
   // Video
   const videoWrap = document.getElementById('ws-video-wrap-' + code);
-  if (slide['Slide Type'] === 'Video' && slide['Video URL']) {
+  if (slideType === 'VIDEO' && slide['Video URL']) {
     document.getElementById('ws-video-' + code).src = slide['Video URL'];
     videoWrap.style.display = 'block';
   } else {
@@ -1108,11 +1108,10 @@ function wsRenderSlide(code) {
   }
 
   // ARCHETYPE slide — render from portalProfile
-  console.log('Slide data:', JSON.stringify(slide));
-  const archWrap  = document.getElementById('ws-archetype-wrap-' + code);
-  const slideStyle = slide['Slide Style'] || slide['Style'] || '';
-  console.log('Slide Type:', slide['Slide Type'], '| Slide Style:', slideStyle);
-  if (slide['Slide Type'] === 'CLAUDE' && slideStyle === 'ARCHETYPE') {
+  const archWrap   = document.getElementById('ws-archetype-wrap-' + code);
+  const slideType  = (slide['Slide Type']  || '').toUpperCase();
+  const slideStyle = (slide['Slide Style'] || slide['Style'] || '').toUpperCase();
+  if (slideType === 'CLAUDE' && slideStyle === 'ARCHETYPE') {
     const archName = p['Archetype'] || '';
     const arch     = ARCHETYPE_DATA[archName] || {};
     document.getElementById('ws-arch-icon-'  + code).src         = arch.iconImg || '';
@@ -1126,7 +1125,7 @@ function wsRenderSlide(code) {
 
   // Question
   const questionWrap = document.getElementById('ws-question-wrap-' + code);
-  if (slide['Slide Type'] === 'Question') {
+  if (slideType === 'QUESTION') {
     document.getElementById('ws-question-prompt-' + code).textContent = slide['Question Prompt'] || '';
     const saved = state.responses[slide['Question ID']];
     document.getElementById('ws-response-' + code).value = saved ? saved.response : '';
@@ -1148,7 +1147,7 @@ async function wsNext(code) {
   const slide = state.slides[state.index];
 
   // Save response if this is a question slide
-  if (slide['Slide Type'] === 'Question') {
+  if (slideType === 'QUESTION') {
     const response = document.getElementById('ws-response-' + code).value.trim();
     if (response) {
       state.responses[slide['Question ID']] = { response };
