@@ -36,7 +36,8 @@
     /* LAYOUT */
     .wrapper { max-width: 900px; margin: 0 auto; padding: 40px 20px 80px; display: grid; grid-template-columns: 220px 1fr; gap: 32px; }
     @media (max-width: 640px) { .wrapper { grid-template-columns: 1fr; } }
-    .wrapper.workshop-mode { max-width: 1100px; grid-template-columns: 180px 1fr; }
+    .wrapper.workshop-mode { max-width: 1100px; grid-template-columns: 1fr; }
+    .wrapper.workshop-mode .sidebar { display: none; }
 
     /* SIDEBAR MENU */
     .sidebar { display: flex; flex-direction: column; gap: 8px; }
