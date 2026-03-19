@@ -583,7 +583,8 @@ async function loadProfile(email) {
       document.getElementById('pf-sub-active').textContent    = f['Subscription Active'] ? 'Yes' : 'No';
       document.getElementById('pf-sub-end').textContent       = f['Subscription End Date'] || '—';
       document.getElementById('pf-trips-remaining').textContent = f['Trips Remaining'] !== undefined ? f['Trips Remaining'] : '—';
-      document.getElementById('pf-dna-remaining').textContent  = f['DNA Queries Remaining'] !== undefined ? f['DNA Queries Remaining'] : '—';
+      const _dnaDisp = f['DNA Queries Remaining'];
+document.getElementById('pf-dna-remaining').textContent = (_dnaDisp === null || _dnaDisp === undefined || _dnaDisp === '') ? '—' : _dnaDisp;
       const workshops = Array.isArray(f['Workshop Purchased']) ? f['Workshop Purchased'].join(', ') : (f['Workshop Purchased'] || '—');
       document.getElementById('pf-workshops').textContent     = workshops;
       document.getElementById('pf-archetype').textContent  = f['Archetype'] || '—';
@@ -1039,7 +1040,8 @@ async function generateDestDNA() {
   const content = document.getElementById('trip-dna-content');
 
   // Check query limit
-  const remaining = Number((portalProfile || {})['DNA Queries Remaining'] || 0);
+  const _dnaRaw = (portalProfile || {})['DNA Queries Remaining'];
+  const remaining = (_dnaRaw === null || _dnaRaw === undefined || _dnaRaw === '') ? Infinity : Number(_dnaRaw);
   if (remaining <= 0) {
     panel.style.display   = 'block';
     loading.style.display = 'none';
