@@ -1108,8 +1108,10 @@ function wsRenderSlide(code) {
   }
 
   // ARCHETYPE slide — render from portalProfile
+  console.log('Slide data:', JSON.stringify(slide));
   const archWrap  = document.getElementById('ws-archetype-wrap-' + code);
   const slideStyle = slide['Slide Style'] || slide['Style'] || '';
+  console.log('Slide Type:', slide['Slide Type'], '| Slide Style:', slideStyle);
   if (slide['Slide Type'] === 'CLAUDE' && slideStyle === 'ARCHETYPE') {
     const archName = p['Archetype'] || '';
     const arch     = ARCHETYPE_DATA[archName] || {};
