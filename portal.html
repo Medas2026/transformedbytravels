@@ -1090,10 +1090,12 @@ function wsRenderSlide(code) {
     persEl.style.display = 'none';
   }
 
-  // Body text
-  const bodyEl = document.getElementById('ws-body-' + code);
-  bodyEl.textContent   = slide['Body Text'] || '';
-  bodyEl.style.display = slide['Body Text'] ? 'block' : 'none';
+  // Body text (safely convert in case Airtable returns an object)
+  const bodyEl  = document.getElementById('ws-body-' + code);
+  const bodyVal = slide['Body Text'];
+  const bodyStr = bodyVal && typeof bodyVal === 'object' ? (bodyVal.value || JSON.stringify(bodyVal)) : (bodyVal || '');
+  bodyEl.textContent   = bodyStr;
+  bodyEl.style.display = bodyStr ? 'block' : 'none';
 
   // Video
   const videoWrap = document.getElementById('ws-video-wrap-' + code);
@@ -1106,8 +1108,9 @@ function wsRenderSlide(code) {
   }
 
   // ARCHETYPE slide — render from portalProfile
-  const archWrap = document.getElementById('ws-archetype-wrap-' + code);
-  if (slide['Slide Type'] === 'CLAUDE' && slide['Slide Style'] === 'ARCHETYPE') {
+  const archWrap  = document.getElementById('ws-archetype-wrap-' + code);
+  const slideStyle = slide['Slide Style'] || slide['Style'] || '';
+  if (slide['Slide Type'] === 'CLAUDE' && slideStyle === 'ARCHETYPE') {
     const archName = p['Archetype'] || '';
     const arch     = ARCHETYPE_DATA[archName] || {};
     document.getElementById('ws-arch-icon-'  + code).src         = arch.iconImg || '';
