@@ -1000,7 +1000,7 @@ async function loadWorkshop(code) {
 
   try {
     const [slidesResp, responsesResp] = await Promise.all([
-      fetch('/api/workshop-slides?code=' + encodeURIComponent(code)),
+      fetch('/api/workshop-slides?code=' + encodeURIComponent(code) + '&email=' + encodeURIComponent(userEmail)),
       fetch('/api/workshop-responses?email=' + encodeURIComponent(userEmail) + '&code=' + encodeURIComponent(code))
     ]);
     const slidesData    = await slidesResp.json();
