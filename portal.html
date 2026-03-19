@@ -6,6 +6,7 @@
   <title>My Portal | Transformed by Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+  <script src="/js/airports.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -977,13 +978,26 @@ async function generateDestDNA() {
         }).catch(() => {});
     }
     if (data.guide) {
+      // Travel time estimate
+      let travelBadge = '';
+      const homeAirport = ((portalProfile || {})['Home Airport'] || '').trim().toUpperCase();
+      const destAirport = (document.getElementById('td-airport').value || '').trim().toUpperCase();
+      if (homeAirport && destAirport && typeof estimateTravelTime === 'function') {
+        const tt = estimateTravelTime(homeAirport, destAirport);
+        if (tt) {
+          travelBadge = `<div style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.35);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;gap:18px;flex-wrap:wrap;align-items:center;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.05rem;color:var(--teal);">${tt.rangeLabel}</div>
+            <div style="font-size:0.85rem;color:var(--soft);">✈ ${homeAirport} → ${destAirport} &nbsp;·&nbsp; ~${tt.miles.toLocaleString()} miles &nbsp;·&nbsp; ${tt.stopsNote}</div>
+          </div>`;
+        }
+      }
       const html = data.guide
         .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-family:\'Montserrat\',sans-serif;">$1</strong>')
         .replace(/^- (.+)$/gm, '<li style="margin-bottom:6px;">$1</li>')
         .replace(/(<li[\s\S]*?<\/li>)+/g, '<ul style="padding-left:18px;margin:10px 0;">$&</ul>')
         .replace(/\n\n/g, '</p><p style="margin-bottom:14px;">')
         .replace(/\n/g, '<br>');
-      content.innerHTML = `<p style="margin-bottom:14px;">${html}</p>`;
+      content.innerHTML = travelBadge + `<p style="margin-bottom:14px;">${html}</p>`;
       content.style.display = 'block';
     } else {
       loading.textContent = 'Could not generate guide. Try again.';
