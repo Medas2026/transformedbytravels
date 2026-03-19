@@ -308,16 +308,41 @@
           <!-- Question -->
           <div id="ws-question-wrap-PRE_TRIP" style="display:none;margin-bottom:16px;">
             <p id="ws-question-prompt-PRE_TRIP" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
-            <textarea id="ws-response-PRE_TRIP" rows="5" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
-            <div id="ws-mic-row-PRE_TRIP" style="display:none;margin-top:10px;display:flex;align-items:center;gap:10px;">
-              <button id="ws-mic-PRE_TRIP" onclick="wsMicToggle('PRE_TRIP')" style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">
-                <span id="ws-mic-icon-PRE_TRIP">🎤</span> Speak your answer
-              </button>
+            <textarea id="ws-response-PRE_TRIP" rows="4" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
+            <div id="ws-mic-row-PRE_TRIP" style="display:none;margin-top:8px;display:flex;align-items:center;gap:10px;">
+              <button id="ws-mic-PRE_TRIP" onclick="wsMicToggle('PRE_TRIP',1)" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;"><span id="ws-mic-icon-PRE_TRIP">🎤</span> Speak</button>
               <span id="ws-mic-status-PRE_TRIP" style="font-size:0.8rem;color:#64748b;"></span>
             </div>
+            <!-- Q2 -->
+            <div id="ws-q2-wrap-PRE_TRIP" style="display:none;margin-top:14px;">
+              <p id="ws-question-prompt2-PRE_TRIP" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
+              <textarea id="ws-response2-PRE_TRIP" rows="4" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
+              <div id="ws-mic-row2-PRE_TRIP" style="display:none;margin-top:8px;display:flex;align-items:center;gap:10px;">
+                <button id="ws-mic2-PRE_TRIP" onclick="wsMicToggle('PRE_TRIP',2)" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;"><span id="ws-mic-icon2-PRE_TRIP">🎤</span> Speak</button>
+                <span id="ws-mic-status2-PRE_TRIP" style="font-size:0.8rem;color:#64748b;"></span>
+              </div>
+            </div>
+            <!-- Q3 -->
+            <div id="ws-q3-wrap-PRE_TRIP" style="display:none;margin-top:14px;">
+              <p id="ws-question-prompt3-PRE_TRIP" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
+              <textarea id="ws-response3-PRE_TRIP" rows="4" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
+              <div id="ws-mic-row3-PRE_TRIP" style="display:none;margin-top:8px;display:flex;align-items:center;gap:10px;">
+                <button id="ws-mic3-PRE_TRIP" onclick="wsMicToggle('PRE_TRIP',3)" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;"><span id="ws-mic-icon3-PRE_TRIP">🎤</span> Speak</button>
+                <span id="ws-mic-status3-PRE_TRIP" style="font-size:0.8rem;color:#64748b;"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Learn More button -->
+          <div id="ws-learnmore-wrap-PRE_TRIP" style="display:none;margin-bottom:12px;">
+            <button onclick="wsLearnMore('PRE_TRIP')" style="padding:10px 20px;background:none;border:1px solid #2dd4bf;border-radius:8px;color:#2dd4bf;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">▶ Learn More</button>
+          </div>
+          <!-- Floating video overlay -->
+          <div id="ws-pip-PRE_TRIP" style="display:none;position:relative;margin-bottom:16px;float:right;width:55%;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+            <button onclick="wsClosePip('PRE_TRIP')" style="position:absolute;top:6px;right:8px;z-index:10;background:rgba(0,0,0,0.6);border:none;color:#fff;font-size:1rem;cursor:pointer;border-radius:50%;width:28px;height:28px;line-height:28px;text-align:center;">✕</button>
+            <iframe id="ws-pip-video-PRE_TRIP" width="100%" height="160" frameborder="0" allowfullscreen allow="autoplay"></iframe>
           </div>
           <!-- Navigation -->
-          <div style="display:flex;gap:12px;margin-top:20px;">
+          <div style="display:flex;gap:12px;margin-top:20px;clear:both;">
             <button id="ws-prev-PRE_TRIP" onclick="wsPrev('PRE_TRIP')" style="flex:1;padding:14px;background:none;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;cursor:pointer;">← Back</button>
             <button id="ws-next-PRE_TRIP" onclick="wsNext('PRE_TRIP')" style="flex:2;padding:14px;background:#2dd4bf;border:none;border-radius:8px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Next →</button>
           </div>
@@ -484,16 +509,41 @@
           <!-- Question -->
           <div id="ws-question-wrap-INTEGRATION" style="display:none;margin-bottom:16px;">
             <p id="ws-question-prompt-INTEGRATION" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
-            <textarea id="ws-response-INTEGRATION" rows="5" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
-            <div id="ws-mic-row-INTEGRATION" style="display:none;margin-top:10px;display:flex;align-items:center;gap:10px;">
-              <button id="ws-mic-INTEGRATION" onclick="wsMicToggle('INTEGRATION')" style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">
-                <span id="ws-mic-icon-INTEGRATION">🎤</span> Speak your answer
-              </button>
+            <textarea id="ws-response-INTEGRATION" rows="4" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
+            <div id="ws-mic-row-INTEGRATION" style="display:none;margin-top:8px;display:flex;align-items:center;gap:10px;">
+              <button id="ws-mic-INTEGRATION" onclick="wsMicToggle('INTEGRATION',1)" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;"><span id="ws-mic-icon-INTEGRATION">🎤</span> Speak</button>
               <span id="ws-mic-status-INTEGRATION" style="font-size:0.8rem;color:#64748b;"></span>
             </div>
+            <!-- Q2 -->
+            <div id="ws-q2-wrap-INTEGRATION" style="display:none;margin-top:14px;">
+              <p id="ws-question-prompt2-INTEGRATION" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
+              <textarea id="ws-response2-INTEGRATION" rows="4" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
+              <div id="ws-mic-row2-INTEGRATION" style="display:none;margin-top:8px;display:flex;align-items:center;gap:10px;">
+                <button id="ws-mic2-INTEGRATION" onclick="wsMicToggle('INTEGRATION',2)" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;"><span id="ws-mic-icon2-INTEGRATION">🎤</span> Speak</button>
+                <span id="ws-mic-status2-INTEGRATION" style="font-size:0.8rem;color:#64748b;"></span>
+              </div>
+            </div>
+            <!-- Q3 -->
+            <div id="ws-q3-wrap-INTEGRATION" style="display:none;margin-top:14px;">
+              <p id="ws-question-prompt3-INTEGRATION" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
+              <textarea id="ws-response3-INTEGRATION" rows="4" placeholder="Type your response here…" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:12px;box-sizing:border-box;resize:vertical;"></textarea>
+              <div id="ws-mic-row3-INTEGRATION" style="display:none;margin-top:8px;display:flex;align-items:center;gap:10px;">
+                <button id="ws-mic3-INTEGRATION" onclick="wsMicToggle('INTEGRATION',3)" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;"><span id="ws-mic-icon3-INTEGRATION">🎤</span> Speak</button>
+                <span id="ws-mic-status3-INTEGRATION" style="font-size:0.8rem;color:#64748b;"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Learn More button -->
+          <div id="ws-learnmore-wrap-INTEGRATION" style="display:none;margin-bottom:12px;">
+            <button onclick="wsLearnMore('INTEGRATION')" style="padding:10px 20px;background:none;border:1px solid #2dd4bf;border-radius:8px;color:#2dd4bf;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">▶ Learn More</button>
+          </div>
+          <!-- Floating video overlay -->
+          <div id="ws-pip-INTEGRATION" style="display:none;position:relative;margin-bottom:16px;float:right;width:55%;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+            <button onclick="wsClosePip('INTEGRATION')" style="position:absolute;top:6px;right:8px;z-index:10;background:rgba(0,0,0,0.6);border:none;color:#fff;font-size:1rem;cursor:pointer;border-radius:50%;width:28px;height:28px;line-height:28px;text-align:center;">✕</button>
+            <iframe id="ws-pip-video-INTEGRATION" width="100%" height="160" frameborder="0" allowfullscreen allow="autoplay"></iframe>
           </div>
           <!-- Navigation -->
-          <div style="display:flex;gap:12px;margin-top:20px;">
+          <div style="display:flex;gap:12px;margin-top:20px;clear:both;">
             <button id="ws-prev-INTEGRATION" onclick="wsPrev('INTEGRATION')" style="flex:1;padding:14px;background:none;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;cursor:pointer;">← Back</button>
             <button id="ws-next-INTEGRATION" onclick="wsNext('INTEGRATION')" style="flex:2;padding:14px;background:#2dd4bf;border:none;border-radius:8px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Next →</button>
           </div>
@@ -1203,25 +1253,58 @@ function wsRenderSlide(code) {
     chapterWrap.style.display = 'none';
   }
 
+  // Learn More button (image slide with a video URL)
+  const learnWrap = document.getElementById('ws-learnmore-wrap-' + code);
+  if (learnWrap) learnWrap.style.display = (slideType !== 'VIDEO' && slide['Image URL'] && slide['Video URL']) ? 'block' : 'none';
+
   // Question
   const questionWrap = document.getElementById('ws-question-wrap-' + code);
   if (slideType === 'QUESTION') {
+    wsMicStop(code, 1); wsMicStop(code, 2); wsMicStop(code, 3);
+    const saved = state.responses[slide['Question ID']] || {};
+
     document.getElementById('ws-question-prompt-' + code).textContent = slide['Question Prompt'] || '';
-    const saved = state.responses[slide['Question ID']];
-    document.getElementById('ws-response-' + code).value = saved ? saved.response : '';
-    wsMicStop(code);  // stop any active recording when slide changes
+    document.getElementById('ws-response-' + code).value = saved.response || '';
     const micRow = document.getElementById('ws-mic-row-' + code);
     if (micRow) micRow.style.display = wsMicSupported ? 'flex' : 'none';
+
+    // Q2
+    const q2wrap = document.getElementById('ws-q2-wrap-' + code);
+    if (slide['Question Prompt 2']) {
+      document.getElementById('ws-question-prompt2-' + code).textContent = slide['Question Prompt 2'];
+      document.getElementById('ws-response2-' + code).value = saved.response2 || '';
+      const mic2 = document.getElementById('ws-mic-row2-' + code);
+      if (mic2) mic2.style.display = wsMicSupported ? 'flex' : 'none';
+      q2wrap.style.display = 'block';
+    } else {
+      q2wrap.style.display = 'none';
+    }
+
+    // Q3
+    const q3wrap = document.getElementById('ws-q3-wrap-' + code);
+    if (slide['Question Prompt 3']) {
+      document.getElementById('ws-question-prompt3-' + code).textContent = slide['Question Prompt 3'];
+      document.getElementById('ws-response3-' + code).value = saved.response3 || '';
+      const mic3 = document.getElementById('ws-mic-row3-' + code);
+      if (mic3) mic3.style.display = wsMicSupported ? 'flex' : 'none';
+      q3wrap.style.display = 'block';
+    } else {
+      q3wrap.style.display = 'none';
+    }
+
     questionWrap.style.display = 'block';
     document.getElementById('ws-next-' + code).textContent = 'Save & Continue →';
   } else {
-    wsMicStop(code);
+    wsMicStop(code, 1); wsMicStop(code, 2); wsMicStop(code, 3);
     const micRow = document.getElementById('ws-mic-row-' + code);
     if (micRow) micRow.style.display = 'none';
     questionWrap.style.display = 'none';
     document.getElementById('ws-next-' + code).textContent =
       state.index === total - 1 ? 'Finish ✓' : 'Next →';
   }
+
+  // Close pip when navigating
+  wsClosePip(code);
 
   // Prev button
   document.getElementById('ws-prev-' + code).style.visibility =
@@ -1234,11 +1317,13 @@ async function wsNext(code) {
 
   // Save response if this is a question slide
   const slideType = (slide['Slide Type'] || '').toUpperCase();
-  wsMicStop(code);
+  wsMicStop(code, 1); wsMicStop(code, 2); wsMicStop(code, 3);
   if (slideType === 'QUESTION') {
-    const response = document.getElementById('ws-response-' + code).value.trim();
-    if (response) {
-      state.responses[slide['Question ID']] = { response };
+    const response  = (document.getElementById('ws-response-'  + code)?.value || '').trim();
+    const response2 = (document.getElementById('ws-response2-' + code)?.value || '').trim();
+    const response3 = (document.getElementById('ws-response3-' + code)?.value || '').trim();
+    if (response || response2 || response3) {
+      state.responses[slide['Question ID']] = { response, response2, response3 };
       fetch('/api/workshop-responses', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1246,7 +1331,11 @@ async function wsNext(code) {
           email:        userEmail,
           workshopCode: code,
           questionId:   slide['Question ID'],
-          response
+          response,
+          questionId2:  slide['Question ID 2'] || '',
+          response2,
+          questionId3:  slide['Question ID 3'] || '',
+          response3
         })
       }).catch(() => {});
     }
@@ -1286,67 +1375,82 @@ function wsDismissResume(code) {
 
 // ── Voice Input ─────────────────────────────────────────────────────────────
 const wsMicSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-const wsMicActive    = {};  // code → SpeechRecognition instance or null
+const wsMicActive    = {};  // 'CODE_1', 'CODE_2', 'CODE_3' → SpeechRecognition instance
 
-function wsMicToggle(code) {
+function wsMicToggle(code, num) {
   if (!wsMicSupported) return;
+  const key = code + '_' + num;
+  if (wsMicActive[key]) { wsMicActive[key].stop(); return; }
 
-  if (wsMicActive[code]) {
-    wsMicActive[code].stop();
-    return;
-  }
+  const suffix    = num === 1 ? '' : num;
+  const textarea  = document.getElementById('ws-response'  + suffix + '-' + code);
+  const statusEl  = document.getElementById('ws-mic-status' + suffix + '-' + code);
+  const btnEl     = document.getElementById('ws-mic'  + suffix + '-' + code);
+  const iconEl    = document.getElementById('ws-mic-icon' + suffix + '-' + code);
+  const base      = textarea.value;
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recog = new SpeechRecognition();
-  recog.continuous      = true;
-  recog.interimResults  = true;
-  recog.lang            = 'en-US';
-
-  const textarea  = document.getElementById('ws-response-' + code);
-  const statusEl  = document.getElementById('ws-mic-status-' + code);
-  const btnEl     = document.getElementById('ws-mic-' + code);
-  const iconEl    = document.getElementById('ws-mic-icon-' + code);
-  const base      = textarea.value;  // preserve any existing typed text
+  recog.continuous     = true;
+  recog.interimResults = true;
+  recog.lang           = 'en-US';
 
   recog.onstart = () => {
-    wsMicActive[code] = recog;
-    btnEl.style.borderColor  = '#f43f5e';
-    btnEl.style.color        = '#f43f5e';
-    iconEl.textContent       = '⏹';
-    statusEl.textContent     = 'Listening…';
+    wsMicActive[key]        = recog;
+    btnEl.style.borderColor = '#f43f5e';
+    btnEl.style.color       = '#f43f5e';
+    iconEl.textContent      = '⏹';
+    statusEl.textContent    = 'Listening…';
   };
 
   recog.onresult = (e) => {
     let interim = '', final = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) final += t;
-      else interim += t;
+      if (e.results[i].isFinal) final += t; else interim += t;
     }
     textarea.value = base + (base && final ? ' ' : '') + final + interim;
   };
 
   recog.onerror = (e) => {
     statusEl.textContent = e.error === 'not-allowed' ? 'Microphone access denied.' : 'Error: ' + e.error;
-    wsMicStop(code);
+    wsMicStop(code, num);
   };
 
-  recog.onend = () => wsMicStop(code);
-
+  recog.onend = () => wsMicStop(code, num);
   recog.start();
 }
 
-function wsMicStop(code) {
-  if (wsMicActive[code]) {
-    try { wsMicActive[code].stop(); } catch(e) {}
-    wsMicActive[code] = null;
+function wsMicStop(code, num) {
+  const key = code + '_' + num;
+  if (wsMicActive[key]) {
+    try { wsMicActive[key].stop(); } catch(e) {}
+    wsMicActive[key] = null;
   }
-  const btnEl    = document.getElementById('ws-mic-' + code);
-  const iconEl   = document.getElementById('ws-mic-icon-' + code);
-  const statusEl = document.getElementById('ws-mic-status-' + code);
+  const suffix   = num === 1 ? '' : num;
+  const btnEl    = document.getElementById('ws-mic'       + suffix + '-' + code);
+  const iconEl   = document.getElementById('ws-mic-icon'  + suffix + '-' + code);
+  const statusEl = document.getElementById('ws-mic-status'+ suffix + '-' + code);
   if (btnEl)    { btnEl.style.borderColor = ''; btnEl.style.color = ''; }
   if (iconEl)   { iconEl.textContent = '🎤'; }
   if (statusEl) { statusEl.textContent = ''; }
+}
+
+// ── Learn More / Picture-in-Picture video ────────────────────────────────────
+function wsLearnMore(code) {
+  const state   = wsState[code];
+  const slide   = state.slides[state.index];
+  const pipWrap = document.getElementById('ws-pip-' + code);
+  const pipVideo = document.getElementById('ws-pip-video-' + code);
+  pipVideo.src          = slide['Video URL'] || '';
+  pipWrap.style.display = 'block';
+}
+
+function wsClosePip(code) {
+  const pipWrap  = document.getElementById('ws-pip-' + code);
+  const pipVideo = document.getElementById('ws-pip-video-' + code);
+  if (pipWrap)  pipWrap.style.display = 'none';
+  if (pipVideo) pipVideo.src = '';
 }
 
 function wsSaveProgress(code) {
