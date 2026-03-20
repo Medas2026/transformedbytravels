@@ -101,6 +101,17 @@
     .btn-new-trip { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.82rem; background: var(--teal); color: #0f172a; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; }
     .btn-new-trip:hover { opacity: 0.9; }
 
+    .ws-dim-row { margin-bottom: 20px; }
+    .ws-dim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .ws-dim-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.95rem; color: #fff; }
+    .ws-dim-badge { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.82rem; padding: 3px 10px; border-radius: 12px; }
+    .ws-dim-poles { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--soft); margin-bottom: 8px; font-family: 'Montserrat', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+    .ws-dim-bar-wrap { position: relative; height: 10px; background: var(--s2); border-radius: 5px; margin-bottom: 10px; overflow: visible; }
+    .ws-dim-bar-fill { height: 100%; border-radius: 5px; transition: width 0.6s ease; }
+    .ws-dim-marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 18px; height: 18px; background: #fff; border-radius: 50%; border: 2px solid var(--bg); box-shadow: 0 0 0 2px var(--teal); transition: left 0.6s ease; }
+    .ws-dim-zone { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+    .ws-dim-desc { color: var(--soft); font-size: 0.88rem; line-height: 1.65; }
+
     .trip-card { background: var(--s1); border: 1px solid var(--bd); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; cursor: pointer; transition: border-color 0.2s; display: flex; justify-content: space-between; align-items: center; }
     .trip-card:hover { border-color: rgba(45,212,191,0.4); }
     .trip-card-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 4px; }
@@ -325,6 +336,10 @@
             <div id="ws-chapter-num-PRE_TRIP" style="font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#2dd4bf;margin-bottom:8px;"></div>
             <div id="ws-chapter-title-PRE_TRIP" style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:800;color:#fff;"></div>
           </div>
+          <!-- Dimensions -->
+          <div id="ws-dimensions-wrap-PRE_TRIP" style="display:none;margin-bottom:16px;">
+            <div id="ws-dimensions-bars-PRE_TRIP"></div>
+          </div>
           <!-- Question -->
           <div id="ws-question-wrap-PRE_TRIP" style="display:none;margin-bottom:16px;">
             <p id="ws-question-prompt-PRE_TRIP" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.95rem;margin-bottom:10px;"></p>
@@ -526,6 +541,10 @@
           <div id="ws-chapter-wrap-INTEGRATION" style="display:none;margin-bottom:16px;text-align:center;padding:28px 16px;background:linear-gradient(135deg,#0f2238 0%,#0f172a 100%);border-radius:12px;border-left:4px solid #2dd4bf;">
             <div id="ws-chapter-num-INTEGRATION" style="font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#2dd4bf;margin-bottom:8px;"></div>
             <div id="ws-chapter-title-INTEGRATION" style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:800;color:#fff;"></div>
+          </div>
+          <!-- Dimensions -->
+          <div id="ws-dimensions-wrap-INTEGRATION" style="display:none;margin-bottom:16px;">
+            <div id="ws-dimensions-bars-INTEGRATION"></div>
           </div>
           <!-- Question -->
           <div id="ws-question-wrap-INTEGRATION" style="display:none;margin-bottom:16px;">
@@ -923,11 +942,55 @@ document.getElementById(loadingId).style.display = 'none';
         const dest  = [f['Destination'], f['Country']].filter(Boolean).join(', ');
         const start = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}) : '';
         const btnLabel = mode === 'start' ? 'Start My Trip ✈️' : 'End My Trip 🏠';
+        const savedPhone = (portalProfile && portalProfile['Phone Number']) || '';
+        const journalPickers = mode === 'start' ? `
+          <div style="margin-top:4px;padding:14px;background:#0f172a;border-radius:8px;border:1px solid #334155;">
+            <div style="font-size:0.8rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;margin-bottom:8px;">Daily Journal Text</div>
+            <div style="font-size:0.78rem;color:var(--soft);margin-bottom:12px;">We'll text you each evening to reflect on your day.</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div>
+                <div style="font-size:0.75rem;color:var(--soft);margin-bottom:4px;">Phone number</div>
+                <input type="tel" id="phone-${r.id}" value="${savedPhone}" placeholder="+1 555 000 0000"
+                  style="width:100%;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:7px 10px;font-family:'Montserrat',sans-serif;font-size:0.85rem;outline:none;" />
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:120px;">
+                  <div style="font-size:0.75rem;color:var(--soft);margin-bottom:4px;">Journal time <em style="font-style:normal;opacity:0.7;">(suggest an evening hour)</em></div>
+                  <select id="journal-time-${r.id}" style="width:100%;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:7px 10px;font-size:0.85rem;font-family:'Montserrat',sans-serif;">
+                    <option value="16">4:00 PM</option>
+                    <option value="17">5:00 PM</option>
+                    <option value="18">6:00 PM</option>
+                    <option value="19" selected>7:00 PM</option>
+                    <option value="20">8:00 PM</option>
+                    <option value="21">9:00 PM</option>
+                    <option value="22">10:00 PM</option>
+                  </select>
+                </div>
+                <div style="flex:1;min-width:140px;">
+                  <div style="font-size:0.75rem;color:var(--soft);margin-bottom:4px;">Time zone</div>
+                  <select id="timezone-${r.id}" style="width:100%;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:7px 10px;font-size:0.85rem;font-family:'Montserrat',sans-serif;">
+                    <option value="America/New_York">Eastern (ET)</option>
+                    <option value="America/Chicago">Central (CT)</option>
+                    <option value="America/Denver">Mountain (MT)</option>
+                    <option value="America/Los_Angeles">Pacific (PT)</option>
+                    <option value="America/Anchorage">Alaska (AKT)</option>
+                    <option value="Pacific/Honolulu">Hawaii (HT)</option>
+                    <option value="Europe/London">London (GMT/BST)</option>
+                    <option value="Europe/Paris">Paris (CET)</option>
+                    <option value="Asia/Tokyo">Tokyo (JST)</option>
+                    <option value="Australia/Sydney">Sydney (AEST)</option>
+                    <option value="Pacific/Auckland">Auckland (NZST)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>` : '';
         return `<div class="trip-card" style="flex-direction:column;align-items:flex-start;gap:12px;">
           <div>
             <div class="trip-card-name">${name}</div>
             <div class="trip-card-dates">${dest}${start ? ' · ' + start : ''}</div>
           </div>
+          ${journalPickers}
           <button onclick="doTripAction('${r.id}','${mode}')" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;">${btnLabel}</button>
         </div>`;
       }).join('');
@@ -942,10 +1005,19 @@ async function doTripAction(tripId, mode) {
   document.getElementById(listId).innerHTML = `<p style="color:var(--soft);font-size:0.9rem;">${mode === 'start' ? 'Starting your trip…' : 'Ending your trip…'}</p>`;
 
   try {
+    const body = { action: mode, tripId, email: userEmail };
+    if (mode === 'start') {
+      const jtEl    = document.getElementById(`journal-time-${tripId}`);
+      const tzEl    = document.getElementById(`timezone-${tripId}`);
+      const phoneEl = document.getElementById(`phone-${tripId}`);
+      if (jtEl)    body.journalTime = jtEl.value;
+      if (tzEl)    body.timezone    = tzEl.value;
+      if (phoneEl) body.phone       = phoneEl.value.trim();
+    }
     const resp = await fetch('/api/trip-action', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: mode, tripId, email: userEmail })
+      body: JSON.stringify(body)
     });
     const data = await resp.json();
 
@@ -1243,6 +1315,63 @@ async function generateDestDNA() {
 // ═══════════════════════════════════════════════
 // WORKSHOP PLAYER
 // ═══════════════════════════════════════════════
+// DIMENSION HELPERS (shared with slide renderer)
+// ═══════════════════════════════════════════════
+const WS_DIMS = ['Curiosity','Adventure','Reflection','Connection','Intention'];
+const WS_DIM_META = {
+  Curiosity:  { aLabel: 'Learning',   bLabel: 'Experiential Enjoyment', aDesc: 'You are motivated to understand the places you visit. Learning about history, culture, and how people live adds meaning to your travel experiences.', bDesc: 'You enjoy the atmosphere and experiences of a destination without needing to analyze or deeply study it. Travel is about enjoying the place and the moment.' },
+  Adventure:  { aLabel: 'Challenge',  bLabel: 'Comfort',                aDesc: 'You are energized by experiences that push you beyond your comfort zone. Unfamiliar places, uncertainty, and physical or mental challenges are often highlights of your trips.', bDesc: 'You prefer travel that feels smooth, relaxing, and predictable. Comfort and enjoyment are important parts of a satisfying trip.' },
+  Reflection: { aLabel: 'Meaning',    bLabel: 'Immediate',              aDesc: 'Travel often leads you to reflect on what you experience and how it relates to your own life. You enjoy thinking about what a journey means beyond the moment.', bDesc: 'You enjoy experiences as they happen without feeling a strong need to analyze or interpret them afterward. Travel is something to enjoy and remember fondly.' },
+  Connection: { aLabel: 'Immersion',  bLabel: 'Observation',            aDesc: 'You enjoy connecting with people, communities, and the everyday life of the places you visit. Meaningful interactions are often the most memorable parts of travel.', bDesc: 'You enjoy experiencing a destination through its landscapes, landmarks, and highlights. Seeing the places themselves is often the most rewarding part of travel.' },
+  Intention:  { aLabel: 'Purpose',    bLabel: 'Recreation',             aDesc: 'You often think about what you hope to gain from a journey. Travel can be a way to grow, learn, or gain new perspective.', bDesc: 'You approach travel primarily as a way to relax, enjoy yourself, and take a break from daily life.' }
+};
+function wsDimZone(s)      { return s === 7 ? 'sa' : s >= 4 ? 'a' : s >= 1 ? 'b' : 'sb'; }
+function wsDimColor(z)     { return {sb:'#f43f5e', b:'#fb923c', a:'#34d399', sa:'#2dd4bf'}[z]; }
+function wsDimZoneLabel(z, dim) {
+  const m = WS_DIM_META[dim];
+  return {sb:`Strong ${m.bLabel}`, b:m.bLabel, a:m.aLabel, sa:`Strong ${m.aLabel}`}[z];
+}
+function wsBuildDimBars(containerId, p) {
+  const container = document.getElementById(containerId);
+  if (!container) { console.error('wsBuildDimBars: container not found:', containerId); return; }
+
+  const scores = {
+    Curiosity:  Number(p['DS-1 Curiosity']  || 0),
+    Adventure:  Number(p['DS-2 Adventure']  || 0),
+    Reflection: Number(p['DS-3 Reflection'] || 0),
+    Connection: Number(p['DS-4 Connection'] || 0),
+    Intention:  Number(p['DS-5 Intention']  || 0)
+  };
+  console.log('wsBuildDimBars scores:', scores);
+
+  container.innerHTML = WS_DIMS.map(dim => {
+    const s   = scores[dim];
+    const z   = wsDimZone(s);
+    const col = wsDimColor(z);
+    const m   = WS_DIM_META[dim];
+    const pct = Math.round((s / 7) * 100);
+    const desc = (z === 'sa' || z === 'a') ? m.aDesc : m.bDesc;
+    return `
+      <div class="ws-dim-row">
+        <div class="ws-dim-header">
+          <span class="ws-dim-name">${dim}</span>
+          <span class="ws-dim-badge" style="background:${col}22;color:${col};">${s}/7</span>
+        </div>
+        <div class="ws-dim-poles">
+          <span>${m.bLabel}</span>
+          <span>${m.aLabel}</span>
+        </div>
+        <div class="ws-dim-bar-wrap">
+          <div class="ws-dim-bar-fill" style="width:${pct}%;background:${col};"></div>
+          <div class="ws-dim-marker" style="left:${pct}%;"></div>
+        </div>
+        <div class="ws-dim-zone" style="color:${col};">${wsDimZoneLabel(z, dim)}</div>
+        <p class="ws-dim-desc">${desc}</p>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
 const wsState = {};  // keyed by workshop code
 
 async function loadWorkshop(code) {
@@ -1399,6 +1528,17 @@ function wsRenderSlide(code) {
     chapterWrap.style.display = 'block';
   } else {
     chapterWrap.style.display = 'none';
+  }
+
+  // Dimensions
+  const dimsWrap = document.getElementById('ws-dimensions-wrap-' + code);
+  if (dimsWrap) {
+    if (slideType === 'DIMENSIONS') {
+      wsBuildDimBars('ws-dimensions-bars-' + code, p);
+      dimsWrap.style.display = 'block';
+    } else {
+      dimsWrap.style.display = 'none';
+    }
   }
 
   // Learn More button (image slide with a video URL)

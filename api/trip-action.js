@@ -74,9 +74,44 @@ function emailHTML(title, heading, body) {
 
 module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // GET ?action=reminders — cron job: send trip reminder emails
+  if (req.method === 'GET' && req.query.action === 'reminders') {
+    const today    = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const fmt = d => d.toISOString().split('T')[0];
+    const todayStr    = fmt(today);
+    const tomorrowStr = fmt(tomorrow);
+    const formula = encodeURIComponent(
+      `AND({Status of Trip}="Planning", OR({Start Date}="${tomorrowStr}", {Start Date}="${todayStr}"))`
+    );
+    airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${formula}`, null, (err, data) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const records = data.records || [];
+      records.forEach(r => {
+        const f           = r.fields;
+        const email       = f['Traveler Email'];
+        const destination = f['Destination'] || 'your destination';
+        const country     = f['Country']     || '';
+        const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
+        const startDate   = f['Start Date'];
+        if (!email) return;
+        const isTomorrow = startDate === tomorrowStr;
+        const heading    = isTomorrow ? `Your trip to ${tripName} starts tomorrow!` : `Your trip to ${tripName} starts today!`;
+        const body = isTomorrow
+          ? `<p>Just a reminder — your trip to <strong>${tripName}</strong> begins tomorrow.</p><p>Log in to your portal to review your plans before you go!</p>`
+          : `<p>Today's the day! Your trip to <strong>${tripName}</strong> is starting.</p><p>Head to your portal to officially start your trip.</p>`;
+        sendEmail(email, '', heading, emailHTML(heading, heading, body), () => {});
+      });
+      res.status(200).json({ success: true, checked: records.length });
+    });
+    return;
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const b      = req.body || {};
@@ -91,8 +126,12 @@ module.exports = function handler(req, res) {
 
   // Update trip status
   const fields = { 'Status of Trip': status };
-  if (action === 'start') fields['Start Date'] = today;
-  if (action === 'end')   fields['End Date']   = today;
+  if (action === 'start') {
+    fields['Start Date'] = today;
+    if (b.journalTime) fields['Journal Time'] = String(b.journalTime);
+    if (b.timezone)    fields['Time Zone']    = b.timezone;
+  }
+  if (action === 'end') fields['End Date'] = today;
 
   airtableRequest('PATCH', TRIPS_TABLE, `/${tripId}`, { fields }, (err, tripData) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -103,12 +142,16 @@ module.exports = function handler(req, res) {
     const country     = f['Country']     || '';
     const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
 
-    // Get traveler name for email
+    // Get traveler name for email (and optionally update phone)
     const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
     airtableRequest('GET', TRAVEL_TABLE, filter, null, (err2, travelerData) => {
-      const name = (travelerData && travelerData.records && travelerData.records[0])
-        ? (travelerData.records[0].fields['Traveler Name'] || 'Traveler')
-        : 'Traveler';
+      const travelerRecord = travelerData && travelerData.records && travelerData.records[0];
+      const name = travelerRecord ? (travelerRecord.fields['Traveler Name'] || 'Traveler') : 'Traveler';
+
+      // Save confirmed phone number back to Traveler record
+      if (action === 'start' && b.phone && travelerRecord) {
+        airtableRequest('PATCH', TRAVEL_TABLE, `/${travelerRecord.id}`, { fields: { 'Phone Number': b.phone } }, () => {});
+      }
 
       let subject, html;
 

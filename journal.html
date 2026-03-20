@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Travel Journal · Transformed by Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Georgia&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a1628;
+      color: #e2e8f0;
+      font-family: 'Montserrat', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+    }
+
+    .logo {
+      width: 80px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: Georgia, serif;
+      font-size: 1.5rem;
+      color: #2dd4bf;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .date-line {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .prompt-block {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .prompt-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+
+    .prompt-label span {
+      color: #2dd4bf;
+      font-size: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      background: #0f172a;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 14px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus { border-color: #2dd4bf; }
+
+    .mic-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mic-btn {
+      background: none;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 1.1rem;
+      padding: 6px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.78rem;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .mic-btn.recording {
+      border-color: #f43f5e;
+      color: #f43f5e;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.5; }
+    }
+
+    .submit-btn {
+      background: #2dd4bf;
+      color: #0f172a;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+      transition: opacity 0.2s;
+    }
+
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #status {
+      text-align: center;
+      font-size: 0.9rem;
+      min-height: 20px;
+    }
+
+    .success-msg {
+      text-align: center;
+      padding: 32px 16px;
+    }
+
+    .success-msg .icon { font-size: 3rem; margin-bottom: 16px; }
+
+    .success-msg h2 {
+      font-family: Georgia, serif;
+      font-size: 1.4rem;
+      color: #2dd4bf;
+      margin-bottom: 10px;
+    }
+
+    .success-msg p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <img src="/images/Base%20Green%20Graphic%20Logo%20Black.png" alt="Transformed by Travels" class="logo" />
+  <h1>Daily Travel Journal</h1>
+  <div class="date-line" id="date-line"></div>
+
+  <div class="card" id="journal-card">
+
+    <div class="prompt-block">
+      <div class="prompt-label"><span>1.</span> Any reflections on your goals from today's activities?</div>
+      <textarea id="reflection" placeholder="What came up for you today? What did you notice, discover, or feel…"></textarea>
+      <div class="mic-row">
+        <button class="mic-btn" id="mic-1" onclick="toggleMic(1)">🎤 Speak</button>
+        <span id="mic-1-status" style="font-size:0.75rem;color:#94a3b8;"></span>
+      </div>
+    </div>
+
+    <div class="prompt-block">
+      <div class="prompt-label"><span>2.</span> Any barriers to advancing your efforts?</div>
+      <textarea id="barriers" placeholder="What got in the way? What felt hard or unclear…"></textarea>
+      <div class="mic-row">
+        <button class="mic-btn" id="mic-2" onclick="toggleMic(2)">🎤 Speak</button>
+        <span id="mic-2-status" style="font-size:0.75rem;color:#94a3b8;"></span>
+      </div>
+    </div>
+
+    <div class="prompt-block">
+      <div class="prompt-label">📷 Photo from today <span style="font-size:0.8rem;font-weight:400;color:#94a3b8;">(optional — paste a photo link)</span></div>
+      <input type="url" id="photo-url" placeholder="https://…" style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:10px;padding:12px 14px;font-family:'Montserrat',sans-serif;font-size:0.9rem;outline:none;" />
+    </div>
+
+    <div id="status" style="color:#94a3b8;"></div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitJournal()">Save Journal Entry</button>
+
+  </div>
+
+<script>
+  // — Parse URL params
+  const params     = new URLSearchParams(location.search);
+  const email      = params.get('email') || '';
+  const tripId     = params.get('trip')  || '';
+  const dateStr    = params.get('date')  || new Date().toISOString().split('T')[0];
+  const startDate  = params.get('start') || '';
+  const tripName   = params.get('dest')  || '';
+
+  // — Date display
+  const d = new Date(dateStr + 'T12:00:00');
+  document.getElementById('date-line').textContent =
+    d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  // — Voice input
+  const recognizers = {};
+
+  function toggleMic(num) {
+    const btnEl    = document.getElementById(`mic-${num}`);
+    const statusEl = document.getElementById(`mic-${num}-status`);
+    const textareaId = num === 1 ? 'reflection' : 'barriers';
+
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      statusEl.textContent = 'Voice not supported in this browser.';
+      return;
+    }
+
+    if (recognizers[num] && recognizers[num]._running) {
+      recognizers[num].stop();
+      return;
+    }
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SR();
+    rec.continuous    = true;
+    rec.interimResults = true;
+    rec.lang          = 'en-US';
+    recognizers[num]  = rec;
+    rec._running      = true;
+
+    const existing = document.getElementById(textareaId).value;
+
+    rec.onresult = (e) => {
+      let interim = '';
+      let final   = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final   += e.results[i][0].transcript + ' ';
+        else                        interim += e.results[i][0].transcript;
+      }
+      document.getElementById(textareaId).value = existing + final + interim;
+    };
+
+    rec.onend = () => {
+      rec._running = false;
+      btnEl.classList.remove('recording');
+      btnEl.textContent = '🎤 Speak';
+      statusEl.textContent = '';
+    };
+
+    rec.onerror = () => {
+      rec._running = false;
+      btnEl.classList.remove('recording');
+      btnEl.textContent = '🎤 Speak';
+      statusEl.textContent = 'Mic error.';
+    };
+
+    rec.start();
+    btnEl.classList.add('recording');
+    btnEl.textContent = '⏹ Stop';
+    statusEl.textContent = 'Listening…';
+  }
+
+  // — Submit
+  async function submitJournal() {
+    const reflection = document.getElementById('reflection').value.trim();
+    const barriers   = document.getElementById('barriers').value.trim();
+    const photoUrl   = document.getElementById('photo-url').value.trim();
+    const statusEl   = document.getElementById('status');
+    const btn        = document.getElementById('submit-btn');
+
+    if (!reflection && !barriers) {
+      statusEl.style.color = '#f43f5e';
+      statusEl.textContent = 'Please enter at least one reflection before saving.';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.style.color = '#94a3b8';
+    statusEl.textContent = 'Saving…';
+
+    try {
+      statusEl.textContent = 'Saving… getting your reflection from Claude…';
+
+      const resp = await fetch('/api/journal', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, tripId, startDate, tripName, reflection, barriers, photoUrl })
+      });
+      const data = await resp.json();
+
+      if (data.success) {
+        const claudeBlock = data.claudeReflection
+          ? `<div style="margin-top:20px;padding:16px;background:#0f172a;border-radius:10px;border-left:3px solid #2dd4bf;text-align:left;">
+               <div style="font-size:0.75rem;color:#2dd4bf;font-weight:700;margin-bottom:8px;letter-spacing:0.05em;">YOUR COACH REFLECTS</div>
+               <p style="color:#e2e8f0;font-size:0.9rem;line-height:1.7;">${data.claudeReflection}</p>
+             </div>`
+          : '';
+        document.getElementById('journal-card').innerHTML = `
+          <div class="success-msg">
+            <div class="icon">🌟</div>
+            <h2>Journal saved!</h2>
+            <p>Your reflections have been captured. Keep exploring, keep growing — see you tomorrow evening.</p>
+            ${claudeBlock}
+          </div>`;
+      } else {
+        statusEl.style.color = '#f43f5e';
+        statusEl.textContent = 'Error: ' + (data.error || 'Could not save entry.');
+        btn.disabled = false;
+      }
+    } catch(err) {
+      statusEl.style.color = '#f43f5e';
+      statusEl.textContent = 'Network error: ' + err.message;
+      btn.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>

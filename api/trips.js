@@ -111,5 +111,7 @@ function buildFields(b) {
   if (b.place3      !== undefined) fields['Place 3']      = b.place3;
   if (b.place4      !== undefined) fields['Place 4']      = b.place4;
   if (b.place5      !== undefined) fields['Place 5']      = b.place5;
+  if (b.journalTime !== undefined) fields['Journal Time'] = String(b.journalTime);
+  if (b.timezone    !== undefined) fields['Time Zone']    = b.timezone;
   return fields;
 }
