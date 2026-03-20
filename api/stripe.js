@@ -86,7 +86,7 @@ module.exports = async function handler(req, res) {
       });
       return res.status(200).json({ url: session.url });
     } catch(e) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ error: e.message, type: e.type, code: e.code });
     }
   }
 
