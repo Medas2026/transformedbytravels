@@ -1402,7 +1402,6 @@ async function wsNext(code) {
     const response  = (document.getElementById('ws-response-'  + code)?.value || '').trim();
     const response2 = (document.getElementById('ws-response2-' + code)?.value || '').trim();
     const response3 = (document.getElementById('ws-response3-' + code)?.value || '').trim();
-    console.log('QUESTION save attempt:', { userEmail, code, questionId: slide['Question ID'], response, response2, response3 });
     if (response || response2 || response3) {
       state.responses[slide['Question ID']] = { response, response2, response3 };
       fetch('/api/workshop-responses', {
@@ -1418,11 +1417,7 @@ async function wsNext(code) {
           questionId3:  slide['Question ID 3'] || '',
           response3
         })
-      })
-      .then(r => r.json().then(d => console.log('Response save result:', r.status, d)))
-      .catch(e => console.error('Response save error:', e));
-    } else {
-      console.log('SKIPPED — all responses empty');
+      }).catch(() => {});
     }
   }
 
