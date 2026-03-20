@@ -61,6 +61,8 @@ module.exports = async function handler(req, res) {
 
   const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
+  console.log('stripe handler method:', req.method, 'body:', JSON.stringify(req.body));
+
   // POST — create checkout session
   if (req.method === 'POST') {
     const b     = req.body || {};
