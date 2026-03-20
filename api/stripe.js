@@ -72,7 +72,7 @@ module.exports = async function handler(req, res) {
       ? process.env.STRIPE_PRICE_ID_PREMIUM
       : process.env.STRIPE_PRICE_ID_ANNUAL;
 
-    if (!priceId) return res.status(500).json({ error: 'Price ID not configured' });
+    if (!priceId) return res.status(500).json({ error: 'Price ID not configured', plan, annual: !!process.env.STRIPE_PRICE_ID_ANNUAL, premium: !!process.env.STRIPE_PRICE_ID_PREMIUM });
 
     try {
       const session = await stripe.checkout.sessions.create({
