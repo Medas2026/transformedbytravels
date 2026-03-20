@@ -1541,9 +1541,9 @@ function wsRenderSlide(code) {
     }
   }
 
-  // Learn More button (image slide with a video URL)
+  // Learn More button (any non-VIDEO slide with a Video URL)
   const learnWrap = document.getElementById('ws-learnmore-wrap-' + code);
-  if (learnWrap) learnWrap.style.display = (slideType !== 'VIDEO' && slide['Image URL'] && slide['Video URL']) ? 'block' : 'none';
+  if (learnWrap) learnWrap.style.display = (slideType !== 'VIDEO' && slide['Video URL']) ? 'block' : 'none';
 
   // Question
   const questionWrap = document.getElementById('ws-question-wrap-' + code);
