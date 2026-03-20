@@ -43,6 +43,33 @@ module.exports = function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  // GET — age-band lookup
+  if (req.method === 'GET' && req.query.action === 'age-band') {
+    const name   = ((req.query && req.query.name) || '').trim();
+    if (!name) return res.status(400).json({ error: 'Name required' });
+    const apiKey  = process.env.AIRTABLE_API_KEY;
+    const filter  = `?filterByFormula=${encodeURIComponent(`({Name}="${name}")`)}`;
+    const options = {
+      hostname: 'api.airtable.com',
+      path:     `/v0/${BASE_ID}/${encodeURIComponent('Age Bands')}${filter}`,
+      method:   'GET',
+      headers:  { 'Authorization': 'Bearer ' + apiKey }
+    };
+    const r2 = https.request(options, (resp) => {
+      let d = '';
+      resp.on('data', c => { d += c; });
+      resp.on('end', () => {
+        try {
+          const parsed = JSON.parse(d);
+          res.status(200).json({ record: (parsed.records || [])[0] || null });
+        } catch(e) { res.status(500).json({ error: 'Parse error' }); }
+      });
+    });
+    r2.on('error', e => res.status(500).json({ error: e.message }));
+    r2.end();
+    return;
+  }
+
   // GET — load profile by email
   if (req.method === 'GET') {
     const email = ((req.query && req.query.email) || '').toLowerCase().trim();

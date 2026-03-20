@@ -1600,7 +1600,7 @@ async function buildAgeBand() {
   if (!bandName) return;
 
   try {
-    const resp = await fetch('/api/age-band?name=' + encodeURIComponent(bandName));
+    const resp = await fetch('/api/airtable-traveler?action=age-band&name=' + encodeURIComponent(bandName));
     const data = await resp.json();
     if (!data.record) return;
 

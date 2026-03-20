@@ -580,22 +580,42 @@
 
       <!-- Store Page -->
       <div class="page" id="page-store">
-        <div class="store-card">
-          <div style="font-size:2.5rem;margin-bottom:12px;">✦</div>
-          <h2 style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.4rem;color:#fff;margin-bottom:8px;">Annual Subscription</h2>
-          <p style="color:var(--soft);font-size:0.9rem;margin-bottom:4px;">Everything you need to travel transformationally</p>
-          <div class="store-price">$29.95</div>
-          <div class="store-period">per year</div>
-          <div style="margin-bottom:28px;">
-            <div class="store-feature"><span class="store-feature-icon">🌱</span> Pre-Trip Workshop — prepare for your journey</div>
-            <div class="store-feature"><span class="store-feature-icon">🗺️</span> Trip Planning &amp; Journal — support for 2 trips</div>
-            <div class="store-feature"><span class="store-feature-icon">💡</span> Post-Trip Integration Workshop</div>
-            <div class="store-feature"><span class="store-feature-icon">🧬</span> 10 DNA Destination Queries</div>
-            <div class="store-feature"><span class="store-feature-icon">📊</span> Full Assessment Report access</div>
-          </div>
-          <button id="subscribe-btn" onclick="alert('Stripe checkout coming soon!')" style="width:100%;padding:16px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;">Subscribe Now — $29.95/year</button>
-          <p style="color:var(--muted);font-size:0.78rem;margin-top:14px;">Cancel anytime. Secure payment via Stripe.</p>
+        <div style="text-align:center;margin-bottom:28px;">
+          <h2 style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.5rem;color:#fff;margin-bottom:8px;">Choose Your Plan</h2>
+          <p style="color:var(--soft);font-size:0.92rem;">All plans include your Transformational Travel Profile assessment.</p>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:700px;margin:0 auto;">
+          <!-- Annual -->
+          <div class="store-card" style="max-width:none;">
+            <div style="font-size:2rem;margin-bottom:10px;">🌱</div>
+            <h3 style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;margin-bottom:6px;">Annual</h3>
+            <div class="store-price" style="font-size:2.2rem;">$29.95</div>
+            <div class="store-period">per year</div>
+            <div style="margin-bottom:24px;text-align:left;">
+              <div class="store-feature"><span class="store-feature-icon">🌱</span> Pre-Trip Workshop</div>
+              <div class="store-feature"><span class="store-feature-icon">🗺️</span> Trip Planning &amp; Journal — 1 trip</div>
+              <div class="store-feature"><span class="store-feature-icon">💡</span> Integration Workshop</div>
+              <div class="store-feature"><span class="store-feature-icon">🧬</span> 10 DNA Queries</div>
+            </div>
+            <button onclick="startCheckout('annual')" id="btn-annual" style="width:100%;padding:14px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.92rem;cursor:pointer;">Subscribe — $29.95/yr</button>
+          </div>
+          <!-- Premium -->
+          <div class="store-card" style="max-width:none;border-color:rgba(251,191,36,0.4);position:relative;">
+            <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#f59e0b;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.72rem;padding:4px 14px;border-radius:20px;white-space:nowrap;">MOST POPULAR</div>
+            <div style="font-size:2rem;margin-bottom:10px;">⭐</div>
+            <h3 style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;margin-bottom:6px;">Premium</h3>
+            <div class="store-price" style="font-size:2.2rem;">$49.95</div>
+            <div class="store-period">per year</div>
+            <div style="margin-bottom:24px;text-align:left;">
+              <div class="store-feature"><span class="store-feature-icon">🌱</span> Pre-Trip Workshop</div>
+              <div class="store-feature"><span class="store-feature-icon">🗺️</span> Unlimited Trips &amp; Journals</div>
+              <div class="store-feature"><span class="store-feature-icon">💡</span> Integration Workshop</div>
+              <div class="store-feature"><span class="store-feature-icon">🧬</span> 25 DNA Queries</div>
+            </div>
+            <button onclick="startCheckout('premium')" id="btn-premium" style="width:100%;padding:14px;background:#f59e0b;border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.92rem;cursor:pointer;">Subscribe — $49.95/yr</button>
+          </div>
+        </div>
+        <p style="text-align:center;color:var(--muted);font-size:0.78rem;margin-top:20px;">Cancel anytime. Secure payment via Stripe.</p>
       </div>
 
       <!-- Upsell Page (shown when non-subscriber clicks a locked item) -->
@@ -675,7 +695,8 @@ async function initAuth0() {
     } catch(e) { /* non-fatal — profile page will show empty and they can retake */ }
   }
 
-  loadProfile(user.email);
+  await loadProfile(user.email);
+  checkSubscriptionReturn();
 }
 
 async function loadProfile(email) {
@@ -781,6 +802,50 @@ async function saveProfile() {
     msg.style.color = '#f43f5e';
     msg.textContent = 'Error: ' + err.message;
   }
+}
+
+// ── Stripe Checkout ──────────────────────────────────────────────────────────
+async function startCheckout(plan) {
+  const btn = document.getElementById('btn-' + plan);
+  if (btn) { btn.textContent = 'Redirecting…'; btn.disabled = true; }
+  try {
+    const r = await fetch('/api/stripe', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ plan, email: userEmail })
+    });
+    const d = await r.json();
+    if (d.url) {
+      window.location.href = d.url;
+    } else {
+      alert('Error starting checkout: ' + (d.error || 'unknown'));
+      if (btn) { btn.textContent = plan === 'premium' ? 'Subscribe — $49.95/yr' : 'Subscribe — $29.95/yr'; btn.disabled = false; }
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+    if (btn) { btn.disabled = false; }
+  }
+}
+
+// Handle return from Stripe checkout
+async function checkSubscriptionReturn() {
+  const params    = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+  const subscribed = params.get('subscribed');
+  if (!subscribed || !sessionId) return;
+
+  // Clean URL
+  window.history.replaceState({}, '', '/portal.html');
+
+  try {
+    const r = await fetch('/api/stripe?action=verify&session_id=' + encodeURIComponent(sessionId));
+    const d = await r.json();
+    if (d.success) {
+      // Reload profile to pick up new subscription status
+      await loadProfile(userEmail);
+      alert('Welcome! Your subscription is now active.');
+    }
+  } catch(e) { /* non-blocking */ }
 }
 
 const GATED_PAGES = ['workshop', 'planning', 'start-trip', 'end-trip', 'integration'];
