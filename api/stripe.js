@@ -59,8 +59,6 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  console.log('stripe handler method:', req.method, 'body:', JSON.stringify(req.body));
-  console.log('STRIPE_SECRET_KEY present:', !!process.env.STRIPE_SECRET_KEY, 'starts:', (process.env.STRIPE_SECRET_KEY||'').slice(0,7));
 
   let stripe;
   try {
@@ -95,7 +93,6 @@ module.exports = async function handler(req, res) {
       });
       return res.status(200).json({ url: session.url });
     } catch(e) {
-      console.error('Stripe error:', e.message, e.type, e.code, e.statusCode);
       return res.status(500).json({ error: e.message, type: e.type, code: e.code });
     }
   }
