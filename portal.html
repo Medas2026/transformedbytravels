@@ -1534,7 +1534,7 @@ function wsRenderSlide(code) {
   // Dimensions
   const dimsWrap = document.getElementById('ws-dimensions-wrap-' + code);
   if (dimsWrap) {
-    if (slideType === 'DIMENSIONS') {
+    if (slideType === 'CLAUDE' && slideStyle === 'DIMENSIONS') {
       wsBuildDimBars('ws-dimensions-bars-' + code, p);
       dimsWrap.style.display = 'block';
     } else {
