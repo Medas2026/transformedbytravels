@@ -1452,6 +1452,7 @@ function wsRenderSlide(code) {
   const p          = portalProfile || {};
   const slideType  = (slide['Slide Type']  || '').toUpperCase();
   const slideStyle = (slide['Slide Style'] || slide['Style'] || '').toUpperCase();
+  console.log('wsRenderSlide:', code, 'index:', state.index, 'slideType:', JSON.stringify(slide['Slide Type']), '->', slideType);
 
   // Progress
   const pct = Math.round(((state.index + 1) / total) * 100);
