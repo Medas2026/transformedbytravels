@@ -77,6 +77,18 @@
     .coming-soon { text-align: center; padding: 60px 20px; color: var(--soft); }
     .coming-soon h3 { font-family: 'Montserrat', sans-serif; font-size: 1.1rem; color: #fff; margin-bottom: 10px; }
 
+    /* LOCK ICON */
+    .menu-lock { font-size: 0.7rem; margin-left: auto; opacity: 0.5; }
+    .menu-lock.hidden { display: none; }
+
+    /* STORE / SUBSCRIBE */
+    .store-card { background: linear-gradient(135deg, var(--s1) 0%, var(--s2) 100%); border: 1px solid rgba(45,212,191,0.35); border-radius: 16px; padding: 36px 28px; max-width: 480px; margin: 0 auto; text-align: center; }
+    .store-price { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 2.8rem; color: var(--teal); margin: 16px 0 4px; }
+    .store-period { font-family: 'Montserrat', sans-serif; font-size: 0.85rem; color: var(--muted); margin-bottom: 28px; }
+    .store-feature { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; color: var(--soft); font-size: 0.92rem; }
+    .store-feature:last-of-type { border-bottom: none; }
+    .store-feature-icon { color: var(--teal); font-size: 1.1rem; min-width: 24px; }
+
     /* TRIP PLANNING */
     .arch-banner { background: linear-gradient(135deg, var(--s1) 0%, var(--s2) 100%); border: 1px solid rgba(45,212,191,0.3); border-radius: 14px; padding: 24px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 20px; }
     .arch-banner-icon { width: 70px; height: 70px; object-fit: contain; flex-shrink: 0; }
@@ -141,20 +153,23 @@
       <div class="menu-item" onclick="showPage('assessment')" data-page="assessment">
         <span class="menu-icon">📋</span> Take Assessment
       </div>
-      <div class="menu-item" onclick="showPage('workshop')" data-page="workshop">
-        <span class="menu-icon">🌱</span> Pre-Trip Workshop
+      <div class="menu-item" onclick="showPageGated('workshop')" data-page="workshop">
+        <span class="menu-icon">🌱</span> Pre-Trip Workshop <span class="menu-lock" id="lock-workshop">🔒</span>
       </div>
-      <div class="menu-item" onclick="showPage('planning')" data-page="planning">
-        <span class="menu-icon">🗺️</span> Trip Planning
+      <div class="menu-item" onclick="showPageGated('planning')" data-page="planning">
+        <span class="menu-icon">🗺️</span> Trip Planning <span class="menu-lock" id="lock-planning">🔒</span>
       </div>
-      <div class="menu-item" onclick="showPage('start-trip')" data-page="start-trip">
-        <span class="menu-icon">✈️</span> Start a Trip
+      <div class="menu-item" onclick="showPageGated('start-trip')" data-page="start-trip">
+        <span class="menu-icon">✈️</span> Start a Trip <span class="menu-lock" id="lock-start-trip">🔒</span>
       </div>
-      <div class="menu-item" onclick="showPage('end-trip')" data-page="end-trip">
-        <span class="menu-icon">🏠</span> End a Trip
+      <div class="menu-item" onclick="showPageGated('end-trip')" data-page="end-trip">
+        <span class="menu-icon">🏠</span> End a Trip <span class="menu-lock" id="lock-end-trip">🔒</span>
       </div>
-      <div class="menu-item" onclick="showPage('integration')" data-page="integration">
-        <span class="menu-icon">💡</span> Integration Workshop
+      <div class="menu-item" onclick="showPageGated('integration')" data-page="integration">
+        <span class="menu-icon">💡</span> Integration Workshop <span class="menu-lock" id="lock-integration">🔒</span>
+      </div>
+      <div class="menu-item" onclick="showPage('store')" data-page="store">
+        <span class="menu-icon">🛒</span> Subscribe
       </div>
     </div>
 
@@ -561,6 +576,37 @@
         </div>
       </div>
 
+      <!-- Store Page -->
+      <div class="page" id="page-store">
+        <div class="store-card">
+          <div style="font-size:2.5rem;margin-bottom:12px;">✦</div>
+          <h2 style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.4rem;color:#fff;margin-bottom:8px;">Annual Subscription</h2>
+          <p style="color:var(--soft);font-size:0.9rem;margin-bottom:4px;">Everything you need to travel transformationally</p>
+          <div class="store-price">$29.95</div>
+          <div class="store-period">per year</div>
+          <div style="margin-bottom:28px;">
+            <div class="store-feature"><span class="store-feature-icon">🌱</span> Pre-Trip Workshop — prepare for your journey</div>
+            <div class="store-feature"><span class="store-feature-icon">🗺️</span> Trip Planning &amp; Journal — support for 2 trips</div>
+            <div class="store-feature"><span class="store-feature-icon">💡</span> Post-Trip Integration Workshop</div>
+            <div class="store-feature"><span class="store-feature-icon">🧬</span> 10 DNA Destination Queries</div>
+            <div class="store-feature"><span class="store-feature-icon">📊</span> Full Assessment Report access</div>
+          </div>
+          <button id="subscribe-btn" onclick="alert('Stripe checkout coming soon!')" style="width:100%;padding:16px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;">Subscribe Now — $29.95/year</button>
+          <p style="color:var(--muted);font-size:0.78rem;margin-top:14px;">Cancel anytime. Secure payment via Stripe.</p>
+        </div>
+      </div>
+
+      <!-- Upsell Page (shown when non-subscriber clicks a locked item) -->
+      <div class="page" id="page-upsell">
+        <div class="store-card">
+          <div style="font-size:2.5rem;margin-bottom:12px;">🔒</div>
+          <h2 style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.3rem;color:#fff;margin-bottom:12px;">Subscribers Only</h2>
+          <p style="color:var(--soft);font-size:0.92rem;line-height:1.7;margin-bottom:24px;">This feature is included in the Annual Subscription. Unlock workshops, trip planning, and more for just $29.95/year.</p>
+          <button onclick="showPage('store')" style="width:100%;padding:14px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;cursor:pointer;margin-bottom:12px;">See Subscription Details</button>
+          <button onclick="showPage('profile')" style="width:100%;padding:12px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;cursor:pointer;">← Back to Profile</button>
+        </div>
+      </div>
+
     </div><!-- /main -->
   </div><!-- /wrapper -->
 
@@ -641,6 +687,7 @@ async function loadProfile(email) {
     if (data.record) {
       const f = data.record.fields;
       portalProfile = f;
+      updateLockIcons();
       document.getElementById('pf-name').textContent       = f['Traveler Name'] || '—';
       document.getElementById('pf-email').textContent      = f['Traveler Email'] || '—';
       document.getElementById('pf-phone').textContent      = f['Phone Number'] || '—';
@@ -732,6 +779,31 @@ async function saveProfile() {
     msg.style.color = '#f43f5e';
     msg.textContent = 'Error: ' + err.message;
   }
+}
+
+const GATED_PAGES = ['workshop', 'planning', 'start-trip', 'end-trip', 'integration'];
+
+function isSubscribed() {
+  return !!(portalProfile && portalProfile['Subscription Active']);
+}
+
+function showPageGated(name) {
+  if (isSubscribed()) {
+    showPage(name);
+  } else {
+    showPage('upsell');
+  }
+}
+
+function updateLockIcons() {
+  const subscribed = isSubscribed();
+  GATED_PAGES.forEach(p => {
+    const el = document.getElementById('lock-' + p);
+    if (el) el.classList.toggle('hidden', subscribed);
+  });
+  // Hide store menu item if already subscribed
+  const storeItem = document.querySelector('[data-page="store"]');
+  if (storeItem) storeItem.style.display = subscribed ? 'none' : '';
 }
 
 function showPage(name) {
