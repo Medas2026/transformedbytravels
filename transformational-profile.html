@@ -1298,8 +1298,8 @@ function buildResults() {
   });
   scored.sort((a, b) => b.matchPct - a.matchPct);
 
-  const globalTop = scored.filter(d => !(d.continent === 'North America' && d.country === 'USA')).slice(0, 6);
-  const usTop     = scored.filter(d => d.continent === 'North America' && d.country === 'USA').slice(0, 5);
+  const globalTop = scored.filter(d => d.country !== 'United States').slice(0, 6);
+  const usTop     = scored.filter(d => d.country === 'United States').slice(0, 5);
 
   document.getElementById('dest-global').innerHTML = globalTop.map(d =>
     `<div style="margin-bottom:8px;">
