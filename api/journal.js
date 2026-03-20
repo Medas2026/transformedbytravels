@@ -161,42 +161,20 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  // GET ?action=send-daily — cron: send SMS to travelers whose journal hour matches now
+  // GET ?action=send-daily — cron: send SMS to all active travelers
   if (req.method === 'GET' && req.query.action === 'send-daily') {
-    const now       = new Date();
-    const utcHour   = now.getUTCHours();
-
-    // Find all active trips with Journal Time and Time Zone set
     const formula = encodeURIComponent(`{Status of Trip}="Active"`);
     airtableGet(TRIPS_TABLE, `?filterByFormula=${formula}`, (err, tripData) => {
       if (err) return res.status(500).json({ error: err.message });
 
-      const trips   = (tripData.records || []).filter(r => r.fields['Journal Time'] && r.fields['Time Zone']);
-      const toSend  = [];
-
-      trips.forEach(r => {
-        const f          = r.fields;
-        const tz         = f['Time Zone'];
-        const journalHr  = parseInt(f['Journal Time'], 10);
-        const email      = f['Traveler Email'];
-        const tripId     = r.id;
-        if (!email || isNaN(journalHr)) return;
-
-        // Get local hour in traveler's timezone
-        try {
-          const localHour = parseInt(new Intl.DateTimeFormat('en-US', {
-            timeZone: tz,
-            hour: 'numeric',
-            hour12: false
-          }).format(now), 10);
-
-          if (localHour === journalHr) {
-            toSend.push({ email, tripId, startDate: f['Start Date'] || '', tripName: f['Trip Name'] || f['Destination'] || 'your trip' });
-          }
-        } catch(e) {
-          // Invalid timezone — skip
-        }
-      });
+      const toSend = (tripData.records || [])
+        .filter(r => r.fields['Traveler Email'])
+        .map(r => ({
+          email:     r.fields['Traveler Email'],
+          tripId:    r.id,
+          startDate: r.fields['Start Date'] || '',
+          tripName:  r.fields['Trip Name'] || r.fields['Destination'] || 'your trip'
+        }));
 
       if (!toSend.length) return res.status(200).json({ success: true, sent: 0 });
 

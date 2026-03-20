@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/journal?action=send-daily",
-      "schedule": "0 * * * *"
+      "schedule": "0 2 * * *"
     }
   ]
 }
