@@ -43,6 +43,48 @@ module.exports = function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  // GET — admin list of all travelers
+  if (req.method === 'GET' && req.query.action === 'admin-list') {
+    const email = ((req.query && req.query.email) || '').toLowerCase().trim();
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.toLowerCase().trim()).filter(Boolean);
+    if (!email || !adminEmails.includes(email)) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+    const sort = '&sort[0][field]=Assessment%20Date&sort[0][direction]=desc';
+    airtableRequest('GET', '?' + sort, null, (err, data) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(200).json({ records: data.records || [] });
+    });
+    return;
+  }
+
+  // GET — travel-style lookup
+  if (req.method === 'GET' && req.query.action === 'travel-style') {
+    const name   = ((req.query && req.query.name) || '').trim();
+    if (!name) return res.status(400).json({ error: 'Name required' });
+    const apiKey  = process.env.AIRTABLE_API_KEY;
+    const filter  = `?filterByFormula=${encodeURIComponent(`({Name}="${name}")`)}`;
+    const options = {
+      hostname: 'api.airtable.com',
+      path:     `/v0/${BASE_ID}/${encodeURIComponent('Travel Style Codes')}${filter}`,
+      method:   'GET',
+      headers:  { 'Authorization': 'Bearer ' + apiKey }
+    };
+    const r2 = https.request(options, (resp) => {
+      let d = '';
+      resp.on('data', c => { d += c; });
+      resp.on('end', () => {
+        try {
+          const parsed = JSON.parse(d);
+          res.status(200).json({ record: (parsed.records || [])[0] || null });
+        } catch(e) { res.status(500).json({ error: 'Parse error' }); }
+      });
+    });
+    r2.on('error', e => res.status(500).json({ error: e.message }));
+    r2.end();
+    return;
+  }
+
   // GET — age-band lookup
   if (req.method === 'GET' && req.query.action === 'age-band') {
     const name   = ((req.query && req.query.name) || '').trim();
@@ -136,6 +178,7 @@ function buildFields(b, isNew) {
     if (b.phone       !== undefined) fields['Phone Number']  = b.phone;
     if (b.address     !== undefined) fields['Address']       = b.address;
     if (b.homeAirport !== undefined) fields['Home Airport']  = b.homeAirport;
+    if (b.travelStyle !== undefined) fields['Travel Style']  = b.travelStyle;
     return fields;
   }
 
@@ -146,6 +189,7 @@ function buildFields(b, isNew) {
     'Archetype':           b.archetype || '',
     'Passions':            b.passions || '',
     'Life Stage':          b.lifeStage || '',
+    'Travel Style':        b.travelStyle || '',
     'Hopes to Experience': b.hopes || '',
     'Assessment Date':     new Date().toISOString().split('T')[0]
   };
@@ -159,12 +203,17 @@ function buildFields(b, isNew) {
     fields['DS-2 Adventure']  = Number(b.scores.Adventure  || 0);
     fields['DS-3 Reflection'] = Number(b.scores.Reflection || 0);
     fields['DS-4 Connection'] = Number(b.scores.Connection || 0);
-    fields['DS-5 Intention']  = Number(b.scores.Intention  || 0);
+    fields['DS-5 Intention']  = Number(b.scores['Travel Purpose'] || b.scores.Intention || 0);
+  }
+
+  if (b.marketingConsent !== undefined) {
+    fields['Marketing Consent'] = !!b.marketingConsent;
+    if (b.marketingConsent) fields['Marketing Consent Date'] = new Date().toISOString().split('T')[0];
   }
 
   if (isNew) {
     fields['DNA Queries To Date']  = 0;
-    fields['DNA Queries Remaining'] = 10;
+    fields['DNA Queries Remaining'] = 5;
   }
 
   return fields;

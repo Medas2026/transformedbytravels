@@ -433,6 +433,13 @@
         <p id="age-band-desc" style="color:var(--soft);font-size:0.95rem;line-height:1.75;"></p>
       </div>
 
+      <!-- Travel Style -->
+      <div id="travel-style-section" style="display:none;" class="result-section">
+        <div class="result-section-title" id="travel-style-name"></div>
+        <p id="travel-style-approach" style="color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:18px;"></p>
+        <p id="travel-style-desc" style="color:var(--soft);font-size:0.95rem;line-height:1.75;"></p>
+      </div>
+
       <!-- HEADER 2 -->
       <hr class="section-divider">
       <div class="section-header">
@@ -1360,6 +1367,7 @@ function buildResults() {
 
   // Age Band
   buildAgeBand();
+  buildTravelStyle();
 
   // Passion destinations
   buildPassionDests();
@@ -1726,6 +1734,24 @@ async function buildAgeBand() {
       document.getElementById('age-band-photo').style.display = 'none';
     }
     document.getElementById('age-band-section').style.display = 'block';
+  } catch(e) { /* non-fatal */ }
+}
+
+async function buildTravelStyle() {
+  const style = addAnswers['A6'];
+  if (!style) return;
+  try {
+    const resp = await fetch('/api/airtable-traveler?action=travel-style&name=' + encodeURIComponent(style));
+    const data = await resp.json();
+    if (!data.record) return;
+    const f        = data.record.fields;
+    const name     = f['Name']        || style;
+    const approach = f['Approach']    || '';
+    const desc     = f['Description'] || '';
+    document.getElementById('travel-style-name').textContent     = name;
+    document.getElementById('travel-style-approach').textContent = approach;
+    document.getElementById('travel-style-desc').textContent     = desc;
+    document.getElementById('travel-style-section').style.display = 'block';
   } catch(e) { /* non-fatal */ }
 }
 
