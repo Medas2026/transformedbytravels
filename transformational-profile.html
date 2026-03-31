@@ -1709,13 +1709,14 @@ async function buildAgeBand() {
     const data = await resp.json();
     if (!data.record) return;
 
-    const f        = data.record.fields;
-    const name     = f['Name']        || bandName;
-    const approach = f['Approach']    || '';
-    const desc     = f['Description'] || '';
-    const imgSrc   = AGE_BAND_IMAGES[name] || '';
+    const f           = data.record.fields;
+    const name        = f['Name']         || bandName;
+    const travelStyle = f['Travel Style'] || '';
+    const approach    = f['Approach']     || '';
+    const desc        = f['Description']  || '';
+    const imgSrc      = AGE_BAND_IMAGES[name] || '';
 
-    document.getElementById('age-band-name').textContent     = name;
+    document.getElementById('age-band-name').textContent = travelStyle ? `${name} (${travelStyle})` : name;
     document.getElementById('age-band-approach').textContent = approach;
     document.getElementById('age-band-desc').textContent     = desc;
     if (imgSrc) {
