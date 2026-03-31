@@ -1115,6 +1115,7 @@ async function loadProfile(email) {
       portalProfile = f;
       updateLockIcons();
       document.getElementById('pf-name').textContent       = f['Traveler Name'] || '—';
+      if (f['Traveler Name']) document.getElementById('nav-user-email').textContent = f['Traveler Name'];
       document.getElementById('pf-email').textContent      = f['Traveler Email'] || '—';
       document.getElementById('pf-phone').textContent      = f['Phone Number'] || '—';
       document.getElementById('pf-address').textContent    = f['Address'] || '—';
