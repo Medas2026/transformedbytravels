@@ -27,10 +27,7 @@
     body { font-family: 'Open Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
     /* NAV */
-    .nav { background: rgba(13,21,32,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--bd); padding: 0 28px; height: 320px; display: flex; align-items: flex-start; justify-content: space-between; position: sticky; top: 0; z-index: 100; transition: height 0.3s; }
-    .nav.compact { height: 56px; align-items: center; }
-    .nav.compact video { height: 40px; }
-    .nav.compact a { height: 40px !important; margin-top: 0 !important; }
+    .nav { background: rgba(13,21,32,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--bd); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
     .nav-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: #fff; text-decoration: none; }
     .nav-logo span { color: var(--teal); }
     .nav-right { display: flex; align-items: center; gap: 16px; }
@@ -205,11 +202,7 @@
 <body>
 
   <nav class="nav">
-    <a href="https://transformedbytravels.com" style="position:relative;display:block;height:285px;margin-top:16px;">
-      <video autoplay loop muted playsinline style="height:285px;display:block;">
-        <source src="images/Rotating%20Logo.mp4" type="video/mp4">
-      </video>
-    </a>
+    <a href="https://transformedbytravels.com" class="nav-logo">Transformed <span>by Travels</span></a>
     <div class="nav-right">
       <span class="nav-user" id="nav-user-email"></span>
       <button class="btn-logout" onclick="logout()">Log Out</button>
@@ -1732,7 +1725,6 @@ function showPage(name) {
   const menuItem = document.querySelector(`[data-page="${name}"]`);
   if (menuItem) menuItem.classList.add('active');
   const isWorkshop = name === 'workshop' || name === 'integration';
-  document.querySelector('.nav').classList.toggle('compact', isWorkshop);
   document.querySelector('.wrapper').classList.toggle('workshop-mode', isWorkshop);
   // Hide workshop nav bars unless entering their page
   ['PRE_TRIP','INTEGRATION'].forEach(c => {
