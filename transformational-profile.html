@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Transformational Travel Profile | Transformed by Travels</title>
+  <title>Travel for Growth Assessment | Transformed by Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -31,7 +31,7 @@
     body { font-family: 'Open Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
     /* NAV */
-    .nav { background: rgba(13,21,32,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--bd); padding: 0 28px; height: 320px; display: flex; align-items: flex-start; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav { background: rgba(13,21,32,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--bd); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
     .logo-text { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: #fff; text-decoration: none; }
     .logo-accent { color: var(--teal); }
     .nav-back { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.8rem; color: var(--teal); text-decoration: none; }
@@ -79,8 +79,8 @@
     /* PROGRESS */
     .progress-wrap { margin-bottom: 32px; }
     .progress-label { display: flex; justify-content: space-between; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
-    .progress-bar { height: 4px; background: var(--s2); border-radius: 2px; overflow: hidden; }
-    .progress-fill { height: 100%; background: var(--teal); border-radius: 2px; transition: width 0.3s ease; }
+    .progress-bar { height: 8px; background: var(--s2); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--teal); border-radius: 4px; transition: width 0.3s ease; }
 
     /* QUESTION */
     .q-stem-box { margin-bottom: 28px; }
@@ -89,6 +89,7 @@
     .options-grid { display: flex; flex-direction: column; gap: 12px; }
     .opt-btn { width: 100%; text-align: left; background: var(--s1); border: 1.5px solid var(--bd); border-radius: 10px; padding: 16px 20px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 0.97rem; line-height: 1.5; cursor: pointer; transition: all 0.18s; }
     .opt-btn:hover { border-color: var(--teal); background: var(--tdim); color: #fff; }
+    .no-hover .opt-btn:hover { border-color: var(--bd); background: var(--s1); color: var(--text); }
     .opt-btn.selected { border-color: var(--teal); background: var(--tdim); color: #fff; }
     .opt-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 5px; }
 
@@ -242,11 +243,7 @@
 <body>
 
   <nav class="nav">
-    <a href="https://transformedbytravels.com" style="position:relative;display:block;height:285px;margin-top:16px;">
-      <video autoplay loop muted playsinline style="height:285px;display:block;">
-        <source src="images/Rotating%20Logo.mp4" type="video/mp4">
-      </video>
-    </a>
+    <a href="https://transformedbytravels.com" class="nav-logo">Transformed <span>by Travels</span></a>
     <span style="font-size:0.7rem;color:var(--muted);margin-left:8px;">v1.3</span>
     <a href="https://transformedbytravels.com" class="nav-back">← Back to Home</a>
   </nav>
@@ -258,7 +255,7 @@
     ══════════════════════════════════════════ -->
     <div class="screen active" id="screen-welcome">
       <div class="welcome-badge">Free Assessment</div>
-      <h1 class="welcome-title">Discover Your <span>Transformational Travel Profile</span></h1>
+      <h1 class="welcome-title">Discover Your <span>Travel for Growth Assessment</span></h1>
       <p class="welcome-intro">
         Travel can do much more than take us to beautiful places.<br><br>
         This short assessment reveals how you naturally approach travel and the types of journeys most likely to create meaningful transformation for you.
@@ -268,7 +265,7 @@
         <p><strong style="color:#fff;">What You'll Discover</strong></p>
         <p>After completing the assessment, you will receive:</p>
         <ul class="discover-list" style="margin-top:10px;">
-          <li>Your Transformational Travel Profile across five dimensions</li>
+          <li>Your Travel for Growth Assessment across five dimensions</li>
           <li>Your Traveler Archetype</li>
           <li>The experiences most likely to be meaningful for you</li>
           <li>Insights into how travel can shape your perspective</li>
@@ -300,9 +297,17 @@
           <label>Email *</label>
           <input type="email" id="inp-email" placeholder="your@email.com" required />
         </div>
+        <div style="margin-top:8px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
+          <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;">
+            <input type="checkbox" id="inp-marketing-consent" style="all:revert;margin-top:3px;accent-color:#2dd4bf;width:17px;height:17px;flex-shrink:0;cursor:pointer;">
+            <span style="font-family:'Open Sans',sans-serif;font-size:0.88rem;font-weight:normal;color:var(--soft);line-height:1.6;text-transform:none;letter-spacing:normal;">
+              I agree to receive marketing emails from Transformed by Travels. You can withdraw consent at any time by clicking Unsubscribe in any email.
+            </span>
+          </label>
+        </div>
       </div>
 
-      <button class="btn btn-primary btn-lg" onclick="startAssessment()">Begin Assessment →</button>
+      <button class="btn btn-primary btn-lg" id="begin-assessment-btn" onclick="startAssessment()">Begin Assessment →</button>
       <p id="welcome-error" style="color:#f43f5e;font-size:0.85rem;margin-top:10px;display:none;">Please fill in all fields above.</p>
     </div>
 
@@ -333,8 +338,9 @@
         <div class="progress-bar"><div class="progress-fill" id="q-progress" style="width:0%"></div></div>
       </div>
 
+      <div style="font-family:'Open Sans',sans-serif;font-size:0.92rem;color:#94a3b8;text-align:left;margin-bottom:14px;">For each statement pair, choose the option that best fits your travel style.</div>
       <div class="q-stem-box">
-        <div class="q-dim-badge" id="q-dim">Curiosity</div>
+        <div class="q-dim-badge" id="q-dim" style="display:none;"></div>
         <div class="q-stem" id="q-stem"></div>
       </div>
 
@@ -376,13 +382,13 @@
         <a href="/portal.html" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:#2dd4bf;text-decoration:none;">← Back to My Portal</a>
       </div>
       <div class="results-header">
-        <h1 id="results-name-title">Your Transformational Travel Profile</h1>
+        <h1 id="results-name-title">Your Travel for Growth Assessment</h1>
         <p>Here's what your answers reveal about how you travel and grow.</p>
       </div>
 
       <!-- HEADER 1 -->
       <div class="section-header">
-        <h2>Let's Start out With Your <span>Transformational Travel Profile</span></h2>
+        <h2>Let's Start out With Your <span>Travel for Growth Assessment</span></h2>
         <p>It's always best to know where your journey begins from</p>
       </div>
 
@@ -412,6 +418,13 @@
         <div id="dim-bars"></div>
       </div>
 
+      <!-- Item Highlights -->
+      <div id="item-highlights-section" class="result-section" style="display:none;">
+        <div class="result-section-title">Your Personal Highlights</div>
+        <p class="result-section-sub">Key insights based on your specific responses.</p>
+        <div id="item-highlights-list"></div>
+      </div>
+
       <!-- Age Band -->
       <div id="age-band-section" style="display:none;" class="result-section">
         <div class="result-section-title" id="age-band-name"></div>
@@ -431,6 +444,17 @@
         <div class="result-section-title">Your Top Travel Activities</div>
         <p class="result-section-sub">Activities most aligned with your full dimension profile, with your passions featured first.</p>
         <div class="activities-grid" id="matrix-activities-list"></div>
+
+        <!-- Find Experiences Panel -->
+        <div style="margin-top:24px;padding:20px;background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%);border:1px solid rgba(45,212,191,0.25);border-radius:12px;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Find Experiences for a Destination</div>
+          <p style="font-size:0.85rem;color:var(--soft);margin-bottom:14px;line-height:1.6;">Enter a destination and we'll suggest specific operators and experiences tailored to your activity profile.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <input id="exp-destination-input" type="text" placeholder="e.g. Kyoto, Japan" style="flex:1;min-width:180px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:10px 14px;outline:none;" />
+            <button onclick="findExperiences()" id="exp-btn" style="padding:10px 20px;background:var(--teal);border:none;border-radius:8px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.85rem;cursor:pointer;white-space:nowrap;">Find Experiences →</button>
+          </div>
+          <div id="exp-results" style="display:none;margin-top:20px;"></div>
+        </div>
       </div>
 
       <!-- HEADER 3 -->
@@ -483,7 +507,6 @@
       <div class="result-section dest-explorer">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
           <div class="result-section-title" style="margin-bottom:0;">Destination Explorer</div>
-          <div id="guide-quota-badge" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;padding:4px 12px;border-radius:20px;background:var(--tdim);border:1px solid rgba(45,212,191,0.3);color:var(--teal);">10 guides remaining</div>
         </div>
         <p class="result-section-sub">Select a continent, country, and destination to see how well it matches your travel profile.</p>
 
@@ -501,18 +524,10 @@
             <div class="dest-legend-item"><div class="dest-legend-dot" style="background:#f59e0b;opacity:0.7;"></div> Destination score</div>
           </div>
           <div style="margin-top:22px;text-align:center;">
-            <button class="btn btn-primary" id="dest-guide-btn" onclick="loadDestGuide()">✦ Get My Personalized Guide</button>
+            <a href="/portal.html" class="btn btn-outline btn-lg" style="font-size:0.85rem;">✦ Generate Destination DNA in My Portal →</a>
           </div>
         </div>
 
-        <!-- AI Guide Panel -->
-        <div id="dest-guide-panel" style="display:none;margin-top:20px;background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%);border:1px solid rgba(45,212,191,0.35);border-radius:12px;padding:28px 24px;">
-          <div id="dest-guide-loading" style="text-align:center;color:var(--soft);font-size:0.95rem;padding:20px 0;">
-            <div style="font-size:1.5rem;margin-bottom:10px;">✦</div>
-            Crafting your personalized guide…
-          </div>
-          <div id="dest-guide-content" style="display:none;color:var(--soft);font-size:0.93rem;line-height:1.8;"></div>
-        </div>
       </div>
 
       <!-- Feedback -->
@@ -527,16 +542,13 @@
         <p id="feedback-success" style="display:none;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;margin-top:10px;">Thank you for your feedback!</p>
       </div>
 
+
       <!-- CTAs -->
       <div class="cta-section">
-        <h3>Ready to Plan Your Transformational Journey?</h3>
-        <p>Let's create an itinerary designed around your unique travel profile.</p>
         <div class="cta-btns">
-          <button class="btn btn-primary btn-lg" id="create-account-btn" onclick="showCreateAccount()">Create My Account &amp; Save Profile</button>
-          <a href="https://transformedbytravels.as.me/schedule/50d5eb51/appointment/89344787/calendar/13577706" target="_blank" class="btn btn-outline btn-lg">Book a Discovery Call</a>
-          <button class="btn btn-outline btn-lg" onclick="downloadPDF()">Download PDF Report</button>
-          <a href="https://www.transformedbytravels.com" class="btn btn-outline btn-lg">Back to Website</a>
-          <button class="btn btn-outline btn-lg" onclick="retake()">Retake Assessment</button>
+          <button class="btn btn-outline btn-lg" onclick="downloadPDF()">⬇ Download PDF</button>
+          <button class="btn btn-primary btn-lg" id="create-account-btn" onclick="showCreateAccount()">Sign Up for Subscription</button>
+          <a href="/portal.html" class="btn btn-outline btn-lg">← Back to Profile</a>
         </div>
 
         <!-- Create Account Modal -->
@@ -591,43 +603,7 @@ function getDisplayArchetype(archName) {
 // DATA
 // ═══════════════════════════════════════════════
 
-const QUESTIONS = [
-  {id:1,  dim:"Curiosity",  stem:"When traveling to a new place,",         a:"I enjoy learning about the history and culture.",                             b:"I mostly relax and enjoy the experiences planned for the trip."},
-  {id:2,  dim:"Curiosity",  stem:"When traveling to a new place, I like to:", a:"Understand how local people live.",                                         b:"Focus mainly on scenery and attractions."},
-  {id:3,  dim:"Curiosity",  stem:"When I travel, I enjoy:",                  a:"Asking questions and exploring beyond the obvious.",                         b:"Observing and experiencing places without digging too deeply."},
-  {id:4,  dim:"Curiosity",  stem:"I am drawn to destinations that",         a:"Teach me something new about the world.",                                    b:"Inspire me through beauty or scenery."},
-  {id:5,  dim:"Curiosity",  stem:"My favorite parts of travel are,",        a:"Understanding the culture and everyday life of a place.",                    b:"Seeing the most famous landmarks and attractions."},
-  {id:6,  dim:"Curiosity",  stem:"When traveling, I enjoy",                 a:"Discovering the stories behind the places I visit.",                         b:"Experiencing the atmosphere of the places I visit."},
-  {id:7,  dim:"Curiosity",  stem:"When traveling, I seek out",              a:"Places where I can learn about the history or culture of a destination.",    b:"The most famous views and landmarks of the destination."},
-  {id:8,  dim:"Adventure",  stem:"I enjoy travel experiences",              a:"That challenge me physically or mentally.",                                  b:"That are comfortable and calming."},
-  {id:9,  dim:"Adventure",  stem:"I prefer destinations that are:",         a:"Remote, hard to reach, or less-visited.",                                    b:"Easy to access."},
-  {id:10, dim:"Adventure",  stem:"Some of my best travel memories:",        a:"Involve doing something that pushed my limits.",                             b:"Involve relaxing and enjoying the surroundings."},
-  {id:11, dim:"Adventure",  stem:"When I travel, I prefer to:",             a:"Explore unfamiliar places and experiences.",                                 b:"Return to places I already know and enjoy."},
-  {id:12, dim:"Adventure",  stem:"I prefer travel that feels",              a:"Adventurous or unpredictable.",                                              b:"Smooth and well-planned."},
-  {id:13, dim:"Adventure",  stem:"When something goes wrong on travel,",    a:"I see it as part of the adventure.",                                        b:"I feel frustrated when things don't go according to plan."},
-  {id:14, dim:"Adventure",  stem:"When I travel, I enjoy:",                 a:"Activities that stretch my abilities or push my limits.",                    b:"Activities that are relaxing and easygoing."},
-  {id:15, dim:"Reflection", stem:"After a trip is over,",                   a:"I often reflect on my travel experiences for a long time.",                  b:"I move on quickly to the next experience."},
-  {id:16, dim:"Reflection", stem:"Travel tends to",                         a:"Change how I see the world.",                                               b:"Provide an enjoyable break from daily life."},
-  {id:17, dim:"Reflection", stem:"During a trip,",                          a:"I sometimes pause to absorb and think about what I'm experiencing.",         b:"I prefer to keep moving and see as much as possible."},
-  {id:18, dim:"Reflection", stem:"When I return home from a trip, I talk about", a:"What I learned and what it meant to me.",                              b:"The places I visited and activities I did."},
-  {id:19, dim:"Reflection", stem:"Travel experiences",                      a:"Often influence how I think about my life.",                                 b:"Deliver fun memories but rarely affect my life afterward."},
-  {id:20, dim:"Reflection", stem:"When I encounter new lifestyles while traveling,", a:"I sometimes reconsider my own assumptions.",                        b:"I mostly observe them without questioning my own views."},
-  {id:21, dim:"Reflection", stem:"Travel experiences",                      a:"Often lead me to look at my everyday life differently.",                     b:"Leave me refreshed and ready to return to my routine."},
-  {id:22, dim:"Connection", stem:"When I travel, I am most rewarded by:",   a:"Meeting local people and learning about their lives.",                       b:"Seeing and photographing famous places."},
-  {id:23, dim:"Connection", stem:"I enjoy travel experiences that",         a:"Let me actively participate in local traditions or daily activities.",        b:"Allow me to observe a place without getting too involved with locals or their traditions."},
-  {id:24, dim:"Connection", stem:"When I travel, I prefer to:",             a:"Connect with people from different backgrounds.",                            b:"Experience a place mainly through its landscapes."},
-  {id:25, dim:"Connection", stem:"I enjoy travel experiences",              a:"That feel authentic and personal.",                                          b:"That are designed and organized for visitors to enjoy."},
-  {id:26, dim:"Connection", stem:"When I travel, I value,",                 a:"Meaningful interactions with people.",                                       b:"Efficiency and seeing many places."},
-  {id:27, dim:"Connection", stem:"When I travel,",                          a:"I enjoy opportunities to share meals or conversations with local people.",    b:"I usually keep my interactions brief and focused on my list of sites to see."},
-  {id:28, dim:"Connection", stem:"I feel most engaged when traveling",      a:"When I experience the daily life of a place.",                               b:"When visiting the major attractions of a place."},
-  {id:29, dim:"Intention",  stem:"Before a trip,",                          a:"I think about what I hope to gain from the experience.",                     b:"I mainly focus on itineraries with logistics and activity plans."},
-  {id:30, dim:"Intention",  stem:"Travel is a way for me",                  a:"To grow as a person.",                                                      b:"To relax and have fun."},
-  {id:31, dim:"Intention",  stem:"I usually choose a trip",                 a:"That aligns with my interests or values.",                                   b:"That looks exciting or appealing."},
-  {id:32, dim:"Intention",  stem:"I want my travel experiences to",         a:"Connect to something I care deeply about.",                                  b:"Visit places that are popular or widely renown."},
-  {id:33, dim:"Intention",  stem:"When I travel,",                          a:"I seek insight or perspective on life.",                                     b:"I seek enjoyment and escape."},
-  {id:34, dim:"Intention",  stem:"When planning for a trip, I focus on:",   a:"Experiences that align with my interests or personal goals.",                 b:"Activities that look fun and enjoyable."},
-  {id:35, dim:"Intention",  stem:"When I travel, I tend to think about,",   a:"How a trip might influence my perspective on life.",                         b:"Whether a trip will be enjoyable and relaxing."}
-];
+let QUESTIONS = []; // loaded from Airtable TFG Items
 
 const ADDITIONAL = [
   {
@@ -646,6 +622,16 @@ const ADDITIONAL = [
       "Family with Older Children or Teenagers (approximately 40–54)",
       "Empty Nester (children have grown up and left home; typically 50–64)",
       "Retired (typically 65+)"
+    ]
+  },
+  {
+    id:"A6", type:"single",
+    stem:"How do you typically travel?",
+    opts:[
+      "Solo",
+      "Couple",
+      "Family with Young Children",
+      "Family with Teen Children"
     ]
   },
   {
@@ -685,42 +671,42 @@ const ADDITIONAL = [
 const DIM_META = {
   Curiosity: {
     force: "Exploration",
-    aLabel: "Learning",
-    bLabel: "Experiential Enjoyment",
-    aDesc: "You are motivated to understand the places you visit. Learning about history, culture, and how people live adds meaning to your travel experiences.",
-    bDesc: "You enjoy the atmosphere and experiences of a destination without needing to analyze or deeply study it. Travel is about enjoying the place and the moment."
+    aLabel: "Exploration",
+    bLabel: "Comfort",
+    aDesc: "You are energized by understanding the places you visit. Learning about history, culture, and how local people live adds depth and meaning to your travel experiences.",
+    bDesc: "You enjoy the atmosphere and experiences of a destination without needing to analyze it deeply. For you, travel is about being present, enjoying the setting, and taking in the moment."
   },
   Adventure: {
     force: "Exploration",
     aLabel: "Challenge",
-    bLabel: "Comfort",
-    aDesc: "You are energized by experiences that push you beyond your comfort zone. Unfamiliar places, uncertainty, and physical or mental challenges are often highlights of your trips.",
-    bDesc: "You prefer travel that feels smooth, relaxing, and predictable. Comfort and enjoyment are important parts of a satisfying trip."
+    bLabel: "Easy Going",
+    aDesc: "You are energized by experiences that stretch you beyond your comfort zone. Unfamiliar places, uncertainty, and meaningful challenges often become the highlights of your trips.",
+    bDesc: "You prefer travel that feels smooth, relaxing, and predictable. Comfort, ease, and enjoyment are important ingredients in a satisfying journey."
   },
   Reflection: {
     force: "Engagement",
-    aLabel: "Meaning",
-    bLabel: "Immediate",
-    aDesc: "Travel often leads you to reflect on what you experience and how it relates to your own life. You enjoy thinking about what a journey means beyond the moment.",
-    bDesc: "You enjoy experiences as they happen without feeling a strong need to analyze or interpret them afterward. Travel is something to enjoy and remember fondly."
+    aLabel: "Integration",
+    bLabel: "Enjoyment",
+    aDesc: "Travel naturally leads you to reflect on what you experience and how it connects to your own life. You enjoy considering what a journey means beyond the moment itself.",
+    bDesc: "You enjoy experiences as they happen without feeling a strong need to interpret them afterward. For you, travel is best appreciated through the experience itself and the memories it leaves behind."
   },
   Connection: {
     force: "Integration",
-    aLabel: "Immersion",
+    aLabel: "Connection",
     bLabel: "Observation",
-    aDesc: "You enjoy connecting with people, communities, and the everyday life of the places you visit. Meaningful interactions are often the most memorable parts of travel.",
-    bDesc: "You enjoy experiencing a destination through its landscapes, landmarks, and highlights. Seeing the places themselves is often the most rewarding part of travel."
+    aDesc: "You are drawn to meaningful connection with people, communities, nature, and the everyday rhythm of a place. These interactions often become the most memorable parts of your travel.",
+    bDesc: "You enjoy experiencing destinations through landscapes, landmarks, and major highlights. Seeing the places themselves is often the most rewarding part of the journey."
   },
-  Intention: {
+  'Travel Purpose': {
     force: "Integration",
     aLabel: "Purpose",
-    bLabel: "Recreation",
-    aDesc: "You often think about what you hope to gain from a journey. Travel can be a way to grow, learn, or gain new perspective.",
-    bDesc: "You approach travel primarily as a way to relax, enjoy yourself, and take a break from daily life."
+    bLabel: "Renewal",
+    aDesc: "You often travel with a sense of intention. A journey can be a way to grow, learn, and gain new perspective on your life and the world.",
+    bDesc: "You approach travel primarily as a way to relax, recharge, and enjoy life."
   }
 };
 
-const DIMS = ["Curiosity","Adventure","Reflection","Connection","Intention"];
+const DIMS = ["Curiosity","Adventure","Reflection","Connection","Travel Purpose"];
 
 const ACTIVITIES = [
   {name:"Cultural Immersion",        icon:"🏛️",  C:1,Adv:0,Con:1,Ref:0,Int:0},
@@ -756,7 +742,7 @@ const ACTIVITIES = [
   {name:"Mountain Biking",           icon:"🚵",  C:1,Adv:1,Con:0,Ref:0,Int:0}
 ];
 
-const DIM_ACT_KEY = {Curiosity:"C", Adventure:"Adv", Reflection:"Ref", Connection:"Con", Intention:"Int"};
+const DIM_ACT_KEY = {Curiosity:"C", Adventure:"Adv", Reflection:"Ref", Connection:"Con", 'Travel Purpose':"Int"};
 
 // Travel Activity Matrix (Curiosity, Immersion=Connection, Challenge=Adventure, Connection=Intention, Reflection)
 const TRAVEL_MATRIX = [
@@ -954,7 +940,7 @@ function getArchetype(raw) {
   const Adv = raw.Adventure;
   const Ref = raw.Reflection;
   const Con = raw.Connection;
-  const Int = raw.Intention;
+  const Int = raw['Travel Purpose'];
 
   // Transformational Traveler: all dimensions >= 5
   if (C >= 5 && Adv >= 5 && Ref >= 5 && Con >= 5 && Int >= 5) return ARCHETYPES.TT;
@@ -983,6 +969,8 @@ function getArchetype(raw) {
 // ═══════════════════════════════════════════════
 // ASSESSMENT FLOW
 // ═══════════════════════════════════════════════
+let _marketingConsent = false;
+
 function startAssessment() {
   const first = document.getElementById('inp-first').value.trim();
   const last  = document.getElementById('inp-last').value.trim();
@@ -994,6 +982,7 @@ function startAssessment() {
     return;
   }
   err.style.display = 'none';
+  _marketingConsent = document.getElementById('inp-marketing-consent').checked;
   userName  = first + " " + last;
   userEmail = email;
 
@@ -1014,7 +1003,30 @@ function startAssessment() {
     });
 }
 
-function proceedToAssessment() {
+async function proceedToAssessment() {
+  // Load items from Airtable if not yet loaded
+  if (!QUESTIONS.length) {
+    const btn = document.getElementById('begin-assessment-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+    try {
+      const resp = await fetch('/api/tfg-items');
+      const data = await resp.json();
+      if (data.items && data.items.length) {
+        QUESTIONS = data.items;
+      } else {
+        console.error('No items returned from TFG Items:', data);
+        if (btn) { btn.disabled = false; btn.textContent = 'Begin Assessment →'; }
+        alert('Could not load assessment questions. Please try again.');
+        return;
+      }
+    } catch(e) {
+      console.error('Failed to load TFG Items:', e);
+      if (btn) { btn.disabled = false; btn.textContent = 'Begin Assessment →'; }
+      alert('Could not load assessment questions. Please try again.');
+      return;
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Begin Assessment →'; }
+  }
   shuffledQ = shuffle(QUESTIONS);
   currentQIdx = 0;
   answers = {};
@@ -1050,10 +1062,14 @@ function renderQuestion() {
   const grid = document.getElementById('options-grid');
   grid.innerHTML = opts.map((o,i) => `
     <button class="opt-btn${prevScore !== undefined && o.score === prevScore ? ' selected' : ''}" onclick="selectOption(${q.id}, ${o.score}, this)">
-      <div class="opt-label">Option ${o.label}</div>
       ${o.text}
     </button>
   `).join('');
+
+  // Suppress hover highlight until cursor moves to prevent bias
+  grid.classList.add('no-hover');
+  const enableHover = () => { grid.classList.remove('no-hover'); grid.removeEventListener('mousemove', enableHover); };
+  grid.addEventListener('mousemove', enableHover);
 
   // Show/hide back button
   const qBackBtn = document.getElementById('q-back-btn');
@@ -1214,11 +1230,13 @@ function nextAdditional() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email:      userEmail,
-          name:       userName,
-          archetype:  arch.name,
-          passions:   passionsList.join(', '),
-          lifeStage:  addAnswers['A2'] || '',
+          email:            userEmail,
+          name:             userName,
+          archetype:        arch.name,
+          passions:         passionsList.join(', '),
+          lifeStage:        addAnswers['A2'] || '',
+          travelStyle:      addAnswers['A6'] || '',
+          marketingConsent: _marketingConsent,
           hopes:      hopesList.join(', '),
           scores:     raw,
           itemScores: {...answers}
@@ -1239,7 +1257,7 @@ function nextAdditional() {
 // ═══════════════════════════════════════════════
 function calcScores() {
   if (window._reportRaw) return window._reportRaw;
-  const raw = {Curiosity:0, Adventure:0, Reflection:0, Connection:0, Intention:0};
+  const raw = {Curiosity:0, Adventure:0, Reflection:0, Connection:0, 'Travel Purpose':0};
   for (const q of QUESTIONS) {
     if (answers[q.id] !== undefined) raw[q.dim] += answers[q.id];
   }
@@ -1250,7 +1268,7 @@ function buildResults() {
   const raw = calcScores();
 
   // Header
-  document.getElementById('results-name-title').textContent = `${userName}'s Transformational Travel Profile`;
+  document.getElementById('results-name-title').textContent = `${userName}'s Travel for Growth Assessment`;
 
   // Archetype
   const arch = getArchetype(raw);
@@ -1272,6 +1290,9 @@ function buildResults() {
   // Dimension bars
   buildDimBars(raw);
 
+  // Item highlights
+  buildItemHighlights();
+
   // Trips & Destinations — dynamically scored from DESTINATIONS matrix
   document.getElementById('trips-desc').textContent = arch.trips;
 
@@ -1281,7 +1302,7 @@ function buildResults() {
       Cur: (r.Curiosity  / 7) * 10,
       Adv: (r.Adventure  / 7) * 10,
       Con: (r.Connection / 7) * 10,
-      Int: (r.Intention  / 7) * 10,
+      Int: (r['Travel Purpose']  / 7) * 10,
       Ref: (r.Reflection / 7) * 10,
     };
     let total = 0;
@@ -1296,26 +1317,36 @@ function buildResults() {
     const obj = {name: d[0], country: d[1], continent: d[2], Cur: d[7], Adv: d[8], Con: d[9], Int: d[10], Ref: d[11]};
     return {...obj, matchPct: scoreDestForUser(obj, raw)};
   });
+  // Shuffle first so ties don't always surface alphabetically-first countries (e.g. Albania)
+  for (let i = scored.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [scored[i], scored[j]] = [scored[j], scored[i]];
+  }
   scored.sort((a, b) => b.matchPct - a.matchPct);
 
   const globalTop = scored.filter(d => d.country !== 'United States').slice(0, 6);
   const usTop     = scored.filter(d => d.country === 'United States').slice(0, 5);
 
+  const guideLink = (name, country) =>
+    `/portal.html?page=dna&dest=${encodeURIComponent(name)}&country=${encodeURIComponent(country)}`;
+
   document.getElementById('dest-global').innerHTML = globalTop.map(d =>
-    `<div style="margin-bottom:8px;">
-      <button onclick='loadDestGuideDirect(${JSON.stringify(d.name)},${JSON.stringify(d.country)},${JSON.stringify(d.continent)})' style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
-        <strong style="color:var(--teal);text-decoration:underline;font-size:0.95rem;">${d.name}</strong>
-      </button>
-      <span style="color:var(--muted);font-size:0.83rem;"> (${d.country}, ${d.matchPct}% match)</span>
+    `<div style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <div>
+        <strong style="color:var(--teal);font-size:0.95rem;">${d.name}</strong>
+        <span style="color:var(--muted);font-size:0.83rem;"> (${d.country}, ${d.matchPct}% match)</span>
+      </div>
+      <a href="${guideLink(d.name, d.country)}" style="font-size:0.78rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;">✦ DNA Guide</a>
     </div>`
   ).join('');
 
   document.getElementById('dest-us').innerHTML = usTop.map(d =>
-    `<div style="margin-bottom:8px;">
-      <button onclick='loadDestGuideDirect(${JSON.stringify(d.name)},${JSON.stringify(d.country)},${JSON.stringify(d.continent)})' style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
-        <strong style="color:var(--teal);text-decoration:underline;font-size:0.95rem;">${d.name}</strong>
-      </button>
-      <span style="color:var(--muted);font-size:0.83rem;"> (${d.matchPct}% match)</span>
+    `<div style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <div>
+        <strong style="color:var(--teal);font-size:0.95rem;">${d.name}</strong>
+        <span style="color:var(--muted);font-size:0.83rem;"> (${d.matchPct}% match)</span>
+      </div>
+      <a href="${guideLink(d.name, 'United States')}" style="font-size:0.78rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;">✦ DNA Guide</a>
     </div>`
   ).join('');
 
@@ -1356,10 +1387,35 @@ function buildResults() {
       scores: raw
     })
   }).catch(() => {}); // fire and forget — don't block UI on failure
+
+}
+
+function buildItemHighlights() {
+  const highlighted = QUESTIONS.filter(q => q.highlight && answers[q.id] !== undefined);
+  const section = document.getElementById('item-highlights-section');
+  const list    = document.getElementById('item-highlights-list');
+  if (!highlighted.length) { section.style.display = 'none'; return; }
+
+  list.innerHTML = highlighted.map(q => {
+    const choseA  = answers[q.id] === 1;
+    const choice  = choseA ? q.a : q.b;
+    const coach   = choseA ? q.aCoach : q.bCoach;
+    return `
+      <div style="padding:20px 24px;background:var(--s1);border:1px solid rgba(45,212,191,0.2);border-radius:12px;margin-bottom:16px;">
+        <p style="font-family:Arial,sans-serif;font-size:0.9rem;color:#ffffff;margin:0 0 10px;">
+          <strong style="color:#2dd4bf;">Your Answer:</strong> ${q.stem} ${choice}
+        </p>
+        ${coach ? `<p style="font-family:Arial,sans-serif;font-size:0.9rem;color:#ffffff;line-height:1.7;margin:0;"><strong style="color:#2dd4bf;">What it means for you:</strong> ${coach}</p>` : ''}
+      </div>`;
+  }).join('');
+
+  section.style.display = 'block';
 }
 
 function buildSpider(raw) {
-  const scores = DIMS.map(d => Math.round((raw[d] / 7) * 100));
+  const scores    = DIMS.map(d => Math.round((raw[d] / 7) * 100));
+  const dimColor  = d => { const s = raw[d]; return s === 7 ? '#2dd4bf' : s >= 4 ? '#34d399' : s >= 1 ? '#fb923c' : '#f43f5e'; };
+  const colors    = DIMS.map(dimColor);
 
   if (spiderChartInst) spiderChartInst.destroy();
 
@@ -1373,7 +1429,7 @@ function buildSpider(raw) {
         backgroundColor: 'rgba(45,212,191,0.15)',
         borderColor: '#2dd4bf',
         borderWidth: 2,
-        pointBackgroundColor: '#2dd4bf',
+        pointBackgroundColor: colors,
         pointRadius: 4,
         pointHoverRadius: 6
       }]
@@ -1394,7 +1450,7 @@ function buildSpider(raw) {
           grid: { color: 'rgba(255,255,255,0.35)' },
           angleLines: { color: 'rgba(255,255,255,0.35)' },
           pointLabels: {
-            color: '#e2e8f0',
+            color: colors,
             font: { family: 'Montserrat', size: 12, weight: '700' }
           }
         }
@@ -1414,6 +1470,13 @@ function buildDimBars(raw) {
     const pct = Math.round((s / 7) * 100);
     const desc = (z === 'sa' || z === 'a') ? m.aDesc : m.bDesc;
 
+    const aActive  = (z === 'sa' || z === 'a');
+    const bActive  = (z === 'sb' || z === 'b');
+    const aDisplay = (z === 'sa' ? 'Strong ' : '') + m.aLabel;
+    const bDisplay = (z === 'sb' ? 'Strong ' : '') + m.bLabel;
+    const aColor   = aActive ? col : 'var(--muted)';
+    const bColor   = bActive ? col : 'var(--muted)';
+
     return `
       <div class="dim-row">
         <div class="dim-header">
@@ -1421,14 +1484,13 @@ function buildDimBars(raw) {
           <span class="dim-score-badge" style="background:${col}22;color:${col};">${s}/7</span>
         </div>
         <div class="dim-poles">
-          <span>${m.bLabel}</span>
-          <span>${m.aLabel}</span>
+          <span style="color:${bColor};">${bDisplay}</span>
+          <span style="color:${aColor};">${aDisplay}</span>
         </div>
         <div class="dim-bar-wrap">
           <div class="dim-bar-fill" style="width:${pct}%;background:${col};"></div>
           <div class="dim-marker" style="left:${pct}%;"></div>
         </div>
-        <div class="dim-zone-label" style="color:${col};">${zoneLabel(z, dim)}</div>
         <p class="dim-desc">${desc}</p>
       </div>
     `;
@@ -1471,6 +1533,49 @@ const PASSION_ICONS = {
   "Volunteerism":                    "🤝"
 };
 
+async function findExperiences() {
+  const input = document.getElementById('exp-destination-input');
+  const btn   = document.getElementById('exp-btn');
+  const results = document.getElementById('exp-results');
+  const destination = (input.value || '').trim();
+  if (!destination) { input.focus(); return; }
+
+  btn.disabled    = true;
+  btn.textContent = 'Finding…';
+  results.style.display = 'block';
+  results.innerHTML = '<p style="color:var(--soft);font-size:0.88rem;font-style:italic;">Finding experiences for ' + destination + '…</p>';
+
+  try {
+    const resp = await fetch('/api/experiences', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        destination,
+        archetype:  _lastArch || '',
+        activities: _topActivities || []
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(typeof data.error === 'object' ? JSON.stringify(data.error) : data.error);
+
+    const html = (data.experiences || []).map(e => `
+      <div style="margin-bottom:18px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:8px;">${e.activity}</div>
+        ${(e.suggestions || []).map(s => `
+          <div style="padding:10px 14px;background:rgba(255,255,255,0.04);border-left:3px solid rgba(45,212,191,0.5);border-radius:0 8px 8px 0;margin-bottom:6px;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;color:var(--teal);margin-bottom:3px;">${s.name}</div>
+            <div style="font-size:0.82rem;color:var(--soft);line-height:1.55;">${s.description}</div>
+          </div>`).join('')}
+      </div>`).join('');
+
+    results.innerHTML = html || '<p style="color:var(--soft);font-size:0.88rem;">No results returned.</p>';
+  } catch(e) {
+    results.innerHTML = '<p style="color:#f87171;font-size:0.88rem;">Error: ' + e.message + '</p>';
+  }
+  btn.disabled    = false;
+  btn.textContent = 'Find Experiences →';
+}
+
 function buildMatrixActivities(raw) {
   const passions = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]);
 
@@ -1478,7 +1583,7 @@ function buildMatrixActivities(raw) {
     const score = (act.Cur * raw.Curiosity) +
                   (act.Imm * raw.Connection) +
                   (act.Cha * raw.Adventure) +
-                  (act.Con * raw.Intention) +
+                  (act.Con * raw['Travel Purpose']) +
                   (act.Ref * raw.Reflection);
     return {...act, score};
   }).sort((a,b) => b.score - a.score).slice(0,10);
@@ -1497,7 +1602,7 @@ function buildMatrixActivities(raw) {
     {key:'Cur', label:'Curiosity'},
     {key:'Imm', label:'Connection'},
     {key:'Cha', label:'Adventure'},
-    {key:'Con', label:'Intention'},
+    {key:'Con', label:'Travel Purpose'},
     {key:'Ref', label:'Reflection'}
   ];
 
@@ -1516,6 +1621,7 @@ function buildMatrixActivities(raw) {
   }).join('');
 
   document.getElementById('matrix-activities-list').innerHTML = passionRows + matrixRows;
+  _topActivities = [...passions, ...scored.map(a => a.name)];
 }
 
 const HOPED_FOR_CHANGE_TEXT = {
@@ -1645,8 +1751,8 @@ async function buildPassionDests() {
           <div class="passion-group-title">${PASSION_ICONS[passion] || '✦'} ${label}</div>
           <div class="passion-dest-grid">
             ${dests.map(d => `
-              <div class="passion-dest-card" onclick='loadDestGuideDirect(${JSON.stringify(d.destination)},"","")' style="cursor:pointer;">
-                <div class="passion-dest-name" style="color:var(--teal);text-decoration:underline;">${d.destination}</div>
+              <div class="passion-dest-card">
+                <div class="passion-dest-name" style="color:var(--teal);">${d.destination}</div>
                 <div class="passion-dest-desc">${d.description}</div>
               </div>
             `).join('')}
@@ -1690,6 +1796,7 @@ function saveRecord(raw, archName, topActivities) {
     headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify(record)
   }).catch(() => {});
+
 }
 
 // ═══════════════════════════════════════════════
@@ -1701,166 +1808,18 @@ const DEST_DIM_MAP = [
   {label:"Curiosity",   key:"Cur",  rawKey:"Curiosity"},
   {label:"Adventure",   key:"Adv",  rawKey:"Adventure"},
   {label:"Connection",  key:"Con",  rawKey:"Connection"},
-  {label:"Intention",   key:"Int",  rawKey:"Intention"},
+  {label:"Travel Purpose",   key:"Int",  rawKey:"Travel Purpose"},
   {label:"Reflection",  key:"Ref",  rawKey:"Reflection"},
 ];
 
-let _lastRaw = null; // stored when results render
+let _lastRaw        = null; // stored when results render
+let _topActivities  = [];   // stored for experiences lookup
 let _reportProfile = null; // Airtable fields for quota/DNA counter
 
 let _lastArch = null; // stored when results render
-function _getDNARemaining() {
-  const raw = (_reportProfile || {})['DNA Queries Remaining'];
-  return (raw === null || raw === undefined || raw === '') ? Infinity : Number(raw);
-}
-
-function updateQuotaBadge() {
-  const remaining = _getDNARemaining();
-  const badge = document.getElementById('guide-quota-badge');
-  const btn   = document.getElementById('dest-guide-btn');
-  if (!badge) return;
-  if (remaining !== Infinity && remaining <= 0) {
-    badge.textContent = 'No guides remaining';
-    badge.style.background = 'rgba(244,63,94,0.15)';
-    badge.style.borderColor = 'rgba(244,63,94,0.35)';
-    badge.style.color = '#f43f5e';
-    if (btn) { btn.disabled = true; btn.textContent = 'Guide limit reached'; }
-  } else {
-    const label = remaining === Infinity ? '—' : remaining;
-    badge.textContent = label + (remaining === 1 ? ' guide remaining' : ' guides remaining');
-    badge.style.background = (remaining !== Infinity && remaining <= 2) ? 'rgba(251,146,60,0.15)' : 'var(--tdim)';
-    badge.style.borderColor = (remaining !== Infinity && remaining <= 2) ? 'rgba(251,146,60,0.35)' : 'rgba(45,212,191,0.3)';
-    badge.style.color = (remaining !== Infinity && remaining <= 2) ? '#fb923c' : 'var(--teal)';
-  }
-}
-
-function loadDestGuideDirect(name, country, continent) {
-  document.getElementById('dest-guide-panel').scrollIntoView({behavior:'smooth', block:'nearest'});
-  _loadDestGuideCore(name, country, continent);
-}
-
-function loadDestGuide() {
-  const { destination, country, continent } = dpGetValues('rdp');
-  if (!destination || !_lastRaw) return;
-  _loadDestGuideCore(destination, country, continent);
-}
-
-function _loadDestGuideCore(name, country, continent) {
-  if (!_lastRaw) return;
-  if (_getDNARemaining() <= 0) {
-    alert('You have used all your destination guides. Contact us to get more!');
-    document.getElementById('destinations-section').scrollIntoView({behavior:'smooth', block:'start'});
-    return;
-  }
-
-  const panel   = document.getElementById('dest-guide-panel');
-  const loading = document.getElementById('dest-guide-loading');
-  const content = document.getElementById('dest-guide-content');
-  const btn     = document.getElementById('dest-guide-btn');
-
-  panel.style.display   = 'block';
-  loading.style.display = 'block';
-  content.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'Generating…';
-  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
-
-  const hopesList = Array.isArray(addAnswers['A5']) ? addAnswers['A5'] : (addAnswers['A5'] ? [addAnswers['A5']] : []);
-  const passionsList = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]).map(p => PASSION_LABELS[p]);
-  var params = '?action=destGuide' +
-    '&destination=' + encodeURIComponent(name) +
-    '&country=' + encodeURIComponent(country) +
-    '&continent=' + encodeURIComponent(continent) +
-    '&archetype=' + encodeURIComponent(_lastArch || 'Transformational Traveler') +
-    '&Curiosity=' + (_lastRaw.Curiosity || 0) +
-    '&Adventure=' + (_lastRaw.Adventure || 0) +
-    '&Reflection=' + (_lastRaw.Reflection || 0) +
-    '&Connection=' + (_lastRaw.Connection || 0) +
-    '&Intention=' + (_lastRaw.Intention || 0) +
-    '&hopes=' + encodeURIComponent(hopesList.join('|')) +
-    '&passions=' + encodeURIComponent(passionsList.join('|'));
-
-  fetch('/api/dest-guide' + params)
-  .then(r => r.json())
-  .then(data => {
-    loading.style.display = 'none';
-    if (data.guide) {
-      // Convert markdown bold (**text**) and bullets to HTML
-      const html = data.guide
-        .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-family:\'Montserrat\',sans-serif;">$1</strong>')
-        .replace(/^- (.+)$/gm, '<li style="margin-bottom:6px;">$1</li>')
-        .replace(/(<li[\s\S]*?<\/li>)+/g, '<ul style="padding-left:18px;margin:10px 0;">$&</ul>')
-        .replace(/\n\n/g, '</p><p style="margin-bottom:14px;">')
-        .replace(/\n/g, '<br>');
-      content.innerHTML = `<p style="margin-bottom:14px;">${html}</p>`;
-      content.style.display = 'block';
-      dnaDecrement(userEmail, _reportProfile).then(result => {
-        if (result && _reportProfile) {
-          _reportProfile['DNA Queries To Date']  = result.toDate;
-          _reportProfile['DNA Queries Remaining'] = result.remaining;
-          updateQuotaBadge();
-        }
-      });
-
-      // Email the destination guide
-      fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'destination',
-          name: userName,
-          email: userEmail,
-          destination: name,
-          guideHtml: content.innerHTML
-        })
-      }).catch(() => {});
-
-      // Log destination lookup to sheet
-      // DESTINATIONS format: [name, country, continent, airport, arch1, arch2, passion, Cur, Adv, Con, Int, Ref]
-      const destArr = DESTINATIONS.find(r => r[2] === continent && r[1] === country && r[0] === name);
-      const destScores = destArr ? {Cur:destArr[7],Adv:destArr[8],Con:destArr[9],Int:destArr[10],Ref:destArr[11]} : null;
-      const mPct = destScores ? Math.round((DEST_DIM_MAP.reduce((t,{key}) => {
-        const uN = (_lastRaw[DEST_DIM_MAP.find(m=>m.key===key).rawKey] / 7) * 10;
-        return t + (1 - Math.abs(uN - destScores[key]) / 10);
-      }, 0) / 5) * 100) : '';
-      fetch(SHEET_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {'Content-Type': 'text/plain'},
-        body: JSON.stringify({
-          type: 'destination',
-          timestamp: new Date().toISOString(),
-          name: userName,
-          email: userEmail,
-          archetype: _lastArch || '',
-          continent: continent,
-          country: country,
-          destination: name,
-          matchPct: mPct,
-          hopes: hopesList.join(', ')
-        })
-      }).catch(() => {});
-    } else {
-      const msg = data.error || 'Unable to generate guide';
-      const detail = data.detail ? ` (${data.detail})` : '';
-      content.innerHTML = `<p style="color:#f43f5e;">${msg}${detail}. Please try again.</p>`;
-      content.style.display = 'block';
-    }
-    btn.disabled = false;
-    btn.textContent = '✦ Regenerate Guide';
-  })
-  .catch(() => {
-    loading.style.display = 'none';
-    content.innerHTML = '<p style="color:#f43f5e;">Something went wrong. Please try again.</p>';
-    content.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = '✦ Get My Personalized Guide';
-  });
-}
 
 function initDestExplorer(raw) {
   _lastRaw = raw;
-  updateQuotaBadge();
   initDestPicker({
     containerId: 'report-dest-picker',
     idPrefix: 'rdp',
@@ -1868,7 +1827,6 @@ function initDestExplorer(raw) {
     showAirport: false,
     onDestChange: function(vals) {
       document.getElementById('dest-match-panel').classList.remove('visible');
-      document.getElementById('dest-guide-panel').style.display = 'none';
       if (!vals.destination || vals.destination === '__other__' || !_lastRaw) return;
       // DESTINATIONS format: [name, country, continent, airport, arch1, arch2, passion, Cur, Adv, Con, Int, Ref]
       const row = DESTINATIONS.find(r => r[2] === vals.continent && r[1] === vals.country && r[0] === vals.destination);
@@ -1876,7 +1834,6 @@ function initDestExplorer(raw) {
     }
   });
   document.getElementById('dest-match-panel').classList.remove('visible');
-  document.getElementById('dest-guide-panel').style.display = 'none';
 }
 
 function showDestMatch(dest, raw) {
@@ -1892,7 +1849,7 @@ function showDestMatch(dest, raw) {
     Cur: (raw.Curiosity  / 7) * 10,
     Adv: (raw.Adventure  / 7) * 10,
     Con: (raw.Connection / 7) * 10,
-    Int: (raw.Intention  / 7) * 10,
+    Int: (raw['Travel Purpose']  / 7) * 10,
     Ref: (raw.Reflection / 7) * 10,
   };
 
@@ -1996,10 +1953,11 @@ async function createAccount() {
       name:       userName,
       archetype:  arch.name,
       passions:   passionsList.join(', '),
-      lifeStage:  addAnswers['A2'] || '',
-      hopes:      hopesList.join(', '),
-      scores:     raw,
-      itemScores: {...answers}
+      lifeStage:   addAnswers['A2'] || '',
+      travelStyle: addAnswers['A6'] || '',
+      hopes:       hopesList.join(', '),
+      scores:      raw,
+      itemScores:  {...answers}
     }));
 
     // Redirect to Auth0 signup with email pre-filled
@@ -2086,6 +2044,7 @@ async function initReportMode() {
 
   // Reconstruct scores
   answers   = {};
+  if (f['Item Scores']) { try { answers = JSON.parse(f['Item Scores']); } catch(e) {} }
   addAnswers = { A1: [], A2: f['Life Stage'] || '', A3: null, A4: null, A5: [] };
 
   // Reconstruct passions (labels → keys)
@@ -2105,7 +2064,7 @@ async function initReportMode() {
     Adventure:  Number(f['DS-2 Adventure']  || 0),
     Reflection: Number(f['DS-3 Reflection'] || 0),
     Connection: Number(f['DS-4 Connection'] || 0),
-    Intention:  Number(f['DS-5 Intention']  || 0)
+    'Travel Purpose':  Number(f['DS-5 Intention']  || 0)
   };
   window._reportRaw = airtableRaw;
 
@@ -2114,11 +2073,20 @@ async function initReportMode() {
   document.getElementById('create-account-btn').style.display = 'none';
   document.getElementById('screen-welcome').classList.remove('active');
 
+  // Load questions so item highlights section can render
+  if (!QUESTIONS.length) {
+    try {
+      const qResp = await fetch('/api/tfg-items');
+      const qData = await qResp.json();
+      if (qData.items && qData.items.length) QUESTIONS = qData.items;
+    } catch(e) {}
+  }
+
   buildResults();
   showScreen('screen-results');
 }
 
-// On page load — check for report mode
+// On page load — check for report mode or logged-in assessment mode
 const _reportParam = new URLSearchParams(window.location.search).get('report') === '1';
 const _reportSession = sessionStorage.getItem('returnToReport') === '1';
 
@@ -2130,6 +2098,41 @@ if (_reportParam || _reportSession) {
     '<div style="text-align:center;padding:80px 20px;color:#94a3b8;font-family:Montserrat,sans-serif;font-size:1rem;">Loading your report…</div>';
   document.getElementById('screen-welcome').classList.add('active');
   initReportMode().catch(err => console.error('Report mode error:', err));
+} else {
+  // Check if already logged in — if so, skip name/email form
+  initAssessmentMode().catch(() => {});
+}
+
+async function initAssessmentMode() {
+  const auth0Client = await auth0.createAuth0Client({
+    domain:   'dev-oys4h8z7qa7irffk.us.auth0.com',
+    clientId: 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd',
+    useRefreshTokens: true,
+    cacheLocation: 'localstorage',
+    authorizationParams: { redirect_uri: window.location.origin + '/transformational-profile.html' }
+  });
+  let isAuthenticated = false;
+  try { isAuthenticated = await auth0Client.isAuthenticated(); } catch(e) {}
+  if (!isAuthenticated) return; // Not logged in — show welcome form as normal
+
+  const user = await auth0Client.getUser();
+  userEmail = user.email;
+
+  // Try to get name from Airtable
+  try {
+    const resp = await fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail));
+    const data = await resp.json();
+    if (data.record && data.record.fields['Traveler Name']) {
+      userName = data.record.fields['Traveler Name'];
+    } else {
+      userName = user.given_name || 'Traveler';
+    }
+  } catch(e) {
+    userName = user.given_name || 'Traveler';
+  }
+
+  // Skip welcome form and go straight to questions
+  await proceedToAssessment();
 }
 
 function downloadPDF() {
@@ -2145,6 +2148,8 @@ function downloadPDF() {
   };
   html2pdf().set(opt).from(element).save();
 }
+
 </script>
+
 </body>
 </html>
