@@ -996,10 +996,7 @@ function startAssessment() {
     .then(r => r.json())
     .then(data => {
       if (data.record) {
-        const dateStr = data.record.fields['Assessment Date'] || 'a previous date';
-        document.getElementById('returning-msg').textContent =
-          'Hi ' + first + ', we found a previous assessment completed on ' + dateStr + '. Would you like to retake the assessment or jump straight to exploring destinations?';
-        showScreen('screen-returning');
+        proceedToAssessment();
       } else {
         proceedToAssessment();
       }
