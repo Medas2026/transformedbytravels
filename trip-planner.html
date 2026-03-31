@@ -120,7 +120,7 @@
       <div class="welcome-badge">Trip Planner</div>
       <h1 class="welcome-title">Plan Your Next <span>Transformational Journey</span></h1>
       <p class="welcome-intro">
-        Already completed the Transformational Travel Profile? Enter your email to retrieve your profile and explore destinations matched to who you are.
+        Already completed the Travel for Growth Assessment? Enter your email to retrieve your profile and explore destinations matched to who you are.
       </p>
 
       <div class="form-card">
@@ -146,7 +146,7 @@
       <div class="results-header">
         <div class="archetype-pill" id="archetype-pill"></div>
         <h1>Welcome back, <span id="user-name-display"></span></h1>
-        <p>Here are your top destination matches based on your Transformational Travel Profile.</p>
+        <p>Here are your top destination matches based on your Travel for Growth Assessment.</p>
       </div>
 
       <!-- Top Recommended Trips -->
@@ -755,7 +755,17 @@ function buildResults() {
   const scored = DESTINATIONS.map(d => ({...d, matchPct: scoreDestForUser(d, _lastRaw)}));
   scored.sort((a, b) => b.matchPct - a.matchPct);
 
-  const globalTop = scored.filter(d => !(d.continent === 'North America' && d.country === 'USA')).slice(0, 6);
+  // Cap at 2 per continent so results span at least 3 different continents
+  const _continentCount = {};
+  const globalTop = [];
+  for (const d of scored.filter(d => !(d.continent === 'North America' && d.country === 'USA'))) {
+    if (globalTop.length >= 6) break;
+    const c = d.continent || 'Other';
+    if ((_continentCount[c] || 0) < 2) {
+      _continentCount[c] = (_continentCount[c] || 0) + 1;
+      globalTop.push(d);
+    }
+  }
   const usTop     = scored.filter(d => d.continent === 'North America' && d.country === 'USA').slice(0, 5);
 
   document.getElementById('dest-global').innerHTML = globalTop.map(d =>

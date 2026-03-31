@@ -1327,7 +1327,17 @@ function buildResults() {
   }
   scored.sort((a, b) => b.matchPct - a.matchPct);
 
-  const globalTop = scored.filter(d => d.country !== 'United States').slice(0, 6);
+  // Cap at 2 per continent so results span at least 3 different continents
+  const _continentCount = {};
+  const globalTop = [];
+  for (const d of scored.filter(d => d.country !== 'United States')) {
+    if (globalTop.length >= 6) break;
+    const c = d.continent || 'Other';
+    if ((_continentCount[c] || 0) < 2) {
+      _continentCount[c] = (_continentCount[c] || 0) + 1;
+      globalTop.push(d);
+    }
+  }
   const usTop     = scored.filter(d => d.country === 'United States').slice(0, 5);
 
   const guideLink = (name, country) =>
