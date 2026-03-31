@@ -617,11 +617,10 @@ const ADDITIONAL = [
     stem:"Which of the following best describes your current life stage?",
     opts:[
       "Student / Under 25",
-      "Early Career / Young Professional (approximately 25–34)",
-      "Family with Young Children (approximately 30–44)",
-      "Family with Older Children or Teenagers (approximately 40–54)",
-      "Empty Nester (children have grown up and left home; typically 50–64)",
-      "Retired (typically 65+)"
+      "Early Adult (25 to 40)",
+      "Middle Adult (41 to 54)",
+      "Late Adult (55 to 64)",
+      "Retired (65 and above)"
     ]
   },
   {
@@ -1683,19 +1682,19 @@ async function buildPrefs() {
 
 // Maps long life stage answer → short Airtable Age Band name
 const LIFE_STAGE_TO_AGE_BAND = {
-  'Early Career / Young Professional (approximately 25–34)':              'Early Career',
-  'Family with Young Children (approximately 30–44)':                     'Family with Young Children',
-  'Family with Older Children or Teenagers (approximately 40–54)':        'Family with Older Children',
-  'Empty Nester (children have grown up and left home; typically 50–64)': 'Empty Nesters',
-  'Retired (typically 65+)':                                              'Retired'
+  'Student / Under 25':    'Student',
+  'Early Adult (25 to 40)':  'Early Adult',
+  'Middle Adult (41 to 54)': 'Middle Adult',
+  'Late Adult (55 to 64)':   'Late Adult',
+  'Retired (65 and above)':  'Retired'
 };
 
 const AGE_BAND_IMAGES = {
-  'Early Career':               'images/Age group photos/Early Career.png',
-  'Family with Young Children': 'images/Age group photos/Family with younger children.png',
-  'Family with Older Children': 'images/Age group photos/Family with older chlidren.png',
-  'Empty Nesters':              'images/Age group photos/Empty Nester.png',
-  'Retired':                    'images/Age group photos/Retired.png'
+  'Student':      'images/Age group photos/Early Career.png',
+  'Early Adult':  'images/Age group photos/Early Career.png',
+  'Middle Adult': 'images/Age group photos/Family with older chlidren.png',
+  'Late Adult':   'images/Age group photos/Empty Nester.png',
+  'Retired':      'images/Age group photos/Retired.png'
 };
 
 async function buildAgeBand() {
