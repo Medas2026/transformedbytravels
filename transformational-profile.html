@@ -2122,8 +2122,12 @@ if (_reportParam || _reportSession) {
   document.getElementById('screen-welcome').classList.add('active');
   initReportMode().catch(err => console.error('Report mode error:', err));
 } else {
-  // Check if already logged in — if so, skip name/email form
-  initAssessmentMode().catch(() => {});
+  // Hide all screens while auth check runs — avoids welcome form flash
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  initAssessmentMode().catch(() => {
+    // If auth check fails, show welcome form
+    document.getElementById('screen-welcome').classList.add('active');
+  });
 }
 
 async function initAssessmentMode() {
@@ -2136,7 +2140,7 @@ async function initAssessmentMode() {
   });
   let isAuthenticated = false;
   try { isAuthenticated = await auth0Client.isAuthenticated(); } catch(e) {}
-  if (!isAuthenticated) return; // Not logged in — show welcome form as normal
+  if (!isAuthenticated) { document.getElementById('screen-welcome').classList.add('active'); return; }
 
   const user = await auth0Client.getUser();
   userEmail = user.email;
