@@ -2179,7 +2179,20 @@ function downloadPDF() {
     margin:       [10, 10, 10, 10],
     filename:     filename,
     image:        { type: 'jpeg', quality: 0.95 },
-    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0d1520' },
+    html2canvas:  {
+      scale: 2, useCORS: true, backgroundColor: '#0d1520',
+      onclone: (doc) => {
+        // html2canvas doesn't resolve CSS variables — inline them on the clone
+        const vars = {
+          '--bg':'#0d1520','--s1':'#131f30','--s2':'#1a2a40',
+          '--bd':'rgba(255,255,255,0.07)','--teal':'#2dd4bf',
+          '--tdim':'rgba(45,212,191,0.11)','--text':'#e2e8f0',
+          '--muted':'#64748b','--soft':'#94a3b8',
+          '--zSB':'#f43f5e','--zB':'#fb923c','--zA':'#34d399','--zSA':'#2dd4bf'
+        };
+        Object.entries(vars).forEach(([k,v]) => doc.documentElement.style.setProperty(k, v));
+      }
+    },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
   };
