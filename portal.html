@@ -710,6 +710,15 @@
             </div>
           </div>
 
+          <!-- Dimension Scores -->
+          <div id="story-dims-block" style="display:none;margin-bottom:28px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Your Dimensions</div>
+            </div>
+            <div id="story-dimensions"></div>
+          </div>
+
           <!-- Planned Trips -->
           <div id="story-planned-block" style="display:none;margin-bottom:28px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
@@ -1487,8 +1496,8 @@ function pfZoneLabel(s, dim) {
   return 'Strong ' + m.bLabel;
 }
 
-function renderDimBars(f) {
-  const container = document.getElementById('pf-dimensions');
+function renderDimBars(f, containerId) {
+  const container = document.getElementById(containerId || 'pf-dimensions');
   if (!container) return;
   container.innerHTML = Object.keys(PF_DIM_META).map(dim => {
     const s   = Number(f[PF_DIM_KEYS[dim]] || 0);
@@ -2343,6 +2352,8 @@ function loadTravelStory() {
               '· ' + new Date(aDate).toLocaleDateString('en-US', {month:'long', year:'numeric'});
           }
           document.getElementById('story-archetype-block').style.display = 'block';
+          renderDimBars(portalProfile, 'story-dimensions');
+          document.getElementById('story-dims-block').style.display = 'block';
           hasContent = true;
         }
       }
