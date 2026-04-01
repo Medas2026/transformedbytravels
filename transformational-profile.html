@@ -6,7 +6,6 @@
   <title>Travel for Growth Assessment | Transformed by Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -238,6 +237,14 @@
       .result-section { padding: 22px 18px; }
       #dest-grid { grid-template-columns: 1fr !important; }
     }
+  @media print {
+    body { background: #0d1520 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .nav { display: none !important; }
+    .screen { display: none !important; }
+    #screen-results { display: block !important; }
+    #report-back-btn { display: none !important; }
+    button { display: none !important; }
+  }
   </style>
 </head>
 <body>
@@ -2173,47 +2180,7 @@ async function initAssessmentMode() {
 }
 
 function downloadPDF() {
-  const element = document.getElementById('screen-results');
-  const filename = userName.replace(/\s+/g, '_') + '_Travel_For_Growth_Profile.pdf';
-
-  // html2pdf copies the element into an iframe without the page stylesheet.
-  // CSS class-based styles (including display:none on .screen) are lost.
-  // Inline computed styles so the iframe renders correctly.
-  const allEls = [element, ...element.querySelectorAll('*')];
-  const saved = allEls.map(el => {
-    const cs = window.getComputedStyle(el);
-    const prev = {
-      display: el.style.display,
-      bg: el.style.backgroundColor, bgImg: el.style.backgroundImage,
-      color: el.style.color, borderColor: el.style.borderColor
-    };
-    el.style.display          = cs.display;
-    el.style.backgroundColor  = cs.backgroundColor;
-    el.style.backgroundImage  = cs.backgroundImage;
-    el.style.color            = cs.color;
-    el.style.borderColor      = cs.borderColor;
-    return { el, prev };
-  });
-
-  const opt = {
-    margin:      [10, 10, 10, 10],
-    filename:    filename,
-    image:       { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0d1520' },
-    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] }
-  };
-
-  html2pdf().set(opt).from(element).save().then(() => {
-    // Restore original inline styles
-    saved.forEach(({ el, prev }) => {
-      el.style.display          = prev.display;
-      el.style.backgroundColor  = prev.bg;
-      el.style.backgroundImage  = prev.bgImg;
-      el.style.color            = prev.color;
-      el.style.borderColor      = prev.borderColor;
-    });
-  });
+  window.print();
 }
 
 </script>
