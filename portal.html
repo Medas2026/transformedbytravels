@@ -2837,7 +2837,9 @@ async function generateDestDNA(pickerCtx) {
     + '&Connection='  + (p['DS-4 Connection'] || 0)
     + '&Intention='   + (p['DS-5 Intention']  || 0)
     + '&hopes='       + encodeURIComponent(hopes)
-    + '&passions='    + encodeURIComponent(passions);
+    + '&passions='    + encodeURIComponent(passions)
+    + '&lifeStage='   + encodeURIComponent(p['Life Stage']    || '')
+    + '&travelStyle=' + encodeURIComponent(p['Travel Style']  || '');
 
   try {
     const resp = await fetch('/api/dest-guide' + params);
