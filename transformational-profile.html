@@ -2174,29 +2174,36 @@ async function initAssessmentMode() {
 
 function downloadPDF() {
   const element = document.getElementById('screen-results');
-  const filename = userName.replace(/\s+/g, '_') + '_Transformational_Travel_Profile.pdf';
+  const filename = userName.replace(/\s+/g, '_') + '_Travel_For_Growth_Profile.pdf';
+
+  // html2canvas cannot resolve CSS variables — temporarily inline computed styles
+  const allEls = [element, ...element.querySelectorAll('*')];
+  const saved = allEls.map(el => {
+    const cs = window.getComputedStyle(el);
+    const prev = { bg: el.style.backgroundColor, color: el.style.color, borderColor: el.style.borderColor };
+    el.style.backgroundColor = cs.backgroundColor;
+    el.style.color            = cs.color;
+    el.style.borderColor      = cs.borderColor;
+    return { el, prev };
+  });
+
   const opt = {
-    margin:       [10, 10, 10, 10],
-    filename:     filename,
-    image:        { type: 'jpeg', quality: 0.95 },
-    html2canvas:  {
-      scale: 2, useCORS: true, backgroundColor: '#0d1520',
-      onclone: (doc) => {
-        // html2canvas doesn't resolve CSS variables — inline them on the clone
-        const vars = {
-          '--bg':'#0d1520','--s1':'#131f30','--s2':'#1a2a40',
-          '--bd':'rgba(255,255,255,0.07)','--teal':'#2dd4bf',
-          '--tdim':'rgba(45,212,191,0.11)','--text':'#e2e8f0',
-          '--muted':'#64748b','--soft':'#94a3b8',
-          '--zSB':'#f43f5e','--zB':'#fb923c','--zA':'#34d399','--zSA':'#2dd4bf'
-        };
-        Object.entries(vars).forEach(([k,v]) => doc.documentElement.style.setProperty(k, v));
-      }
-    },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    margin:      [10, 10, 10, 10],
+    filename:    filename,
+    image:       { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0d1520' },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] }
   };
-  html2pdf().set(opt).from(element).save();
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    // Restore original inline styles
+    saved.forEach(({ el, prev }) => {
+      el.style.backgroundColor = prev.bg;
+      el.style.color            = prev.color;
+      el.style.borderColor      = prev.borderColor;
+    });
+  });
 }
 
 </script>
