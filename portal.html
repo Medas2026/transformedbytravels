@@ -2349,7 +2349,7 @@ function loadTravelStory() {
 
       // Taken trips
       if (taken.length) {
-        const ratingEmoji = { 'Top 3 Ever': '★★★', 'Outstanding': '★★', 'Met Expectations': '★', 'So So': '', 'Disappointing': '' };
+        const ratingStars = { 'Top 3 Ever': '★★★★★', 'Outstanding': '★★★★', 'Met Expectations': '★★★', 'So So': '★★', 'Disappointing': '★' };
         document.getElementById('story-taken-list').innerHTML = taken.map(r => {
           const f      = r.fields;
           const name   = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
@@ -2357,7 +2357,7 @@ function loadTravelStory() {
           const start  = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '';
           const end    = f['End Date']   ? new Date(f['End Date']).toLocaleDateString('en-US',   {month:'short', year:'numeric'}) : '';
           const dates  = start && end ? `${start} – ${end}` : (start || end || '');
-          const rating = f['Trip Rating'] ? `<span style="color:var(--teal);font-size:0.8rem;">${f['Trip Rating']}${ratingEmoji[f['Trip Rating']] ? ' ' + ratingEmoji[f['Trip Rating']] : ''}</span>` : '';
+          const rating = f['Trip Rating'] ? `<span style="color:var(--teal);font-size:0.9rem;" title="${f['Trip Rating']}">${ratingStars[f['Trip Rating']] || f['Trip Rating']}</span>` : '';
           const notes  = f['Notes'] ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.82rem;color:var(--soft);margin-top:6px;line-height:1.5;border-left:2px solid rgba(45,212,191,0.3);padding-left:10px;">${f['Notes']}</div>` : '';
           return `<div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
@@ -2415,16 +2415,18 @@ function renderHistoryList(records) {
     list.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">No taken trips recorded yet. Click "+ Taken Trip" to add one.</p>';
     return;
   }
+  const ratingStars = { 'Top 3 Ever': '★★★★★', 'Outstanding': '★★★★', 'Met Expectations': '★★★', 'So So': '★★', 'Disappointing': '★' };
   list.innerHTML = records.map(r => {
-    const f     = r.fields;
-    const name  = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
-    const start = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '';
-    const end   = f['End Date']   ? new Date(f['End Date']).toLocaleDateString('en-US',   {month:'short', year:'numeric'}) : '';
-    const dates = start && end ? `${start} – ${end}` : (start || '');
+    const f      = r.fields;
+    const name   = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
+    const start  = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '';
+    const end    = f['End Date']   ? new Date(f['End Date']).toLocaleDateString('en-US',   {month:'short', year:'numeric'}) : '';
+    const dates  = start && end ? `${start} – ${end}` : (start || '');
+    const stars  = f['Trip Rating'] ? `<span style="color:var(--teal);font-size:0.85rem;" title="${f['Trip Rating']}">${ratingStars[f['Trip Rating']] || ''}</span>` : '';
     return `<div class="trip-card" onclick='openTripFromHistory(${JSON.stringify(r)})'>
       <div>
         <div class="trip-card-name">${name}</div>
-        <div class="trip-card-dates">${dates}</div>
+        <div class="trip-card-dates">${dates}${stars ? ' &nbsp;' + stars : ''}</div>
       </div>
       <div class="trip-card-arrow">›</div>
     </div>`;
