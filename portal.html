@@ -575,6 +575,17 @@
               <div class="trip-field-label">Co-Traveler Email <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(optional)</span></div>
               <input id="td-cotraveler" type="email" class="trip-input" placeholder="partner@email.com" />
             </div>
+            <div class="trip-field-group" id="td-rating-group" style="display:none;">
+              <div class="trip-field-label">Trip Rating</div>
+              <select id="td-rating" class="trip-input" style="appearance:none;-webkit-appearance:none;cursor:pointer;">
+                <option value="">— Select a rating —</option>
+                <option value="Top 3 Ever">Top 3 Ever</option>
+                <option value="Outstanding">Outstanding</option>
+                <option value="Met Expectations">Met Expectations</option>
+                <option value="So So">So So</option>
+                <option value="Disappointing">Disappointing</option>
+              </select>
+            </div>
             <div class="trip-field-group">
               <div class="trip-field-label">Notes</div>
               <textarea id="td-notes" class="trip-textarea" placeholder="Ideas, wishes, things to research…"></textarea>
@@ -2271,6 +2282,7 @@ function openTripFromHistory(record) {
   showPage('planning');
   document.getElementById('trip-list-section').style.display = 'none';
   document.getElementById('td-status-group').style.display = 'none';
+  document.getElementById('td-rating-group').style.display = 'block';
   openTrip(record);
 }
 
@@ -2335,6 +2347,7 @@ function openTrip(record) {
   document.getElementById('td-status').value      = f['Status of Trip'] || 'Research';
   document.getElementById('td-notes').value       = f['Notes']        || '';
   document.getElementById('td-cotraveler').value  = f['Co-Traveler Email'] || '';
+  document.getElementById('td-rating').value      = f['Trip Rating'] || '';
   document.getElementById('td-history').value = f['History'] ? 'true' : 'false';
   initPlaceRows(
     [f['Place 1']||'', f['Place 2']||'', f['Place 3']||'', f['Place 4']||'', f['Place 5']||'', f['Place 6']||'', f['Place 7']||''],
@@ -2501,6 +2514,8 @@ function showNewHistoryTripForm() {
   });
   document.getElementById('td-status').value = 'Completed';
   document.getElementById('td-status-group').style.display = 'none';
+  document.getElementById('td-rating').value = '';
+  document.getElementById('td-rating-group').style.display = 'block';
   // History trips: dates must be before today
   const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
   const yStr = yesterday.toISOString().split('T')[0];
@@ -2522,6 +2537,7 @@ function showNewHistoryTripForm() {
 function closeTripDetail() {
   document.getElementById('trip-detail').style.display = 'none';
   document.getElementById('td-status-group').style.display = 'block';
+  document.getElementById('td-rating-group').style.display = 'none';
   document.getElementById('td-start').min = '';
   document.getElementById('td-start').max = '';
   document.getElementById('td-end').min   = '';
@@ -2618,7 +2634,8 @@ async function saveTrip() {
     place6Day:   parseInt((document.getElementById('td-place6-day') || {}).value) || '',
     place7Day:   parseInt((document.getElementById('td-place7-day') || {}).value) || '',
     dnaGuideId:  _pendingDnaGuideId || undefined,
-    history:     _isHistoryTrip || document.getElementById('td-history').value === 'true'
+    history:     _isHistoryTrip || document.getElementById('td-history').value === 'true',
+    tripRating:  document.getElementById('td-rating').value || ''
   };
 
   if (currentTripId) {
