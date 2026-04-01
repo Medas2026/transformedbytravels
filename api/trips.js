@@ -235,11 +235,11 @@ module.exports = function handler(req, res) {
           const tParsed  = JSON.parse(tData);
           const tRecord  = (tParsed.records || [])[0];
           const remaining = tRecord ? Number(tRecord.fields['Trips Remaining'] || 0) : 0;
-          if (tRecord && remaining <= 0) {
+          if (tRecord && remaining <= 0 && !b.history) {
             return res.status(403).json({ error: 'No trips remaining on your plan. Please upgrade to add more trips.' });
           }
-          // Decrement Trips Remaining
-          if (tRecord) {
+          // Decrement Trips Remaining (not for history/taken trips)
+          if (tRecord && !b.history) {
             const https3 = require('https');
             const decBody = JSON.stringify({ fields: { 'Trips Remaining': Math.max(0, remaining - 1) } });
             const decOpts = {

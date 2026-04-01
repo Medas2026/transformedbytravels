@@ -228,8 +228,8 @@
       <div class="menu-item" onclick="showPageGated('planning')" data-page="planning" data-tooltip="Plan your trip details, connect your Destination DNA Guide, and organize the places you want to visit.">
         <i class="ph ph-suitcase menu-icon"></i> Trip Planning <span class="menu-lock" id="lock-planning">🔒</span>
       </div>
-      <div class="menu-item" onclick="showPageGated('history')" data-page="history" data-tooltip="View trips you have taken in the past.">
-        <i class="ph ph-clock-clockwise menu-icon"></i> Trip History <span class="menu-lock" id="lock-history">🔒</span>
+      <div class="menu-item" onclick="showPage('history')" data-page="history" data-tooltip="View trips you have taken in the past.">
+        <i class="ph ph-clock-clockwise menu-icon"></i> Trip History
       </div>
       <div class="menu-item" onclick="showPage('dna')" data-page="dna" data-tooltip="Generate a personalized destination guide tailored to your unique traveler DNA and travel style.">
         <i class="ph ph-sparkle menu-icon"></i> DNA Guide
@@ -561,7 +561,7 @@
             </div>
             <div style="margin-bottom:16px;"></div>
 
-            <div class="trip-field-group">
+            <div class="trip-field-group" id="td-status-group">
               <div class="trip-field-label">Trip Status</div>
               <select id="td-status" class="trip-input" style="appearance:none;-webkit-appearance:none;cursor:pointer;">
                 <option value="Research">Research</option>
@@ -579,10 +579,7 @@
               <div class="trip-field-label">Notes</div>
               <textarea id="td-notes" class="trip-textarea" placeholder="Ideas, wishes, things to research…"></textarea>
             </div>
-            <div class="trip-field-group" style="display:flex;align-items:center;gap:10px;">
-              <input type="checkbox" id="td-history" style="width:18px;height:18px;accent-color:var(--teal);cursor:pointer;" />
-              <label for="td-history" style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;color:var(--soft);cursor:pointer;">Move to Trip History</label>
-            </div>
+            <input type="hidden" id="td-history" value="false" />
             <div class="trip-field-group">
               <div class="trip-field-label">Places to Visit (up to 7) and starting day #</div>
               <div style="display:flex;flex-direction:column;gap:8px;">
@@ -652,9 +649,21 @@
 
       <!-- Trip History Page -->
       <div class="page" id="page-history">
+
+        <!-- Archetype Banner -->
+        <div class="arch-banner" id="history-arch-banner" style="display:none;">
+          <img class="arch-banner-icon" id="history-arch-icon" src="" alt="" />
+          <div>
+            <div class="arch-banner-name" id="history-arch-name"></div>
+            <div class="arch-banner-tag" id="history-arch-tag"></div>
+            <div class="arch-banner-desc" id="history-arch-desc"></div>
+          </div>
+        </div>
+
         <div id="history-list-section">
           <div class="trips-header">
-            <div class="trips-title">Trip History</div>
+            <div class="trips-title">Your Taken Trips</div>
+            <button class="btn-new-trip" onclick="showNewHistoryTripForm()">+ Taken Trip</button>
           </div>
           <div id="history-list-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading trips…</div>
           <div id="history-list"></div>
@@ -1711,7 +1720,7 @@ async function checkSubscriptionReturn() {
   } catch(e) { /* non-blocking */ }
 }
 
-const GATED_PAGES = ['workshop', 'planning', 'history', 'my-trip', 'integration'];
+const GATED_PAGES = ['workshop', 'planning', 'my-trip', 'integration'];
 
 function isSubscribed() {
   return !!(portalProfile && portalProfile['Subscription Active']);
@@ -2171,6 +2180,7 @@ let currentTripCountry     = '';
 let tripsLoaded        = false;
 let historyTripsLoaded = false;
 let _returnToHistory   = false;
+let _isHistoryTrip     = false;
 
 function loadTrips() {
   // Populate archetype banner from profile
@@ -2200,6 +2210,21 @@ function loadTrips() {
 }
 
 function loadTripHistory() {
+  // Populate archetype banner (same data as trip planning banner)
+  const hBanner = document.getElementById('history-arch-banner');
+  if (hBanner && portalProfile) {
+    const arch = portalProfile['Archetype'] || '';
+    const tag  = portalProfile['Archetype Tag'] || '';
+    const desc = portalProfile['Archetype Description'] || '';
+    const icon = portalProfile['Archetype Icon URL'] || '';
+    if (arch) {
+      document.getElementById('history-arch-name').textContent = arch;
+      document.getElementById('history-arch-tag').textContent  = tag;
+      document.getElementById('history-arch-desc').textContent = desc;
+      if (icon) document.getElementById('history-arch-icon').src = icon;
+      hBanner.style.display = 'flex';
+    }
+  }
   if (historyTripsLoaded) return;
   fetch('/api/trips?email=' + encodeURIComponent(userEmail))
     .then(r => r.json())
@@ -2217,7 +2242,7 @@ function loadTripHistory() {
 function renderHistoryList(records) {
   const list = document.getElementById('history-list');
   if (!records.length) {
-    list.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">No history trips yet. Check "Move to Trip History" on a trip to move it here.</p>';
+    list.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">No taken trips recorded yet. Click "+ Taken Trip" to add one.</p>';
     return;
   }
   list.innerHTML = records.map(r => {
@@ -2238,9 +2263,11 @@ function renderHistoryList(records) {
 
 function openTripFromHistory(record) {
   _returnToHistory = true;
+  _isHistoryTrip   = true;
   document.getElementById('history-list-section').style.display = 'none';
   showPage('planning');
   document.getElementById('trip-list-section').style.display = 'none';
+  document.getElementById('td-status-group').style.display = 'none';
   openTrip(record);
 }
 
@@ -2305,7 +2332,7 @@ function openTrip(record) {
   document.getElementById('td-status').value      = f['Status of Trip'] || 'Research';
   document.getElementById('td-notes').value       = f['Notes']        || '';
   document.getElementById('td-cotraveler').value  = f['Co-Traveler Email'] || '';
-  document.getElementById('td-history').checked   = !!f['History'];
+  document.getElementById('td-history').value = f['History'] ? 'true' : 'false';
   initPlaceRows(
     [f['Place 1']||'', f['Place 2']||'', f['Place 3']||'', f['Place 4']||'', f['Place 5']||'', f['Place 6']||'', f['Place 7']||''],
     [f['Day 1']||'', f['Day 2']||'', f['Day 3']||'', f['Day 4']||'', f['Day 5']||'', f['Day 6']||'', f['Day 7']||'']
@@ -2453,8 +2480,33 @@ function showNewTripForm() {
   loadTripDNAGuides('', '', null);
 }
 
+function showNewHistoryTripForm() {
+  _returnToHistory = true;
+  _isHistoryTrip   = true;
+  currentTripId    = null;
+  _pendingDnaGuideId = null;
+  document.getElementById('cancel-trip-btn').style.display = 'none';
+  document.getElementById('trip-detail-title').textContent = 'Taken Trip';
+  ['td-name','td-start','td-end','td-cotraveler','td-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('td-status').value = 'Completed';
+  document.getElementById('td-status-group').style.display = 'none';
+  initPlaceRows([]);
+  dpClear('tdp');
+  document.getElementById('trip-dest-picker').style.display = 'block';
+  document.getElementById('trip-dest-readonly').style.display = 'none';
+  document.getElementById('history-list-section').style.display = 'none';
+  showPage('planning');
+  document.getElementById('trip-list-section').style.display = 'none';
+  document.getElementById('trip-detail').style.display = 'block';
+  loadTripDNAGuides('', '', null);
+}
+
 function closeTripDetail() {
   document.getElementById('trip-detail').style.display = 'none';
+  document.getElementById('td-status-group').style.display = 'block';
+  _isHistoryTrip = false;
   if (_returnToHistory) {
     _returnToHistory = false;
     historyTripsLoaded = false;
@@ -2509,6 +2561,12 @@ async function saveTrip() {
   }
   const _s = document.getElementById('td-start').value;
   const _e = document.getElementById('td-end').value;
+  if (_isHistoryTrip) {
+    if (!_e) { msg.style.color='#f43f5e'; msg.textContent='Please enter the end date of your trip.'; return; }
+    if (new Date(_e) >= new Date(new Date().toDateString())) {
+      msg.style.color='#f43f5e'; msg.textContent='End date must be in the past for a taken trip.'; return;
+    }
+  }
   if (_s && _e && Math.round((new Date(_e) - new Date(_s)) / 86400000) > 21) {
     msg.style.color = '#f43f5e';
     msg.textContent = 'Trip duration cannot exceed 21 nights. Please split into two trips.';
@@ -2522,7 +2580,7 @@ async function saveTrip() {
     endDate:     document.getElementById('td-end').value,
     airportCode: airport,
     notes:       document.getElementById('td-notes').value,
-    'Status of Trip': document.getElementById('td-status').value || 'Research',
+    'Status of Trip': _isHistoryTrip ? 'Completed' : (document.getElementById('td-status').value || 'Research'),
     coTravelerEmail: (document.getElementById('td-cotraveler') || {}).value || '',
     place1:      (document.getElementById('td-place1') || {}).value || '',
     place2:      (document.getElementById('td-place2') || {}).value || '',
@@ -2539,7 +2597,7 @@ async function saveTrip() {
     place6Day:   parseInt((document.getElementById('td-place6-day') || {}).value) || '',
     place7Day:   parseInt((document.getElementById('td-place7-day') || {}).value) || '',
     dnaGuideId:  _pendingDnaGuideId || undefined,
-    history:     document.getElementById('td-history').checked
+    history:     _isHistoryTrip || document.getElementById('td-history').value === 'true'
   };
 
   if (currentTripId) {
