@@ -628,8 +628,9 @@
             </div>
 
             <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
-            <div>
+            <div style="display:flex;gap:12px;align-items:center;">
               <button onclick="saveTrip()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">Save Trip</button>
+              <button onclick="closeTripDetail()" style="background:none;border:1px solid #475569;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 20px;cursor:pointer;">Cancel</button>
             </div>
 
             <!-- Integration Report — shown for Completed trips -->
@@ -2473,6 +2474,12 @@ function showNewTripForm() {
   ['td-name','td-start','td-end','td-cotraveler','td-notes','td-status'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  // Planning trips: dates must be today or later
+  const todayStr = new Date().toISOString().split('T')[0];
+  document.getElementById('td-start').min = todayStr;
+  document.getElementById('td-start').max = '';
+  document.getElementById('td-end').min   = todayStr;
+  document.getElementById('td-end').max   = '';
   initPlaceRows([]);
   dpClear('tdp');
   document.getElementById('trip-dest-picker').style.display = 'block';
@@ -2494,6 +2501,13 @@ function showNewHistoryTripForm() {
   });
   document.getElementById('td-status').value = 'Completed';
   document.getElementById('td-status-group').style.display = 'none';
+  // History trips: dates must be before today
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = yesterday.toISOString().split('T')[0];
+  document.getElementById('td-start').min = '';
+  document.getElementById('td-start').max = yStr;
+  document.getElementById('td-end').min   = '';
+  document.getElementById('td-end').max   = yStr;
   initPlaceRows([]);
   dpClear('tdp');
   document.getElementById('trip-dest-picker').style.display = 'block';
@@ -2508,6 +2522,10 @@ function showNewHistoryTripForm() {
 function closeTripDetail() {
   document.getElementById('trip-detail').style.display = 'none';
   document.getElementById('td-status-group').style.display = 'block';
+  document.getElementById('td-start').min = '';
+  document.getElementById('td-start').max = '';
+  document.getElementById('td-end').min   = '';
+  document.getElementById('td-end').max   = '';
   _isHistoryTrip = false;
   if (_returnToHistory) {
     _returnToHistory = false;
