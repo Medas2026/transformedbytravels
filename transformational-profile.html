@@ -1255,7 +1255,8 @@ function nextAdditional() {
       .then(r => r.json())
       .then(data => {
         if (data.record || data.success) {
-          document.getElementById('create-account-btn').textContent = 'Update My Profile';
+          document.getElementById('create-account-btn').textContent = 'Go to My Portal';
+          document.getElementById('create-account-btn').onclick = function() { window.location.href = '/portal.html'; };
         }
       }).catch(() => {});
     }
