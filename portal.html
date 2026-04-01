@@ -716,7 +716,7 @@
               <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
               <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Your Dimensions</div>
             </div>
-            <div id="story-dimensions"></div>
+            <div id="ws-yourfive-wrap-STORY"></div>
           </div>
 
           <!-- Planned Trips -->
@@ -2356,7 +2356,7 @@ function loadTravelStory() {
               '· ' + new Date(aDate).toLocaleDateString('en-US', {month:'long', year:'numeric'});
           }
           document.getElementById('story-archetype-block').style.display = 'block';
-          renderDimBars(portalProfile, 'story-dimensions');
+          wsDrawRadarSlide('STORY', portalProfile);
           document.getElementById('story-dims-block').style.display = 'block';
           hasContent = true;
         }
