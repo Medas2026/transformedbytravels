@@ -317,6 +317,6 @@ function buildFields(b) {
   if (b.dnaGuideId           !== undefined) fields['DNA Guide ID']       = b.dnaGuideId;
   if (b.coTravelerEmail      !== undefined) fields['Co-Traveler Email']  = b.coTravelerEmail;
   if (b.history              !== undefined) fields['History']            = !!b.history;
-  if (b.tripRating           !== undefined) fields['Trip Rating']        = b.tripRating;
+  if (b.tripRating !== undefined && b.tripRating !== '') fields['Trip Rating'] = b.tripRating;
   return fields;
 }
