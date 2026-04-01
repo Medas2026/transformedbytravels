@@ -1025,7 +1025,7 @@
       <p style="color:#94a3b8;font-size:0.88rem;line-height:1.65;margin:0 0 24px;">Your trip has been saved. Would you like to go to your Portal or stay here?</p>
       <div style="display:flex;gap:10px;">
         <button onclick="document.getElementById('trip-saved-modal').style.display='none';" style="flex:1;padding:12px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Remain</button>
-        <button onclick="document.getElementById('trip-saved-modal').style.display='none';showPage('my-trips');" style="flex:1;padding:12px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Go to Portal</button>
+        <button onclick="document.getElementById('trip-saved-modal').style.display='none';showPage('profile');" style="flex:1;padding:12px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Go to Portal</button>
       </div>
     </div>
   </div>
@@ -2213,15 +2213,12 @@ function loadTripHistory() {
   // Populate archetype banner (same data as trip planning banner)
   const hBanner = document.getElementById('history-arch-banner');
   if (hBanner && portalProfile) {
-    const arch = portalProfile['Archetype'] || '';
-    const tag  = portalProfile['Archetype Tag'] || '';
-    const desc = portalProfile['Archetype Description'] || '';
-    const icon = portalProfile['Archetype Icon URL'] || '';
-    if (arch) {
-      document.getElementById('history-arch-name').textContent = arch;
-      document.getElementById('history-arch-tag').textContent  = tag;
-      document.getElementById('history-arch-desc').textContent = desc;
-      if (icon) document.getElementById('history-arch-icon').src = icon;
+    const archData = ARCHETYPE_DATA[portalProfile['Archetype']];
+    if (archData) {
+      document.getElementById('history-arch-icon').src           = archData.iconImg;
+      document.getElementById('history-arch-name').textContent   = portalProfile['Archetype'];
+      document.getElementById('history-arch-tag').textContent    = archData.tag;
+      document.getElementById('history-arch-desc').textContent   = archData.desc;
       hBanner.style.display = 'flex';
     }
   }
@@ -2563,8 +2560,9 @@ async function saveTrip() {
   const _e = document.getElementById('td-end').value;
   if (_isHistoryTrip) {
     if (!_e) { msg.style.color='#f43f5e'; msg.textContent='Please enter the end date of your trip.'; return; }
-    if (new Date(_e) >= new Date(new Date().toDateString())) {
-      msg.style.color='#f43f5e'; msg.textContent='End date must be in the past for a taken trip.'; return;
+    const today = new Date(); today.setHours(0,0,0,0);
+    if (new Date(_e) >= today) {
+      msg.style.color='#f43f5e'; msg.textContent='End date must be before today for a taken trip.'; return;
     }
   }
   if (_s && _e && Math.round((new Date(_e) - new Date(_s)) / 86400000) > 21) {
