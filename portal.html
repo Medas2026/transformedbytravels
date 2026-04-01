@@ -2319,6 +2319,10 @@ function loadTripHistory() {
 }
 
 function loadTravelStory() {
+  if (!portalProfile) {
+    window.addEventListener('portalReady', loadTravelStory, { once: true });
+    return;
+  }
   document.getElementById('story-loading').style.display = 'block';
   document.getElementById('story-content').style.display = 'none';
 
