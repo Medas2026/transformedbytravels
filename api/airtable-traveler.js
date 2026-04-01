@@ -93,7 +93,7 @@ module.exports = function handler(req, res) {
     const filter  = `?filterByFormula=${encodeURIComponent(`({Name}="${name}")`)}`;
     const options = {
       hostname: 'api.airtable.com',
-      path:     `/v0/${BASE_ID}/${encodeURIComponent('Age Bands')}${filter}`,
+      path:     `/v0/${BASE_ID}/${encodeURIComponent('Life Stage')}${filter}`,
       method:   'GET',
       headers:  { 'Authorization': 'Bearer ' + apiKey }
     };
