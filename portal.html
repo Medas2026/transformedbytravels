@@ -710,22 +710,22 @@
             </div>
           </div>
 
-          <!-- Taken Trips -->
-          <div id="story-taken-block" style="display:none;margin-bottom:28px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
-              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You've Taken</div>
-            </div>
-            <div id="story-taken-list"></div>
-          </div>
-
           <!-- Planned Trips -->
           <div id="story-planned-block" style="display:none;margin-bottom:28px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-              <div style="width:3px;height:24px;background:rgba(45,212,191,0.4);border-radius:2px;"></div>
-              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">Trips You're Planning</div>
+              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You're Planning</div>
             </div>
             <div id="story-planned-list"></div>
+          </div>
+
+          <!-- Taken Trips -->
+          <div id="story-taken-block" style="display:none;margin-bottom:28px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <div style="width:3px;height:24px;background:rgba(45,212,191,0.4);border-radius:2px;"></div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">Trips You've Taken</div>
+            </div>
+            <div id="story-taken-list"></div>
           </div>
 
           <!-- Empty state -->
@@ -2323,7 +2323,9 @@ function loadTravelStory() {
       const taken   = records.filter(r => r.fields['History']).sort((a, b) => {
         return new Date(b.fields['End Date'] || 0) - new Date(a.fields['End Date'] || 0);
       });
-      const planned = records.filter(r => !r.fields['History']);
+      const planned = records.filter(r => !r.fields['History']).sort((a, b) => {
+        return new Date(b.fields['Start Date'] || 0) - new Date(a.fields['Start Date'] || 0);
+      });
 
       let hasContent = false;
 
@@ -2384,13 +2386,13 @@ function loadTravelStory() {
           const start = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '';
           const end   = f['End Date']   ? new Date(f['End Date']).toLocaleDateString('en-US',   {month:'short', year:'numeric'}) : '';
           const dates = start && end ? `${start} – ${end}` : (start || end || '');
-          return `<div style="background:var(--s1);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;margin-bottom:10px;opacity:0.85;">
+          return `<div style="background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
               <div>
-                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">${name}</div>
-                ${dest}
+                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--teal);">${name}</div>
+                <span style="color:var(--teal);opacity:0.7;font-size:0.8rem;">${f['Destination'] || ''}${f['Country'] ? ', ' + f['Country'] : ''}</span>
               </div>
-              ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--muted);flex-shrink:0;">${dates}</div>` : ''}
+              ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--teal);opacity:0.8;flex-shrink:0;">${dates}</div>` : ''}
             </div>
           </div>`;
         }).join('');
