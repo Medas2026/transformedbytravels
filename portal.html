@@ -2183,6 +2183,9 @@ let _returnToHistory   = false;
 let _isHistoryTrip     = false;
 
 function loadTrips() {
+  // Always reset section visibility when navigating to planning page
+  document.getElementById('trip-list-section').style.display = 'block';
+  document.getElementById('trip-detail').style.display = 'none';
   // Populate archetype banner from profile
   if (portalProfile) {
     const arch = ARCHETYPE_DATA[portalProfile['Archetype']];
@@ -2210,6 +2213,8 @@ function loadTrips() {
 }
 
 function loadTripHistory() {
+  // Always reset section visibility when navigating to history page
+  document.getElementById('history-list-section').style.display = 'block';
   // Populate archetype banner (same data as trip planning banner)
   const hBanner = document.getElementById('history-arch-banner');
   if (hBanner && portalProfile) {
