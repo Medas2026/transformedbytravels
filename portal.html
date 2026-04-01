@@ -2372,17 +2372,17 @@ function loadTravelStory() {
           const start  = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '';
           const end    = f['End Date']   ? new Date(f['End Date']).toLocaleDateString('en-US',   {month:'short', year:'numeric'}) : '';
           const dates  = start && end ? `${start} – ${end}` : (start || end || '');
-          const rating = f['Trip Rating'] ? `<span style="color:var(--teal);font-size:0.9rem;" title="${f['Trip Rating']}">${ratingStars[f['Trip Rating']] || f['Trip Rating']}</span>` : '';
+          const rating = f['Trip Rating'] ? `<span style="color:var(--text);font-size:0.9rem;" title="${f['Trip Rating']}">${ratingStars[f['Trip Rating']] || f['Trip Rating']}</span>` : '';
           const notes  = f['Notes'] ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.82rem;color:var(--text);margin-top:6px;line-height:1.5;border-left:2px solid rgba(45,212,191,0.3);padding-left:10px;">${f['Notes']}</div>` : '';
           return `<div style="background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
               <div>
-                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--teal);">${name}</div>
+                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">${name}</div>
                 ${dest}
               </div>
               <div style="text-align:right;flex-shrink:0;">
                 ${rating ? `<div>${rating}</div>` : ''}
-                ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--teal);opacity:0.8;margin-top:2px;">${dates}</div>` : ''}
+                ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--text);margin-top:2px;">${dates}</div>` : ''}
               </div>
             </div>
             ${notes}
@@ -2404,10 +2404,10 @@ function loadTravelStory() {
           return `<div style="background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
               <div>
-                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--teal);">${name}</div>
+                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">${name}</div>
                 <span style="color:var(--text);font-size:0.8rem;">${f['Destination'] || ''}${f['Country'] ? ', ' + f['Country'] : ''}</span>
               </div>
-              ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--teal);opacity:0.8;flex-shrink:0;">${dates}</div>` : ''}
+              ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--text);flex-shrink:0;">${dates}</div>` : ''}
             </div>
           </div>`;
         }).join('');
