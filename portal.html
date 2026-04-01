@@ -231,6 +231,9 @@
       <div class="menu-item" onclick="showPage('history')" data-page="history" data-tooltip="View trips you have taken in the past.">
         <i class="ph ph-clock-clockwise menu-icon"></i> Trip History
       </div>
+      <div class="menu-item" onclick="showPage('story')" data-page="story" data-tooltip="See your travel journey — archetypes, trips taken, and trips ahead.">
+        <i class="ph ph-book-open menu-icon"></i> Your Travel Story
+      </div>
       <div class="menu-item" onclick="showPage('dna')" data-page="dna" data-tooltip="Generate a personalized destination guide tailored to your unique traveler DNA and travel style.">
         <i class="ph ph-sparkle menu-icon"></i> DNA Guide
       </div>
@@ -681,6 +684,54 @@
           </div>
           <div id="history-list-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading trips…</div>
           <div id="history-list"></div>
+        </div>
+      </div>
+
+      <!-- Your Travel Story Page -->
+      <div class="page" id="page-story">
+        <div class="profile-section-title" style="font-size:1.1rem;margin-bottom:20px;">Your Travel Story</div>
+        <div id="story-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading your story…</div>
+        <div id="story-content" style="display:none;">
+
+          <!-- Archetype Chapter -->
+          <div id="story-archetype-block" style="display:none;margin-bottom:28px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Your Archetype</div>
+              <div id="story-assess-date" style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--muted);margin-left:4px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;">
+              <img id="story-arch-icon" src="" alt="" style="width:48px;height:48px;object-fit:contain;" />
+              <div>
+                <div id="story-arch-name" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1rem;color:var(--text);"></div>
+                <div id="story-arch-tag" style="font-family:'Open Sans',sans-serif;font-size:0.82rem;color:var(--teal);margin-top:2px;"></div>
+                <div id="story-arch-desc" style="font-family:'Open Sans',sans-serif;font-size:0.83rem;color:var(--soft);margin-top:4px;line-height:1.5;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Taken Trips -->
+          <div id="story-taken-block" style="display:none;margin-bottom:28px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You've Taken</div>
+            </div>
+            <div id="story-taken-list"></div>
+          </div>
+
+          <!-- Planned Trips -->
+          <div id="story-planned-block" style="display:none;margin-bottom:28px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <div style="width:3px;height:24px;background:rgba(45,212,191,0.4);border-radius:2px;"></div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">Trips You're Planning</div>
+            </div>
+            <div id="story-planned-list"></div>
+          </div>
+
+          <!-- Empty state -->
+          <div id="story-empty" style="display:none;color:var(--soft);font-size:0.9rem;padding:12px 0;">Your travel story is just beginning. Take the assessment and plan your first trip to get started.</div>
+
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.07);font-family:'Open Sans',sans-serif;font-size:0.85rem;color:var(--muted);font-style:italic;">Where will your story take you next?</div>
         </div>
       </div>
 
@@ -1789,6 +1840,7 @@ function showPage(name) {
   }
   if (name === 'planning')     loadTrips();
   if (name === 'history')      loadTripHistory();
+  if (name === 'story')        loadTravelStory();
   if (name === 'my-trip')      loadMyTrip();
   if (name === 'workshop')     loadWorkshop('PRE_TRIP');
   if (name === 'integration')  loadWorkshop('INTEGRATION');
@@ -2254,6 +2306,104 @@ function loadTripHistory() {
     })
     .catch(() => {
       document.getElementById('history-list-loading').textContent = 'Could not load trip history.';
+    });
+}
+
+function loadTravelStory() {
+  document.getElementById('story-loading').style.display = 'block';
+  document.getElementById('story-content').style.display = 'none';
+
+  fetch('/api/trips?email=' + encodeURIComponent(userEmail) + '&_=' + Date.now())
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('story-loading').style.display = 'none';
+      document.getElementById('story-content').style.display = 'block';
+
+      const records = data.records || [];
+      const taken   = records.filter(r => r.fields['History']).sort((a, b) => {
+        return new Date(b.fields['End Date'] || 0) - new Date(a.fields['End Date'] || 0);
+      });
+      const planned = records.filter(r => !r.fields['History']);
+
+      let hasContent = false;
+
+      // Archetype block
+      if (portalProfile && portalProfile['Archetype']) {
+        const archData = ARCHETYPE_DATA[portalProfile['Archetype']];
+        if (archData) {
+          document.getElementById('story-arch-icon').src          = archData.iconImg;
+          document.getElementById('story-arch-name').textContent  = portalProfile['Archetype'];
+          document.getElementById('story-arch-tag').textContent   = archData.tag;
+          document.getElementById('story-arch-desc').textContent  = archData.desc;
+          const aDate = portalProfile['Assessment Date'];
+          if (aDate) {
+            document.getElementById('story-assess-date').textContent =
+              '· ' + new Date(aDate).toLocaleDateString('en-US', {month:'long', year:'numeric'});
+          }
+          document.getElementById('story-archetype-block').style.display = 'block';
+          hasContent = true;
+        }
+      }
+
+      // Taken trips
+      if (taken.length) {
+        const ratingEmoji = { 'Top 3 Ever': '★★★', 'Outstanding': '★★', 'Met Expectations': '★', 'So So': '', 'Disappointing': '' };
+        document.getElementById('story-taken-list').innerHTML = taken.map(r => {
+          const f      = r.fields;
+          const name   = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
+          const dest   = f['Destination'] ? `<span style="color:var(--muted);font-size:0.8rem;">${f['Destination']}${f['Country'] ? ', ' + f['Country'] : ''}</span>` : '';
+          const start  = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '';
+          const end    = f['End Date']   ? new Date(f['End Date']).toLocaleDateString('en-US',   {month:'short', year:'numeric'}) : '';
+          const dates  = start && end ? `${start} – ${end}` : (start || end || '');
+          const rating = f['Trip Rating'] ? `<span style="color:var(--teal);font-size:0.8rem;">${f['Trip Rating']}${ratingEmoji[f['Trip Rating']] ? ' ' + ratingEmoji[f['Trip Rating']] : ''}</span>` : '';
+          const notes  = f['Notes'] ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.82rem;color:var(--soft);margin-top:6px;line-height:1.5;border-left:2px solid rgba(45,212,191,0.3);padding-left:10px;">${f['Notes']}</div>` : '';
+          return `<div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+              <div>
+                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">${name}</div>
+                ${dest}
+              </div>
+              <div style="text-align:right;flex-shrink:0;">
+                ${rating ? `<div>${rating}</div>` : ''}
+                ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--muted);margin-top:2px;">${dates}</div>` : ''}
+              </div>
+            </div>
+            ${notes}
+          </div>`;
+        }).join('');
+        document.getElementById('story-taken-block').style.display = 'block';
+        hasContent = true;
+      }
+
+      // Planned trips
+      if (planned.length) {
+        document.getElementById('story-planned-list').innerHTML = planned.map(r => {
+          const f     = r.fields;
+          const name  = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
+          const dest  = f['Destination'] ? `<span style="color:var(--muted);font-size:0.8rem;">${f['Destination']}${f['Country'] ? ', ' + f['Country'] : ''}</span>` : '';
+          const start = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '';
+          const end   = f['End Date']   ? new Date(f['End Date']).toLocaleDateString('en-US',   {month:'short', year:'numeric'}) : '';
+          const dates = start && end ? `${start} – ${end}` : (start || end || '');
+          return `<div style="background:var(--s1);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;margin-bottom:10px;opacity:0.85;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+              <div>
+                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">${name}</div>
+                ${dest}
+              </div>
+              ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--muted);flex-shrink:0;">${dates}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('');
+        document.getElementById('story-planned-block').style.display = 'block';
+        hasContent = true;
+      }
+
+      if (!hasContent) {
+        document.getElementById('story-empty').style.display = 'block';
+      }
+    })
+    .catch(() => {
+      document.getElementById('story-loading').textContent = 'Could not load your travel story.';
     });
 }
 
