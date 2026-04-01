@@ -2334,7 +2334,9 @@ function loadTravelStory() {
 
       const records = data.records || [];
       const taken   = records.filter(r => r.fields['History']).sort((a, b) => {
-        return new Date(b.fields['End Date'] || 0) - new Date(a.fields['End Date'] || 0);
+        const aDate = a.fields['End Date'] || a.fields['Start Date'] || '0';
+        const bDate = b.fields['End Date'] || b.fields['Start Date'] || '0';
+        return new Date(bDate) - new Date(aDate);
       });
       const planned = records.filter(r => !r.fields['History']).sort((a, b) => {
         return new Date(b.fields['Start Date'] || 0) - new Date(a.fields['Start Date'] || 0);
