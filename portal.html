@@ -722,8 +722,8 @@
           <!-- Taken Trips -->
           <div id="story-taken-block" style="display:none;margin-bottom:28px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-              <div style="width:3px;height:24px;background:rgba(45,212,191,0.4);border-radius:2px;"></div>
-              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">Trips You've Taken</div>
+              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You've Taken</div>
             </div>
             <div id="story-taken-list"></div>
           </div>
@@ -2359,15 +2359,15 @@ function loadTravelStory() {
           const dates  = start && end ? `${start} – ${end}` : (start || end || '');
           const rating = f['Trip Rating'] ? `<span style="color:var(--teal);font-size:0.9rem;" title="${f['Trip Rating']}">${ratingStars[f['Trip Rating']] || f['Trip Rating']}</span>` : '';
           const notes  = f['Notes'] ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.82rem;color:var(--soft);margin-top:6px;line-height:1.5;border-left:2px solid rgba(45,212,191,0.3);padding-left:10px;">${f['Notes']}</div>` : '';
-          return `<div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+          return `<div style="background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
               <div>
-                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">${name}</div>
+                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--teal);">${name}</div>
                 ${dest}
               </div>
               <div style="text-align:right;flex-shrink:0;">
                 ${rating ? `<div>${rating}</div>` : ''}
-                ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--muted);margin-top:2px;">${dates}</div>` : ''}
+                ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--teal);opacity:0.8;margin-top:2px;">${dates}</div>` : ''}
               </div>
             </div>
             ${notes}
