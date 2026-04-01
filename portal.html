@@ -337,7 +337,7 @@
             <div class="profile-field"><span class="field-label">Archetype</span><span class="field-value" id="pf-archetype">—</span></div>
             <div class="profile-field"><span class="field-label">Passions</span><span class="field-value" id="pf-passions">—</span></div>
             <div class="profile-field"><span class="field-label">Hope to Experience</span><span class="field-value" id="pf-hopes">—</span></div>
-            <div class="profile-field"><span class="field-label">Travel Age</span><span class="field-value" id="pf-lifestage">—</span></div>
+            <div class="profile-field"><span class="field-label">Travel Age</span><span class="field-value" id="pf-travelage">—</span></div>
             <div class="profile-field"><span class="field-label">Travel Style</span><span class="field-value" id="pf-travelstyle">—</span></div>
           </div>
 
@@ -1170,7 +1170,7 @@ async function loadProfile(email) {
       document.getElementById('pf-archetype').textContent    = f['Archetype'] || '—';
       document.getElementById('pf-passions').textContent     = f['Passions'] || '—';
       document.getElementById('pf-hopes').textContent        = f['Hopes to Experience'] || '—';
-      document.getElementById('pf-lifestage').textContent    = f['Life Stage'] || '—';
+      document.getElementById('pf-travelage').textContent     = f['Life Stage'] || '—';
       document.getElementById('pf-travelstyle').textContent  = f['Travel Style'] || '—';
       renderDimBars(f);
       checkActiveTripBanner();
