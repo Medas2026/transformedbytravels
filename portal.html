@@ -697,7 +697,7 @@
           <div id="story-archetype-block" style="display:none;margin-bottom:28px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
               <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
-              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Your Archetype</div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Your Archetype</div>
               <div id="story-assess-date" style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--muted);margin-left:4px;"></div>
             </div>
             <div style="display:flex;align-items:center;gap:14px;background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;">
@@ -714,7 +714,7 @@
           <div id="story-planned-block" style="display:none;margin-bottom:28px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
               <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
-              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You're Planning</div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You're Planning</div>
             </div>
             <div id="story-planned-list"></div>
           </div>
@@ -723,7 +723,7 @@
           <div id="story-taken-block" style="display:none;margin-bottom:28px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
               <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
-              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You've Taken</div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You've Taken</div>
             </div>
             <div id="story-taken-list"></div>
           </div>
@@ -2353,7 +2353,7 @@ function loadTravelStory() {
         document.getElementById('story-taken-list').innerHTML = taken.map(r => {
           const f      = r.fields;
           const name   = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
-          const dest   = f['Destination'] ? `<span style="color:var(--muted);font-size:0.8rem;">${f['Destination']}${f['Country'] ? ', ' + f['Country'] : ''}</span>` : '';
+          const dest   = f['Destination'] ? `<span style="color:var(--text);font-size:0.8rem;">${f['Destination']}${f['Country'] ? ', ' + f['Country'] : ''}</span>` : '';
           const start  = f['Start Date'] ? new Date(f['Start Date']).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '';
           const end    = f['End Date']   ? new Date(f['End Date']).toLocaleDateString('en-US',   {month:'short', year:'numeric'}) : '';
           const dates  = start && end ? `${start} – ${end}` : (start || end || '');
@@ -2390,7 +2390,7 @@ function loadTravelStory() {
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
               <div>
                 <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--teal);">${name}</div>
-                <span style="color:var(--teal);opacity:0.7;font-size:0.8rem;">${f['Destination'] || ''}${f['Country'] ? ', ' + f['Country'] : ''}</span>
+                <span style="color:var(--text);font-size:0.8rem;">${f['Destination'] || ''}${f['Country'] ? ', ' + f['Country'] : ''}</span>
               </div>
               ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--teal);opacity:0.8;flex-shrink:0;">${dates}</div>` : ''}
             </div>
