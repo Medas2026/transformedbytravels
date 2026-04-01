@@ -3706,7 +3706,7 @@ function wsDismissResume(code) {
 function wsDrawRadarSlide(code, p) {
   const wrap = document.getElementById('ws-yourfive-wrap-' + code);
   const dims = ['Curiosity','Adventure','Reflection','Connection','Purpose'];
-  const keys = {Curiosity:'DS-1 Curiosity',Adventure:'DS-2 Adventure',Reflection:'DS-3 Reflection',Connection:'DS-4 Connection','Travel Purpose':'DS-5 Intention'};
+  const keys = {Curiosity:'DS-1 Curiosity',Adventure:'DS-2 Adventure',Reflection:'DS-3 Reflection',Connection:'DS-4 Connection','Purpose':'DS-5 Intention'};
   const scores = dims.map(d => Number(p[keys[d]] || 0));
   const dimColor = s => s === 7 ? '#2dd4bf' : s >= 4 ? '#34d399' : s >= 1 ? '#fb923c' : '#f43f5e';
   const colors = scores.map(dimColor);
