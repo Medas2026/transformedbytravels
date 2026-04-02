@@ -2677,7 +2677,7 @@ function openTrip(record) {
   // Pre-load DNA records for place modal guide picker
   if (!_pmDNARecords) fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail)).then(r=>r.json()).then(d=>{ _pmDNARecords = d.records||[]; }).catch(()=>{});
   setTimeout(renderTripMap, 300);
-  if (f['Status of Trip'] === 'Completed') {
+  if (!_isHistoryTrip && f['Status of Trip'] === 'Completed') {
     loadIntegrationReport(record.id, f['Integration Report'] || '');
   } else {
     document.getElementById('integration-report-section').style.display = 'none';
