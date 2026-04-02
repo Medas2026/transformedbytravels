@@ -66,6 +66,57 @@ function substitute(text, vars) {
   return text.replace(/\{(\w+)\}/g, (_, key) => vars[key] !== undefined ? vars[key] : '{' + key + '}');
 }
 
+function sendTripHistoryEmail(email, name, b, done) {
+  const dest    = b.destination || '';
+  const country = b.country ? ', ' + b.country : '';
+  const subject = `Your past trip to ${dest} has been added to your account.`;
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;">
+  <tr><td align="center" style="padding:32px 16px;">
+    <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+      <tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
+        <img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" />
+      </td></tr>
+      <tr><td style="padding:36px 40px 28px;">
+        <p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">Hi ${name || email},</p>
+        <p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">Your past trip to <strong>${dest}${country}</strong> has been added to your Travel Story.</p>
+      </td></tr>
+      <tr><td style="padding:0 40px 36px;text-align:center;">
+        <a href="https://transformedbytravels.vercel.app/portal.html"
+           style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">
+          View My Travel Story
+        </a>
+      </td></tr>
+      <tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+        <p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const apiKey = process.env.RESEND_API_KEY;
+  const body   = JSON.stringify({ from: 'YourResults@transformedbytravels.com', to: email, subject, html });
+  const options = {
+    hostname: 'api.resend.com',
+    path:     '/emails',
+    method:   'POST',
+    headers: {
+      'Authorization':  'Bearer ' + apiKey,
+      'Content-Type':   'application/json',
+      'Content-Length': Buffer.byteLength(body)
+    }
+  };
+  const req = https.request(options, (resend) => {
+    resend.on('data', () => {});
+    resend.on('end', () => done());
+  });
+  req.on('error', e => { console.error('Trip history email error:', e.message); done(); });
+  req.write(body);
+  req.end();
+}
+
 function sendTripPlanEmail(email, name, b, done) {
   const vars = { name: name || email, destination: b.destination || '', country: b.country || '' };
   fetchTemplate('TRIP_PLAN', (err, tmpl) => {
@@ -271,6 +322,10 @@ module.exports = function handler(req, res) {
                 startDate:   b.startDate || ''
               }).catch(e => console.error('Committed email error:', e.message));
               res.status(200).json({ success: true, record: data, tripsRemaining: Math.max(0, remaining - 1) });
+            } else if (b.history) {
+              sendTripHistoryEmail(email, b.name || '', b, () => {
+                res.status(200).json({ success: true, record: data, tripsRemaining: Math.max(0, remaining - 1) });
+              });
             } else {
               sendTripPlanEmail(email, b.name || '', b, () => {
                 res.status(200).json({ success: true, record: data, tripsRemaining: Math.max(0, remaining - 1) });
