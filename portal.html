@@ -1731,7 +1731,7 @@ function loadProfileTrips() {
   fetch('/api/trips?email=' + encodeURIComponent(userEmail) + '&_=' + Date.now())
     .then(r => r.json())
     .then(data => {
-      const records = (data.records || []).filter(r => r.fields['Status of Trip'] !== 'Cancelled');
+      const records = (data.records || []).filter(r => r.fields['Status of Trip'] !== 'Cancelled' && !r.fields['History']);
       if (!records.length) return;
       const statusColor = { 'Research': '#f59e0b', 'Planned': '#60a5fa', 'Committed': 'var(--teal)', 'Active': '#34d399', 'Completed': 'var(--muted)' };
       const rows = records.map(r => {
