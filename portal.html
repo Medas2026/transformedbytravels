@@ -2449,7 +2449,12 @@ function loadTripHistory() {
     .then(data => {
       historyTripsLoaded = true;
       document.getElementById('history-list-loading').style.display = 'none';
-      const history = (data.records || []).filter(r => r.fields['History']);
+      const history = (data.records || []).filter(r => r.fields['History'])
+        .sort((a, b) => {
+          const da = a.fields['End Date'] || a.fields['Start Date'] || '';
+          const db = b.fields['End Date'] || b.fields['Start Date'] || '';
+          return db.localeCompare(da);
+        });
       renderHistoryList(history);
     })
     .catch(() => {
