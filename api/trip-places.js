@@ -66,6 +66,7 @@ module.exports = function handler(req, res) {
     if (b.notes)      fields['Notes']          = b.notes;
     if (b.dnaGuideId)  fields['DNA Guide ID']  = b.dnaGuideId;
     if (b.photosUrl)   fields['Photos URL']    = b.photosUrl;
+    if (b.stayedAtUrl) fields['Stayed at URL'] = b.stayedAtUrl;
 
     airtableRequest('POST', '', { fields }, (err, data) => {
       if (err) return res.status(500).json({ error: err.message });
