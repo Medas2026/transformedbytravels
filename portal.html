@@ -164,8 +164,8 @@
     .place-card-del { background:none; border:none; color:#64748b; font-size:1.1rem; line-height:1; cursor:pointer; padding:4px 6px; flex-shrink:0; }
     .place-card-del:hover { color:#f43f5e; }
     /* Place modal */
-    #place-modal { display:none; position:fixed; inset:0; z-index:1010; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px; }
-    #place-modal .pm-box { background:var(--s1); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:28px; width:100%; max-width:420px; display:flex; flex-direction:column; gap:16px; }
+    #place-modal { display:none; position:fixed; inset:0; z-index:1010; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px); align-items:flex-start; justify-content:center; padding:20px; overflow-y:auto; }
+    #place-modal .pm-box { background:var(--s1); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:28px; width:100%; max-width:420px; display:flex; flex-direction:column; gap:16px; margin:auto; }
     #place-modal .pm-title { font-family:'Montserrat',sans-serif; font-weight:800; font-size:1.1rem; color:var(--text); }
     #place-modal .pm-field { display:flex; flex-direction:column; gap:6px; }
     #place-modal .pm-label { font-size:0.78rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; }
