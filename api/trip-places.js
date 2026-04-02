@@ -59,15 +59,17 @@ module.exports = function handler(req, res) {
       'Trip ID':   b.tripId || '',
       'Place':     b.place || '',
     };
-    if (b.tripId)     fields['Trips']    = [b.tripId];
-    if (b.travelerId) fields['Traveler'] = [b.travelerId];
-    if (b.day)        fields['Day']      = Number(b.day);
-    if (b.country)    fields['Country']  = b.country;
-    if (b.notes)      fields['Notes']    = b.notes;
+    if (b.tripId)     fields['Trips']          = [b.tripId];
+    if (b.travelerId) fields['Traveler Email'] = [b.travelerId];
+    if (b.day)        fields['Day']            = Number(b.day);
+    if (b.country)    fields['Country']        = b.country;
+    if (b.notes)      fields['Notes']          = b.notes;
+    if (b.dnaGuideId)  fields['DNA Guide ID']  = b.dnaGuideId;
+    if (b.photosUrl)   fields['Photos URL']    = b.photosUrl;
 
     airtableRequest('POST', '', { fields }, (err, data) => {
       if (err) return res.status(500).json({ error: err.message });
-      if (data.error) return res.status(500).json({ error: data.error });
+      if (data.error) return res.status(500).json({ error: typeof data.error === 'string' ? data.error : JSON.stringify(data.error) });
       res.status(200).json({ success: true, record: data });
     });
     return;
