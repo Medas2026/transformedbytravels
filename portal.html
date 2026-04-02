@@ -600,17 +600,10 @@
             </div>
             <input type="hidden" id="td-history" value="false" />
             <div class="trip-field-group">
-              <div class="trip-field-label">Places to Visit (up to 7) and starting day #</div>
-              <div style="display:flex;flex-direction:column;gap:8px;">
-                <div id="place-row-1" class="place-row"></div>
-                <div id="place-row-2" class="place-row"></div>
-                <div id="place-row-3" class="place-row"></div>
-                <div id="place-row-4" class="place-row"></div>
-                <div id="place-row-5" class="place-row"></div>
-                <div id="place-row-6" class="place-row"></div>
-                <div id="place-row-7" class="place-row"></div>
-              </div>
-              <div style="margin-top:10px;text-align:right;">
+              <div class="trip-field-label">Places to Visit</div>
+              <div id="places-container" style="display:flex;flex-direction:column;gap:8px;"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                <button onclick="addPlaceRow(null)" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:6px 14px;cursor:pointer;">+ Add Place</button>
                 <button onclick="renderTripMap()" style="background:none;border:none;color:var(--teal);font-size:0.82rem;font-family:'Open Sans',sans-serif;cursor:pointer;padding:4px 0;opacity:0.8;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">↻ Refresh Map</button>
               </div>
             </div>
@@ -1129,7 +1122,8 @@ const AUTH0_CLIENT_ID = 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd';
 
 let auth0Client  = null;
 let userEmail    = null;
-let portalProfile = null;
+let portalProfile  = null;
+let portalRecordId = null;
 
 const ARCHETYPE_DATA = {
   "The Transformational Traveler": { iconImg: "images/archetypes/TT Icon.png",  tag: "All Forces Active",     desc: "You approach travel as a powerful path to personal growth. You seek experiences that combine curiosity, challenge, connection, immersion, and reflection.",  photos: ["images/archetypes/TT1.png",  "images/archetypes/TT2.png"] },
@@ -1209,7 +1203,8 @@ async function loadProfile(email) {
 
     if (data.record) {
       const f = data.record.fields;
-      portalProfile = f;
+      portalProfile  = f;
+      portalRecordId = data.record.id;
       updateLockIcons();
       document.getElementById('pf-name').textContent       = f['Traveler Name'] || '—';
       if (f['Traveler Name']) document.getElementById('nav-user-email').textContent = f['Traveler Name'];
@@ -2527,10 +2522,7 @@ function openTrip(record) {
   document.getElementById('td-cotraveler').value  = f['Co-Traveler Email'] || '';
   document.getElementById('td-rating').value      = f['Trip Rating'] || '';
   document.getElementById('td-history').value = f['History'] ? 'true' : 'false';
-  initPlaceRows(
-    [f['Place 1']||'', f['Place 2']||'', f['Place 3']||'', f['Place 4']||'', f['Place 5']||'', f['Place 6']||'', f['Place 7']||''],
-    [f['Day 1']||'', f['Day 2']||'', f['Day 3']||'', f['Day 4']||'', f['Day 5']||'', f['Day 6']||'', f['Day 7']||'']
-  );
+  loadTripPlaces(record.id);
   updateDuration();
   document.getElementById('cancel-trip-btn').style.display = 'inline-block';
   document.getElementById('trip-list-section').style.display = 'none';
@@ -2544,50 +2536,73 @@ function openTrip(record) {
   }
 }
 
-function initPlaceRows(values, dayValues) {
-  // Build sorted country list once from DESTINATIONS
+function _placeCountryOptions() {
   const countries = typeof DESTINATIONS !== 'undefined'
     ? [...new Set(DESTINATIONS.map(r => r[1]))].sort()
     : [];
-  const countryOptions = countries.map(c => `<option value="${c}">${c}</option>`).join('');
+  return countries.map(c => `<option value="${c}">${c}</option>`).join('');
+}
 
-  for (let i = 1; i <= 7; i++) {
-    const row = document.getElementById('place-row-' + i);
-    if (!row) continue;
-    const val    = (values    && values[i - 1])    || '';
-    const dayVal = (dayValues && dayValues[i - 1]) || '';
-    row.innerHTML = `
-      <div class="place-input-row">
-        <input id="td-place${i}" class="trip-input" placeholder="Place ${i} — type or browse database" value="${val.replace(/"/g, '&quot;')}" oninput="updatePlaceGuideBtn(${i})" />
-        <span style="font-size:0.75rem;color:var(--muted);white-space:nowrap;">Day</span>
-        <input id="td-place${i}-day" type="number" class="trip-input" placeholder="—" min="1" max="99" style="width:46px;flex:none;text-align:center;padding:8px 4px;" value="${dayVal}" />
-        <button class="place-browse-btn" id="place-browse-btn-${i}" onclick="togglePlacePicker(${i})" title="Browse destinations database">Browse</button>
-        <button class="place-guide-btn" id="place-guide-btn-${i}" onclick="fetchPlaceGuide(${i})" title="Get a quick overview of this place" style="${val ? '' : 'opacity:0.3;cursor:default;'}">Guide</button>
-      </div>
-      <div class="place-picker-panel" id="place-picker-${i}">
-        <select id="place-country-${i}" onchange="placeCountryChange(${i})">
-          <option value="">— Country —</option>
-          ${countryOptions}
-        </select>
-        <select id="place-dest-sel-${i}" disabled onchange="placeDestPick(${i})">
-          <option value="">— Destination —</option>
-        </select>
-      </div>
-      <div class="place-guide-panel" id="place-guide-panel-${i}"></div>`;
+function addPlaceRow(placeData) {
+  const container = document.getElementById('places-container');
+  const place   = (placeData && placeData['Place'])  || '';
+  const day     = (placeData && placeData['Day'])     || '';
+  const country = (placeData && placeData['Country']) || '';
+  const row = document.createElement('div');
+  row.className = 'place-row';
+  row.dataset.placeId = (placeData && placeData._recId) || '';
+  row.innerHTML = `
+    <div class="place-input-row">
+      <input class="trip-input place-name-input" placeholder="Place — type or browse database" value="${place.replace(/"/g,'&quot;')}" oninput="updatePlaceGuideBtnRow(this)" />
+      <span style="font-size:0.75rem;color:var(--muted);white-space:nowrap;">Day</span>
+      <input type="number" class="trip-input place-day-input" placeholder="—" min="1" max="99" style="width:46px;flex:none;text-align:center;padding:8px 4px;" value="${day}" />
+      <button class="place-browse-btn" onclick="togglePlacePickerRow(this)" title="Browse destinations database">Browse</button>
+      <button class="place-guide-btn" onclick="fetchPlaceGuideRow(this)" title="Get a quick overview of this place" style="${place ? '' : 'opacity:0.3;cursor:default;'}">Guide</button>
+      <button onclick="removePlaceRow(this)" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.1rem;padding:4px 6px;flex-shrink:0;line-height:1;" title="Remove">×</button>
+    </div>
+    <div class="place-picker-panel" style="display:none;">
+      <select class="place-country-sel" onchange="placeCountryChangeRow(this)">
+        <option value="">— Country —</option>
+        ${_placeCountryOptions()}
+      </select>
+      <select class="place-dest-sel" disabled onchange="placeDestPickRow(this)">
+        <option value="">— Destination —</option>
+      </select>
+    </div>
+    <div class="place-guide-panel"></div>`;
+  if (country) {
+    const sel = row.querySelector('.place-country-sel');
+    if (sel) sel.value = country;
+  }
+  container.appendChild(row);
+}
+
+function renderPlaceRows(records) {
+  const container = document.getElementById('places-container');
+  container.innerHTML = '';
+  if (records.length) {
+    records.forEach(r => addPlaceRow({ ...r.fields, _recId: r.id }));
+  } else {
+    addPlaceRow(null);
   }
 }
 
-function togglePlacePicker(i) {
-  const panel = document.getElementById('place-picker-' + i);
-  const btn   = document.getElementById('place-browse-btn-' + i);
+function removePlaceRow(btn) {
+  btn.closest('.place-row').remove();
+}
+
+function togglePlacePickerRow(btn) {
+  const row   = btn.closest('.place-row');
+  const panel = row.querySelector('.place-picker-panel');
   const open  = panel.style.display === 'flex';
   panel.style.display = open ? 'none' : 'flex';
   btn.classList.toggle('active', !open);
 }
 
-function placeCountryChange(i) {
-  const country  = document.getElementById('place-country-' + i).value;
-  const destSel  = document.getElementById('place-dest-sel-' + i);
+function placeCountryChangeRow(sel) {
+  const row     = sel.closest('.place-row');
+  const destSel = row.querySelector('.place-dest-sel');
+  const country = sel.value;
   destSel.innerHTML = '<option value="">— Destination —</option>';
   if (!country) { destSel.disabled = true; return; }
   const dests = typeof DESTINATIONS !== 'undefined'
@@ -2601,34 +2616,30 @@ function placeCountryChange(i) {
   destSel.disabled = false;
 }
 
-function placeDestPick(i) {
-  const dest    = document.getElementById('place-dest-sel-' + i).value;
+function placeDestPickRow(sel) {
+  const dest = sel.value;
   if (!dest) return;
-  const country = document.getElementById('place-country-' + i).value;
-  const input   = document.getElementById('td-place' + i);
+  const row     = sel.closest('.place-row');
+  const country = row.querySelector('.place-country-sel').value;
+  const input   = row.querySelector('.place-name-input');
   input.value   = country ? country + ', ' + dest : dest;
-  updatePlaceGuideBtn(i);
-  // Close picker and reset selects
-  document.getElementById('place-picker-' + i).style.display = 'none';
-  document.getElementById('place-browse-btn-' + i).classList.remove('active');
-  document.getElementById('place-country-' + i).value = '';
-  document.getElementById('place-dest-sel-' + i).innerHTML = '<option value="">— Destination —</option>';
-  document.getElementById('place-dest-sel-' + i).disabled = true;
+  updatePlaceGuideBtnRow(input);
 }
 
-function updatePlaceGuideBtn(i) {
-  const val = (document.getElementById('td-place' + i).value || '').trim();
-  const btn = document.getElementById('place-guide-btn-' + i);
+function updatePlaceGuideBtnRow(input) {
+  const row = input.closest('.place-row');
+  const btn = row ? row.querySelector('.place-guide-btn') : null;
+  const val = input.value.trim();
   if (btn) { btn.style.opacity = val ? '1' : '0.3'; btn.style.cursor = val ? 'pointer' : 'default'; }
 }
 
-async function fetchPlaceGuide(i) {
-  const place = (document.getElementById('td-place' + i).value || '').trim();
+async function fetchPlaceGuideRow(btn) {
+  const row   = btn.closest('.place-row');
+  const place = row.querySelector('.place-name-input').value.trim();
   if (!place) return;
+  const panel       = row.querySelector('.place-guide-panel');
   const destination = (document.getElementById('tdp-destination') ? document.getElementById('tdp-destination').value : '') || '';
   const country     = (document.getElementById('tdp-country')     ? document.getElementById('tdp-country').value     : '') || '';
-  const btn   = document.getElementById('place-guide-btn-' + i);
-  const panel = document.getElementById('place-guide-panel-' + i);
 
   btn.disabled    = true;
   btn.textContent = '…';
@@ -2640,16 +2651,53 @@ async function fetchPlaceGuide(i) {
       + '&destination=' + encodeURIComponent(destination)
       + '&country='     + encodeURIComponent(country));
     const data = await resp.json();
-    if (data.guide) {
-      panel.innerHTML = data.guide;
-    } else {
-      panel.innerHTML = '<em style="color:var(--muted)">Could not load guide.</em>';
-    }
+    panel.innerHTML = data.guide || '<em style="color:var(--muted)">Could not load guide.</em>';
   } catch(e) {
     panel.innerHTML = '<em style="color:var(--muted)">Error loading guide.</em>';
   }
   btn.disabled    = false;
   btn.textContent = 'Guide';
+}
+
+async function loadTripPlaces(tripId) {
+  const container = document.getElementById('places-container');
+  container.innerHTML = '<em style="color:var(--muted);font-size:0.85rem;padding:8px 0;">Loading places…</em>';
+  try {
+    const resp = await fetch('/api/trip-places?tripId=' + encodeURIComponent(tripId));
+    const data = await resp.json();
+    renderPlaceRows(data.records || []);
+  } catch(e) {
+    renderPlaceRows([]);
+  }
+}
+
+async function saveTripPlaces(tripId) {
+  if (!tripId) return;
+  try {
+    const existResp = await fetch('/api/trip-places?tripId=' + encodeURIComponent(tripId));
+    const existData = await existResp.json();
+    await Promise.all((existData.records || []).map(r =>
+      fetch('/api/trip-places?id=' + r.id, { method: 'DELETE' })
+    ));
+  } catch(e) { /* non-fatal */ }
+
+  const rows = Array.from(document.querySelectorAll('#places-container .place-row'));
+  await Promise.all(rows.map(row => {
+    const place = row.querySelector('.place-name-input').value.trim();
+    if (!place) return Promise.resolve();
+    const day = row.querySelector('.place-day-input').value;
+    return fetch('/api/trip-places', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tripId,
+        travelerId: portalRecordId,
+        place,
+        day: day ? parseInt(day) : null,
+        notes: ''
+      })
+    });
+  }));
 }
 
 function showNewTripForm() {
@@ -2671,7 +2719,7 @@ function showNewTripForm() {
   document.getElementById('td-start').max = '';
   document.getElementById('td-end').min   = todayStr;
   document.getElementById('td-end').max   = '';
-  initPlaceRows([]);
+  renderPlaceRows([]);
   dpClear('tdp');
   document.getElementById('trip-dest-picker').style.display = 'block';
   document.getElementById('trip-dest-readonly').style.display = 'none';
@@ -2701,7 +2749,7 @@ function showNewHistoryTripForm() {
   document.getElementById('td-start').max = yStr;
   document.getElementById('td-end').min   = '';
   document.getElementById('td-end').max   = yStr;
-  initPlaceRows([]);
+  renderPlaceRows([]);
   dpClear('tdp');
   document.getElementById('trip-dest-picker').style.display = 'block';
   document.getElementById('trip-dest-readonly').style.display = 'none';
@@ -2797,20 +2845,6 @@ async function saveTrip() {
     notes:       document.getElementById('td-notes').value,
     'Status of Trip': _isHistoryTrip ? 'Completed' : (document.getElementById('td-status').value || 'Research'),
     coTravelerEmail: (document.getElementById('td-cotraveler') || {}).value || '',
-    place1:      (document.getElementById('td-place1') || {}).value || '',
-    place2:      (document.getElementById('td-place2') || {}).value || '',
-    place3:      (document.getElementById('td-place3') || {}).value || '',
-    place4:      (document.getElementById('td-place4') || {}).value || '',
-    place5:      (document.getElementById('td-place5') || {}).value || '',
-    place6:      (document.getElementById('td-place6') || {}).value || '',
-    place7:      (document.getElementById('td-place7') || {}).value || '',
-    place1Day:   parseInt((document.getElementById('td-place1-day') || {}).value) || '',
-    place2Day:   parseInt((document.getElementById('td-place2-day') || {}).value) || '',
-    place3Day:   parseInt((document.getElementById('td-place3-day') || {}).value) || '',
-    place4Day:   parseInt((document.getElementById('td-place4-day') || {}).value) || '',
-    place5Day:   parseInt((document.getElementById('td-place5-day') || {}).value) || '',
-    place6Day:   parseInt((document.getElementById('td-place6-day') || {}).value) || '',
-    place7Day:   parseInt((document.getElementById('td-place7-day') || {}).value) || '',
     dnaGuideId:  _pendingDnaGuideId || undefined,
     history:     _isHistoryTrip || document.getElementById('td-history').value === 'true',
     tripRating:  document.getElementById('td-rating').value || ''
@@ -2832,6 +2866,7 @@ async function saveTrip() {
     const data = await resp.json();
     if (data.success) {
       if (!currentTripId && data.record) currentTripId = data.record.id;
+      await saveTripPlaces(currentTripId);
       if (data.tripsRemaining !== undefined) {
         document.getElementById('pf-trips-remaining').textContent = data.tripsRemaining;
       }
@@ -4217,8 +4252,8 @@ let _tripMarkers = [];
 
 
 async function renderTripMap() {
-  const places = [1,2,3,4,5,6,7]
-    .map(i => { const el = document.getElementById('td-place' + i); return el ? el.value.trim() : ''; })
+  const places = Array.from(document.querySelectorAll('#places-container .place-name-input'))
+    .map(el => el.value.trim())
     .filter(Boolean);
 
   const section = document.getElementById('trip-map-section');
