@@ -2636,7 +2636,7 @@ function renderPlaceCards() {
       ${p.day ? `<span class="place-card-day">Day ${p.day}</span>` : ''}
       ${p.country ? `<span class="place-card-day" style="background:rgba(148,163,184,0.12);color:#94a3b8;">${p.country}</span>` : ''}
       ${p.dnaGuideId ? `<span class="place-card-day" style="background:rgba(45,212,191,0.12);color:var(--teal);cursor:pointer;" title="View DNA Guide" onclick="showPlaceGuide('${p.dnaGuideId}')">🧬 Guide</span>` : ''}
-      ${p.photosUrl ? `<span class="place-card-day" style="background:rgba(99,102,241,0.12);color:#a5b4fc;cursor:pointer;" title="Open photos folder" onclick="window.open(${JSON.stringify(p.photosUrl)},'_blank')">📷 Photos</span>` : ''}
+      ${p.photosUrl ? `<span class="place-card-day" style="background:rgba(99,102,241,0.12);color:#a5b4fc;cursor:pointer;" title="Open photos folder" onclick="openPlacePhotos(${i})">📷 Photos</span>` : ''}
       <button class="place-card-edit" onclick="openPlaceModal(${i})">Edit</button>
       <button class="place-card-del" onclick="deletePlaceCard(${i})" title="Remove">×</button>`;
     container.appendChild(card);
@@ -2838,6 +2838,11 @@ function pmLinkPhotos() {
 
 function pmOpenPhotos() {
   if (_pmPhotosUrl) window.open(_pmPhotosUrl, '_blank');
+}
+
+function openPlacePhotos(i) {
+  const url = _places[i] && _places[i].photosUrl;
+  if (url) window.open(url, '_blank');
 }
 
 function pmUnlinkPhotos() {
