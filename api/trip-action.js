@@ -354,12 +354,13 @@ module.exports = function handler(req, res) {
     fields['Start Date']       = today;
     fields['Journal Enabled']  = b.journalEnabled !== false;
     if (b.journalEnabled !== false) {
-      if (b.journalTime) fields['Journal Time'] = String(b.journalTime);
+      if (b.journalTime) fields['Journal Time'] = Number(b.journalTime);
       if (b.timezone)    fields['Time Zone']    = b.timezone;
     }
   }
   if (action === 'end') fields['End Date'] = today;
 
+  console.log('[trip-action start] fields being patched:', JSON.stringify(fields));
   airtableRequest('PATCH', TRIPS_TABLE, `/${tripId}`, { fields }, (err, tripData) => {
     if (err) return res.status(500).json({ error: err.message });
     if (tripData.error) return res.status(500).json({ error: tripData.error });
