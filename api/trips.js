@@ -336,7 +336,11 @@ module.exports = function handler(req, res) {
               const summary = await generateTripSummary(destination, country, places, startDate, endDate);
               const details = buildTripDetailsBlock(destination, country, startDate, endDate, places);
               const summaryHtml = summary
-                ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#0f172a;line-height:1.75;margin:0 0 18px;">${summary}</p>`
+                ? summary.split('\n').map(line => {
+                    const h = line.match(/^#+\s*(.+)/);
+                    if (h) return `<h3 style="font-family:Georgia,serif;font-size:16px;font-weight:bold;color:#0f172a;margin:0 0 8px;">${h[1]}</h3>`;
+                    return line.trim() ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#0f172a;line-height:1.75;margin:0 0 18px;">${line.trim()}</p>` : '';
+                  }).join('')
                 : '';
               const subject = `Your trip to ${tripName} is confirmed!`;
               const html = buildEmailHTML(subject, `You're committed, traveler!`,
