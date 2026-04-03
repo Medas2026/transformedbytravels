@@ -2084,7 +2084,9 @@ function renderMyTripActive(r, container) {
     const diff = Math.round((new Date(today) - new Date(f['Start Date'])) / 86400000);
     if (diff >= 0) dayNum = diff + 1;
   }
-  const journalLink = `/journal.html?email=${encodeURIComponent(userEmail)}&trip=${encodeURIComponent(r.id)}&date=${today}${f['Start Date'] ? '&start=' + encodeURIComponent(f['Start Date']) : ''}&dest=${encodeURIComponent(dest || name)}`;
+  const _jTripId    = r.id;
+  const _jStart     = f['Start Date'] || '';
+  const _jDest      = dest || name;
   const summaryField = f['Journal Enabled'] === false ? `
     <div style="margin-bottom:14px;padding:14px;background:#0f172a;border-radius:8px;border:1px solid #334155;">
       <div style="font-size:0.8rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;margin-bottom:8px;">Trip Reflection</div>
@@ -2098,7 +2100,7 @@ function renderMyTripActive(r, container) {
       <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.05rem;color:#fff;margin-bottom:4px;">${name}</div>
       ${dest ? `<div style="font-size:0.85rem;color:var(--soft);">${dest}${start ? ' · Started ' + start : ''}</div>` : ''}
     </div>
-    <a href="${journalLink}" style="display:block;text-align:center;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">📔 Log Today's Journal Entry</a>
+    <a href="#" onclick="openTodayJournal('${_jTripId}','${_jStart}','${encodeURIComponent(_jDest)}');return false;" style="display:block;text-align:center;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">📔 Log Today's Journal Entry</a>
 
     <div style="margin-bottom:20px;">
       <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Journal History</div>
@@ -2113,6 +2115,12 @@ function renderMyTripActive(r, container) {
 
   // Load journal history
   if (f['Start Date']) loadJournalHistory(r.id, f['Start Date'], today, dest || name);
+}
+
+function openTodayJournal(tripId, startDate, encodedDest) {
+  // Compute local date at click time (not UTC, not stale from page load)
+  const localDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local timezone
+  window.location.href = `/journal.html?email=${encodeURIComponent(userEmail)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${startDate ? '&start=' + encodeURIComponent(startDate) : ''}&dest=${encodedDest}`;
 }
 
 function loadJournalHistory(tripId, startDate, today, destName, containerId) {
