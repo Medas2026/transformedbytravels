@@ -3257,6 +3257,7 @@ async function saveTrip() {
     if (data.success) {
       if (!currentTripId && data.record) currentTripId = data.record.id;
       if (destination) { currentTripDestination = destination; currentTripCountry = country; }
+      tripsLoaded = false; // force list refresh on next visit
       const placesError = await saveTripPlaces(currentTripId);
       if (placesError) {
         msg.style.color = '#f43f5e';
