@@ -2668,6 +2668,8 @@ function openTrip(record) {
   document.getElementById('td-cotraveler').value  = f['Co-Traveler Email'] || '';
   document.getElementById('td-rating').value      = f['Trip Rating'] || '';
   document.getElementById('td-history').value = f['History'] ? 'true' : 'false';
+  const mapSection = document.getElementById('trip-map-section');
+  if (mapSection) mapSection.style.display = 'none';
   loadTripPlaces(record.id);
   updateDuration();
   document.getElementById('cancel-trip-btn').style.display = 'inline-block';
@@ -2676,7 +2678,6 @@ function openTrip(record) {
   loadTripDNAGuides(f['Destination'] || '', f['Country'] || '', f['DNA Guide ID'] || null);
   // Pre-load DNA records for place modal guide picker
   if (!_pmDNARecords) fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail)).then(r=>r.json()).then(d=>{ _pmDNARecords = d.records||[]; }).catch(()=>{});
-  setTimeout(renderTripMap, 300);
   if (!_isHistoryTrip && f['Status of Trip'] === 'Completed') {
     loadIntegrationReport(record.id, f['Integration Report'] || '');
   } else {
@@ -3017,6 +3018,7 @@ async function loadTripPlaces(tripId) {
   } catch(e) {
     _places = []; renderPlaceCards();
   }
+  renderTripMap();
 }
 
 async function saveTripPlaces(tripId) {
@@ -3228,7 +3230,7 @@ async function saveTrip() {
       }
       document.getElementById('trip-detail-title').textContent = payload.tripName || 'Trip Details';
       msg.style.display = 'none';
-      setTimeout(renderTripMap, 300);
+      renderTripMap();
       document.getElementById('trip-saved-modal').style.display = 'flex';
     } else {
       msg.style.color = '#f43f5e';
