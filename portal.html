@@ -2345,27 +2345,30 @@ function toggleJournalFields(tripId, enabled) {
 
 async function doTripAction(tripId, mode) {
   const listId = 'my-trip-content';
+
+  // Read form values BEFORE clearing the container (they live inside it)
+  const body = { action: mode, tripId, email: userEmail };
+  if (mode === 'start') {
+    const enabledEl      = document.getElementById(`journal-enabled-${tripId}`);
+    const journalEnabled = !enabledEl || enabledEl.checked;
+    body.journalEnabled  = journalEnabled;
+    if (journalEnabled) {
+      const jtEl    = document.getElementById(`journal-time-${tripId}`);
+      const tzEl    = document.getElementById(`timezone-${tripId}`);
+      const phoneEl = document.getElementById(`phone-${tripId}`);
+      if (jtEl)    body.journalTime = jtEl.value;
+      if (tzEl)    body.timezone    = tzEl.value;
+      if (phoneEl) body.phone       = phoneEl.value.trim();
+    }
+  }
+  if (mode === 'end') {
+    const summaryEl = document.getElementById(`trip-summary-${tripId}`);
+    if (summaryEl && summaryEl.value.trim()) body.tripSummary = summaryEl.value.trim();
+  }
+
   document.getElementById(listId).innerHTML = `<p style="color:var(--soft);font-size:0.9rem;">${mode === 'start' ? 'Starting your trip…' : 'Ending your trip…'}</p>`;
 
   try {
-    const body = { action: mode, tripId, email: userEmail };
-    if (mode === 'start') {
-      const enabledEl      = document.getElementById(`journal-enabled-${tripId}`);
-      const journalEnabled = !enabledEl || enabledEl.checked;
-      body.journalEnabled  = journalEnabled;
-      if (journalEnabled) {
-        const jtEl    = document.getElementById(`journal-time-${tripId}`);
-        const tzEl    = document.getElementById(`timezone-${tripId}`);
-        const phoneEl = document.getElementById(`phone-${tripId}`);
-        if (jtEl)    body.journalTime = jtEl.value;
-        if (tzEl)    body.timezone    = tzEl.value;
-        if (phoneEl) body.phone       = phoneEl.value.trim();
-      }
-    }
-    if (mode === 'end') {
-      const summaryEl = document.getElementById(`trip-summary-${tripId}`);
-      if (summaryEl && summaryEl.value.trim()) body.tripSummary = summaryEl.value.trim();
-    }
     const resp = await fetch('/api/trip-action', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
