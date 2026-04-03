@@ -356,7 +356,7 @@
       const resp = await fetch('/api/journal', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, tripId, startDate, tripName, reflection, barriers, photoUrl, archetype: travelerArchetype, hopes: travelerHopes, recordId: existingRecordId })
+        body: JSON.stringify({ email, tripId, startDate, entryDate: dateStr, tripName, reflection, barriers, photoUrl, archetype: travelerArchetype, hopes: travelerHopes, recordId: existingRecordId })
       });
       const data = await resp.json();
 

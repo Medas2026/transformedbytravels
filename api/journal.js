@@ -212,7 +212,8 @@ module.exports = async function handler(req, res) {
     if (!reflection && !barriers) return res.status(400).json({ error: 'at least one response required' });
 
     const now   = new Date();
-    const today = now.toISOString().split('T')[0];
+    // Use the date the traveler is journaling about (from URL param), not UTC server time
+    const today = (b.entryDate || '').trim() || now.toISOString().split('T')[0];
 
     // Calculate day number from trip start date (or use override for dev testing)
     let dayNumber = b.dayOverride ? parseInt(b.dayOverride) : null;
