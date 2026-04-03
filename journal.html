@@ -86,10 +86,18 @@
 
     textarea:focus { border-color: #2dd4bf; }
 
-    .mic-row {
+    .mic-input-row {
       display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .mic-col {
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 4px;
+      flex-shrink: 0;
     }
 
     .mic-btn {
@@ -97,14 +105,13 @@
       border: 1px solid #334155;
       border-radius: 8px;
       color: #94a3b8;
-      font-size: 1.1rem;
-      padding: 6px 12px;
+      padding: 8px 7px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 0.78rem;
+      justify-content: center;
+      font-size: 1rem;
+      min-height: 56px;
       transition: border-color 0.2s, color 0.2s;
     }
 
@@ -112,6 +119,21 @@
       border-color: #f43f5e;
       color: #f43f5e;
       animation: pulse 1s infinite;
+    }
+
+    .mic-status {
+      font-size: 0.65rem;
+      color: #64748b;
+      text-align: center;
+      max-width: 34px;
+      word-break: break-word;
+      line-height: 1.2;
+    }
+
+    .mic-textarea {
+      flex: 1;
+      min-width: 0;
+      width: auto;
     }
 
     @keyframes pulse {
@@ -165,26 +187,31 @@
 <body>
 
   <img src="/images/Base%20Green%20Graphic%20Logo%20Black.png" alt="Transformed by Travels" class="logo" />
-  <h1>Daily Travel Journal</h1>
+  <h1>Travel for Growth Journal</h1>
   <div class="date-line" id="date-line"></div>
+  <a href="/portal.html" style="display:inline-block;margin-bottom:20px;padding:8px 20px;background:none;border:1.5px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.8rem;font-weight:600;text-decoration:none;">← Return to Portal</a>
 
   <div class="card" id="journal-card">
 
     <div class="prompt-block">
       <div class="prompt-label"><span>1.</span> Any reflections on your goals from today's activities?</div>
-      <textarea id="reflection" placeholder="What came up for you today? What did you notice, discover, or feel…"></textarea>
-      <div class="mic-row">
-        <button class="mic-btn" id="mic-1" onclick="toggleMic(1)">🎤 Speak</button>
-        <span id="mic-1-status" style="font-size:0.75rem;color:#94a3b8;"></span>
+      <div class="mic-input-row">
+        <div class="mic-col">
+          <button class="mic-btn" id="mic-1" onclick="toggleMic(1)">🎤</button>
+          <span id="mic-1-status" class="mic-status"></span>
+        </div>
+        <textarea id="reflection" class="mic-textarea" placeholder="What came up for you today? What did you notice, discover, or feel…"></textarea>
       </div>
     </div>
 
     <div class="prompt-block">
       <div class="prompt-label"><span>2.</span> Any barriers to advancing your efforts?</div>
-      <textarea id="barriers" placeholder="What got in the way? What felt hard or unclear…"></textarea>
-      <div class="mic-row">
-        <button class="mic-btn" id="mic-2" onclick="toggleMic(2)">🎤 Speak</button>
-        <span id="mic-2-status" style="font-size:0.75rem;color:#94a3b8;"></span>
+      <div class="mic-input-row">
+        <div class="mic-col">
+          <button class="mic-btn" id="mic-2" onclick="toggleMic(2)">🎤</button>
+          <span id="mic-2-status" class="mic-status"></span>
+        </div>
+        <textarea id="barriers" class="mic-textarea" placeholder="What got in the way? What felt hard or unclear…"></textarea>
       </div>
     </div>
 
@@ -207,6 +234,21 @@
   const dateStr    = params.get('date')  || new Date().toISOString().split('T')[0];
   const startDate  = params.get('start') || '';
   const tripName   = params.get('dest')  || '';
+
+  // — Fetch traveler profile for archetype + hopes
+  let travelerArchetype = '';
+  let travelerHopes     = '';
+  if (email) {
+    fetch('/api/airtable-traveler?email=' + encodeURIComponent(email))
+      .then(r => r.json())
+      .then(d => {
+        if (d.record && d.record.fields) {
+          travelerArchetype = d.record.fields['Archetype']           || '';
+          travelerHopes     = d.record.fields['Hopes to Experience'] || '';
+        }
+      })
+      .catch(() => {});
+  }
 
   // — Date display
   const d = new Date(dateStr + 'T12:00:00');
@@ -295,7 +337,7 @@
       const resp = await fetch('/api/journal', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, tripId, startDate, tripName, reflection, barriers, photoUrl })
+        body: JSON.stringify({ email, tripId, startDate, tripName, reflection, barriers, photoUrl, archetype: travelerArchetype, hopes: travelerHopes })
       });
       const data = await resp.json();
 
@@ -303,7 +345,7 @@
         const claudeBlock = data.claudeReflection
           ? `<div style="margin-top:20px;padding:16px;background:#0f172a;border-radius:10px;border-left:3px solid #2dd4bf;text-align:left;">
                <div style="font-size:0.75rem;color:#2dd4bf;font-weight:700;margin-bottom:8px;letter-spacing:0.05em;">YOUR COACH REFLECTS</div>
-               <p style="color:#e2e8f0;font-size:0.9rem;line-height:1.7;">${data.claudeReflection}</p>
+               ${data.claudeReflection.match(/[^.!?]+[.!?]+/g)?.map(s => `<p style="color:#e2e8f0;font-size:0.9rem;line-height:1.7;margin-bottom:10px;">${s.trim()}</p>`).join('') || `<p style="color:#e2e8f0;font-size:0.9rem;line-height:1.7;">${data.claudeReflection}</p>`}
              </div>`
           : '';
         document.getElementById('journal-card').innerHTML = `
@@ -312,6 +354,7 @@
             <h2>Journal saved!</h2>
             <p>Your reflections have been captured. Keep exploring, keep growing — see you tomorrow evening.</p>
             ${claudeBlock}
+            <a href="/portal.html" style="display:inline-block;margin-top:24px;padding:12px 32px;background:#2dd4bf;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;text-decoration:none;">← Back to Portal</a>
           </div>`;
       } else {
         statusEl.style.color = '#f43f5e';
