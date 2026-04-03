@@ -158,7 +158,7 @@ module.exports = async function handler(req, res) {
         '</td></tr></table></td></tr></table></body></html>';
 
       sendViaResend({
-        from: 'YourResults@transformedbytravels.com',
+        from: 'TravelForGrowth@transformedbytravels.com',
         to: email,
         subject: 'Destination: ' + destination,
         html: destEmailHtml
@@ -237,7 +237,7 @@ module.exports = async function handler(req, res) {
         '<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>' +
         '</td></tr></table></td></tr></table></body></html>';
 
-      sendViaResend({ from: 'YourResults@transformedbytravels.com', to: email, subject, html: dnaHtml }, apiKey, res);
+      sendViaResend({ from: 'TravelForGrowth@transformedbytravels.com', to: email, subject, html: dnaHtml }, apiKey, res);
       return;
     }
 
@@ -260,7 +260,7 @@ module.exports = async function handler(req, res) {
     const html = buildEmailHTML(name, archetype, archetypePassions, archetypeTag, archetypeDesc, scores, [p1, p2, p3]);
 
     sendViaResend({
-      from: 'YourResults@transformedbytravels.com',
+      from: 'TravelForGrowth@transformedbytravels.com',
       to: email,
       subject,
       html: html.replace('trip-planner.html', 'trip-planner.html?email=' + encodeURIComponent(email))

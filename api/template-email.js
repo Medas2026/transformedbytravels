@@ -118,7 +118,7 @@ function sendTemplateEmail(code, toEmail, mergeFields) {
       const p3      = substitute(tmpl.p3, vars);
       const html    = buildHTML(p1, p2, p3);
       sendViaResend({
-        from:    'YourResults@transformedbytravels.com',
+        from:    'TravelForGrowth@transformedbytravels.com',
         to:      toEmail,
         subject: subject,
         html:    html

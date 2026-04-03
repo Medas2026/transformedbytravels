@@ -3,7 +3,7 @@ const https = require('https');
 const BASE_ID       = 'appdlxcWb45dIqNK2';
 const ISSUES_TABLE  = 'Support Issues';
 const SUPPORT_EMAIL = 'Support@TransformedbyTravels.com';
-const FROM_EMAIL    = 'YourResults@transformedbytravels.com';
+const FROM_EMAIL    = 'TravelForGrowth@transformedbytravels.com';
 
 function airtablePost(fields, callback) {
   const apiKey  = process.env.AIRTABLE_API_KEY;

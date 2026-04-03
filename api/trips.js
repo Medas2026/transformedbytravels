@@ -73,7 +73,7 @@ function buildEmailHTML(title, heading, body) {
 
 async function sendResendEmail(to, subject, html) {
   const apiKey = process.env.RESEND_API_KEY;
-  const body   = JSON.stringify({ from: 'YourResults@transformedbytravels.com', to, subject, html });
+  const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to, subject, html });
   const resp   = await fetch('https://api.resend.com/emails', {
     method:  'POST',
     headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
@@ -174,7 +174,7 @@ function sendTripHistoryEmail(email, name, b, done) {
 </body></html>`;
 
   const apiKey = process.env.RESEND_API_KEY;
-  const body   = JSON.stringify({ from: 'YourResults@transformedbytravels.com', to: email, subject, html });
+  const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to: email, subject, html });
   const options = {
     hostname: 'api.resend.com',
     path:     '/emails',
@@ -256,7 +256,7 @@ function sendTripPlanEmail(email, name, b, done) {
 </body></html>`;
 
     const apiKey = process.env.RESEND_API_KEY;
-    const body   = JSON.stringify({ from: 'YourResults@transformedbytravels.com', to: email, subject, html });
+    const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to: email, subject, html });
     const options = {
       hostname: 'api.resend.com',
       path:     '/emails',

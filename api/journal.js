@@ -90,7 +90,7 @@ function ordinal(n) {
 
 function sendEmail(to, subject, html) {
   const apiKey = process.env.RESEND_API_KEY;
-  const body   = JSON.stringify({ from: 'YourJournal@transformedbytravels.com', to, subject, html });
+  const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to, subject, html });
   const options = {
     hostname: 'api.resend.com',
     path:     '/emails',

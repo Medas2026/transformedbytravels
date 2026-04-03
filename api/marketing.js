@@ -74,7 +74,7 @@ function substitute(text, vars) {
 
 function sendEmail(to, subject, html, callback) {
   const apiKey = process.env.RESEND_API_KEY;
-  const body   = JSON.stringify({ from: 'YourResults@transformedbytravels.com', to, subject, html });
+  const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to, subject, html });
   const options = {
     hostname: 'api.resend.com',
     path:     '/emails',
