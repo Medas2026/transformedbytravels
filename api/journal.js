@@ -53,6 +53,32 @@ function airtablePost(table, fields, callback) {
   req.end();
 }
 
+function airtablePatch(table, recordId, fields, callback) {
+  const apiKey  = process.env.AIRTABLE_API_KEY;
+  const bodyStr = JSON.stringify({ fields });
+  const options = {
+    hostname: 'api.airtable.com',
+    path:     `/v0/${BASE_ID}/${encodeURIComponent(table)}/${recordId}`,
+    method:   'PATCH',
+    headers: {
+      'Authorization':  'Bearer ' + apiKey,
+      'Content-Type':   'application/json',
+      'Content-Length': Buffer.byteLength(bodyStr)
+    }
+  };
+  const req = https.request(options, (res) => {
+    let data = '';
+    res.on('data', c => { data += c; });
+    res.on('end', () => {
+      try { callback(null, JSON.parse(data)); }
+      catch(e) { callback(e); }
+    });
+  });
+  req.on('error', callback);
+  req.write(bodyStr);
+  req.end();
+}
+
 function sendSMS(to, body, callback) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken  = process.env.TWILIO_AUTH_TOKEN;
@@ -170,7 +196,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  // POST — save a journal entry
+  // POST — save or update a journal entry
   if (req.method === 'POST') {
     const b = req.body || {};
     const email      = (b.email      || '').toLowerCase().trim();
@@ -180,6 +206,7 @@ module.exports = async function handler(req, res) {
     const photoUrl   = (b.photoUrl   || '').trim();
     const archetype  = (b.archetype  || '').trim();
     const hopes      = (b.hopes      || '').trim();
+    const recordId   = (b.recordId   || '').trim();
 
     if (!email) return res.status(400).json({ error: 'email required' });
     if (!reflection && !barriers) return res.status(400).json({ error: 'at least one response required' });
@@ -206,23 +233,34 @@ module.exports = async function handler(req, res) {
     } catch(e) { claudeError = e.message; }
 
     const fields = {
-      'Traveler Email': email,
-      'Entry Date':     today,
-      'Entry Time':     now.toISOString().split('T')[1].substring(0, 5) + ' UTC',
-      'Reflection':     reflection,
-      'Barriers':       barriers
+      'Reflection': reflection,
+      'Barriers':   barriers,
+      'Entry Time': now.toISOString().split('T')[1].substring(0, 5) + ' UTC'
     };
-    if (tripId)           fields['Trip ID']              = tripId;
-    if (dayNumber)        fields['Day Number']           = dayNumber;
-    if (photoUrl)         fields['Photo URL']            = photoUrl;
+    if (photoUrl)         fields['Photo URL']              = photoUrl;
     if (claudeReflection) fields['Reflection from Claude'] = claudeReflection;
-    if (b.entryType)      fields['Entry Type']           = b.entryType;
 
-    airtablePost(JOURNAL_TABLE, fields, (err, data) => {
-      if (err) return res.status(500).json({ error: err.message });
-      if (data.error) return res.status(500).json({ error: data.error });
-      res.status(200).json({ success: true, claudeReflection, claudeError: claudeError || undefined });
-    });
+    if (recordId) {
+      // Update existing entry
+      airtablePatch(JOURNAL_TABLE, recordId, fields, (err, data) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (data.error) return res.status(500).json({ error: data.error });
+        res.status(200).json({ success: true, claudeReflection, claudeError: claudeError || undefined });
+      });
+    } else {
+      // Create new entry
+      fields['Traveler Email'] = email;
+      fields['Entry Date']     = today;
+      if (tripId)      fields['Trip ID']    = tripId;
+      if (dayNumber)   fields['Day Number'] = dayNumber;
+      if (b.entryType) fields['Entry Type'] = b.entryType;
+
+      airtablePost(JOURNAL_TABLE, fields, (err, data) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (data.error) return res.status(500).json({ error: data.error });
+        res.status(200).json({ success: true, claudeReflection, claudeError: claudeError || undefined });
+      });
+    }
     return;
   }
 

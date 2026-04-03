@@ -250,6 +250,25 @@
       .catch(() => {});
   }
 
+  // — Pre-fill form if an entry already exists for this date
+  let existingRecordId = null;
+  if (email && tripId) {
+    fetch(`/api/journal?action=entries&email=${encodeURIComponent(email)}&tripId=${encodeURIComponent(tripId)}`)
+      .then(r => r.json())
+      .then(d => {
+        const existing = (d.records || []).find(r => r.fields['Entry Date'] === dateStr);
+        if (existing) {
+          existingRecordId = existing.id;
+          document.getElementById('reflection').value = existing.fields['Reflection'] || '';
+          document.getElementById('barriers').value   = existing.fields['Barriers']   || '';
+          document.getElementById('photo-url').value  = existing.fields['Photo URL']  || '';
+          document.getElementById('submit-btn').textContent = 'Update Journal Entry';
+          document.getElementById('status').textContent = 'Previous entry loaded — edit and save to update.';
+        }
+      })
+      .catch(() => {});
+  }
+
   // — Date display
   const d = new Date(dateStr + 'T12:00:00');
   document.getElementById('date-line').textContent =
@@ -337,7 +356,7 @@
       const resp = await fetch('/api/journal', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, tripId, startDate, tripName, reflection, barriers, photoUrl, archetype: travelerArchetype, hopes: travelerHopes })
+        body: JSON.stringify({ email, tripId, startDate, tripName, reflection, barriers, photoUrl, archetype: travelerArchetype, hopes: travelerHopes, recordId: existingRecordId })
       });
       const data = await resp.json();
 
