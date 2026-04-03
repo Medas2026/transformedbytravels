@@ -4,6 +4,83 @@ const sendTemplateEmail = require('./template-email');
 const BASE_ID      = 'appdlxcWb45dIqNK2';
 const TABLE_NAME   = 'Trips';
 const EMAILS_TABLE = 'Emails';
+const PORTAL_URL   = 'https://app.transformedbytravels.com';
+
+async function fetchTripPlaces(tripId) {
+  try {
+    const apiKey = process.env.AIRTABLE_API_KEY;
+    const filter = encodeURIComponent(`({Trip ID}="${tripId}")`);
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent('Trip Places')}?filterByFormula=${filter}&sort[0][field]=Day&sort[0][direction]=asc`;
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + apiKey } });
+    const data = await resp.json();
+    return (data.records || []).map(r => r.fields['Place'] || '').filter(Boolean);
+  } catch(e) { console.error('[fetchTripPlaces]', e.message); return []; }
+}
+
+async function generateTripSummary(destination, country, places, startDate, endDate) {
+  try {
+    const loc      = [destination, country].filter(Boolean).join(', ');
+    const placeStr = places.length ? places.join(', ') : loc;
+    const dateStr  = (startDate && endDate) ? `from ${startDate} to ${endDate}` : '';
+    const prompt   = `You are a warm travel coach for Transformed by Travels. Write exactly 2 inspiring, personal sentences about an upcoming trip to ${loc} ${dateStr}, visiting ${placeStr}. Focus on the transformational potential and excitement. Speak directly to "you". No bullet points.`;
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    return (data.content && data.content[0] && data.content[0].text) || '';
+  } catch(e) { console.error('[generateTripSummary]', e.message); return ''; }
+}
+
+function buildTripDetailsBlock(destination, country, startDate, endDate, places) {
+  const loc  = [destination, country].filter(Boolean).join(', ');
+  const rows = [['Destination', loc], ['Start Date', startDate], ['End Date', endDate]]
+    .filter(([, v]) => v)
+    .map(([label, value]) =>
+      `<tr><td style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;font-weight:bold;text-transform:uppercase;letter-spacing:0.05em;padding:8px 20px 8px 0;vertical-align:top;white-space:nowrap;">${label}</td>
+       <td style="font-family:Arial,sans-serif;font-size:14px;color:#0f172a;padding:8px 0;">${value}</td></tr>`
+    ).join('');
+  const placesHtml = places.length
+    ? `<div style="margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;">
+        <div style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;font-weight:bold;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Places</div>
+        ${places.map((p, i) => `<div style="font-family:Arial,sans-serif;font-size:14px;color:#0f172a;padding:3px 0;">${i + 1}. ${p}</div>`).join('')}
+      </div>` : '';
+  return `<div style="background:#f8fafc;border-radius:12px;padding:24px 28px;margin:8px 0 24px;">
+    <div style="font-family:Georgia,serif;font-size:16px;font-weight:bold;color:#0f172a;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #2dd4bf;">Your Trip Details</div>
+    <table cellpadding="0" cellspacing="0" style="width:100%;">${rows}</table>${placesHtml}
+  </div>`;
+}
+
+function buildEmailHTML(title, heading, body) {
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+<tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
+<img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
+<tr><td style="padding:36px 40px;">
+<h2 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">${heading}</h2>
+<div style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;">${body}</div>
+</td></tr>
+<tr><td style="padding:0 40px 40px;text-align:center;">
+<a href="${PORTAL_URL}/portal.html" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Go to My Portal</a>
+</td></tr>
+<tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
+</td></tr></table></td></tr></table></body></html>`;
+}
+
+async function sendResendEmail(to, subject, html) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const body   = JSON.stringify({ from: 'YourResults@transformedbytravels.com', to, subject, html });
+  const resp   = await fetch('https://api.resend.com/emails', {
+    method:  'POST',
+    headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+    body
+  });
+  return resp.json();
+}
 
 function airtableRequest(method, path, body, callback) {
   const apiKey  = process.env.AIRTABLE_API_KEY;
@@ -244,18 +321,36 @@ module.exports = function handler(req, res) {
 
       // Send status-change emails (fire-and-forget)
       if (newStatus === 'Committed' || newStatus === 'Active' || newStatus === 'Completed') {
-        const f     = data.fields || {};
-        const email = f['Traveler Email'] || '';
+        const f           = data.fields || {};
+        const email       = f['Traveler Email'] || '';
+        const destination = f['Destination'] || '';
+        const country     = f['Country']     || '';
+        const startDate   = f['Start Date']  || '';
+        const endDate     = f['End Date']    || '';
+        const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
         if (email) {
-          const vars = {
-            name:        f['Trip Name']   || f['Destination'] || '',
-            destination: f['Destination'] || '',
-            startDate:   f['Start Date']  || '',
-            endDate:     f['End Date']    || ''
-          };
-          const templateMap = { 'Committed': 'TRIP_COMMITTED', 'Active': 'TRIP_START', 'Completed': 'TRIP_COMPLETED' };
-          sendTemplateEmail(templateMap[newStatus], email, vars)
-            .catch(e => console.error(newStatus + ' email error:', e.message));
+          if (newStatus === 'Committed') {
+            // Rich committed email with places + Claude summary
+            (async () => {
+              const places  = await fetchTripPlaces(id);
+              const summary = await generateTripSummary(destination, country, places, startDate, endDate);
+              const details = buildTripDetailsBlock(destination, country, startDate, endDate, places);
+              const summaryHtml = summary
+                ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#2dd4bf;line-height:1.75;margin:0 0 18px;font-style:italic;">${summary}</p>`
+                : '';
+              const subject = `Your trip to ${tripName} is confirmed!`;
+              const html = buildEmailHTML(subject, `You're committed, traveler!`,
+                `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
+                 ${details}${summaryHtml}
+                 <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`);
+              await sendResendEmail(email, subject, html);
+            })().catch(e => console.error('Committed email error:', e.message));
+          } else {
+            const vars = { name: tripName, destination, startDate, endDate };
+            const templateMap = { 'Active': 'TRIP_START', 'Completed': 'TRIP_COMPLETED' };
+            sendTemplateEmail(templateMap[newStatus], email, vars)
+              .catch(e => console.error(newStatus + ' email error:', e.message));
+          }
         }
       }
 

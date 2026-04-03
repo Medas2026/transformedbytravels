@@ -299,6 +299,7 @@
               <div class="profile-field"><span class="field-label">Phone</span><span class="field-value" id="pf-phone">—</span></div>
               <div class="profile-field"><span class="field-label">Address</span><span class="field-value" id="pf-address">—</span></div>
               <div class="profile-field"><span class="field-label">Home Airport</span><span class="field-value" id="pf-airport">—</span></div>
+              <div class="profile-field"><span class="field-label">Home Timezone</span><span class="field-value" id="pf-timezone">—</span></div>
               <div class="profile-field"><span class="field-label">Life Stage</span><span class="field-value" id="pf-lifestage">—</span></div>
               <div class="profile-field"><span class="field-label">Assessment Date</span><span class="field-value" id="pf-date">—</span></div>
               <div class="profile-field"><span class="field-label">Package Status</span><span class="field-value" id="pf-status">—</span></div>
@@ -323,6 +324,24 @@
                   <div class="field-label" style="margin-bottom:6px;">Home Airport Code</div>
                   <input id="edit-airport" type="text" maxlength="4" placeholder="e.g. ORD" style="width:120px;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;text-transform:uppercase;" />
                   <div style="margin-top:6px;font-size:0.78rem;color:var(--muted);">Don't know your code? <a href="https://www.iata.org/en/publications/directories/code-search/" target="_blank" style="color:var(--teal);">Look it up →</a></div>
+                </div>
+                <div>
+                  <div class="field-label" style="margin-bottom:6px;">Home Timezone</div>
+                  <select id="edit-timezone" style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;appearance:none;-webkit-appearance:none;">
+                    <option value="">— Select —</option>
+                    <optgroup label="North America">
+                      <option>Eastern Time (ET)</option>
+                      <option>Central Time (CT)</option>
+                      <option>Mountain Time (MT)</option>
+                      <option>Pacific Time (PT)</option>
+                      <option>Alaska Time (AKT)</option>
+                      <option>Hawaii Time (HT)</option>
+                    </optgroup>
+                    <optgroup label="Europe">
+                      <option>London (GMT/BST)</option>
+                      <option>Central European (CET/CEST)</option>
+                    </optgroup>
+                  </select>
                 </div>
                 <div id="edit-profile-msg" style="font-size:0.85rem;color:var(--teal);display:none;"></div>
                 <div style="display:flex;gap:10px;">
@@ -1352,7 +1371,8 @@ async function loadProfile(email) {
       document.getElementById('pf-email').textContent      = f['Traveler Email'] || '—';
       document.getElementById('pf-phone').textContent      = f['Phone Number'] || '—';
       document.getElementById('pf-address').textContent    = f['Address'] || '—';
-      document.getElementById('pf-airport').textContent    = f['Home Airport'] || '—';
+      document.getElementById('pf-airport').textContent    = f['Home Airport']   || '—';
+      document.getElementById('pf-timezone').textContent  = f['Home Timezone']  || '—';
       document.getElementById('pf-lifestage').textContent  = f['Life Stage'] || '—';
       document.getElementById('pf-date').textContent       = f['Assessment Date'] || '—';
       document.getElementById('pf-status').textContent     = f['Package Status'] || 'Not yet purchased';
@@ -1376,6 +1396,17 @@ async function loadProfile(email) {
       loadProfileTrips();
       loadProfileWorkshopStatus();
       window.dispatchEvent(new Event('portalReady'));
+      // Handle activation deep link
+      const deepTripId = sessionStorage.getItem('deepLinkTripId');
+      if (deepTripId) {
+        sessionStorage.removeItem('deepLinkTripId');
+        fetch('/api/trips?email=' + encodeURIComponent(userEmail))
+          .then(r => r.json())
+          .then(d => {
+            const rec = (d.records || []).find(r => r.id === deepTripId);
+            if (rec) { showPage('planning'); openTrip(rec); }
+          }).catch(() => {});
+      }
     } else {
       document.getElementById('profile-content').innerHTML = `
         <div style="text-align:center;padding:40px 20px;">
@@ -1821,10 +1852,11 @@ function toggleEditProfile() {
 
   if (editMode.style.display === 'none') {
     // Switch to edit mode — pre-fill fields
-    document.getElementById('edit-name').value    = document.getElementById('pf-name').textContent.replace('—','');
-    document.getElementById('edit-phone').value   = document.getElementById('pf-phone').textContent.replace('—','');
-    document.getElementById('edit-address').value = document.getElementById('pf-address').textContent.replace('—','');
-    document.getElementById('edit-airport').value = document.getElementById('pf-airport').textContent.replace('—','');
+    document.getElementById('edit-name').value     = document.getElementById('pf-name').textContent.replace('—','');
+    document.getElementById('edit-phone').value    = document.getElementById('pf-phone').textContent.replace('—','');
+    document.getElementById('edit-address').value  = document.getElementById('pf-address').textContent.replace('—','');
+    document.getElementById('edit-airport').value  = document.getElementById('pf-airport').textContent.replace('—','');
+    document.getElementById('edit-timezone').value = document.getElementById('pf-timezone').textContent.replace('—','');
     viewMode.style.display = 'none';
     editMode.style.display = 'block';
     btn.textContent = 'Cancel';
@@ -1846,20 +1878,22 @@ async function saveProfile() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email:       userEmail,
-        profileEdit: true,
-        name:        document.getElementById('edit-name').value,
-        phone:       document.getElementById('edit-phone').value,
-        address:     document.getElementById('edit-address').value,
-        homeAirport: document.getElementById('edit-airport').value.toUpperCase()
+        email:        userEmail,
+        profileEdit:  true,
+        name:         document.getElementById('edit-name').value,
+        phone:        document.getElementById('edit-phone').value,
+        address:      document.getElementById('edit-address').value,
+        homeAirport:  document.getElementById('edit-airport').value.toUpperCase(),
+        homeTimezone: document.getElementById('edit-timezone').value
       })
     });
     const data = await resp.json();
     if (data.success) {
-      document.getElementById('pf-name').textContent    = document.getElementById('edit-name').value || '—';
-      document.getElementById('pf-phone').textContent   = document.getElementById('edit-phone').value || '—';
-      document.getElementById('pf-address').textContent = document.getElementById('edit-address').value || '—';
-      document.getElementById('pf-airport').textContent = document.getElementById('edit-airport').value.toUpperCase() || '—';
+      document.getElementById('pf-name').textContent     = document.getElementById('edit-name').value || '—';
+      document.getElementById('pf-phone').textContent    = document.getElementById('edit-phone').value || '—';
+      document.getElementById('pf-address').textContent  = document.getElementById('edit-address').value || '—';
+      document.getElementById('pf-airport').textContent  = document.getElementById('edit-airport').value.toUpperCase() || '—';
+      document.getElementById('pf-timezone').textContent = document.getElementById('edit-timezone').value || '—';
       msg.textContent = '✓ Saved!';
       setTimeout(() => { toggleEditProfile(); msg.style.display = 'none'; }, 1000);
     } else {
@@ -2384,6 +2418,10 @@ initDestPicker({ containerId:'dna-dest-picker',  idPrefix:'dna', showPassion:tru
     const dest    = p.get('dest')    || '';
     const country = p.get('country') || '';
     if (dest) sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest, country }));
+  }
+  // Stash ?page=planning&tripId=X for activation deep link
+  if (p.get('page') === 'planning' && p.get('tripId')) {
+    sessionStorage.setItem('deepLinkTripId', p.get('tripId'));
   }
 })();
 

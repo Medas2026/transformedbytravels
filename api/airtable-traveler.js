@@ -175,10 +175,11 @@ function buildFields(b, isNew) {
   // Profile edit — only update contact fields
   if (b.profileEdit) {
     const fields = { 'Traveler Name': b.name || '' };
-    if (b.phone       !== undefined) fields['Phone Number']  = b.phone;
-    if (b.address     !== undefined) fields['Address']       = b.address;
-    if (b.homeAirport !== undefined) fields['Home Airport']  = b.homeAirport;
-    if (b.travelStyle !== undefined) fields['Travel Style']  = b.travelStyle;
+    if (b.phone        !== undefined) fields['Phone Number']   = b.phone;
+    if (b.address      !== undefined) fields['Address']        = b.address;
+    if (b.homeAirport  !== undefined) fields['Home Airport']   = b.homeAirport;
+    if (b.travelStyle  !== undefined) fields['Travel Style']   = b.travelStyle;
+    if (b.homeTimezone !== undefined) fields['Home Timezone']  = b.homeTimezone;
     return fields;
   }
 

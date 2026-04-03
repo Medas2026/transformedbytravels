@@ -4,6 +4,7 @@ const BASE_ID         = 'appdlxcWb45dIqNK2';
 const JOURNAL_TABLE   = 'Journal Entries';
 const TRIPS_TABLE     = 'Trips';
 const TRAVELER_TABLE  = 'Traveler';
+const EMAILS_TABLE    = 'Emails';
 const PORTAL_URL      = 'https://transformedbytravels.vercel.app';
 
 function airtableGet(table, filter, callback) {
@@ -81,14 +82,52 @@ function sendSMS(to, body, callback) {
   req.end();
 }
 
-async function getClaudeReflection(reflection, barriers, tripName) {
-  const dest = tripName ? ` on their trip to ${tripName}` : '';
-  const prompt = `You are a warm, insightful travel coach for Transformed by Travels. A traveler${dest} just shared their evening journal entries.
+function ordinal(n) {
+  if (!n || n < 1) return 'first';
+  const s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v-20)%10] || s[v] || s[0]);
+}
 
-Reflections on their goals from today: "${reflection || '(none shared)'}"
-Barriers they encountered: "${barriers || '(none shared)'}"
+function sendEmail(to, subject, html) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const body   = JSON.stringify({ from: 'YourJournal@transformedbytravels.com', to, subject, html });
+  const options = {
+    hostname: 'api.resend.com',
+    path:     '/emails',
+    method:   'POST',
+    headers: {
+      'Authorization':  'Bearer ' + apiKey,
+      'Content-Type':   'application/json',
+      'Content-Length': Buffer.byteLength(body)
+    }
+  };
+  const req = https.request(options, () => {});
+  req.on('error', e => console.error('Email send error:', e.message));
+  req.write(body);
+  req.end();
+}
 
-Write a brief, personal, encouraging response (2-3 sentences) that acknowledges what they shared, offers one gentle insight or reframe, and ends with encouragement for tomorrow. Speak directly to them as "you". Be specific to what they wrote, not generic.`;
+function sendMonthlyEmail(to, subject, html) {
+  sendEmail(to, subject, html);
+}
+
+async function getClaudeReflection(reflection, barriers, tripName, dayNumber, archetype, hopes) {
+  const day    = ordinal(dayNumber);
+  const dest   = tripName || 'your destination';
+  const opener = `Hoping your ${day} day in ${dest} is going well.`;
+
+  const context = [];
+  if (archetype) context.push(`Traveler archetype: ${archetype}`);
+  if (hopes)     context.push(`Hopes for this trip: ${hopes}`);
+
+  const prompt = `You are a warm travel coach for Transformed by Travels. Begin your response with exactly this sentence: "${opener}"
+
+${context.length ? 'About this traveler:\n' + context.join('\n') + '\n' : ''}
+Today's journal:
+- Reflections on goals: "${reflection || '(none shared)'}"
+- Barriers encountered: "${barriers || '(none shared)'}"
+
+After the opener, write exactly 2 more sentences. Sentence 1: acknowledge something specific from what they wrote, connecting it naturally to their archetype or hopes. Sentence 2: a warm encouraging thought looking toward tomorrow. Speak directly as "you". Be specific — never generic.`;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -104,7 +143,9 @@ Write a brief, personal, encouraging response (2-3 sentences) that acknowledges 
     })
   });
   const data = await response.json();
-  return data.content?.[0]?.text || '';
+  if (data.error) throw new Error(JSON.stringify(data.error));
+  if (!data.content) throw new Error('No content in response');
+  return data.content[0]?.text || '';
 }
 
 module.exports = async function handler(req, res) {
@@ -112,6 +153,22 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // GET ?action=entries — fetch journal entries for a trip
+  if (req.method === 'GET' && req.query.action === 'entries') {
+    const email  = ((req.query && req.query.email)  || '').toLowerCase().trim();
+    const tripId = ((req.query && req.query.tripId) || '').trim();
+    if (!email) return res.status(400).json({ error: 'email required' });
+    const formula = tripId
+      ? `AND({Traveler Email}="${email}",{Trip ID}="${tripId}")`
+      : `({Traveler Email}="${email}")`;
+    const filter = `?filterByFormula=${encodeURIComponent(formula)}&sort[0][field]=Entry%20Date&sort[0][direction]=asc`;
+    airtableGet(JOURNAL_TABLE, filter, (err, data) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(200).json({ records: data.records || [] });
+    });
+    return;
+  }
 
   // POST — save a journal entry
   if (req.method === 'POST') {
@@ -121,30 +178,37 @@ module.exports = async function handler(req, res) {
     const reflection = (b.reflection || '').trim();
     const barriers   = (b.barriers   || '').trim();
     const photoUrl   = (b.photoUrl   || '').trim();
+    const archetype  = (b.archetype  || '').trim();
+    const hopes      = (b.hopes      || '').trim();
 
     if (!email) return res.status(400).json({ error: 'email required' });
     if (!reflection && !barriers) return res.status(400).json({ error: 'at least one response required' });
 
-    const today = new Date().toISOString().split('T')[0];
+    const now   = new Date();
+    const today = now.toISOString().split('T')[0];
 
-    // Calculate day number from trip start date
-    let dayNumber = null;
-    const startDate = (b.startDate || '').trim();
-    if (startDate) {
-      const msPerDay = 24 * 60 * 60 * 1000;
-      const diff = Math.round((new Date(today) - new Date(startDate)) / msPerDay);
-      dayNumber = diff >= 0 ? diff + 1 : null;
+    // Calculate day number from trip start date (or use override for dev testing)
+    let dayNumber = b.dayOverride ? parseInt(b.dayOverride) : null;
+    if (!dayNumber) {
+      const startDate = (b.startDate || '').trim();
+      if (startDate) {
+        const msPerDay = 24 * 60 * 60 * 1000;
+        const diff = Math.round((new Date(today) - new Date(startDate)) / msPerDay);
+        dayNumber = diff >= 0 ? diff + 1 : null;
+      }
     }
 
     // Get Claude reflection
     let claudeReflection = '';
+    let claudeError = '';
     try {
-      claudeReflection = await getClaudeReflection(reflection, barriers, b.tripName || '');
-    } catch(e) { /* non-fatal — save without it */ }
+      claudeReflection = await getClaudeReflection(reflection, barriers, b.tripName || '', dayNumber, archetype, hopes);
+    } catch(e) { claudeError = e.message; }
 
     const fields = {
       'Traveler Email': email,
       'Entry Date':     today,
+      'Entry Time':     now.toISOString().split('T')[1].substring(0, 5) + ' UTC',
       'Reflection':     reflection,
       'Barriers':       barriers
     };
@@ -152,11 +216,12 @@ module.exports = async function handler(req, res) {
     if (dayNumber)        fields['Day Number']           = dayNumber;
     if (photoUrl)         fields['Photo URL']            = photoUrl;
     if (claudeReflection) fields['Reflection from Claude'] = claudeReflection;
+    if (b.entryType)      fields['Entry Type']           = b.entryType;
 
     airtablePost(JOURNAL_TABLE, fields, (err, data) => {
       if (err) return res.status(500).json({ error: err.message });
       if (data.error) return res.status(500).json({ error: data.error });
-      res.status(200).json({ success: true, claudeReflection });
+      res.status(200).json({ success: true, claudeReflection, claudeError: claudeError || undefined });
     });
     return;
   }
@@ -169,37 +234,148 @@ module.exports = async function handler(req, res) {
 
       const toSend = (tripData.records || [])
         .filter(r => r.fields['Traveler Email'])
+        .filter(r => r.fields['Journal Enabled'] !== false)
         .map(r => ({
-          email:     r.fields['Traveler Email'],
-          tripId:    r.id,
-          startDate: r.fields['Start Date'] || '',
-          tripName:  r.fields['Trip Name'] || r.fields['Destination'] || 'your trip'
+          email:          r.fields['Traveler Email'],
+          tripId:         r.id,
+          activationDate: r.fields['Activation Date'] || r.fields['Start Date'] || '',
+          tripName:       r.fields['Trip Name'] || r.fields['Destination'] || 'your trip',
+          places:         [1,2,3,4,5,6,7].map(n => ({
+            name: r.fields['Place ' + n] || '',
+            day:  Number(r.fields['Day ' + n]) || 0
+          })).filter(p => p.name && p.day)
         }));
 
       if (!toSend.length) return res.status(200).json({ success: true, sent: 0 });
 
-      // Look up phone numbers for matching travelers
-      let pending  = toSend.length;
-      let sent     = 0;
+      const today = new Date().toISOString().split('T')[0];
+      let sent = 0;
 
-      toSend.forEach(({ email, tripId, startDate, tripName }) => {
+      toSend.forEach(({ email, tripId, activationDate, tripName, places }) => {
         const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
         airtableGet(TRAVELER_TABLE, filter, (err2, travData) => {
           const record = travData && travData.records && travData.records[0];
-          const phone  = record && record.fields['Phone Number'];
+          const name   = (record && record.fields['Traveler Name']) || 'Traveler';
+          const phone  = (record && record.fields['Phone Number']) || '';
+
+          let dayNum = null;
+          if (activationDate) {
+            const diff = Math.round((new Date(today) - new Date(activationDate)) / (24 * 60 * 60 * 1000));
+            dayNum = diff >= 0 ? diff + 1 : null;
+          }
+
+          // Determine current place from place/day data
+          let currentPlace = tripName;
+          if (dayNum && places && places.length) {
+            const sorted  = places.slice().sort((a, b) => a.day - b.day);
+            const current = sorted.filter(p => p.day <= dayNum).pop();
+            if (current) currentPlace = current.name;
+          }
+
+          const dayLabel = dayNum ? `Day ${dayNum}` : 'Today';
+          const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(email)}&trip=${encodeURIComponent(tripId)}&date=${today}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}`;
 
           if (phone) {
-            const today   = new Date().toISOString().split('T')[0];
-            const link    = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(email)}&trip=${encodeURIComponent(tripId)}&date=${today}${startDate ? '&start=' + encodeURIComponent(startDate) : ''}&dest=${encodeURIComponent(tripName)}`;
-            const message = `Time to reflect on your day in ${tripName}! 🌟 Log your journal: ${link}`;
-            sendSMS(phone, message, () => {});
-            sent++;
+            // Send SMS via Twilio
+            const smsBody = `${dayLabel} — ${currentPlace}\nHi ${name.split(' ')[0]}, time to capture your travel reflection!\n${link}`;
+            sendSMS(phone, smsBody, (smsErr) => {
+              if (smsErr) console.error('[send-daily] SMS error for', email, smsErr.message);
+            });
+          } else {
+            // Fall back to email if no phone on file
+            const subject = `${dayLabel} Journal — ${currentPlace}`;
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+<tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
+<img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
+<tr><td style="padding:36px 40px 28px;">
+<h1 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">Hello ${name},</h1>
+<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">Hoping your ${ordinal(dayNum)} day in ${currentPlace} is going well. Take a moment to capture your reflection before the day slips by.</p>
+</td></tr>
+<tr><td style="padding:0 40px 36px;text-align:center;">
+<a href="${link}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Write Today's Journal →</a>
+</td></tr>
+<tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
+</td></tr></table></td></tr></table></body></html>`;
+            sendEmail(email, subject, html);
           }
+          sent++;
 
-          pending--;
-          if (pending === 0) {
-            res.status(200).json({ success: true, sent, checked: toSend.length });
-          }
+          // update pending count — reuse same pattern
+        });
+      });
+
+      // Give emails a moment to fire then respond
+      setTimeout(() => res.status(200).json({ success: true, sent, checked: toSend.length }), 2000);
+    });
+    return;
+  }
+
+  // GET ?action=send-monthly — cron: send monthly journal prompt to eligible subscribers
+  if (req.method === 'GET' && req.query.action === 'send-monthly') {
+    // 1. Get all active trip emails (to skip)
+    airtableGet(TRIPS_TABLE, `?filterByFormula=${encodeURIComponent(`{Status of Trip}="Active"`)}`, (err, activeData) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const activeEmails = new Set((activeData.records || []).map(r => (r.fields['Traveler Email'] || '').toLowerCase()));
+
+      // 2. Get all completed trip emails (eligible)
+      airtableGet(TRIPS_TABLE, `?filterByFormula=${encodeURIComponent(`{Status of Trip}="Completed"`)}`, (err2, completedData) => {
+        if (err2) return res.status(500).json({ error: err2.message });
+        const completedEmails = new Set((completedData.records || []).map(r => (r.fields['Traveler Email'] || '').toLowerCase()));
+
+        // 3. Get all active subscribers
+        const subFilter = `?filterByFormula=${encodeURIComponent(`{Subscription Active}=1`)}`;
+        airtableGet(TRAVELER_TABLE, subFilter, (err3, travData) => {
+          if (err3) return res.status(500).json({ error: err3.message });
+
+          const eligible = (travData.records || []).filter(r => {
+            const email = (r.fields['Traveler Email'] || '').toLowerCase();
+            return completedEmails.has(email) && !activeEmails.has(email);
+          });
+
+          if (!eligible.length) return res.status(200).json({ success: true, sent: 0 });
+
+          // 4. Fetch email template
+          const tmplFilter = `?filterByFormula=${encodeURIComponent(`({Code}="MONTHLY_JOURNAL")`)}`;
+          airtableGet(EMAILS_TABLE, tmplFilter, (err4, tmplData) => {
+            const tmplRecord = tmplData && (tmplData.records || [])[0];
+            const tmpl       = tmplRecord ? tmplRecord.fields : {};
+            const subject    = tmpl['Subject'] || 'Your Monthly Travel Reflection';
+            const p1         = tmpl['Paragraph 1'] || '';
+            const p2         = tmpl['Paragraph 2'] || '';
+            const p3         = tmpl['Paragraph 3'] || '';
+
+            const para = text => text
+              ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${text.replace(/\n/g, '<br>')}</p>`
+              : '';
+
+            eligible.forEach(r => {
+              const email = (r.fields['Traveler Email'] || '').toLowerCase();
+              const name  = r.fields['Traveler Name'] || 'Traveler';
+              const link  = `${PORTAL_URL}/monthly-journal.html?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
+
+              const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+<tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
+<img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
+<tr><td style="padding:36px 40px 28px;">${para(p1)}${para(p2)}${para(p3)}</td></tr>
+<tr><td style="padding:0 40px 36px;text-align:center;">
+<a href="${link}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Write My Reflection →</a>
+</td></tr>
+<tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
+</td></tr></table></td></tr></table></body></html>`;
+
+              sendMonthlyEmail(email, subject, html);
+            });
+
+            res.status(200).json({ success: true, sent: eligible.length });
+          });
         });
       });
     });
