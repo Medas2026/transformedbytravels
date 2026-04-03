@@ -2118,8 +2118,8 @@ function renderMyTripActive(r, container) {
 }
 
 function openTodayJournal(tripId, startDate, encodedDest) {
-  // Compute local date at click time (not UTC, not stale from page load)
-  const localDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local timezone
+  const localDate = new Date().toLocaleDateString('en-CA');
+  console.log('[openTodayJournal] localDate:', localDate, 'browser time:', new Date().toString());
   window.location.href = `/journal.html?email=${encodeURIComponent(userEmail)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${startDate ? '&start=' + encodeURIComponent(startDate) : ''}&dest=${encodedDest}`;
 }
 
