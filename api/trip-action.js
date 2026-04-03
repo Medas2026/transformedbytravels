@@ -400,7 +400,7 @@ module.exports = function handler(req, res) {
           const summary = await generateTripSummary(destination, country, places, startDate, endDate);
           const details = tripDetailsBlock(destination, country, startDate, endDate, places);
           const summaryHtml = summary
-            ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#2dd4bf;line-height:1.75;margin:0 0 18px;font-style:italic;">${summary}</p>`
+            ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#0f172a;line-height:1.75;margin:0 0 18px;">${summary}</p>`
             : '';
           const subject = `Your trip to ${tripName} has begun!`;
           const html = emailHTML(subject, `Bon Voyage, ${name}!`,
