@@ -6,7 +6,15 @@
     },
     {
       "path": "/api/journal?action=send-daily",
-      "schedule": "0 2 * * *"
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/journal?action=send-monthly",
+      "schedule": "0 9 1 * *"
+    },
+    {
+      "path": "/api/marketing?action=cron",
+      "schedule": "0 10 * * *"
     }
   ]
 }

@@ -1160,8 +1160,8 @@
         <input class="trip-input" id="pm-name" placeholder="e.g. Paris, Machu Picchu, or specific site…" />
       </div>
       <div class="pm-field">
-        <div class="pm-label">Day Number (optional)</div>
-        <input class="trip-input" id="pm-day" type="number" min="1" max="999" placeholder="—" style="width:100px;" />
+        <div class="pm-label">Arrival Date (optional)</div>
+        <select class="trip-input" id="pm-day" style="width:100%;"></select>
       </div>
       <div class="pm-field">
         <div class="pm-label">Rating (optional)</div>
@@ -2758,7 +2758,7 @@ function renderPlaceCards() {
     card.className = 'place-card';
     card.innerHTML = `
       <span class="place-card-name">${p.place || '(unnamed)'}</span>
-      ${p.day ? `<span class="place-card-day">Day ${p.day}</span>` : ''}
+      ${p.day ? `<span class="place-card-day">${(function(){ const s = document.getElementById('td-start').value; if (!s) return 'Day ' + p.day; const d = new Date(new Date(s + 'T12:00:00').getTime() + (p.day - 1) * 86400000); return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); })()}</span>` : ''}
       ${p.rating ? `<span class="place-card-day" style="background:rgba(251,191,36,0.08);color:#fbbf24;letter-spacing:1px;">${'★'.repeat(p.rating)}${'☆'.repeat(5-p.rating)}</span>` : ''}
       ${p.dnaGuideId ? `<span class="place-card-day" style="background:rgba(45,212,191,0.12);color:var(--teal);cursor:pointer;" title="View DNA Guide" onclick="showPlaceGuide('${p.dnaGuideId}')">🧬 Guide</span>` : ''}
       ${p.photosUrl ? `<span class="place-card-day" style="background:rgba(99,102,241,0.12);color:#a5b4fc;cursor:pointer;" title="Open photos folder" onclick="openPlacePhotos(${i})">📷 Photos</span>` : ''}
@@ -2797,9 +2797,36 @@ function openPlaceModal(idx) {
 
   const p = idx === -1 ? {} : (_places[idx] || {});
   document.getElementById('pm-name').value       = p.place      || '';
-  document.getElementById('pm-day').value        = p.day        || '';
   document.getElementById('pm-notes').value      = p.notes      || '';
   document.getElementById('pm-stayed-url').value = p.stayedAtUrl || '';
+
+  // Populate arrival date dropdown from trip start/end dates
+  const daySel   = document.getElementById('pm-day');
+  const startStr = document.getElementById('td-start').value;
+  const endStr   = document.getElementById('td-end').value;
+  daySel.innerHTML = '<option value="">— no date —</option>';
+  if (startStr && endStr) {
+    const startMs = new Date(startStr + 'T12:00:00').getTime();
+    const endMs   = new Date(endStr   + 'T12:00:00').getTime();
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const days = Math.round((endMs - startMs) / msPerDay) + 1;
+    for (let i = 0; i < days; i++) {
+      const d = new Date(startMs + i * msPerDay);
+      const label = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      const opt = document.createElement('option');
+      opt.value = i + 1;  // day number (1-based)
+      opt.textContent = label;
+      if (p.day && parseInt(p.day, 10) === i + 1) opt.selected = true;
+      daySel.appendChild(opt);
+    }
+  } else if (p.day) {
+    // No trip dates set — fall back to showing existing day number
+    const opt = document.createElement('option');
+    opt.value = p.day;
+    opt.textContent = 'Day ' + p.day;
+    opt.selected = true;
+    daySel.appendChild(opt);
+  }
   pmSetRating(p.rating || 0);
   countrySel.value = p.country || '';
   pmCountryChange(p.place);
@@ -3018,7 +3045,7 @@ function savePlaceModal() {
   if (!name) { document.getElementById('pm-name').focus(); return; }
   const idx     = parseInt(document.getElementById('pm-index').value, 10);
   const country = document.getElementById('pm-country').value;
-  const day     = document.getElementById('pm-day').value;
+  const day     = document.getElementById('pm-day').value || '';
   const notes       = document.getElementById('pm-notes').value.trim();
   const stayedAtUrl = document.getElementById('pm-stayed-url').value.trim();
   const rating      = parseInt(document.getElementById('pm-rating').value, 10) || 0;

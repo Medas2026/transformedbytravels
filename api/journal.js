@@ -272,26 +272,40 @@ module.exports = async function handler(req, res) {
     airtableGet(TRIPS_TABLE, `?filterByFormula=${formula}`, (err, tripData) => {
       if (err) return res.status(500).json({ error: err.message });
 
+      const now = new Date();
+
       const toSend = (tripData.records || [])
         .filter(r => r.fields['Traveler Email'])
         .filter(r => r.fields['Journal Enabled'] !== false)
-        .map(r => ({
-          email:          r.fields['Traveler Email'],
-          tripId:         r.id,
-          activationDate: r.fields['Activation Date'] || r.fields['Start Date'] || '',
-          tripName:       r.fields['Trip Name'] || r.fields['Destination'] || 'your trip',
-          places:         [1,2,3,4,5,6,7].map(n => ({
-            name: r.fields['Place ' + n] || '',
-            day:  Number(r.fields['Day ' + n]) || 0
-          })).filter(p => p.name && p.day)
-        }));
+        .filter(r => {
+          // Only send if current hour in trip's timezone matches Journal Time
+          const tz          = r.fields['Time Zone'] || 'UTC';
+          const journalHour = Number(r.fields['Journal Time'] || 19);
+          const localHour   = Number(new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', hour12: false }).format(now));
+          console.log(`[send-daily] ${r.fields['Traveler Email']} tz=${tz} localHour=${localHour} journalHour=${journalHour}`);
+          return localHour === journalHour;
+        })
+        .map(r => {
+          const tz        = r.fields['Time Zone'] || 'UTC';
+          const localDate = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(now);
+          return {
+            email:          r.fields['Traveler Email'],
+            tripId:         r.id,
+            activationDate: r.fields['Activation Date'] || r.fields['Start Date'] || '',
+            tripName:       r.fields['Trip Name'] || r.fields['Destination'] || 'your trip',
+            localDate,
+            places:         [1,2,3,4,5,6,7].map(n => ({
+              name: r.fields['Place ' + n] || '',
+              day:  Number(r.fields['Day ' + n]) || 0
+            })).filter(p => p.name && p.day)
+          };
+        });
 
       if (!toSend.length) return res.status(200).json({ success: true, sent: 0 });
 
-      const today = new Date().toISOString().split('T')[0];
       let sent = 0;
 
-      toSend.forEach(({ email, tripId, activationDate, tripName, places }) => {
+      toSend.forEach(({ email, tripId, activationDate, tripName, localDate, places }) => {
         const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
         airtableGet(TRAVELER_TABLE, filter, (err2, travData) => {
           const record = travData && travData.records && travData.records[0];
@@ -300,7 +314,7 @@ module.exports = async function handler(req, res) {
 
           let dayNum = null;
           if (activationDate) {
-            const diff = Math.round((new Date(today) - new Date(activationDate)) / (24 * 60 * 60 * 1000));
+            const diff = Math.round((new Date(localDate) - new Date(activationDate)) / (24 * 60 * 60 * 1000));
             dayNum = diff >= 0 ? diff + 1 : null;
           }
 
@@ -313,7 +327,7 @@ module.exports = async function handler(req, res) {
           }
 
           const dayLabel = dayNum ? `Day ${dayNum}` : 'Today';
-          const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(email)}&trip=${encodeURIComponent(tripId)}&date=${today}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}`;
+          const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(email)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}`;
 
           if (phone) {
             // Send SMS via Twilio
