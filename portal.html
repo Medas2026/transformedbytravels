@@ -2138,7 +2138,7 @@ function loadJournalHistory(tripId, startDate, today, destName, containerId) {
       const start = new Date(startDate);
       const end   = new Date(today);
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const dateStr  = d.toISOString().split('T')[0];
+        const dateStr  = d.toLocaleDateString('en-CA'); // local YYYY-MM-DD, not UTC
         const dayNum   = Math.round((d - start) / 86400000) + 1;
         const label    = d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
         const entry    = entryMap[dateStr];
@@ -2156,7 +2156,7 @@ function loadJournalHistory(tripId, startDate, today, destName, containerId) {
           rows.push(`
             <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bd);">
               <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;color:var(--muted);">Day ${dayNum} — ${label}</span>
-              <a href="#" onclick="openTodayJournal('${tripId}','${startDate}','${encodeURIComponent(destName)}');return false;" style="font-size:0.75rem;font-family:'Montserrat',sans-serif;font-weight:700;color:var(--teal);text-decoration:none;padding:4px 10px;border:1px solid rgba(45,212,191,0.4);border-radius:6px;white-space:nowrap;">+ Add Entry</a>
+              <a href="/journal.html?email=${encodeURIComponent(userEmail)}&trip=${encodeURIComponent(tripId)}&date=${dateStr}&start=${encodeURIComponent(startDate)}&dest=${encodeURIComponent(destName)}" style="font-size:0.75rem;font-family:'Montserrat',sans-serif;font-weight:700;color:var(--teal);text-decoration:none;padding:4px 10px;border:1px solid rgba(45,212,191,0.4);border-radius:6px;white-space:nowrap;">+ Add Entry</a>
             </div>`);
         }
       }
