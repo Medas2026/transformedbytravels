@@ -1131,6 +1131,17 @@
     </div><!-- /main -->
   </div><!-- /wrapper -->
 
+  <!-- Experiences Modal -->
+  <div id="exp-modal" style="display:none;position:fixed;inset:0;z-index:1020;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+    <div style="background:var(--s1);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:28px;width:100%;max-width:520px;margin:auto;display:flex;flex-direction:column;gap:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;" id="exp-modal-title">Experiences</div>
+        <button onclick="document.getElementById('exp-modal').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <div id="exp-modal-body" style="color:var(--soft);font-size:0.9rem;line-height:1.7;"></div>
+    </div>
+  </div>
+
   <!-- Place Modal -->
   <div id="place-modal" style="display:none;">
     <div class="pm-box">
@@ -2773,10 +2784,51 @@ function renderPlaceCards() {
       ${p.dnaGuideId ? `<span class="place-card-day" style="background:rgba(45,212,191,0.12);color:var(--teal);cursor:pointer;" title="View DNA Guide" onclick="showPlaceGuide('${p.dnaGuideId}')">🧬 Guide</span>` : ''}
       ${p.photosUrl ? `<span class="place-card-day" style="background:rgba(99,102,241,0.12);color:#a5b4fc;cursor:pointer;" title="Open photos folder" onclick="openPlacePhotos(${i})">📷 Photos</span>` : ''}
       ${p.stayedAtUrl ? `<span class="place-card-day" style="background:rgba(251,191,36,0.12);color:#fbbf24;cursor:pointer;" title="Where we stayed" onclick="window.open(_places[${i}].stayedAtUrl,'_blank')">🏨 Stayed</span>` : ''}
+      <button class="place-card-edit" onclick="findPlaceExperiences(${i})" title="Find experiences for this place" style="color:var(--teal);border-color:rgba(45,212,191,0.3);">✦ Experiences</button>
       <button class="place-card-edit" onclick="openPlaceModal(${i})">Edit</button>
       <button class="place-card-del" onclick="deletePlaceCard(${i})" title="Remove">×</button>`;
     container.appendChild(card);
   });
+}
+
+async function findPlaceExperiences(i) {
+  const p    = _places[i] || {};
+  const dest = [p.place, p.country].filter(Boolean).join(', ');
+  if (!dest) return;
+
+  const modal    = document.getElementById('exp-modal');
+  const title    = document.getElementById('exp-modal-title');
+  const body     = document.getElementById('exp-modal-body');
+  const archetype = (portalProfile && portalProfile['Archetype']) || '';
+
+  title.textContent = 'Experiences · ' + dest;
+  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Finding experiences for ' + dest + '…</p>';
+  modal.style.display = 'flex';
+
+  try {
+    const resp = await fetch('/api/experiences', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ destination: dest, archetype })
+    });
+    const data = await resp.json();
+    if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
+
+    const experiences = data.experiences || [];
+    if (!experiences.length) { body.innerHTML = '<p style="color:var(--muted);">No experiences found.</p>'; return; }
+
+    body.innerHTML = experiences.map(exp => `
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">${exp.activity}</div>
+        ${(exp.suggestions || []).map(s => `
+          <div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:4px;">${s.name}</div>
+            <div style="font-size:0.82rem;color:var(--soft);line-height:1.6;">${s.description}</div>
+          </div>`).join('')}
+      </div>`).join('');
+  } catch(e) {
+    body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>';
+  }
 }
 
 function deletePlaceCard(i) {
