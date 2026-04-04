@@ -2138,7 +2138,7 @@ function loadJournalHistory(tripId, startDate, today, destName, containerId) {
       const start = new Date(startDate);
       const end   = new Date(today);
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const dateStr  = d.toLocaleDateString('en-CA'); // local YYYY-MM-DD, not UTC
+        const dateStr  = d.toISOString().split('T')[0]; // keep as UTC date string (represents trip day)
         const dayNum   = Math.round((d - start) / 86400000) + 1;
         const label    = d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
         const entry    = entryMap[dateStr];
