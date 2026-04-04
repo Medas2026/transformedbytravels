@@ -857,6 +857,11 @@ function zoneLabel(z, dim) {
 }
 
 // ═══════════════════════════════════════════════
+// SCORING VERSION
+// ═══════════════════════════════════════════════
+const SCORING_VERSION = '2.1';
+
+// ═══════════════════════════════════════════════
 // ARCHETYPES
 // ═══════════════════════════════════════════════
 const ARCHETYPES = {
@@ -1199,8 +1204,9 @@ function nextAdditional() {
           travelStyle:      addAnswers['A6'] || '',
           marketingConsent: _marketingConsent,
           hopes:      hopesList.join(', '),
-          scores:     raw,
-          itemScores: {...answers}
+          scores:         raw,
+          itemScores:     {...answers},
+          scoringVersion: SCORING_VERSION
         })
       })
       .then(r => r.json())

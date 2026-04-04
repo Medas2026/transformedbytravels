@@ -192,7 +192,8 @@ function buildFields(b, isNew) {
     'Life Stage':          b.lifeStage || '',
     'Travel Style':        b.travelStyle || '',
     'Hopes to Experience': b.hopes || '',
-    'Assessment Date':     new Date().toISOString().split('T')[0]
+    'Assessment Date':     new Date().toISOString().split('T')[0],
+    'Scoring Version':     b.scoringVersion || ''
   };
 
   if (b.itemScores) {
