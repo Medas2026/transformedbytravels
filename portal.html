@@ -2686,14 +2686,18 @@ function updateDuration() {
   const el = document.getElementById('trip-duration');
   if (s && e) {
     const nights = Math.round((new Date(e) - new Date(s)) / 86400000);
-    if (nights > 30) {
+    if (nights < 0) {
+      el.textContent = '⚠️ End date is before start date';
+      el.style.color = '#f43f5e';
+    } else if (nights === 0) {
+      el.textContent = '⚠️ End date must be after start date';
+      el.style.color = '#f43f5e';
+    } else if (nights > 30) {
       el.textContent = `⚠️ ${nights} nights — max 30`;
       el.style.color = '#f43f5e';
-    } else if (nights > 0) {
+    } else {
       el.textContent = `← ${nights} night${nights !== 1 ? 's' : ''} →`;
       el.style.color = 'var(--teal)';
-    } else {
-      el.textContent = '';
     }
   } else {
     el.textContent = '';
@@ -3270,10 +3274,18 @@ async function saveTrip() {
       msg.style.color='#f43f5e'; msg.textContent='End date must be before today for a taken trip.'; return;
     }
   }
-  if (_s && _e && Math.round((new Date(_e) - new Date(_s)) / 86400000) > 30) {
-    msg.style.color = '#f43f5e';
-    msg.textContent = 'Trip duration cannot exceed 30 nights. Please split into two trips.';
-    return;
+  if (_s && _e) {
+    const nights = Math.round((new Date(_e) - new Date(_s)) / 86400000);
+    if (nights <= 0) {
+      msg.style.color = '#f43f5e';
+      msg.textContent = 'End date must be after start date.';
+      return;
+    }
+    if (nights > 30) {
+      msg.style.color = '#f43f5e';
+      msg.textContent = 'Trip duration cannot exceed 30 nights. Please split into two trips.';
+      return;
+    }
   }
 
   const payload = {
