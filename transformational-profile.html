@@ -861,31 +861,23 @@ function zoneLabel(z, dim) {
 // ═══════════════════════════════════════════════
 const ARCHETYPES = {
   TT: {
-    icon: "🦋", iconImg: "images/archetypes/TT Icon.png", name: "The Transformational Traveler", tag: "All Forces Active",
-    desc: "You approach travel as a powerful path to personal growth. You seek experiences that combine curiosity, challenge, connection, immersion, and reflection. For you, travel is not just about seeing the world—it's about becoming a fuller version of yourself.",
+    icon: "🦋", iconImg: "images/archetypes/TT Icon.png", name: "The Transformational Traveler", tag: "Fully Integrated Traveler",
+    desc: "You approach travel as a powerful path to personal growth. You seek experiences that combine curiosity, challenge, connection, purpose, and reflection. For you, travel is not just about seeing the world—it's about becoming a better version of yourself.",
     photos: ["images/archetypes/TT1.png", "images/archetypes/TT2.png"],
     trips: "Trips that combine exploration, meaningful encounters, and time for reflection will resonate most with you. Consider journeys that mix adventure and insight, such as cultural expeditions, wildlife safaris, walking pilgrimages, or small-group trips that emphasize learning and personal growth. Destinations with dramatic landscapes and rich traditions often create the most powerful experiences for you.",
     global: "Nepal • Peru • Bhutan • Japan",
     us: "Sedona • Grand Canyon National Park • Santa Fe • Glacier National Park • Denali National Park • Yosemite National Park"
   },
-  MS: {
-    icon: "🏮", iconImg: "images/archetypes/MS Icon.png", name: "Meaning Seeker", tag: "Curiosity + Reflection",
+  PDT: {
+    icon: "🏮", iconImg: "images/archetypes/MS Icon.png", name: "The Purpose-Driven Traveler", tag: "Growth, Meaning & Reflection",
     desc: "You travel to gain perspective and deeper understanding. Cultural insights, powerful landscapes, and reflective moments help you think about life in new ways. Your journeys often leave you changed.",
     photos: ["images/archetypes/MS1.png", "images/archetypes/MS2.png"],
     trips: "You'll be drawn to destinations that offer powerful stories, culture, and perspective. Historic cities, spiritual landscapes, and places that have shaped civilizations can provide the kind of depth you enjoy. Trips that include time for exploration as well as reflection—such as cultural journeys, heritage routes, or visits to iconic historical sites—often leave a lasting impression.",
     global: "Jerusalem • India • Greece • Cambodia",
     us: "Washington, D.C. • Gettysburg National Military Park • Boston"
   },
-  NW: {
-    icon: "🌲", iconImg: "images/archetypes/NW Icon.png", name: "Nature Wanderer", tag: "Adventure + Reflection",
-    desc: "Wild landscapes are where you feel most alive. Mountains, oceans, forests, and wildlife create the kind of experiences that stay with you long after the trip ends. Nature gives you both adventure and space to reflect.",
-    photos: ["images/archetypes/NW1.png", "images/archetypes/NW2.png"],
-    trips: "Your best trips will place you in the heart of remarkable natural landscapes. National parks, mountain regions, remote coastlines, and wildlife-rich environments are especially appealing. Experiences like scenic hiking, wildlife watching, and quiet time in nature will help you feel connected to the places you visit.",
-    global: "Torres del Paine National Park • Denali National Park • Iceland • New Zealand",
-    us: "Denali National Park • Yellowstone National Park • Glacier National Park"
-  },
-  AS: {
-    icon: "⛰️", iconImg: "images/archetypes/AS Icon.png", name: "Adventure Seeker", tag: "Challenge",
+  AOT: {
+    icon: "⛰️", iconImg: "images/archetypes/AS Icon.png", name: "The Adventure-Oriented Traveler", tag: "Energy, Stretch & Challenge",
     desc: "You love travel that stretches your comfort zone. Hiking, exploring remote places, and active experiences energize you. The best trips are the ones that leave you feeling exhilarated and alive.",
     photos: ["images/archetypes/AS1.png", "images/archetypes/AS2.png"],
     trips: "You'll love trips that bring excitement and active exploration. Destinations that offer hiking, trekking, paddling, wildlife expeditions, or other outdoor challenges are likely to energize you. The most satisfying journeys are those that allow you to experience the landscape directly rather than simply observe it.",
@@ -893,55 +885,15 @@ const ARCHETYPES = {
     us: "Zion National Park • Grand Teton National Park • Arches National Park"
   },
   CE: {
-    icon: "🏛️", iconImg: "images/archetypes/CE Icon.png", name: "Cultural Explorer", tag: "Curiosity",
+    icon: "🏛️", iconImg: "images/archetypes/CE Icon.png", name: "The Cultural Explorer", tag: "Learning, Culture & Engagement",
     desc: "You travel to learn about the world. History, art, architecture, and traditions fascinate you, and you enjoy discovering the stories behind the places you visit. Each destination becomes an opportunity to expand your understanding.",
     photos: ["images/archetypes/CE1.png", "images/archetypes/CE2.png"],
     trips: "Your ideal trips will immerse you in history, art, architecture, and cultural traditions. Cities rich in heritage, archaeological sites, museums, and historic neighborhoods will naturally draw your interest. Guided cultural tours or itineraries that provide context and storytelling often make your travel especially rewarding.",
     global: "Italy • France • Japan • Turkey",
     us: "Charleston • New Orleans • Santa Fe"
   },
-  DI: {
-    icon: "📍", iconImg: "images/archetypes/DI Icon.png", name: "Deep Immersion", tag: "Immersion",
-    desc: "You want to experience places from the inside rather than simply observe them. Local food, authentic neighborhoods, and everyday culture matter to you. Your goal is to feel what life is like in a place.",
-    photos: ["images/archetypes/DI1.png", "images/archetypes/DI2.png"],
-    trips: "Trips that allow you to experience everyday life in a destination will appeal to you most. Staying in local neighborhoods, exploring markets, taking cooking classes, or spending extended time in one place can create the kind of authentic experiences you value. Slower travel often brings the richest rewards.",
-    global: "Vietnam • Morocco • Mexico • Portugal",
-    us: "New Orleans • San Antonio • Savannah"
-  },
-  CON: {
-    icon: "🤝", iconImg: "images/archetypes/CON Icon.png", name: "Connector", tag: "Connection",
-    desc: "People are what make travel meaningful for you. Conversations with locals, shared meals, and unexpected friendships often become the most memorable parts of your trips. You see travel as a way to understand humanity.",
-    photos: ["images/archetypes/CON1.png", "images/archetypes/Con2.png"],
-    trips: "Journeys that create opportunities to meet people and share experiences will stand out for you. Small group travel, cultural exchanges, community-based tourism, and shared activities like cooking classes or guided local experiences often lead to memorable connections. The people you meet will often define the destination for you.",
-    global: "Ireland • Thailand • Italy • New Zealand",
-    us: "Nashville • Austin • New Orleans"
-  },
-  REF: {
-    icon: "🌅", iconImg: "images/archetypes/REF Icon.png", name: "Reflector", tag: "Reflection",
-    desc: "Travel gives you space to slow down and think deeply. Quiet moments—watching a sunrise, journaling, or simply observing a place—are as meaningful as the activities themselves. Your journeys often bring clarity and insight.",
-    photos: ["images/archetypes/REF1.png", "images/archetypes/REF2.png"],
-    trips: "Trips that offer both beauty and quiet space will suit you best. Scenic destinations where you can slow down—coastal retreats, mountain lodges, cultural villages, or peaceful landscapes—allow you to absorb your surroundings and reflect on your experiences. Unhurried travel often leads to your most meaningful moments.",
-    global: "Iceland • Bhutan • Scotland • Canada",
-    us: "Big Sur • Acadia National Park • Sedona"
-  },
-  CA: {
-    icon: "🛤️", iconImg: "images/archetypes/CA Icon.png", name: "Comfort Adventurer", tag: "Balanced Adventure",
-    desc: "You enjoy a sense of adventure while still appreciating comfort and balance. Scenic hikes, wildlife encounters, and unique experiences appeal to you when they are well planned and accessible. Your trips blend excitement with ease.",
-    photos: ["images/archetypes/CA1.png", "images/archetypes/CA2.png"],
-    trips: "You'll enjoy trips that blend discovery with comfort and thoughtful planning. Destinations with accessible outdoor activities, scenic landscapes, and well-developed tourism infrastructure are ideal. Guided excursions, wildlife viewing, and moderate hikes can provide a sense of adventure without feeling overwhelming.",
-    global: "Alaska • Norway • Canada • Switzerland",
-    us: "Alaska • Yosemite National Park • Jackson Hole"
-  },
-  JW: {
-    icon: "✈️", iconImg: "images/archetypes/JW Icon.png", name: "Joyful Wanderer", tag: "Open Explorer",
-    desc: "You travel for the joy of discovery and variety. A little culture, a little scenery, good food, and memorable moments all contribute to a great trip. You enjoy the freedom of letting travel unfold naturally.",
-    photos: ["images/archetypes/JW1.png", "images/archetypes/JW2.png"],
-    trips: "Trips with variety and flexibility will suit your style best. Destinations that combine culture, scenery, food, and enjoyable activities allow you to explore freely and follow your curiosity. A balanced itinerary with room for spontaneous discoveries often leads to the most memorable experiences.",
-    global: "Spain • Portugal • Australia • Thailand",
-    us: "San Diego • Key West • Charleston"
-  },
   EGT: {
-    icon: "🏖️", iconImg: "images/archetypes/EGT Icon.png", name: "Easy Going Traveler", tag: "Relaxed Explorer",
+    icon: "🏖️", iconImg: "images/archetypes/EGT Icon.png", name: "The Easygoing Traveler", tag: "Relaxation & Enjoyment",
     desc: "Travel for you is about relaxation and enjoyment rather than pursuing a specific style of exploration. You appreciate pleasant places, good company, and going with the flow. The best trips are the ones that feel effortless.",
     photos: ["images/archetypes/EGT1.png", "images/archetypes/EGT2.png"],
     trips: "Relaxing destinations where you can enjoy the atmosphere without a demanding schedule will appeal to you. Beach towns, scenic regions, charming cities, and comfortable resorts often provide the kind of travel experience you enjoy. The best trips are the ones that feel effortless and allow you to simply enjoy being there.",
@@ -955,29 +907,26 @@ function getArchetype(raw) {
   const Adv = raw.Adventure;
   const Ref = raw.Reflection;
   const Con = raw.Connection;
-  const Int = raw['Travel Purpose'];
+  const TP  = raw['Travel Purpose'];
+  const GS  = (Ref + TP) / 2;
 
-  // Transformational Traveler: all dimensions >= 5
-  if (C >= 5 && Adv >= 5 && Ref >= 5 && Con >= 5 && Int >= 5) return ARCHETYPES.TT;
-  // Meaning Seeker: Curiosity and Reflection both >= 6
-  if (C >= 6 && Ref >= 6) return ARCHETYPES.MS;
-  // Nature Wanderer: Adventure >= 6 and Reflection >= 5
-  if (Adv >= 6 && Ref >= 5) return ARCHETYPES.NW;
-  // Adventure Seeker: Adventure >= 6
-  if (Adv >= 6) return ARCHETYPES.AS;
-  // Cultural Explorer: Curiosity >= 6
-  if (C >= 6) return ARCHETYPES.CE;
-  // Deep Immersion: Connection >= 6
-  if (Con >= 6) return ARCHETYPES.DI;
-  // Connector: Intention >= 6
-  if (Int >= 6) return ARCHETYPES.CON;
-  // Reflector: Reflection >= 6
-  if (Ref >= 6) return ARCHETYPES.REF;
-  // Comfort Adventurer: Adventure 4-5
-  if (Adv >= 4 && Adv <= 5) return ARCHETYPES.CA;
-  // Joyful Wanderer: all dimensions 3-5
-  if (C >= 3 && Adv >= 3 && Ref >= 3 && Con >= 3 && Int >= 3) return ARCHETYPES.JW;
-  // Easy Going Traveler: default
+  const dims       = [C, Adv, Ref, Con, TP];
+  const above6     = dims.filter(d => d >= 6).length;
+  const noneBelow5 = dims.every(d => d >= 5);
+
+  // 1. Transformational Traveler: 4 of 5 dimensions >= 6 AND none < 5
+  if (above6 >= 4 && noneBelow5) return ARCHETYPES.TT;
+
+  // 2. Purpose-Driven Traveler: Growth Signal >= 6 AND Adventure < 6
+  if (GS >= 6 && Adv < 6) return ARCHETYPES.PDT;
+
+  // 3. Adventure-Oriented Traveler: Adventure >= 6 AND Growth Signal < 6
+  if (Adv >= 6 && GS < 6) return ARCHETYPES.AOT;
+
+  // 4. Cultural Explorer: Curiosity >= 6 AND (Connection >= 5 OR Travel Purpose >= 5) AND Adventure < 6 AND GS < 6
+  if (C >= 6 && (Con >= 5 || TP >= 5) && Adv < 6 && GS < 6) return ARCHETYPES.CE;
+
+  // 5. Easygoing Traveler: everyone else
   return ARCHETYPES.EGT;
 }
 
