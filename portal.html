@@ -2442,6 +2442,8 @@ initDestPicker({ containerId:'dna-dest-picker',  idPrefix:'dna', showPassion:tru
 let currentTripId          = null;
 let currentTripDestination = '';
 let currentTripCountry     = '';
+let currentTripStart       = '';
+let currentTripEnd         = '';
 let tripsLoaded        = false;
 let historyTripsLoaded = false;
 let _returnToHistory   = false;
@@ -2679,6 +2681,8 @@ function renderTripList(records) {
 function updateDuration() {
   const s  = document.getElementById('td-start').value;
   const e  = document.getElementById('td-end').value;
+  currentTripStart = s;
+  currentTripEnd   = e;
   const el = document.getElementById('trip-duration');
   if (s && e) {
     const nights = Math.round((new Date(e) - new Date(s)) / 86400000);
@@ -2711,6 +2715,8 @@ function openTrip(record) {
   dpSetValues('tdp', { continent: f['Continent']||'', country: f['Country']||'', destination: f['Destination']||'', airport: f['Destination Airport']||'', passion: f['Passion Focus']||'' });
   document.getElementById('td-start').value       = f['Start Date']   || '';
   document.getElementById('td-end').value         = f['End Date']     || '';
+  currentTripStart = f['Start Date'] || '';
+  currentTripEnd   = f['End Date']   || '';
   // airport loaded via dpSetValues
   document.getElementById('td-status').value      = f['Status of Trip'] || 'Research';
   document.getElementById('td-notes').value       = f['Notes']        || '';
@@ -2802,8 +2808,8 @@ function openPlaceModal(idx) {
 
   // Populate arrival date dropdown from trip start/end dates
   const daySel   = document.getElementById('pm-day');
-  const startStr = document.getElementById('td-start').value;
-  const endStr   = document.getElementById('td-end').value;
+  const startStr = currentTripStart || document.getElementById('td-start').value;
+  const endStr   = currentTripEnd   || document.getElementById('td-end').value;
   daySel.innerHTML = '<option value="">— no date —</option>';
   if (startStr && endStr) {
     const startMs = new Date(startStr + 'T12:00:00').getTime();
