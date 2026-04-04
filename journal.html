@@ -216,8 +216,16 @@
     </div>
 
     <div class="prompt-block">
-      <div class="prompt-label">📷 Photo from today <span style="font-size:0.8rem;font-weight:400;color:#94a3b8;">(optional — paste a photo link)</span></div>
-      <input type="url" id="photo-url" placeholder="https://…" style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:10px;padding:12px 14px;font-family:'Montserrat',sans-serif;font-size:0.9rem;outline:none;" />
+      <div class="prompt-label">📷 Photo from today <span style="font-size:0.8rem;font-weight:400;color:#94a3b8;">(optional)</span></div>
+      <input type="hidden" id="photo-url" />
+      <div id="photo-linked" style="display:none;display:none;align-items:center;gap:10px;padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:10px;">
+        <span style="color:#2dd4bf;font-size:0.88rem;">📷 Photo linked</span>
+        <button type="button" onclick="openJournalPhoto()" style="background:none;border:1px solid #334155;border-radius:6px;padding:4px 12px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.8rem;cursor:pointer;">Open</button>
+        <button type="button" onclick="unlinkJournalPhoto()" style="background:none;border:1px solid #334155;border-radius:6px;padding:4px 12px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.8rem;cursor:pointer;">Unlink</button>
+      </div>
+      <div id="photo-none">
+        <button type="button" onclick="linkJournalPhoto()" style="background:none;border:1.5px solid rgba(45,212,191,0.4);border-radius:8px;padding:9px 20px;color:#2dd4bf;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">📷 Link Dropbox Photo</button>
+      </div>
     </div>
 
     <div id="status" style="color:#94a3b8;"></div>
@@ -261,7 +269,12 @@
           existingRecordId = existing.id;
           document.getElementById('reflection').value = existing.fields['Reflection'] || '';
           document.getElementById('barriers').value   = existing.fields['Barriers']   || '';
-          document.getElementById('photo-url').value  = existing.fields['Photo URL']  || '';
+          const photoUrl = existing.fields['Photo URL'] || '';
+          document.getElementById('photo-url').value = photoUrl;
+          if (photoUrl) {
+            document.getElementById('photo-linked').style.display = 'flex';
+            document.getElementById('photo-none').style.display   = 'none';
+          }
           document.getElementById('submit-btn').textContent = 'Update Journal Entry';
           document.getElementById('status').textContent = 'Previous entry loaded — edit and save to update.';
         }
@@ -273,6 +286,30 @@
   const d = new Date(dateStr + 'T12:00:00');
   document.getElementById('date-line').textContent =
     d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  // — Dropbox photo linking
+  function linkJournalPhoto() {
+    Dropbox.choose({
+      success: function(files) {
+        document.getElementById('photo-url').value = files[0].link;
+        document.getElementById('photo-linked').style.display = 'flex';
+        document.getElementById('photo-none').style.display   = 'none';
+      },
+      cancel: function() {},
+      linkType:      'preview',
+      multiselect:   false,
+      folderselect:  false
+    });
+  }
+  function openJournalPhoto() {
+    const url = document.getElementById('photo-url').value;
+    if (url) window.open(url, '_blank');
+  }
+  function unlinkJournalPhoto() {
+    document.getElementById('photo-url').value = '';
+    document.getElementById('photo-linked').style.display = 'none';
+    document.getElementById('photo-none').style.display   = 'block';
+  }
 
   // — Voice input
   const recognizers = {};
@@ -388,5 +425,6 @@
   }
 </script>
 
+<script src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="xzpgqkj42xpdtci"></script>
 </body>
 </html>
