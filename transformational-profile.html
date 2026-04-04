@@ -912,19 +912,19 @@ function getArchetype(raw) {
 
   const dims       = [C, Adv, Ref, Con, TP];
   const above6     = dims.filter(d => d >= 6).length;
-  const noneBelow5 = dims.every(d => d >= 5);
+  const noneBelow4 = dims.every(d => d >= 4);
 
-  // 1. Transformational Traveler: 4 of 5 dimensions >= 6 AND none < 5
-  if (above6 >= 4 && noneBelow5) return ARCHETYPES.TT;
+  // 1. Transformational Traveler: 4 of 5 dimensions >= 6 AND none < 4
+  if (above6 >= 4 && noneBelow4) return ARCHETYPES.TT;
 
-  // 2. Purpose-Driven Traveler: Growth Signal >= 6 AND Adventure < 6
-  if (GS >= 6 && Adv < 6) return ARCHETYPES.PDT;
+  // 2. Purpose-Driven Traveler: Growth Signal >= 6 AND Adventure < 4
+  if (GS >= 6 && Adv < 4) return ARCHETYPES.PDT;
 
   // 3. Adventure-Oriented Traveler: Adventure >= 6 AND Growth Signal <= 6
   if (Adv >= 6 && GS <= 6) return ARCHETYPES.AOT;
 
-  // 4. Cultural Explorer: Curiosity >= 6 AND (Connection >= 5 OR Travel Purpose >= 5) AND Adventure < 6 AND GS < 6
-  if (C >= 6 && (Con >= 5 || TP >= 5) && Adv < 6 && GS < 6) return ARCHETYPES.CE;
+  // 4. Cultural Explorer: Curiosity >= 6 AND (Connection >= 4 OR Travel Purpose >= 4) AND Adventure < 6 AND GS < 6
+  if (C >= 6 && (Con >= 4 || TP >= 4) && Adv < 6 && GS < 6) return ARCHETYPES.CE;
 
   // 5. Easygoing Traveler: everyone else
   return ARCHETYPES.EGT;
