@@ -214,7 +214,7 @@ module.exports = async function handler(req, res) {
     const now   = new Date();
     // Use the date the traveler is journaling about (from URL param), not UTC server time
     const today = (b.entryDate || '').trim() || now.toISOString().split('T')[0];
-    console.log('[journal POST] entryDate received:', b.entryDate, '→ saving as:', today);
+    console.log('[journal POST v2] entryDate received:', b.entryDate, '→ saving as:', today);
 
     // Calculate day number from trip start date (or use override for dev testing)
     let dayNumber = b.dayOverride ? parseInt(b.dayOverride) : null;
