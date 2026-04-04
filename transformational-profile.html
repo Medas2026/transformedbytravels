@@ -912,10 +912,10 @@ function getArchetype(raw) {
 
   const dims       = [C, Adv, Ref, Con, TP];
   const above6     = dims.filter(d => d >= 6).length;
-  const noneBelow4 = dims.every(d => d >= 4);
+  const noneBelow3 = dims.every(d => d >= 3);
 
-  // 1. Transformational Traveler: 4 of 5 dimensions >= 6 AND none < 4
-  if (above6 >= 4 && noneBelow4) return ARCHETYPES.TT;
+  // 1. Transformational Traveler: 4 of 5 dimensions >= 6 AND none < 3
+  if (above6 >= 4 && noneBelow3) return ARCHETYPES.TT;
 
   // 2. Purpose-Driven Traveler: Growth Signal >= 6 AND Adventure < 4
   if (GS >= 6 && Adv < 4) return ARCHETYPES.PDT;
