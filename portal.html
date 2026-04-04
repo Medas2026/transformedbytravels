@@ -2810,6 +2810,7 @@ function openPlaceModal(idx) {
   const daySel   = document.getElementById('pm-day');
   const startStr = currentTripStart || document.getElementById('td-start').value;
   const endStr   = currentTripEnd   || document.getElementById('td-end').value;
+  console.log('[openPlaceModal] currentTripStart:', currentTripStart, 'currentTripEnd:', currentTripEnd, 'td-start:', document.getElementById('td-start').value, 'td-end:', document.getElementById('td-end').value);
   daySel.innerHTML = '<option value="">— no date —</option>';
   if (startStr && endStr) {
     const startMs = new Date(startStr + 'T12:00:00').getTime();
