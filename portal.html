@@ -1230,7 +1230,7 @@
         <button class="act-type-btn" onclick="selectActivity('fishing')"    data-type="fishing">🎣 Fishing</button>
       </div>
       <div id="exp-modal-body" style="color:var(--soft);font-size:0.9rem;line-height:1.7;"></div>
-      <div style="margin-top:4px;text-align:right;">
+      <div id="exp-modal-done" style="display:none;margin-top:4px;text-align:right;">
         <button onclick="document.getElementById('exp-modal').style.display='none'" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:8px;padding:10px 28px;cursor:pointer;">Finished</button>
       </div>
     </div>
@@ -3397,8 +3397,9 @@ function openActivitiesModal(i) {
   const body  = document.getElementById('exp-modal-body');
   title.textContent = '⚡ Activities · ' + (p.place || '');
   body.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">Choose an activity type above to get started.</p>';
-  // Reset active button
+  // Reset active button and hide Finished until results load
   document.querySelectorAll('.act-type-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('exp-modal-done').style.display = 'none';
   modal.style.display = 'flex';
 }
 
@@ -3406,6 +3407,7 @@ function selectActivity(type) {
   document.querySelectorAll('.act-type-btn').forEach(b => b.classList.remove('active'));
   const btn = document.querySelector(`.act-type-btn[data-type="${type}"]`);
   if (btn) btn.classList.add('active');
+  document.getElementById('exp-modal-done').style.display = 'none';
   const i = _activitiesPlaceIndex;
   if (i === null) return;
   if (type === 'experiences') loadActivityExperiences(i);
@@ -3428,7 +3430,7 @@ async function loadActivityExperiences(i) {
     const data = await resp.json();
     if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
     const experiences = data.experiences || [];
-    if (!experiences.length) { body.innerHTML = '<p style="color:var(--muted);">No experiences found.</p>'; return; }
+    if (!experiences.length) { body.innerHTML = '<p style="color:var(--muted);">No experiences found.</p>'; document.getElementById('exp-modal-done').style.display = 'block'; return; }
     body.innerHTML = experiences.map(exp => `
       <div style="margin-bottom:20px;">
         <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">${exp.activity}</div>
@@ -3438,6 +3440,7 @@ async function loadActivityExperiences(i) {
             <div style="font-size:0.82rem;color:var(--soft);line-height:1.6;">${s.description}</div>
           </div>`).join('')}
       </div>`).join('');
+    document.getElementById('exp-modal-done').style.display = 'block';
   } catch(e) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>'; }
 }
 
@@ -3457,7 +3460,7 @@ async function loadActivityTrails(i) {
     const data = await resp.json();
     if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
     const trails = data.trails || [];
-    if (!trails.length) { body.innerHTML = '<p style="color:var(--muted);">No notable hiking trails found near ' + p.place + '.</p>'; return; }
+    if (!trails.length) { body.innerHTML = '<p style="color:var(--muted);">No notable hiking trails found near ' + p.place + '.</p>'; document.getElementById('exp-modal-done').style.display = 'block'; return; }
     const dc = { 'Easy': '#86efac', 'Moderate': '#fbbf24', 'Difficult': '#fb923c', 'Strenuous': '#f43f5e' };
     body.innerHTML = `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">${trails.length} trail${trails.length !== 1 ? 's' : ''} near ${p.place}</p>` +
       trails.map(t => `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
@@ -3469,6 +3472,7 @@ async function loadActivityTrails(i) {
         ${t.description ? `<div style="margin-top:7px;font-size:0.82rem;color:var(--soft);line-height:1.6;">${t.description}</div>` : ''}
         ${t.website ? `<div style="margin-top:6px;"><a href="${t.website}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--teal);text-decoration:none;">↗ Trail info</a></div>` : ''}
       </div>`).join('');
+    document.getElementById('exp-modal-done').style.display = 'block';
   } catch(e) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>'; }
 }
 
@@ -3486,7 +3490,7 @@ async function loadActivityDiving(i) {
     const data = await resp.json();
     if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
     const sites = data.items || [];
-    if (!sites.length) { body.innerHTML = '<p style="color:var(--muted);">No notable dive sites found near ' + p.place + '.</p>'; return; }
+    if (!sites.length) { body.innerHTML = '<p style="color:var(--muted);">No notable dive sites found near ' + p.place + '.</p>'; document.getElementById('exp-modal-done').style.display = 'block'; return; }
     const dc = { 'Beginner': '#86efac', 'Intermediate': '#fbbf24', 'Advanced': '#f43f5e' };
     body.innerHTML = `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">${sites.length} dive site${sites.length !== 1 ? 's' : ''} near ${p.place}</p>` +
       sites.map(s => `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
@@ -3500,6 +3504,7 @@ async function loadActivityDiving(i) {
         </div>
         ${s.highlights ? `<div style="margin-top:7px;font-size:0.82rem;color:var(--soft);line-height:1.6;">${s.highlights}</div>` : ''}
       </div>`).join('');
+    document.getElementById('exp-modal-done').style.display = 'block';
   } catch(e) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>'; }
 }
 
@@ -3515,7 +3520,7 @@ async function loadActivityFishing(i) {
     const data = await resp.json();
     if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
     const spots = data.items || [];
-    if (!spots.length) { body.innerHTML = '<p style="color:var(--muted);">No notable fishing spots found near ' + p.place + '.</p>'; return; }
+    if (!spots.length) { body.innerHTML = '<p style="color:var(--muted);">No notable fishing spots found near ' + p.place + '.</p>'; document.getElementById('exp-modal-done').style.display = 'block'; return; }
     body.innerHTML = `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">${spots.length} fishing spot${spots.length !== 1 ? 's' : ''} near ${p.place}</p>` +
       spots.map(s => `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
         <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:6px;">${s.name}</div>
@@ -3525,6 +3530,7 @@ async function loadActivityFishing(i) {
         </div>
         ${s.highlights ? `<div style="font-size:0.82rem;color:var(--soft);line-height:1.6;">${s.highlights}</div>` : ''}
       </div>`).join('');
+    document.getElementById('exp-modal-done').style.display = 'block';
   } catch(e) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>'; }
 }
 
