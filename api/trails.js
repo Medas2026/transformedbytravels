@@ -4,7 +4,7 @@ function claudeRequest(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model:      'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages:   [{ role: 'user', content: prompt }]
     });
     const options = {
@@ -65,8 +65,23 @@ Rules:
 - If there are no notable hiking trails within ~30 km, return an empty array []`;
 
   try {
-    const text   = await claudeRequest(prompt);
-    const trails = JSON.parse(text);
+    const text = await claudeRequest(prompt);
+    let trails;
+    try {
+      trails = JSON.parse(text);
+    } catch(parseErr) {
+      // Response was truncated — salvage complete objects by finding the last }
+      const lastBrace = text.lastIndexOf('},');
+      if (lastBrace > 0) {
+        try {
+          trails = JSON.parse(text.substring(0, lastBrace + 1) + ']');
+        } catch(e2) {
+          throw new Error('Could not parse trail data: ' + parseErr.message);
+        }
+      } else {
+        throw new Error('Could not parse trail data: ' + parseErr.message);
+      }
+    }
     res.status(200).json({ trails, count: trails.length });
   } catch(e) {
     console.error('trails error:', e.message);
