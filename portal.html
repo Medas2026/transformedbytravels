@@ -1475,12 +1475,6 @@ async function loadProfile(email) {
         document.getElementById('pf-tgi-row').style.display = 'flex';
       }
       renderPartnerStatus(f);
-      // Handle partner accept deep link
-      const _partnerToken = sessionStorage.getItem('acceptPartnerToken');
-      if (_partnerToken) {
-        sessionStorage.removeItem('acceptPartnerToken');
-        acceptPartnerInvite(_partnerToken);
-      }
       checkActiveTripBanner();
       loadProfileTrips();
       loadProfileWorkshopStatus();
@@ -1507,6 +1501,13 @@ async function loadProfile(email) {
           </p>
           <a href="/transformational-profile.html" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px 32px;border-radius:8px;">Take the Assessment →</a>
         </div>`;
+    }
+
+    // Handle partner accept deep link — runs whether or not a profile exists
+    const _partnerToken = sessionStorage.getItem('acceptPartnerToken');
+    if (_partnerToken) {
+      sessionStorage.removeItem('acceptPartnerToken');
+      acceptPartnerInvite(_partnerToken);
     }
   } catch(err) {
     document.getElementById('profile-loading').textContent = 'Error loading profile: ' + err.message;

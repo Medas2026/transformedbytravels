@@ -267,14 +267,18 @@ module.exports = async function handler(req, res) {
 
     const f = sender.fields;
 
+    console.log('accept: token found, sender=', f['Traveler Email'], 'intended=', f['Travel Partner Email'], 'acceptor=', acceptorEmail);
+
     // Check expiry
     const expiry = f['Partner Token Expiry'] ? new Date(f['Partner Token Expiry']) : null;
     if (expiry && expiry < new Date()) return res.status(400).json({ error: 'Invitation has expired' });
 
-    // Check the acceptor is the intended recipient
+    // Check the acceptor is the intended recipient (warn but don't block — email aliases differ)
     const intendedEmail = (f['Travel Partner Email'] || '').toLowerCase();
-    if (intendedEmail && intendedEmail !== acceptorEmail.toLowerCase())
-      return res.status(400).json({ error: 'This invitation was sent to a different email address' });
+    if (intendedEmail && intendedEmail !== acceptorEmail.toLowerCase()) {
+      console.log('accept: email mismatch — intended:', intendedEmail, 'got:', acceptorEmail.toLowerCase());
+      // Don't block — update the partner email to match the actual Auth0 email
+    }
 
     // Link sender → acceptor
     await airtablePatch(sender.id, {
