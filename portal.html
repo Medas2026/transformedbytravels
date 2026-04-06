@@ -2243,7 +2243,10 @@ function renderPartnerStatus(f) {
 async function sendPartnerInvite() {
   const partnerEmail = (document.getElementById('partner-email-input').value || '').trim().toLowerCase();
   const msg = document.getElementById('partner-invite-msg');
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(partnerEmail);
   if (!partnerEmail) { msg.style.display='block'; msg.style.color='#f43f5e'; msg.textContent='Please enter your partner\'s email.'; return; }
+  if (!emailOk) { msg.style.display='block'; msg.style.color='#f43f5e'; msg.textContent='Please enter a valid email address.'; return; }
+  if (partnerEmail === userEmail.toLowerCase()) { msg.style.display='block'; msg.style.color='#f43f5e'; msg.textContent='That\'s your own email — please enter your partner\'s.'; return; }
 
   msg.style.display='block'; msg.style.color='var(--muted)'; msg.textContent='Sending invitation…';
 
