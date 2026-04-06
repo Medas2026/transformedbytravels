@@ -395,6 +395,43 @@
             </div>
           </div>
 
+          <!-- Travel Partner Section -->
+          <div class="profile-section" id="pf-partner-section">
+            <div class="profile-section-title">Travel Partner</div>
+
+            <!-- Linked state -->
+            <div id="pf-partner-linked" style="display:none;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#86efac;flex-shrink:0;"></div>
+                <div>
+                  <div style="font-size:0.88rem;color:var(--text);font-weight:600;" id="pf-partner-name"></div>
+                  <div style="font-size:0.78rem;color:var(--muted);" id="pf-partner-email-display"></div>
+                </div>
+              </div>
+              <button onclick="loadCompatibilityReport()" style="width:100%;background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.35);border-radius:10px;padding:12px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">
+                ✦ View Compatibility Report
+              </button>
+            </div>
+
+            <!-- Pending state -->
+            <div id="pf-partner-pending" style="display:none;">
+              <div style="font-size:0.85rem;color:var(--muted);font-style:italic;" id="pf-partner-pending-msg">Invitation sent — waiting for partner to accept.</div>
+            </div>
+
+            <!-- No partner state -->
+            <div id="pf-partner-none">
+              <p style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">Invite your travel partner to connect. Once linked, you'll get a compatibility report showing how your archetypes and travel dimensions work together.</p>
+              <div style="display:flex;gap:8px;">
+                <input id="partner-email-input" type="email" placeholder="Partner's email address" style="flex:1;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.88rem;outline:none;" />
+                <button onclick="sendPartnerInvite()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;white-space:nowrap;">Send Invite</button>
+              </div>
+              <div id="partner-invite-msg" style="display:none;margin-top:10px;font-size:0.82rem;"></div>
+            </div>
+          </div>
+
+          <!-- Compatibility Report Panel -->
+          <div id="pf-compatibility-panel" style="display:none;"></div>
+
           <div class="profile-section" id="pf-trips-section" style="display:none;">
             <div class="profile-section-title">Your Trips</div>
             <div id="pf-trips-list"></div>
@@ -1434,6 +1471,13 @@ async function loadProfile(email) {
         document.getElementById('pf-tgi').textContent = f['TGI'];
         document.getElementById('pf-tgi-row').style.display = 'flex';
       }
+      renderPartnerStatus(f);
+      // Handle partner accept deep link
+      const _partnerToken = sessionStorage.getItem('acceptPartnerToken');
+      if (_partnerToken) {
+        sessionStorage.removeItem('acceptPartnerToken');
+        acceptPartnerInvite(_partnerToken);
+      }
       checkActiveTripBanner();
       loadProfileTrips();
       loadProfileWorkshopStatus();
@@ -2167,6 +2211,170 @@ function loadProfileWorkshopStatus() {
 
 let currentRecordId = null;
 
+// ── Travel Partner ────────────────────────────────────────────────────────────
+
+function renderPartnerStatus(f) {
+  const status       = f['Partner Status'] || '';
+  const partnerEmail = (f['Travel Partner Email'] || '').toLowerCase();
+
+  document.getElementById('pf-partner-linked').style.display  = 'none';
+  document.getElementById('pf-partner-pending').style.display = 'none';
+  document.getElementById('pf-partner-none').style.display    = 'none';
+
+  if (status === 'Linked' && partnerEmail) {
+    document.getElementById('pf-partner-email-display').textContent = partnerEmail;
+    document.getElementById('pf-partner-name').textContent = partnerEmail; // will be overwritten if we fetch partner name
+    document.getElementById('pf-partner-linked').style.display = 'block';
+    // Try to get partner name
+    fetch('/api/airtable-traveler?email=' + encodeURIComponent(partnerEmail))
+      .then(r => r.json()).then(d => {
+        if (d.record && d.record.fields['Traveler Name']) {
+          document.getElementById('pf-partner-name').textContent = d.record.fields['Traveler Name'];
+        }
+      }).catch(() => {});
+  } else if (status === 'Pending' && partnerEmail) {
+    document.getElementById('pf-partner-pending-msg').textContent = `Invitation sent to ${partnerEmail} — waiting for them to accept.`;
+    document.getElementById('pf-partner-pending').style.display = 'block';
+  } else {
+    document.getElementById('pf-partner-none').style.display = 'block';
+  }
+}
+
+async function sendPartnerInvite() {
+  const partnerEmail = (document.getElementById('partner-email-input').value || '').trim().toLowerCase();
+  const msg = document.getElementById('partner-invite-msg');
+  if (!partnerEmail) { msg.style.display='block'; msg.style.color='#f43f5e'; msg.textContent='Please enter your partner\'s email.'; return; }
+
+  msg.style.display='block'; msg.style.color='var(--muted)'; msg.textContent='Sending invitation…';
+
+  try {
+    const resp = await fetch('/api/partner?action=invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderEmail: userEmail, partnerEmail })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      msg.style.color = '#86efac';
+      msg.textContent = '✓ Invitation sent! We\'ll notify you when they accept.';
+      document.getElementById('pf-partner-none').style.display    = 'none';
+      document.getElementById('pf-partner-pending-msg').textContent = `Invitation sent to ${partnerEmail} — waiting for them to accept.`;
+      document.getElementById('pf-partner-pending').style.display  = 'block';
+    } else {
+      msg.style.color = '#f43f5e';
+      msg.textContent = data.error || 'Could not send invitation.';
+    }
+  } catch(e) {
+    msg.style.color = '#f43f5e';
+    msg.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function loadCompatibilityReport() {
+  const panel = document.getElementById('pf-compatibility-panel');
+  panel.style.display = 'block';
+  panel.innerHTML = `<div class="profile-section"><div style="color:var(--muted);font-style:italic;font-size:0.88rem;">Building your compatibility report…</div></div>`;
+
+  try {
+    const resp = await fetch('/api/partner?action=compatibility&email=' + encodeURIComponent(userEmail));
+    const data = await resp.json();
+    if (data.error) { panel.innerHTML = `<div class="profile-section"><p style="color:#f43f5e;font-size:0.85rem;">${data.error}</p></div>`; return; }
+
+    const { travelerA, travelerB, dims, report } = data;
+    const diffColor = d => {
+      const diff = Math.abs((travelerA.scores[d] || 0) - (travelerB.scores[d] || 0));
+      return diff <= 1 ? '#86efac' : diff <= 3 ? '#fbbf24' : '#fb923c';
+    };
+
+    // Format report sections
+    const sections = ['TRAVEL CHEMISTRY', 'YOUR STRENGTHS AS TRAVEL PARTNERS', 'WHERE TO FIND YOUR RHYTHM', 'TRIP STYLES MADE FOR YOU BOTH'];
+    let formatted = report;
+    sections.forEach(s => {
+      formatted = formatted.replace(new RegExp(s, 'g'), `<div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.75rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.1em;margin:20px 0 8px 0;">${s}</div>`);
+    });
+    formatted = formatted.replace(/\n\n/g, '</p><p style="font-size:0.88rem;color:var(--soft);line-height:1.8;margin:0 0 10px;">').replace(/\n/g, '<br>');
+    formatted = '<p style="font-size:0.88rem;color:var(--soft);line-height:1.8;margin:0 0 10px;">' + formatted + '</p>';
+
+    panel.innerHTML = `
+      <div class="profile-section">
+        <div class="profile-section-title">✦ Compatibility Report</div>
+
+        <!-- Archetype comparison -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+          <div style="background:var(--s2);border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">You</div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;color:#fff;">${travelerA.archetype || '—'}</div>
+            <div style="font-size:0.78rem;color:var(--teal);margin-top:2px;">${travelerA.name || ''}</div>
+          </div>
+          <div style="background:var(--s2);border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Partner</div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;color:#fff;">${travelerB.archetype || '—'}</div>
+            <div style="font-size:0.78rem;color:var(--teal);margin-top:2px;">${travelerB.name || ''}</div>
+          </div>
+        </div>
+
+        <!-- Dimension comparison bars -->
+        <div style="margin-bottom:20px;">
+          ${dims.map(d => {
+            const a = travelerA.scores[d] || 0;
+            const b = travelerB.scores[d] || 0;
+            const pctA = Math.round((a / 7) * 100);
+            const pctB = Math.round((b / 7) * 100);
+            const dc   = diffColor(d);
+            return `<div style="margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                <div style="font-size:0.78rem;font-weight:600;color:var(--soft);">${d}</div>
+                <div style="font-size:0.72rem;color:${dc};">Δ ${Math.abs(a - b)}</div>
+              </div>
+              <div style="position:relative;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;margin-bottom:3px;">
+                <div style="position:absolute;left:0;top:0;height:100%;width:${pctA}%;background:var(--teal);border-radius:4px;"></div>
+              </div>
+              <div style="position:relative;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;">
+                <div style="position:absolute;left:0;top:0;height:100%;width:${pctB}%;background:#a78bfa;border-radius:4px;"></div>
+              </div>
+            </div>`;
+          }).join('')}
+          <div style="display:flex;gap:16px;margin-top:8px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--muted);">
+              <div style="width:12px;height:4px;background:var(--teal);border-radius:2px;"></div> ${travelerA.name || 'You'}
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--muted);">
+              <div style="width:12px;height:4px;background:#a78bfa;border-radius:2px;"></div> ${travelerB.name || 'Partner'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Claude narrative -->
+        <div>${formatted}</div>
+
+        <button onclick="document.getElementById('pf-compatibility-panel').style.display='none'" style="margin-top:8px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 20px;color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.78rem;cursor:pointer;">Close Report</button>
+      </div>`;
+  } catch(e) {
+    panel.innerHTML = `<div class="profile-section"><p style="color:#f43f5e;font-size:0.85rem;">Error: ${e.message}</p></div>`;
+  }
+}
+
+async function acceptPartnerInvite(token) {
+  try {
+    const resp = await fetch('/api/partner?action=accept', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, acceptorEmail: userEmail })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      showPage('profile');
+      // Reload profile to reflect linked status
+      await loadProfile(userEmail);
+      showConfirm('🎉', 'Travel Partner Connected!', `You're now linked with ${data.partnerName || 'your travel partner'}. View your compatibility report from your profile.`, 'View Report', 'var(--teal)', loadCompatibilityReport);
+    } else {
+      showConfirm('⚠️', 'Invitation Issue', data.error || 'Could not accept invitation.', 'OK', 'var(--teal)', () => {});
+    }
+  } catch(e) {
+    console.error('accept partner error:', e.message);
+  }
+}
+
 function toggleEditProfile() {
   const viewMode = document.getElementById('profile-view-mode');
   const editMode = document.getElementById('profile-edit-mode');
@@ -2757,6 +2965,10 @@ initDestPicker({ containerId:'dna-dest-picker',  idPrefix:'dna', showPassion:tru
   // Stash ?page=planning&tripId=X for activation deep link
   if (p.get('page') === 'planning' && p.get('tripId')) {
     sessionStorage.setItem('deepLinkTripId', p.get('tripId'));
+  }
+  // Stash partner accept token
+  if (p.get('accept-partner')) {
+    sessionStorage.setItem('acceptPartnerToken', p.get('accept-partner'));
   }
 })();
 
