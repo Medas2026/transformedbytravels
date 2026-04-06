@@ -47,9 +47,15 @@ function airtablePatch(recordId, fields) {
       let d = '';
       res.on('data', c => { d += c; });
       res.on('end', () => {
-        console.log('airtablePatch response status:', res.statusCode, 'body:', d.slice(0, 300));
-        try { resolve(JSON.parse(d)); }
-        catch(e) { reject(e); }
+        console.log('airtablePatch response status:', res.statusCode, 'body:', d.slice(0, 400));
+        try {
+          const parsed = JSON.parse(d);
+          if (res.statusCode >= 400) {
+            reject(new Error('Airtable error ' + res.statusCode + ': ' + (parsed.error && parsed.error.message ? parsed.error.message : d.slice(0, 200))));
+          } else {
+            resolve(parsed);
+          }
+        } catch(e) { reject(e); }
       });
     });
     req.on('error', reject);
