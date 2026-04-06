@@ -179,7 +179,8 @@ function buildFields(b, isNew) {
     if (b.address      !== undefined) fields['Address']        = b.address;
     if (b.homeAirport  !== undefined) fields['Home Airport']   = b.homeAirport;
     if (b.travelStyle  !== undefined) fields['Travel Style']   = b.travelStyle;
-    if (b.homeTimezone !== undefined) fields['Home Timezone']  = b.homeTimezone;
+    if (b.homeTimezone  !== undefined) fields['Home Timezone']    = b.homeTimezone;
+    if (b.distanceUnits !== undefined) fields['Distance Units']   = b.distanceUnits;
     return fields;
   }
 

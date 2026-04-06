@@ -301,6 +301,7 @@
               <div class="profile-field"><span class="field-label">Address</span><span class="field-value" id="pf-address">—</span></div>
               <div class="profile-field"><span class="field-label">Home Airport</span><span class="field-value" id="pf-airport">—</span></div>
               <div class="profile-field"><span class="field-label">Home Timezone</span><span class="field-value" id="pf-timezone">—</span></div>
+              <div class="profile-field"><span class="field-label">Distance Units</span><span class="field-value" id="pf-units">Miles</span></div>
               <div class="profile-field"><span class="field-label">Life Stage</span><span class="field-value" id="pf-lifestage">—</span></div>
               <div class="profile-field"><span class="field-label">Assessment Date</span><span class="field-value" id="pf-date">—</span></div>
               <div class="profile-field"><span class="field-label">Package Status</span><span class="field-value" id="pf-status">—</span></div>
@@ -325,6 +326,13 @@
                   <div class="field-label" style="margin-bottom:6px;">Home Airport Code</div>
                   <input id="edit-airport" type="text" maxlength="4" placeholder="e.g. ORD" style="width:120px;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;text-transform:uppercase;" />
                   <div style="margin-top:6px;font-size:0.78rem;color:var(--muted);">Don't know your code? <a href="https://www.iata.org/en/publications/directories/code-search/" target="_blank" style="color:var(--teal);">Look it up →</a></div>
+                </div>
+                <div>
+                  <div class="field-label" style="margin-bottom:6px;">Distance Units</div>
+                  <select id="edit-units" style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;appearance:none;-webkit-appearance:none;">
+                    <option value="Miles">Miles</option>
+                    <option value="Metric">Metric (km)</option>
+                  </select>
                 </div>
                 <div>
                   <div class="field-label" style="margin-bottom:6px;">Home Timezone</div>
@@ -1402,6 +1410,7 @@ async function loadProfile(email) {
       document.getElementById('pf-address').textContent    = f['Address'] || '—';
       document.getElementById('pf-airport').textContent    = f['Home Airport']   || '—';
       document.getElementById('pf-timezone').textContent  = f['Home Timezone']  || '—';
+      document.getElementById('pf-units').textContent     = f['Distance Units'] || 'Miles';
       document.getElementById('pf-lifestage').textContent  = f['Life Stage'] || '—';
       document.getElementById('pf-date').textContent       = f['Assessment Date'] || '—';
       document.getElementById('pf-status').textContent     = f['Package Status'] || 'Not yet purchased';
@@ -2170,6 +2179,7 @@ function toggleEditProfile() {
     document.getElementById('edit-address').value  = document.getElementById('pf-address').textContent.replace('—','');
     document.getElementById('edit-airport').value  = document.getElementById('pf-airport').textContent.replace('—','');
     document.getElementById('edit-timezone').value = document.getElementById('pf-timezone').textContent.replace('—','');
+    document.getElementById('edit-units').value    = document.getElementById('pf-units').textContent.replace('—','') || 'Miles';
     viewMode.style.display = 'none';
     editMode.style.display = 'block';
     btn.textContent = 'Cancel';
@@ -2197,7 +2207,8 @@ async function saveProfile() {
         phone:        document.getElementById('edit-phone').value,
         address:      document.getElementById('edit-address').value,
         homeAirport:  document.getElementById('edit-airport').value.toUpperCase(),
-        homeTimezone: document.getElementById('edit-timezone').value
+        homeTimezone:  document.getElementById('edit-timezone').value,
+        distanceUnits: document.getElementById('edit-units').value
       })
     });
     const data = await resp.json();
@@ -2207,6 +2218,7 @@ async function saveProfile() {
       document.getElementById('pf-address').textContent  = document.getElementById('edit-address').value || '—';
       document.getElementById('pf-airport').textContent  = document.getElementById('edit-airport').value.toUpperCase() || '—';
       document.getElementById('pf-timezone').textContent = document.getElementById('edit-timezone').value || '—';
+      document.getElementById('pf-units').textContent    = document.getElementById('edit-units').value || 'Miles';
       msg.textContent = '✓ Saved!';
       setTimeout(() => { toggleEditProfile(); msg.style.display = 'none'; }, 1000);
     } else {
@@ -3149,7 +3161,7 @@ async function findPlaceTrails(i) {
     const resp = await fetch('/api/trails', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ place: p.place, country: p.country })
+      body:    JSON.stringify({ place: p.place, country: p.country, units: (document.getElementById('pf-units') || {}).textContent || 'Miles' })
     });
     if (!resp.ok && resp.headers.get('content-type') && !resp.headers.get('content-type').includes('json')) {
       body.innerHTML = '<p style="color:#f43f5e;">Trail service error (' + resp.status + ') — please try again in a moment.</p>';

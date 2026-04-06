@@ -43,20 +43,23 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { place, country } = req.body || {};
+  const { place, country, units = 'Miles' } = req.body || {};
   if (!place) return res.status(400).json({ error: 'place required' });
 
-  const destination = country ? `${place}, ${country}` : place;
+  const destination  = country ? `${place}, ${country}` : place;
+  const useMetric    = units === 'Metric';
+  const distUnit     = useMetric ? 'km' : 'miles';
+  const distExample  = useMetric ? '8.5 km' : '5.3 miles';
 
   const prompt = `You are a hiking and outdoor recreation expert. List up to 15 real, well-known hiking trails near ${destination}.
 
 Respond with a JSON array only — no explanation, no markdown, no code fences. Each item:
-{"name":"Trail Name","difficulty":"Easy|Moderate|Difficult|Strenuous","distance":"X.X km","description":"One sentence about the trail — scenery, highlights, what makes it special.","website":null}
+{"name":"Trail Name","difficulty":"Easy|Moderate|Difficult|Strenuous","distance":"X.X ${distUnit}","description":"One sentence about the trail — scenery, highlights, what makes it special.","website":null}
 
 Rules:
 - Only include real trails that actually exist near ${destination}
 - difficulty must be one of: Easy, Moderate, Difficult, Strenuous
-- distance is approximate round-trip in km (or one-way if point-to-point, note it in description)
+- distance is approximate round-trip in ${distUnit} (e.g. "${distExample}") — if point-to-point, note it in description
 - website: include the official trail or park URL if you know it with confidence, otherwise null
 - Sort easiest to most difficult
 - If there are no notable hiking trails within ~30 km, return an empty array []`;
