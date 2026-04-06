@@ -1494,6 +1494,7 @@ async function loadProfile(email) {
         document.getElementById('pf-tgi-row').style.display = 'flex';
       }
       renderPartnerStatus(f);
+      initDNAPartnerToggle();
       checkActiveTripBanner();
       loadProfileTrips();
       loadProfileWorkshopStatus();
