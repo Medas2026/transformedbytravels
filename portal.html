@@ -1666,26 +1666,132 @@ async function buildItinerary() {
         </div>`;
     }
 
-    // Per-place stay summaries
+    // Per-place stay summaries + hotel info
     if (data.places && data.places.length) {
       data.places.forEach(p => {
-        const summary = data.placeSummaries && data.placeSummaries[p.name];
-        if (!summary) return;
+        const summary     = data.placeSummaries && data.placeSummaries[p.name];
+        const hotelBlurb  = data.hotelSummaries  && data.hotelSummaries[p.name];
+        if (!summary && !hotelBlurb) return;
         html += `
-          <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:18px 18px;margin-bottom:12px;">
-            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:6px;">${p.name}${p.dateRange ? `<span style="font-weight:400;color:var(--muted);font-size:0.78rem;margin-left:10px;">${p.dateRange}</span>` : ''}</div>
-            <div style="color:var(--soft);font-size:0.87rem;line-height:1.75;">${summary.replace(/\n/g,'<br>')}</div>
+          <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:18px;margin-bottom:12px;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:8px;">${p.name}${p.dateRange ? `<span style="font-weight:400;color:var(--muted);font-size:0.78rem;margin-left:10px;">${p.dateRange}</span>` : ''}</div>
+            ${summary ? `<div style="color:var(--soft);font-size:0.87rem;line-height:1.75;margin-bottom:${hotelBlurb ? '14px' : '0'};">${summary.replace(/\n/g,'<br>')}</div>` : ''}
+            ${hotelBlurb ? `
+              <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">
+                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#fbbf24;margin-bottom:6px;">🏨 Where You'll Stay</div>
+                <div style="color:var(--soft);font-size:0.87rem;line-height:1.75;margin-bottom:8px;">${hotelBlurb.replace(/\n/g,'<br>')}</div>
+                <a href="${p.stayedAtUrl}" target="_blank" rel="noopener" style="font-size:0.8rem;color:var(--teal);word-break:break-all;">${p.stayedAtUrl}</a>
+              </div>` : ''}
           </div>`;
       });
     }
 
+    // Store data on panel for PDF use
+    panel.dataset.itinerary = JSON.stringify(data);
     panel.innerHTML = html;
+
+    // PDF button
+    panel.insertAdjacentHTML('afterend', `
+      <div id="itinerary-pdf-row" style="margin-top:12px;text-align:right;">
+        <button onclick="printItinerary()" style="background:none;border:1px solid rgba(255,255,255,0.2);color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;border-radius:6px;padding:7px 16px;cursor:pointer;">⬇ Save as PDF</button>
+      </div>`);
+
     btn.textContent = '↻ Rebuild Itinerary';
   } catch(e) {
     panel.innerHTML = `<p style="color:#f87171;font-size:0.88rem;">Error: ${e.message}</p>`;
     btn.textContent = '✦ Build Itinerary';
   }
   btn.disabled = false;
+}
+
+function printItinerary() {
+  const panel = document.getElementById('itinerary-panel');
+  const raw   = panel.dataset.itinerary;
+  if (!raw) return;
+  const data  = JSON.parse(raw);
+
+  const fmtDate = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+  const summaryDates = [fmtDate(data.startDate), fmtDate(data.endDate)].filter(Boolean).join(' – ');
+  const escape = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  let body = `
+    <div class="header">
+      <div class="dest">${escape(data.destination || data.tripName)}</div>
+      ${summaryDates ? `<div class="dates">${escape(summaryDates)}</div>` : ''}
+    </div>`;
+
+  if (data.places && data.places.length) {
+    body += `<table><thead><tr><th>Place</th><th>Dates</th></tr></thead><tbody>`;
+    data.places.forEach(p => {
+      body += `<tr><td><strong>${escape(p.name)}</strong></td><td>${escape(p.dateRange || '—')}</td></tr>`;
+    });
+    body += `</tbody></table>`;
+  }
+
+  if (data.destOverview) {
+    body += `<div class="section">
+      <div class="section-label">Destination Overview</div>
+      <div class="section-body">${data.destOverview.replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')}</div>
+    </div>`;
+  }
+
+  if (data.places && data.places.length) {
+    data.places.forEach(p => {
+      const summary    = data.placeSummaries && data.placeSummaries[p.name];
+      const hotelBlurb = data.hotelSummaries  && data.hotelSummaries[p.name];
+      if (!summary && !hotelBlurb) return;
+      body += `<div class="place-block">
+        <div class="place-name">${escape(p.name)}${p.dateRange ? `<span class="place-dates">${escape(p.dateRange)}</span>` : ''}</div>
+        ${summary ? `<p>${summary.replace(/\n/g,'<br>')}</p>` : ''}
+        ${hotelBlurb ? `
+          <div class="hotel-section">
+            <div class="hotel-label">🏨 Where You'll Stay</div>
+            <p>${hotelBlurb.replace(/\n/g,'<br>')}</p>
+            <a href="${p.stayedAtUrl}" class="hotel-url">${escape(p.stayedAtUrl)}</a>
+          </div>` : ''}
+      </div>`;
+    });
+  }
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${escape(data.tripName || data.destination)} — Itinerary</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Open Sans', sans-serif; font-size: 11pt; color: #1a1a2e; background: #fff; padding: 40px 48px; max-width: 760px; margin: 0 auto; }
+    .header { margin-bottom: 28px; border-bottom: 2px solid #2a9d8f; padding-bottom: 16px; }
+    .dest { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 22pt; color: #1a1a2e; margin-bottom: 4px; }
+    .dates { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 11pt; color: #2a9d8f; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 10pt; }
+    thead tr { border-bottom: 2px solid #1a1a2e; }
+    th { text-align: left; padding: 6px 12px 6px 0; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: #555; }
+    td { padding: 8px 12px 8px 0; border-bottom: 1px solid #e5e7eb; color: #1a1a2e; }
+    .section { background: #f0faf9; border-left: 4px solid #2a9d8f; border-radius: 4px; padding: 18px 20px; margin-bottom: 24px; }
+    .section-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.1em; color: #2a9d8f; margin-bottom: 10px; }
+    .section-body p { color: #333; line-height: 1.7; margin-top: 10px; }
+    .section-body p:first-child { margin-top: 0; }
+    .place-block { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 18px; margin-bottom: 14px; }
+    .place-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 12pt; color: #1a1a2e; margin-bottom: 8px; }
+    .place-dates { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 9pt; color: #888; margin-left: 10px; }
+    .place-block p { color: #333; line-height: 1.7; font-size: 10pt; }
+    .hotel-section { border-top: 1px solid #e5e7eb; margin-top: 12px; padding-top: 12px; }
+    .hotel-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: #b45309; margin-bottom: 6px; }
+    .hotel-url { font-size: 9pt; color: #2a9d8f; word-break: break-all; display: block; margin-top: 6px; }
+    @media print {
+      body { padding: 20px 28px; }
+      .place-block { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>${body}</body>
+</html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 600);
 }
 
 // ═══════════════════════════════════════════════

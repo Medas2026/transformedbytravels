@@ -17,7 +17,7 @@ async function callClaude(prompt) {
     },
     body: JSON.stringify({
       model:      'claude-sonnet-4-6',
-      max_tokens: 3000,
+      max_tokens: 4000,
       messages:   [{ role: 'user', content: prompt }]
     })
   });
@@ -79,9 +79,10 @@ module.exports = async function handler(req, res) {
       ? dayToDate(startDate, nextDay - 1)
       : (endDate ? new Date(endDate + 'T12:00:00') : null);
     return {
-      name:     p['Place']   || '(unnamed)',
-      country:  p['Country'] || '',
-      notes:    p['Notes']   || '',
+      name:        p['Place']          || '(unnamed)',
+      country:     p['Country']        || '',
+      notes:       p['Notes']          || '',
+      stayedAtUrl: p['Stayed at URL']  || '',
       arrDate:  formatDate(arrDate),
       depDate:  formatDate(depDate),
       dateRange: arrDate
@@ -92,9 +93,20 @@ module.exports = async function handler(req, res) {
     };
   });
 
-  const placeListForPrompt = placeRows.map((p, i) =>
-    `${i + 1}. ${p.name}${p.country ? ', ' + p.country : ''}${p.dateRange ? ' (' + p.dateRange + ')' : ''}${p.notes ? '\n   Notes: ' + p.notes : ''}`
-  ).join('\n');
+  const placeListForPrompt = placeRows.map((p, i) => {
+    let line = `${i + 1}. ${p.name}${p.country ? ', ' + p.country : ''}${p.dateRange ? ' (' + p.dateRange + ')' : ''}`;
+    if (p.notes) line += `\n   Notes: ${p.notes}`;
+    if (p.stayedAtUrl) line += `\n   Accommodation URL: ${p.stayedAtUrl}`;
+    return line;
+  }).join('\n');
+
+  const hotelPlaces = placeRows.filter(p => p.stayedAtUrl);
+  const hotelSection = hotelPlaces.length ? `
+
+## HOTEL SUMMARIES
+For each place below that has an accommodation URL, write a short "Where You'll Stay" paragraph (2–3 sentences). You cannot visit the URL — instead write about what kind of stay experience suits this destination for a transformational traveler: the setting, what proximity to key experiences means, and what to savour about having a home base there.
+
+${hotelPlaces.map(p => `### ${p.name}\n(URL: ${p.stayedAtUrl})`).join('\n\n')}` : '';
 
   const prompt = `You are a transformational travel expert for Transformed by Travels, helping travelers plan meaningful journeys.
 
@@ -106,7 +118,7 @@ TRAVELER ARCHETYPE: ${archetype || 'not specified'}
 PLACES TO VISIT:
 ${placeListForPrompt || '(no places added yet)'}
 
-Write a travel itinerary overview with two parts:
+Write a travel itinerary overview with the following parts:
 
 ## DESTINATION OVERVIEW
 Write 2–3 paragraphs about ${dest} from a transformational travel perspective. Cover what makes this destination uniquely powerful for personal growth, cultural depth, and meaningful experience. Tailor the tone to a ${archetype || 'growth-minded'} traveler.
@@ -117,21 +129,35 @@ For each place listed above, write a short "Stay Summary" (2–4 sentences). Foc
 Format each place summary exactly like this:
 ### [Place Name]
 [2–4 sentence summary]
+${hotelSection}
 
 Write in second person ("you"). Be specific and evocative, not a Wikipedia summary.`;
 
   try {
     const raw = await callClaude(prompt);
 
-    // Parse the response into destination overview + per-place summaries
+    // Parse destination overview
     const destMatch = raw.match(/##\s*DESTINATION OVERVIEW\s*([\s\S]*?)(?=##\s*PLACE SUMMARIES|$)/i);
     const destOverview = destMatch ? destMatch[1].trim() : '';
 
+    // Parse place summaries
     const placeSummaries = {};
-    const placeBlocks = raw.matchAll(/###\s*(.+?)\n([\s\S]*?)(?=###|$)/g);
-    for (const match of placeBlocks) {
-      const name = match[1].trim();
-      placeSummaries[name] = match[2].trim();
+    const placeSectionMatch = raw.match(/##\s*PLACE SUMMARIES\s*([\s\S]*?)(?=##\s*HOTEL SUMMARIES|$)/i);
+    if (placeSectionMatch) {
+      const placeBlocks = placeSectionMatch[1].matchAll(/###\s*(.+?)\n([\s\S]*?)(?=###|$)/g);
+      for (const match of placeBlocks) {
+        placeSummaries[match[1].trim()] = match[2].trim();
+      }
+    }
+
+    // Parse hotel summaries
+    const hotelSummaries = {};
+    const hotelSectionMatch = raw.match(/##\s*HOTEL SUMMARIES\s*([\s\S]*?)$/i);
+    if (hotelSectionMatch) {
+      const hotelBlocks = hotelSectionMatch[1].matchAll(/###\s*(.+?)\n([\s\S]*?)(?=###|$)/g);
+      for (const match of hotelBlocks) {
+        hotelSummaries[match[1].trim()] = match[2].trim();
+      }
     }
 
     return res.status(200).json({
@@ -139,9 +165,10 @@ Write in second person ("you"). Be specific and evocative, not a Wikipedia summa
       destination: dest,
       startDate,
       endDate,
-      places:      placeRows,
+      places:         placeRows,
       destOverview,
-      placeSummaries
+      placeSummaries,
+      hotelSummaries
     });
   } catch(e) {
     return res.status(500).json({ error: e.message });
