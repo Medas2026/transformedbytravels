@@ -267,6 +267,72 @@
       margin: 0 auto;
     }
 
+    /* ── TGI CARD ── */
+    .tgi-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .tgi-card h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #888;
+      margin-bottom: 20px;
+    }
+    .tgi-circle {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: conic-gradient(#2a9d8f var(--tgi-deg, 0deg), #eef2f5 0deg);
+      box-shadow: 0 4px 20px rgba(42,157,143,0.2);
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .tgi-circle::after {
+      content: '';
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: #fff;
+    }
+    .tgi-value {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: #1a1a2e;
+      line-height: 1;
+      position: relative;
+      z-index: 1;
+    }
+    .tgi-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      position: relative;
+      z-index: 1;
+    }
+    .tgi-desc {
+      color: #555;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
     .chart-card {
       background: #fff;
       border-radius: 20px;
@@ -468,6 +534,15 @@
         <h2>Your Travel Persona</h2>
         <div class="persona-name" id="personaName"></div>
         <p class="persona-desc" id="personaDesc"></p>
+      </div>
+
+      <div class="tgi-card">
+        <h3>Total Growth Index</h3>
+        <div class="tgi-circle" id="tgiCircle">
+          <span class="tgi-value" id="tgiValue">—</span>
+          <span class="tgi-label">/ 100</span>
+        </div>
+        <p class="tgi-desc" id="tgiDesc"></p>
       </div>
 
       <div class="chart-card">
@@ -732,6 +807,31 @@
         const n = counts[d] || 7;
         scores[d] = Math.round(((n - raw[d]) / n) * 100);
       });
+
+      // ── Total Growth Index ──
+      const goodScores = {};
+      DIMENSIONS.forEach(d => {
+        const n = counts[d] || 7;
+        goodScores[d] = n - raw[d]; // 0–7, higher = stronger dimension
+      });
+      const totalGood = DIMENSIONS.reduce((sum, d) => sum + goodScores[d], 0);
+      let tgi = Math.round((totalGood / 35) * 100);
+      const minGood = Math.min(...DIMENSIONS.map(d => goodScores[d]));
+      if (minGood < 3) tgi = Math.min(tgi, 60);
+      else if (minGood < 4) tgi = Math.min(tgi, 70);
+
+      const tgiDescriptions = [
+        { min: 85, text: "Your transformation potential is exceptional. You bring deep curiosity, intention, and openness across all dimensions — travel will profoundly reshape you." },
+        { min: 70, text: "You have strong transformational capacity. Travel regularly shifts your perspective and you return home meaningfully changed." },
+        { min: 55, text: "You have solid growth potential with room to deepen your engagement. Focused travel experiences can accelerate your transformation." },
+        { min: 0,  text: "Your transformational journey is just beginning. Intentional travel — even in small doses — can open powerful new dimensions of growth." },
+      ];
+      const tgiText = tgiDescriptions.find(t => tgi >= t.min).text;
+
+      document.getElementById('tgiValue').textContent = tgi;
+      document.getElementById('tgiDesc').textContent = tgiText;
+      const deg = Math.round((tgi / 100) * 360);
+      document.getElementById('tgiCircle').style.setProperty('--tgi-deg', deg + 'deg');
 
       // Style question (q36, index 35)
       const styleAnswer = answers[35]; // 0 = DIY, 1 = guided
