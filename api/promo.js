@@ -85,7 +85,7 @@ module.exports = async function handler(req, res) {
 
     // Set free month subscription
     const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 30);
+    endDate.setDate(endDate.getDate() + 90);
     const endDateStr = endDate.toISOString().split('T')[0];
 
     await airtablePatch(record.id, {
