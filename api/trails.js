@@ -1,24 +1,31 @@
 const https = require('https');
 
-const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
-
+// Use Nominatim (OpenStreetMap) — free, no API key needed
 function geocode(placeName) {
   return new Promise((resolve, reject) => {
     const query = encodeURIComponent(placeName);
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${MAPBOX_TOKEN}&limit=1`;
-    const req = https.get(url, (res) => {
+    const options = {
+      hostname: 'nominatim.openstreetmap.org',
+      path: `/search?q=${query}&format=json&limit=1`,
+      method: 'GET',
+      headers: {
+        // Nominatim requires a descriptive User-Agent
+        'User-Agent': 'TransformedByTravels/1.0 (transformedbytravels.com)'
+      }
+    };
+    const req = https.request(options, (res) => {
       let d = '';
       res.on('data', c => { d += c; });
       res.on('end', () => {
         try {
           const json = JSON.parse(d);
-          const feat = (json.features || [])[0];
-          if (!feat) return reject(new Error('Place not found'));
-          resolve({ lng: feat.center[0], lat: feat.center[1] });
+          if (!json.length) return reject(new Error('Place not found: ' + placeName));
+          resolve({ lat: parseFloat(json[0].lat), lng: parseFloat(json[0].lon) });
         } catch(e) { reject(e); }
       });
     });
     req.on('error', reject);
+    req.end();
   });
 }
 
