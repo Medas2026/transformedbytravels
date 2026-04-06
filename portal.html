@@ -162,6 +162,9 @@
     .place-card-day { font-size:0.78rem; color:var(--teal); background:rgba(45,212,191,0.12); border-radius:5px; padding:3px 8px; white-space:nowrap; flex-shrink:0; }
     .place-card-edit { background:none; border:1px solid rgba(255,255,255,0.18); color:#94a3b8; border-radius:6px; padding:5px 12px; font-size:0.78rem; font-weight:600; cursor:pointer; transition:border-color 0.15s,color 0.15s; }
     .place-card-edit:hover { border-color:var(--teal); color:var(--teal); }
+    .act-type-btn { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:var(--soft); border-radius:20px; padding:6px 14px; font-size:0.8rem; font-weight:600; font-family:'Montserrat',sans-serif; cursor:pointer; transition:all 0.15s; }
+    .act-type-btn:hover { border-color:var(--teal); color:var(--teal); }
+    .act-type-btn.active { background:var(--teal); border-color:var(--teal); color:#0f172a; }
     .place-card-del { background:none; border:none; color:#64748b; font-size:1.1rem; line-height:1; cursor:pointer; padding:4px 6px; flex-shrink:0; }
     .place-card-del:hover { color:#f43f5e; }
     /* Place modal */
@@ -1212,15 +1215,22 @@
     </div><!-- /main -->
   </div><!-- /wrapper -->
 
-  <!-- Experiences Modal -->
+  <!-- Activities Modal -->
   <div id="exp-modal" style="display:none;position:fixed;inset:0;z-index:1020;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
     <div style="background:var(--s1);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:28px;width:100%;max-width:520px;margin:auto;display:flex;flex-direction:column;gap:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;" id="exp-modal-title">Experiences</div>
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;" id="exp-modal-title">Activities</div>
         <button onclick="document.getElementById('exp-modal').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
       </div>
+      <!-- Activity type picker -->
+      <div id="exp-modal-picker" style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="act-type-btn" onclick="selectActivity('experiences')" data-type="experiences">✦ Experiences</button>
+        <button class="act-type-btn" onclick="selectActivity('trails')"     data-type="trails">🥾 Hiking</button>
+        <button class="act-type-btn" onclick="selectActivity('diving')"     data-type="diving">🤿 Diving</button>
+        <button class="act-type-btn" onclick="selectActivity('fishing')"    data-type="fishing">🎣 Fishing</button>
+      </div>
       <div id="exp-modal-body" style="color:var(--soft);font-size:0.9rem;line-height:1.7;"></div>
-      <div style="margin-top:16px;text-align:right;">
+      <div style="margin-top:4px;text-align:right;">
         <button onclick="document.getElementById('exp-modal').style.display='none'" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:8px;padding:10px 28px;cursor:pointer;">Finished</button>
       </div>
     </div>
@@ -3370,40 +3380,55 @@ function renderPlaceCards() {
       ${p.dnaGuideId ? `<span class="place-card-day" style="background:rgba(45,212,191,0.12);color:var(--teal);cursor:pointer;" title="View DNA Guide" onclick="showPlaceGuide('${p.dnaGuideId}')">🧬 Guide</span>` : ''}
       ${p.photosUrl ? `<span class="place-card-day" style="background:rgba(99,102,241,0.12);color:#a5b4fc;cursor:pointer;" title="Open photos folder" onclick="openPlacePhotos(${i})">📷 Photos</span>` : ''}
       ${p.stayedAtUrl ? `<span class="place-card-day" style="background:rgba(251,191,36,0.12);color:#fbbf24;cursor:pointer;" title="Where we stayed" onclick="window.open(_places[${i}].stayedAtUrl,'_blank')">🏨 Stayed</span>` : ''}
-      <button class="place-card-edit" onclick="findPlaceExperiences(${i})" title="Find experiences for this place" style="color:var(--teal);border-color:rgba(45,212,191,0.3);">✦ Experiences</button>
-      <button class="place-card-edit" onclick="findPlaceTrails(${i})" title="Find hiking trails near this place" style="color:#86efac;border-color:rgba(134,239,172,0.3);">🥾 Trails</button>
+      <button class="place-card-edit" onclick="openActivitiesModal(${i})" title="Find activities for this place" style="color:var(--teal);border-color:rgba(45,212,191,0.3);">⚡ Activities</button>
       <button class="place-card-edit" onclick="openPlaceModal(${i})">Edit</button>
       <button class="place-card-del" onclick="deletePlaceCard(${i})" title="Remove">×</button>`;
     container.appendChild(card);
   });
 }
 
-async function findPlaceExperiences(i) {
+let _activitiesPlaceIndex = null;
+
+function openActivitiesModal(i) {
+  _activitiesPlaceIndex = i;
+  const p     = _places[i] || {};
+  const modal = document.getElementById('exp-modal');
+  const title = document.getElementById('exp-modal-title');
+  const body  = document.getElementById('exp-modal-body');
+  title.textContent = '⚡ Activities · ' + (p.place || '');
+  body.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">Choose an activity type above to get started.</p>';
+  // Reset active button
+  document.querySelectorAll('.act-type-btn').forEach(b => b.classList.remove('active'));
+  modal.style.display = 'flex';
+}
+
+function selectActivity(type) {
+  document.querySelectorAll('.act-type-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.act-type-btn[data-type="${type}"]`);
+  if (btn) btn.classList.add('active');
+  const i = _activitiesPlaceIndex;
+  if (i === null) return;
+  if (type === 'experiences') loadActivityExperiences(i);
+  else if (type === 'trails')  loadActivityTrails(i);
+  else if (type === 'diving')  loadActivityDiving(i);
+  else if (type === 'fishing') loadActivityFishing(i);
+}
+
+async function loadActivityExperiences(i) {
   const p    = _places[i] || {};
   const dest = [p.place, p.country].filter(Boolean).join(', ');
-  if (!dest) return;
-
-  const modal    = document.getElementById('exp-modal');
-  const title    = document.getElementById('exp-modal-title');
-  const body     = document.getElementById('exp-modal-body');
+  const body = document.getElementById('exp-modal-body');
   const archetype = (portalProfile && portalProfile['Archetype']) || '';
-
-  title.textContent = 'Experiences · ' + dest;
-  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Finding experiences for ' + dest + '…</p>';
-  modal.style.display = 'flex';
-
+  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Finding experiences for ' + (p.place || dest) + '…</p>';
   try {
     const resp = await fetch('/api/experiences', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ destination: dest, archetype })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destination: dest, archetype })
     });
     const data = await resp.json();
     if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
-
     const experiences = data.experiences || [];
     if (!experiences.length) { body.innerHTML = '<p style="color:var(--muted);">No experiences found.</p>'; return; }
-
     body.innerHTML = experiences.map(exp => `
       <div style="margin-bottom:20px;">
         <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">${exp.activity}</div>
@@ -3413,63 +3438,94 @@ async function findPlaceExperiences(i) {
             <div style="font-size:0.82rem;color:var(--soft);line-height:1.6;">${s.description}</div>
           </div>`).join('')}
       </div>`).join('');
-  } catch(e) {
-    body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>';
-  }
+  } catch(e) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>'; }
 }
 
-async function findPlaceTrails(i) {
+async function loadActivityTrails(i) {
   const p    = _places[i] || {};
-  if (!p.place) return;
-
-  const modal = document.getElementById('exp-modal');
-  const title = document.getElementById('exp-modal-title');
-  const body  = document.getElementById('exp-modal-body');
-
-  title.textContent = '🥾 Trails · ' + p.place;
-  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Finding hiking trails near ' + p.place + '…</p>';
-  modal.style.display = 'flex';
-
+  const body = document.getElementById('exp-modal-body');
+  const units = (document.getElementById('pf-units') || {}).textContent || 'Miles';
+  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Finding hiking trails near ' + (p.place || '') + '…</p>';
   try {
     const resp = await fetch('/api/trails', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ place: p.place, country: p.country, units: (document.getElementById('pf-units') || {}).textContent || 'Miles' })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ place: p.place, country: p.country, units })
     });
     if (!resp.ok && resp.headers.get('content-type') && !resp.headers.get('content-type').includes('json')) {
-      body.innerHTML = '<p style="color:#f43f5e;">Trail service error (' + resp.status + ') — please try again in a moment.</p>';
-      return;
+      body.innerHTML = '<p style="color:#f43f5e;">Trail service error (' + resp.status + ') — please try again.</p>'; return;
     }
     const data = await resp.json();
     if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
-
     const trails = data.trails || [];
-    if (!trails.length) {
-      body.innerHTML = '<p style="color:var(--muted);">No notable hiking trails found near ' + p.place + '.</p>';
-      return;
-    }
+    if (!trails.length) { body.innerHTML = '<p style="color:var(--muted);">No notable hiking trails found near ' + p.place + '.</p>'; return; }
+    const dc = { 'Easy': '#86efac', 'Moderate': '#fbbf24', 'Difficult': '#fb923c', 'Strenuous': '#f43f5e' };
+    body.innerHTML = `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">${trails.length} trail${trails.length !== 1 ? 's' : ''} near ${p.place}</p>` +
+      trails.map(t => `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;flex:1;">${t.name}</div>
+          ${t.distance ? `<div style="font-size:0.78rem;color:var(--teal);white-space:nowrap;">${t.distance}</div>` : ''}
+        </div>
+        ${t.difficulty ? `<div style="margin-top:6px;"><span style="font-size:0.75rem;font-weight:600;color:${dc[t.difficulty]||'var(--soft)'};background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 8px;">${t.difficulty}</span></div>` : ''}
+        ${t.description ? `<div style="margin-top:7px;font-size:0.82rem;color:var(--soft);line-height:1.6;">${t.description}</div>` : ''}
+        ${t.website ? `<div style="margin-top:6px;"><a href="${t.website}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--teal);text-decoration:none;">↗ Trail info</a></div>` : ''}
+      </div>`).join('');
+  } catch(e) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>'; }
+}
 
-    const diffColor = { 'Easy': '#86efac', 'Moderate': '#fbbf24', 'Difficult': '#fb923c', 'Strenuous': '#f43f5e' };
+async function loadActivityDiving(i) {
+  const p    = _places[i] || {};
+  const dest = [p.place, p.country].filter(Boolean).join(', ');
+  const body = document.getElementById('exp-modal-body');
+  const units = ((document.getElementById('pf-units') || {}).textContent || 'Miles') === 'Metric' ? 'meters' : 'feet';
+  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Finding dive sites near ' + (p.place || '') + '…</p>';
+  try {
+    const resp = await fetch('/api/activities', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ place: p.place, country: p.country, type: 'diving', units })
+    });
+    const data = await resp.json();
+    if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
+    const sites = data.items || [];
+    if (!sites.length) { body.innerHTML = '<p style="color:var(--muted);">No notable dive sites found near ' + p.place + '.</p>'; return; }
+    const dc = { 'Beginner': '#86efac', 'Intermediate': '#fbbf24', 'Advanced': '#f43f5e' };
+    body.innerHTML = `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">${sites.length} dive site${sites.length !== 1 ? 's' : ''} near ${p.place}</p>` +
+      sites.map(s => `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;flex:1;">${s.name}</div>
+          ${s.depth ? `<div style="font-size:0.78rem;color:#38bdf8;white-space:nowrap;">${s.depth}</div>` : ''}
+        </div>
+        <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
+          ${s.difficulty ? `<span style="font-size:0.75rem;font-weight:600;color:${dc[s.difficulty]||'var(--soft)'};background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 8px;">${s.difficulty}</span>` : ''}
+          ${s.type ? `<span style="font-size:0.75rem;color:var(--muted);background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 8px;">${s.type}</span>` : ''}
+        </div>
+        ${s.highlights ? `<div style="margin-top:7px;font-size:0.82rem;color:var(--soft);line-height:1.6;">${s.highlights}</div>` : ''}
+      </div>`).join('');
+  } catch(e) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>'; }
+}
 
-    body.innerHTML = `
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">${trails.length} trail${trails.length !== 1 ? 's' : ''} near ${p.place}</p>
-      ${trails.map(t => {
-        const dc = diffColor[t.difficulty] || 'var(--soft)';
-        return `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;flex:1;">${t.name}</div>
-            ${t.distance ? `<div style="font-size:0.78rem;color:var(--teal);white-space:nowrap;">${t.distance}</div>` : ''}
-          </div>
-          <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            ${t.difficulty ? `<span style="font-size:0.75rem;font-weight:600;color:${dc};background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 8px;">${t.difficulty}</span>` : ''}
-          </div>
-          ${t.description ? `<div style="margin-top:7px;font-size:0.82rem;color:var(--soft);line-height:1.6;">${t.description}</div>` : ''}
-          ${t.website ? `<div style="margin-top:6px;"><a href="${t.website}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--teal);text-decoration:none;">↗ Trail info</a></div>` : ''}
-        </div>`;
-      }).join('')}`;
-  } catch(e) {
-    body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>';
-  }
+async function loadActivityFishing(i) {
+  const p    = _places[i] || {};
+  const body = document.getElementById('exp-modal-body');
+  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Finding fishing spots near ' + (p.place || '') + '…</p>';
+  try {
+    const resp = await fetch('/api/activities', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ place: p.place, country: p.country, type: 'fishing' })
+    });
+    const data = await resp.json();
+    if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
+    const spots = data.items || [];
+    if (!spots.length) { body.innerHTML = '<p style="color:var(--muted);">No notable fishing spots found near ' + p.place + '.</p>'; return; }
+    body.innerHTML = `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">${spots.length} fishing spot${spots.length !== 1 ? 's' : ''} near ${p.place}</p>` +
+      spots.map(s => `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:6px;">${s.name}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+          ${s.type ? `<span style="font-size:0.75rem;color:var(--teal);background:rgba(45,212,191,0.1);border-radius:4px;padding:2px 8px;">${s.type}</span>` : ''}
+          ${s.species ? `<span style="font-size:0.75rem;color:var(--muted);">${s.species}</span>` : ''}
+        </div>
+        ${s.highlights ? `<div style="font-size:0.82rem;color:var(--soft);line-height:1.6;">${s.highlights}</div>` : ''}
+      </div>`).join('');
+  } catch(e) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>'; }
 }
 
 function deletePlaceCard(i) {
