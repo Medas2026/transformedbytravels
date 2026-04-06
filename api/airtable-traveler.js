@@ -208,6 +208,10 @@ function buildFields(b, isNew) {
     fields['DS-5 Intention']  = Number(b.scores['Travel Purpose'] || b.scores.Intention || 0);
   }
 
+  if (b.tgi !== undefined) {
+    fields['TGI'] = Number(b.tgi);
+  }
+
   if (b.marketingConsent !== undefined) {
     fields['Marketing Consent'] = !!b.marketingConsent;
     if (b.marketingConsent) fields['Marketing Consent Date'] = new Date().toISOString().split('T')[0];

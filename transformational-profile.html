@@ -1208,6 +1208,13 @@ function nextAdditional() {
       const passionsList = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]);
       const raw  = calcScores();
       const arch = getArchetype(raw);
+      const _tgiDims = ['Curiosity','Adventure','Reflection','Connection','Travel Purpose'];
+      const _tgiTotal = _tgiDims.reduce((sum, d) => sum + (raw[d] || 0), 0);
+      let tgi = Math.round((_tgiTotal / 35) * 100);
+      const _tgiMin = Math.min(..._tgiDims.map(d => raw[d] || 0));
+      if (_tgiMin < 3) tgi = Math.min(tgi, 60);
+      else if (_tgiMin < 4) tgi = Math.min(tgi, 70);
+
       fetch('/api/airtable-traveler', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1222,7 +1229,8 @@ function nextAdditional() {
           hopes:      hopesList.join(', '),
           scores:         raw,
           itemScores:     {...answers},
-          scoringVersion: SCORING_VERSION
+          scoringVersion: SCORING_VERSION,
+          tgi
         })
       })
       .then(r => r.json())
