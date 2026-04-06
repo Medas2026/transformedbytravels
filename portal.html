@@ -1657,6 +1657,9 @@ async function buildItinerary() {
         </table>`;
     }
 
+    // Itinerary map placeholder
+    html += `<div id="itinerary-map" style="width:100%;height:280px;border-radius:12px;border:1px solid var(--bd);margin-bottom:24px;background:var(--s2);"></div>`;
+
     // Destination overview
     if (data.destOverview) {
       html += `
@@ -1690,6 +1693,9 @@ async function buildItinerary() {
     panel.dataset.itinerary = JSON.stringify(data);
     panel.innerHTML = html;
 
+    // Render itinerary map (after innerHTML so the div exists)
+    renderItineraryMap();
+
     // PDF button
     panel.insertAdjacentHTML('afterend', `
       <div id="itinerary-pdf-row" style="margin-top:12px;text-align:right;">
@@ -1702,6 +1708,83 @@ async function buildItinerary() {
     btn.textContent = '✦ Build Itinerary';
   }
   btn.disabled = false;
+}
+
+async function renderItineraryMap() {
+  const container = document.getElementById('itinerary-map');
+  if (!container) return;
+
+  if (!window._mapboxToken) {
+    try {
+      const r = await fetch('/api/mapbox-token');
+      const d = await r.json();
+      window._mapboxToken = d.token || '';
+    } catch(e) { return; }
+  }
+
+  // Use cached coords if available, else geocode now
+  let coords = _tripMapCoords;
+  if (!coords || !coords.length) {
+    const destination = currentTripDestination;
+    const country     = currentTripCountry;
+    const places      = _places.map(p => p.place).filter(Boolean);
+    const geocodeList = [];
+    if (destination) geocodeList.push(destination);
+    places.forEach(p => { if (p !== destination) geocodeList.push(p); });
+    if (!geocodeList.length) return;
+    try {
+      const resp = await fetch('/api/geocode-places', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ places: geocodeList, destination, country })
+      });
+      const data = await resp.json();
+      coords = (data.coords || []).map((c, i) => ({ ...c, label: geocodeList[i] || c.name, isDestination: i === 0 && !!destination }));
+      _tripMapCoords = coords;
+    } catch(e) { return; }
+  }
+
+  if (!coords.length) return;
+
+  // Destroy previous itinerary map if any
+  if (_itineraryMap) { _itineraryMap.remove(); _itineraryMap = null; }
+
+  mapboxgl.accessToken = window._mapboxToken;
+  _itineraryMap = new mapboxgl.Map({
+    container:  'itinerary-map',
+    style:      'mapbox://styles/mapbox/outdoors-v12',
+    scrollZoom: false
+  });
+  _itineraryMap.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+
+  const bounds = new mapboxgl.LngLatBounds();
+  let placeNum = 0;
+  coords.forEach(c => {
+    const el = document.createElement('div');
+    el.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;';
+    if (c.isDestination) {
+      el.innerHTML = `
+        <div style="width:32px;height:32px;background:#f59e0b;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,0.4);">✈️</div>
+        <div style="margin-top:3px;background:rgba(245,158,11,0.9);color:#0f172a;font-family:sans-serif;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(0,0,0,0.3);">${c.label}</div>`;
+    } else {
+      placeNum++;
+      el.innerHTML = `
+        <div style="width:28px;height:28px;background:#2dd4bf;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:12px;font-weight:700;color:#0f172a;box-shadow:0 2px 6px rgba(0,0,0,0.35);">${placeNum}</div>
+        <div style="margin-top:3px;background:rgba(15,23,42,0.82);color:#fff;font-family:sans-serif;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(0,0,0,0.3);">${c.label}</div>`;
+    }
+    new mapboxgl.Marker({ element: el, anchor: 'top' }).setLngLat([c.lng, c.lat]).addTo(_itineraryMap);
+    bounds.extend([c.lng, c.lat]);
+  });
+
+  const fitMap = () => {
+    if (coords.length === 1) {
+      _itineraryMap.flyTo({ center: [coords[0].lng, coords[0].lat], zoom: 8 });
+    } else {
+      _itineraryMap.fitBounds(bounds, { padding: 60, maxZoom: 12 });
+    }
+  };
+  _itineraryMap.once('load', fitMap);
+  if (_itineraryMap.loaded()) fitMap();
 }
 
 function printItinerary() {
@@ -1726,6 +1809,16 @@ function printItinerary() {
       body += `<tr><td><strong>${escape(p.name)}</strong></td><td>${escape(p.dateRange || '—')}</td></tr>`;
     });
     body += `</tbody></table>`;
+  }
+
+  // Static map image (Mapbox Static Images API)
+  if (_tripMapCoords && _tripMapCoords.length && window._mapboxToken) {
+    const pins = _tripMapCoords.map((c, i) => {
+      if (c.isDestination) return `pin-l+f59e0b(${c.lng.toFixed(4)},${c.lat.toFixed(4)})`;
+      return `pin-s+2dd4bf(${c.lng.toFixed(4)},${c.lat.toFixed(4)})`;
+    }).join(',');
+    const staticMapUrl = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pins}/auto/700x280@2x?padding=60&access_token=${window._mapboxToken}`;
+    body += `<img src="${staticMapUrl}" style="width:100%;border-radius:8px;margin-bottom:24px;display:block;" alt="Trip Map" />`;
   }
 
   if (data.destOverview) {
@@ -4956,8 +5049,10 @@ async function buyPortalDNAQueries() {
 <script src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="xzpgqkj42xpdtci"></script>
 <script>
 // ── Trip Places Map (Mapbox GL) ──────────────────────────────────
-let _tripMap     = null;
-let _tripMarkers = [];
+let _tripMap        = null;
+let _tripMarkers    = [];
+let _tripMapCoords  = [];   // cached after last geocode — reused by itinerary map
+let _itineraryMap   = null;
 
 
 async function renderTripMap() {
@@ -4997,6 +5092,7 @@ async function renderTripMap() {
     const data = await resp.json();
     console.log('[map] geocode-places response:', JSON.stringify(data.coords));
     coords = (data.coords || []).map((c, i) => ({ ...c, label: geocodeList[i] || c.name, isDestination: i === 0 && !!destination }));
+    _tripMapCoords = coords;  // cache for itinerary map
   } catch(e) {
     statusEl.textContent = 'Could not locate places.';
     return;
