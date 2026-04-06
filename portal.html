@@ -378,6 +378,13 @@
           <div class="profile-section">
             <div class="profile-section-title">Dimension Scores</div>
             <div id="pf-dimensions"></div>
+            <div id="pf-tgi-row" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+              <div>
+                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;color:#fff;">Total Growth Index</div>
+                <div style="font-size:0.8rem;color:var(--muted);margin-top:2px;">Composite transformational capacity score</div>
+              </div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.6rem;color:var(--teal);" id="pf-tgi">—</div>
+            </div>
           </div>
 
           <div class="profile-section" id="pf-trips-section" style="display:none;">
@@ -1414,6 +1421,10 @@ async function loadProfile(email) {
       document.getElementById('pf-travelage').textContent     = f['Life Stage'] || '—';
       document.getElementById('pf-travelstyle').textContent  = f['Travel Style'] || '—';
       renderDimBars(f);
+      if (f['TGI'] !== undefined && f['TGI'] !== null && f['TGI'] !== '') {
+        document.getElementById('pf-tgi').textContent = f['TGI'];
+        document.getElementById('pf-tgi-row').style.display = 'flex';
+      }
       checkActiveTripBanner();
       loadProfileTrips();
       loadProfileWorkshopStatus();

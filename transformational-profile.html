@@ -441,6 +441,18 @@
         <div id="dim-bars"></div>
       </div>
 
+      <!-- Total Growth Index -->
+      <div class="result-section" style="text-align:center;" id="tgi-section">
+        <div class="result-section-title">Total Growth Index</div>
+        <p class="result-section-sub">A single composite score reflecting your overall transformational travel capacity.</p>
+        <div id="tgi-circle-tp" style="display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:160px;height:160px;border-radius:50%;background:conic-gradient(#2dd4bf var(--tgi-deg,0deg),rgba(255,255,255,0.08) 0deg);box-shadow:0 4px 20px rgba(45,212,191,0.2);margin:16px auto;position:relative;">
+          <span style="position:absolute;width:120px;height:120px;border-radius:50%;background:var(--s1);top:50%;left:50%;transform:translate(-50%,-50%);"></span>
+          <span id="tgi-value-tp" style="font-family:'Montserrat',sans-serif;font-size:2.8rem;font-weight:800;color:#fff;line-height:1;position:relative;z-index:1;">—</span>
+          <span style="font-family:'Montserrat',sans-serif;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft);position:relative;z-index:1;">/ 100</span>
+        </div>
+        <p id="tgi-desc-tp" style="color:var(--soft);font-size:0.95rem;line-height:1.6;max-width:420px;margin:0 auto;"></p>
+      </div>
+
       <!-- Item Highlights -->
       <div id="item-highlights-section" class="result-section" style="display:none;">
         <div class="result-section-title">Your Personal Highlights</div>
@@ -1280,6 +1292,23 @@ function buildResults() {
 
   // Dimension bars
   buildDimBars(raw);
+
+  // Total Growth Index
+  const _tgiDims2 = ['Curiosity','Adventure','Reflection','Connection','Travel Purpose'];
+  const _tgiTotal2 = _tgiDims2.reduce((sum, d) => sum + (raw[d] || 0), 0);
+  let tgiDisplay = Math.round((_tgiTotal2 / 35) * 100);
+  const _tgiMin2 = Math.min(..._tgiDims2.map(d => raw[d] || 0));
+  if (_tgiMin2 < 3) tgiDisplay = Math.min(tgiDisplay, 60);
+  else if (_tgiMin2 < 4) tgiDisplay = Math.min(tgiDisplay, 70);
+  document.getElementById('tgi-value-tp').textContent = tgiDisplay;
+  document.getElementById('tgi-circle-tp').style.setProperty('--tgi-deg', Math.round((tgiDisplay / 100) * 360) + 'deg');
+  const tgiDescs = [
+    { min: 85, text: "Your transformation potential is exceptional. You bring deep curiosity, intention, and openness across all dimensions — travel will profoundly reshape you." },
+    { min: 70, text: "You have strong transformational capacity. Travel regularly shifts your perspective and you return home meaningfully changed." },
+    { min: 55, text: "You have solid growth potential with room to deepen your engagement. Focused travel experiences can accelerate your transformation." },
+    { min: 0,  text: "Your transformational journey is just beginning. Intentional travel — even in small doses — can open powerful new dimensions of growth." },
+  ];
+  document.getElementById('tgi-desc-tp').textContent = tgiDescs.find(t => tgiDisplay >= t.min).text;
 
   // Item highlights
   buildItemHighlights();
