@@ -9,7 +9,6 @@ function geocode(placeName) {
       path: `/search?q=${query}&format=json&limit=1`,
       method: 'GET',
       headers: {
-        // Nominatim requires a descriptive User-Agent
         'User-Agent': 'TransformedByTravels/1.0 (transformedbytravels.com)'
       }
     };
@@ -30,18 +29,10 @@ function geocode(placeName) {
 }
 
 function overpassQuery(lat, lng, radiusKm) {
-  // Radius in meters
   const r = radiusKm * 1000;
-  // Query hiking routes (relations) and named hiking paths (ways)
-  const query = `
-[out:json][timeout:25];
-(
-  relation["route"="hiking"](around:${r},${lat},${lng});
-  way["highway"~"path|track"]["sac_scale"](around:${r},${lat},${lng});
-  way["highway"="footway"]["trail_visibility"](around:${r},${lat},${lng});
-);
-out tags;
-`.trim();
+  // Only query named hiking route relations — fastest query, best data quality
+  const query = `[out:json][timeout:20];relation["route"="hiking"](around:${r},${lat},${lng});out tags;`;
+
   return new Promise((resolve, reject) => {
     const body = 'data=' + encodeURIComponent(query);
     const options = {
@@ -50,15 +41,20 @@ out tags;
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(body)
+        'Content-Length': Buffer.byteLength(body),
+        'User-Agent': 'TransformedByTravels/1.0 (transformedbytravels.com)'
       }
     };
     const req = https.request(options, (res) => {
       let d = '';
       res.on('data', c => { d += c; });
       res.on('end', () => {
+        // Overpass sometimes returns HTML on rate-limit or server error
+        if (d.trim().startsWith('<')) {
+          return reject(new Error('Trail data service is busy — please try again in a moment'));
+        }
         try { resolve(JSON.parse(d)); }
-        catch(e) { reject(e); }
+        catch(e) { reject(new Error('Unexpected response from trail service')); }
       });
     });
     req.on('error', reject);
@@ -67,20 +63,19 @@ out tags;
   });
 }
 
-function formatDistance(distanceMeters) {
-  if (!distanceMeters) return null;
-  const km = distanceMeters / 1000;
-  if (km < 1) return Math.round(distanceMeters) + ' m';
-  return km.toFixed(1) + ' km';
+function formatDistance(distMeters) {
+  if (!distMeters) return null;
+  const km = distMeters / 1000;
+  return km < 1 ? Math.round(distMeters) + ' m' : km.toFixed(1) + ' km';
 }
 
 const SAC_LABELS = {
-  'hiking':                'Easy hiking',
-  'mountain_hiking':       'Mountain hiking',
+  'hiking':                    'Easy hiking',
+  'mountain_hiking':           'Mountain hiking',
   'demanding_mountain_hiking': 'Demanding mountain',
-  'alpine_hiking':         'Alpine hiking',
-  'demanding_alpine_hiking': 'Demanding alpine',
-  'difficult_alpine_hiking': 'Difficult alpine'
+  'alpine_hiking':             'Alpine hiking',
+  'demanding_alpine_hiking':   'Demanding alpine',
+  'difficult_alpine_hiking':   'Difficult alpine'
 };
 
 function parseTrails(data) {
@@ -95,26 +90,25 @@ function parseTrails(data) {
     seen.add(name);
 
     const sac = t.sac_scale || null;
-    const difficulty = SAC_LABELS[sac] || (t.difficulty ? t.difficulty : null);
-    const distRaw = t.distance || t['osm:length'] || null;
-    const distMeters = distRaw ? parseFloat(distRaw) * (distRaw < 100 ? 1000 : 1) : null;
-    const distance = distMeters ? formatDistance(distMeters) : null;
-    const network = t.network || null;
+    const difficulty = SAC_LABELS[sac] || null;
+    const distRaw = t.distance ? parseFloat(t.distance) : null;
+    // Overpass distance tag is in km for relations
+    const distance = distRaw ? formatDistance(distRaw * 1000) : null;
+    const network  = t.network  || null;
     const operator = t.operator || null;
-    const website = t.website || t.url || null;
-    const ref = t.ref || null;
+    const website  = t.website  || t.url || null;
+    const ref      = t.ref      || null;
 
     trails.push({ name, difficulty, distance, network, operator, website, ref });
   }
 
-  // Sort: named + difficulty first
   trails.sort((a, b) => {
     const aScore = (a.difficulty ? 1 : 0) + (a.distance ? 1 : 0);
     const bScore = (b.difficulty ? 1 : 0) + (b.distance ? 1 : 0);
     return bScore - aScore;
   });
 
-  return trails.slice(0, 20);
+  return trails.slice(0, 25);
 }
 
 module.exports = async function handler(req, res) {
@@ -134,10 +128,11 @@ module.exports = async function handler(req, res) {
     try {
       coords = await geocode(withCountry);
     } catch(e) {
-      console.log('Geocode with country failed, retrying with place only:', e.message);
+      console.log('Geocode retry without country:', e.message);
       coords = await geocode(place);
     }
-    const data = await overpassQuery(coords.lat, coords.lng, radiusKm);
+
+    const data   = await overpassQuery(coords.lat, coords.lng, radiusKm);
     const trails = parseTrails(data);
     res.status(200).json({ trails, coords, count: trails.length });
   } catch(e) {

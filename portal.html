@@ -3151,6 +3151,10 @@ async function findPlaceTrails(i) {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ place: p.place, country: p.country, radiusKm: 20 })
     });
+    if (!resp.ok && resp.headers.get('content-type') && !resp.headers.get('content-type').includes('json')) {
+      body.innerHTML = '<p style="color:#f43f5e;">Trail service error (' + resp.status + ') — please try again in a moment.</p>';
+      return;
+    }
     const data = await resp.json();
     if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
 
