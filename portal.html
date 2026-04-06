@@ -3142,14 +3142,14 @@ async function findPlaceTrails(i) {
   const body  = document.getElementById('exp-modal-body');
 
   title.textContent = '🥾 Trails · ' + p.place;
-  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Searching OpenStreetMap for hiking trails near ' + p.place + '…</p>';
+  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Finding hiking trails near ' + p.place + '…</p>';
   modal.style.display = 'flex';
 
   try {
     const resp = await fetch('/api/trails', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ place: p.place, country: p.country, radiusKm: 20 })
+      body:    JSON.stringify({ place: p.place, country: p.country })
     });
     if (!resp.ok && resp.headers.get('content-type') && !resp.headers.get('content-type').includes('json')) {
       body.innerHTML = '<p style="color:#f43f5e;">Trail service error (' + resp.status + ') — please try again in a moment.</p>';
@@ -3160,26 +3160,25 @@ async function findPlaceTrails(i) {
 
     const trails = data.trails || [];
     if (!trails.length) {
-      body.innerHTML = '<p style="color:var(--muted);">No named hiking trails found within 20 km of ' + dest + '. Try a more specific place name.</p>';
+      body.innerHTML = '<p style="color:var(--muted);">No notable hiking trails found near ' + p.place + '.</p>';
       return;
     }
 
-    const diffColor = { 'Easy hiking': '#86efac', 'Mountain hiking': '#fbbf24', 'Demanding mountain': '#fb923c', 'Alpine hiking': '#f87171', 'Demanding alpine': '#f43f5e', 'Difficult alpine': '#dc2626' };
+    const diffColor = { 'Easy': '#86efac', 'Moderate': '#fbbf24', 'Difficult': '#fb923c', 'Strenuous': '#f43f5e' };
 
     body.innerHTML = `
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">Found ${trails.length} trail${trails.length !== 1 ? 's' : ''} within 20 km · Data via OpenStreetMap</p>
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">${trails.length} trail${trails.length !== 1 ? 's' : ''} near ${p.place}</p>
       ${trails.map(t => {
         const dc = diffColor[t.difficulty] || 'var(--soft)';
         return `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;flex:1;">${t.name}${t.ref ? ' <span style="color:var(--muted);font-size:0.75rem;">['+t.ref+']</span>' : ''}</div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;flex:1;">${t.name}</div>
             ${t.distance ? `<div style="font-size:0.78rem;color:var(--teal);white-space:nowrap;">${t.distance}</div>` : ''}
           </div>
           <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
             ${t.difficulty ? `<span style="font-size:0.75rem;font-weight:600;color:${dc};background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 8px;">${t.difficulty}</span>` : ''}
-            ${t.network ? `<span style="font-size:0.75rem;color:var(--muted);">${t.network} network</span>` : ''}
-            ${t.operator ? `<span style="font-size:0.75rem;color:var(--muted);">${t.operator}</span>` : ''}
           </div>
+          ${t.description ? `<div style="margin-top:7px;font-size:0.82rem;color:var(--soft);line-height:1.6;">${t.description}</div>` : ''}
           ${t.website ? `<div style="margin-top:6px;"><a href="${t.website}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--teal);text-decoration:none;">↗ Trail info</a></div>` : ''}
         </div>`;
       }).join('')}`;
