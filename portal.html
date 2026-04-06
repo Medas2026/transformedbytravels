@@ -3651,6 +3651,7 @@ async function _doCancelTrip() {
     const data = await resp.json();
     if (data.success) {
       currentTripId = null;
+      await loadTrips();
       showPage('my-trips');
     } else {
       msg.textContent = 'Error: ' + (data.error || 'Could not remove trip.');
