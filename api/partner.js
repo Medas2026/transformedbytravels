@@ -32,6 +32,7 @@ function airtablePatch(recordId, fields) {
   return new Promise((resolve, reject) => {
     const apiKey = process.env.AIRTABLE_API_KEY;
     const body   = JSON.stringify({ fields });
+    console.log('airtablePatch recordId:', recordId, 'fields:', JSON.stringify(fields));
     const options = {
       hostname: 'api.airtable.com',
       path: `/v0/${BASE_ID}/${encodeURIComponent(TABLE)}/${recordId}`,
@@ -46,6 +47,7 @@ function airtablePatch(recordId, fields) {
       let d = '';
       res.on('data', c => { d += c; });
       res.on('end', () => {
+        console.log('airtablePatch response status:', res.statusCode, 'body:', d.slice(0, 300));
         try { resolve(JSON.parse(d)); }
         catch(e) { reject(e); }
       });
