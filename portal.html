@@ -650,6 +650,16 @@
               <button onclick="closeTripDetail()" style="background:none;border:1px solid #475569;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 20px;cursor:pointer;">Cancel</button>
             </div>
 
+            <!-- Build Itinerary -->
+            <div id="itinerary-section" style="margin-top:28px;border-top:1px solid var(--bd);padding-top:24px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <i class="ph ph-map-trifold" style="color:var(--teal);font-size:1rem;"></i>
+                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Trip Itinerary</div>
+              </div>
+              <button onclick="buildItinerary()" id="build-itinerary-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">✦ Build Itinerary</button>
+              <div id="itinerary-panel" style="display:none;margin-top:20px;"></div>
+            </div>
+
             <!-- Integration Report — shown for Completed trips -->
             <div id="integration-report-section" style="display:none;margin-top:28px;border-top:1px solid var(--bd);padding-top:24px;">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
@@ -1595,6 +1605,87 @@ async function generateIntegrationReport() {
     content.innerHTML = `<p style="color:#f87171;font-size:0.88rem;">Error: ${e.message}</p>`;
     actions.innerHTML = `<button onclick="generateIntegrationReport()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;margin-top:12px;">Try Again</button>`;
   }
+}
+
+// ═══════════════════════════════════════════════
+// BUILD ITINERARY
+// ═══════════════════════════════════════════════
+async function buildItinerary() {
+  const panel = document.getElementById('itinerary-panel');
+  const btn   = document.getElementById('build-itinerary-btn');
+  panel.style.display = 'block';
+  panel.innerHTML = `<p style="color:var(--soft);font-size:0.88rem;font-style:italic;">Building your itinerary — this may take 20–30 seconds…</p>`;
+  btn.disabled = true;
+  btn.textContent = 'Building…';
+
+  try {
+    const resp = await fetch('/api/itinerary', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ tripId: currentTripId, email: userEmail })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    const fmtDate = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+    const summaryDates = [fmtDate(data.startDate), fmtDate(data.endDate)].filter(Boolean).join(' – ');
+
+    // Header
+    let html = `
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.2rem;color:#fff;margin-bottom:4px;">${data.destination || data.tripName}</div>
+        ${summaryDates ? `<div style="font-size:0.85rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;">${summaryDates}</div>` : ''}
+      </div>`;
+
+    // Places table
+    if (data.places && data.places.length) {
+      html += `
+        <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:0.88rem;">
+          <thead>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+              <th style="text-align:left;padding:7px 10px 7px 0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Place</th>
+              <th style="text-align:left;padding:7px 0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Dates</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.places.map(p => `
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                <td style="padding:9px 10px 9px 0;color:var(--text);font-weight:600;">${p.name}</td>
+                <td style="padding:9px 0;color:var(--soft);">${p.dateRange || '—'}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    // Destination overview
+    if (data.destOverview) {
+      html += `
+        <div style="background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%);border:1px solid rgba(45,212,191,0.25);border-radius:12px;padding:22px 20px;margin-bottom:20px;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--teal);margin-bottom:12px;">Destination Overview</div>
+          <div style="color:var(--soft);font-size:0.9rem;line-height:1.8;">${data.destOverview.replace(/\n\n/g,'</p><p style="margin-top:12px;">').replace(/\n/g,'<br>')}</div>
+        </div>`;
+    }
+
+    // Per-place stay summaries
+    if (data.places && data.places.length) {
+      data.places.forEach(p => {
+        const summary = data.placeSummaries && data.placeSummaries[p.name];
+        if (!summary) return;
+        html += `
+          <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:18px 18px;margin-bottom:12px;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:6px;">${p.name}${p.dateRange ? `<span style="font-weight:400;color:var(--muted);font-size:0.78rem;margin-left:10px;">${p.dateRange}</span>` : ''}</div>
+            <div style="color:var(--soft);font-size:0.87rem;line-height:1.75;">${summary.replace(/\n/g,'<br>')}</div>
+          </div>`;
+      });
+    }
+
+    panel.innerHTML = html;
+    btn.textContent = '↻ Rebuild Itinerary';
+  } catch(e) {
+    panel.innerHTML = `<p style="color:#f87171;font-size:0.88rem;">Error: ${e.message}</p>`;
+    btn.textContent = '✦ Build Itinerary';
+  }
+  btn.disabled = false;
 }
 
 // ═══════════════════════════════════════════════
