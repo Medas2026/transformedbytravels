@@ -827,6 +827,16 @@
             <span id="dna-page-remaining" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:var(--teal);">—</span>
           </div>
           <div id="dna-dest-picker"></div>
+
+          <!-- Partner toggle — shown only when linked partner exists -->
+          <div id="dna-partner-toggle" style="display:none;margin-top:16px;background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.25);border-radius:10px;padding:12px 16px;">
+            <div style="font-size:0.82rem;color:var(--soft);margin-bottom:10px;">Include your travel partner in this guide?</div>
+            <div style="display:flex;gap:8px;">
+              <button id="dna-partner-no" onclick="setDNAPartnerMode(false)" style="flex:1;padding:8px;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;border:none;border-radius:7px;cursor:pointer;">Just Me</button>
+              <button id="dna-partner-yes" onclick="setDNAPartnerMode(true)" style="flex:1;padding:8px;background:rgba(255,255,255,0.06);color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;border:1px solid rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;" id="dna-partner-yes">Me &amp; <span id="dna-partner-name-label">Partner</span></button>
+            </div>
+          </div>
+
           <button class="dna-btn" style="margin-top:16px;" onclick="generateDestDNA('dna')">✦ Generate My DNA Guide</button>
           <div id="dna-page-panel" style="display:none;margin-top:16px;" class="dna-panel">
             <div id="dna-page-loading" style="color:var(--soft);font-size:0.9rem;">Generating your guide…</div>
@@ -2590,6 +2600,7 @@ function showPage(name) {
     if (nav) nav.style.display = 'none';
   });
   if (name === 'dna') {
+    initDNAPartnerToggle();
     loadDNAHistory();
     const preFill = sessionStorage.getItem('dnaPreFill');
     if (preFill) {
@@ -4150,6 +4161,53 @@ async function findDNAExperiences() {
   btn.textContent = '↻ Refresh Experiences';
 }
 
+let _dnaIncludePartner = false;
+let _dnaPartnerProfile = null;
+
+function initDNAPartnerToggle() {
+  _dnaIncludePartner = false;
+  _dnaPartnerProfile = null;
+  const p = portalProfile || {};
+  const toggle = document.getElementById('dna-partner-toggle');
+  if (p['Partner Status'] === 'Linked' && p['Travel Partner Email']) {
+    // Show toggle and populate partner name
+    toggle.style.display = 'block';
+    // Try to get partner name
+    fetch('/api/airtable-traveler?email=' + encodeURIComponent(p['Travel Partner Email']))
+      .then(r => r.json()).then(d => {
+        if (d.record) {
+          _dnaPartnerProfile = d.record.fields;
+          const label = document.getElementById('dna-partner-name-label');
+          if (label) label.textContent = d.record.fields['Traveler Name'] || 'Partner';
+        }
+      }).catch(() => {});
+    setDNAPartnerMode(false);
+  } else {
+    toggle.style.display = 'none';
+  }
+}
+
+function setDNAPartnerMode(include) {
+  _dnaIncludePartner = include;
+  const btnNo  = document.getElementById('dna-partner-no');
+  const btnYes = document.getElementById('dna-partner-yes');
+  if (include) {
+    btnYes.style.background = '#a78bfa';
+    btnYes.style.color      = '#0f172a';
+    btnYes.style.border     = 'none';
+    btnNo.style.background  = 'rgba(255,255,255,0.06)';
+    btnNo.style.color       = 'var(--soft)';
+    btnNo.style.border      = '1px solid rgba(255,255,255,0.15)';
+  } else {
+    btnNo.style.background  = 'var(--teal)';
+    btnNo.style.color       = '#0f172a';
+    btnNo.style.border      = 'none';
+    btnYes.style.background = 'rgba(255,255,255,0.06)';
+    btnYes.style.color      = 'var(--soft)';
+    btnYes.style.border     = '1px solid rgba(255,255,255,0.15)';
+  }
+}
+
 async function generateDestDNA(pickerCtx) {
   const prefix = pickerCtx === 'dna' ? 'dna' : 'tdp';
   const { destination, country, continent, airport, passion } = dpGetValues(prefix === 'dna' ? 'dna' : 'tdp');
@@ -4179,7 +4237,7 @@ async function generateDestDNA(pickerCtx) {
   const hopes   = (p['Hopes to Experience'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
   const passions = (p['Passions'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
 
-  const params = '?action=destGuide'
+  let params = '?action=destGuide'
     + '&destination=' + encodeURIComponent(destination)
     + '&country='     + encodeURIComponent(country)
     + '&continent='   + encodeURIComponent(continent)
@@ -4194,6 +4252,19 @@ async function generateDestDNA(pickerCtx) {
     + '&passions='    + encodeURIComponent(passions)
     + '&lifeStage='   + encodeURIComponent(p['Life Stage']    || '')
     + '&travelStyle=' + encodeURIComponent(p['Travel Style']  || '');
+
+  // Include partner profile if selected
+  if (_dnaIncludePartner && _dnaPartnerProfile) {
+    const pp = _dnaPartnerProfile;
+    params += '&partnerName='      + encodeURIComponent(pp['Traveler Name'] || 'Partner')
+            + '&partnerArchetype=' + encodeURIComponent(pp['Archetype'] || '')
+            + '&partnerCuriosity=' + (pp['DS-1 Curiosity']  || 0)
+            + '&partnerAdventure=' + (pp['DS-2 Adventure']  || 0)
+            + '&partnerReflection='+ (pp['DS-3 Reflection'] || 0)
+            + '&partnerConnection='+ (pp['DS-4 Connection'] || 0)
+            + '&partnerIntention=' + (pp['DS-5 Intention']  || 0)
+            + '&partnerPassions='  + encodeURIComponent((pp['Passions'] || '').split(',').map(s=>s.trim()).filter(Boolean).join('|'));
+  }
 
   try {
     const resp = await fetch('/api/dest-guide' + params);
