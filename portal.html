@@ -3135,22 +3135,21 @@ async function findPlaceExperiences(i) {
 
 async function findPlaceTrails(i) {
   const p    = _places[i] || {};
-  const dest = [p.place, p.country].filter(Boolean).join(', ');
-  if (!dest) return;
+  if (!p.place) return;
 
   const modal = document.getElementById('exp-modal');
   const title = document.getElementById('exp-modal-title');
   const body  = document.getElementById('exp-modal-body');
 
-  title.textContent = '🥾 Trails · ' + dest;
-  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Searching OpenStreetMap for hiking trails near ' + dest + '…</p>';
+  title.textContent = '🥾 Trails · ' + p.place;
+  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Searching OpenStreetMap for hiking trails near ' + p.place + '…</p>';
   modal.style.display = 'flex';
 
   try {
     const resp = await fetch('/api/trails', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ destination: dest, radiusKm: 20 })
+      body:    JSON.stringify({ place: p.place, country: p.country, radiusKm: 20 })
     });
     const data = await resp.json();
     if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }

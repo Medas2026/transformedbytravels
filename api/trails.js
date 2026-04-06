@@ -124,11 +124,19 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { destination, radiusKm = 15 } = req.body || {};
-  if (!destination) return res.status(400).json({ error: 'destination required' });
+  const { place, country, radiusKm = 20 } = req.body || {};
+  if (!place) return res.status(400).json({ error: 'place required' });
 
   try {
-    const coords = await geocode(destination);
+    // Try place+country first, fall back to place alone
+    let coords;
+    const withCountry = country ? `${place}, ${country}` : place;
+    try {
+      coords = await geocode(withCountry);
+    } catch(e) {
+      console.log('Geocode with country failed, retrying with place only:', e.message);
+      coords = await geocode(place);
+    }
     const data = await overpassQuery(coords.lat, coords.lng, radiusKm);
     const trails = parseTrails(data);
     res.status(200).json({ trails, coords, count: trails.length });
