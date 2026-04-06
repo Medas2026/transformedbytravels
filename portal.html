@@ -3086,6 +3086,7 @@ function renderPlaceCards() {
       ${p.photosUrl ? `<span class="place-card-day" style="background:rgba(99,102,241,0.12);color:#a5b4fc;cursor:pointer;" title="Open photos folder" onclick="openPlacePhotos(${i})">📷 Photos</span>` : ''}
       ${p.stayedAtUrl ? `<span class="place-card-day" style="background:rgba(251,191,36,0.12);color:#fbbf24;cursor:pointer;" title="Where we stayed" onclick="window.open(_places[${i}].stayedAtUrl,'_blank')">🏨 Stayed</span>` : ''}
       <button class="place-card-edit" onclick="findPlaceExperiences(${i})" title="Find experiences for this place" style="color:var(--teal);border-color:rgba(45,212,191,0.3);">✦ Experiences</button>
+      <button class="place-card-edit" onclick="findPlaceTrails(${i})" title="Find hiking trails near this place" style="color:#86efac;border-color:rgba(134,239,172,0.3);">🥾 Trails</button>
       <button class="place-card-edit" onclick="openPlaceModal(${i})">Edit</button>
       <button class="place-card-del" onclick="deletePlaceCard(${i})" title="Remove">×</button>`;
     container.appendChild(card);
@@ -3127,6 +3128,58 @@ async function findPlaceExperiences(i) {
             <div style="font-size:0.82rem;color:var(--soft);line-height:1.6;">${s.description}</div>
           </div>`).join('')}
       </div>`).join('');
+  } catch(e) {
+    body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>';
+  }
+}
+
+async function findPlaceTrails(i) {
+  const p    = _places[i] || {};
+  const dest = [p.place, p.country].filter(Boolean).join(', ');
+  if (!dest) return;
+
+  const modal = document.getElementById('exp-modal');
+  const title = document.getElementById('exp-modal-title');
+  const body  = document.getElementById('exp-modal-body');
+
+  title.textContent = '🥾 Trails · ' + dest;
+  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Searching OpenStreetMap for hiking trails near ' + dest + '…</p>';
+  modal.style.display = 'flex';
+
+  try {
+    const resp = await fetch('/api/trails', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ destination: dest, radiusKm: 20 })
+    });
+    const data = await resp.json();
+    if (data.error) { body.innerHTML = '<p style="color:#f43f5e;">Error: ' + data.error + '</p>'; return; }
+
+    const trails = data.trails || [];
+    if (!trails.length) {
+      body.innerHTML = '<p style="color:var(--muted);">No named hiking trails found within 20 km of ' + dest + '. Try a more specific place name.</p>';
+      return;
+    }
+
+    const diffColor = { 'Easy hiking': '#86efac', 'Mountain hiking': '#fbbf24', 'Demanding mountain': '#fb923c', 'Alpine hiking': '#f87171', 'Demanding alpine': '#f43f5e', 'Difficult alpine': '#dc2626' };
+
+    body.innerHTML = `
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">Found ${trails.length} trail${trails.length !== 1 ? 's' : ''} within 20 km · Data via OpenStreetMap</p>
+      ${trails.map(t => {
+        const dc = diffColor[t.difficulty] || 'var(--soft)';
+        return `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;flex:1;">${t.name}${t.ref ? ' <span style="color:var(--muted);font-size:0.75rem;">['+t.ref+']</span>' : ''}</div>
+            ${t.distance ? `<div style="font-size:0.78rem;color:var(--teal);white-space:nowrap;">${t.distance}</div>` : ''}
+          </div>
+          <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            ${t.difficulty ? `<span style="font-size:0.75rem;font-weight:600;color:${dc};background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 8px;">${t.difficulty}</span>` : ''}
+            ${t.network ? `<span style="font-size:0.75rem;color:var(--muted);">${t.network} network</span>` : ''}
+            ${t.operator ? `<span style="font-size:0.75rem;color:var(--muted);">${t.operator}</span>` : ''}
+          </div>
+          ${t.website ? `<div style="margin-top:6px;"><a href="${t.website}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--teal);text-decoration:none;">↗ Trail info</a></div>` : ''}
+        </div>`;
+      }).join('')}`;
   } catch(e) {
     body.innerHTML = '<p style="color:#f43f5e;">Error: ' + e.message + '</p>';
   }
