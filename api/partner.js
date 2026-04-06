@@ -233,6 +233,7 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  try {
   const b = req.body || {};
 
   // ── POST: send invite ────────────────────────────────────────────────────
@@ -336,4 +337,9 @@ module.exports = async function handler(req, res) {
   }
 
   return res.status(400).json({ error: 'Unknown action' });
+
+  } catch(e) {
+    console.error('partner handler error:', e.message);
+    return res.status(500).json({ error: e.message });
+  }
 };
