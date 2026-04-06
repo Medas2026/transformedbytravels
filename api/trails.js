@@ -28,16 +28,17 @@ function geocode(placeName) {
   });
 }
 
-function overpassQuery(lat, lng, radiusKm) {
-  const r = radiusKm * 1000;
-  // Only query named hiking route relations — fastest query, best data quality
-  const query = `[out:json][timeout:20];relation["route"="hiking"](around:${r},${lat},${lng});out tags;`;
+const OVERPASS_HOSTS = [
+  { hostname: 'overpass-api.de',           path: '/api/interpreter' },
+  { hostname: 'overpass.kumi.systems',      path: '/api/interpreter' },
+  { hostname: 'maps.mail.ru',              path: '/osm/tools/overpass/api/interpreter' },
+];
 
+function overpassRequest(hostname, path, body) {
   return new Promise((resolve, reject) => {
-    const body = 'data=' + encodeURIComponent(query);
     const options = {
-      hostname: 'overpass-api.de',
-      path: '/api/interpreter',
+      hostname,
+      path,
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -49,18 +50,33 @@ function overpassQuery(lat, lng, radiusKm) {
       let d = '';
       res.on('data', c => { d += c; });
       res.on('end', () => {
-        // Overpass sometimes returns HTML on rate-limit or server error
         if (d.trim().startsWith('<')) {
-          return reject(new Error('Trail data service is busy — please try again in a moment'));
+          return reject(new Error('HTML'));
         }
         try { resolve(JSON.parse(d)); }
-        catch(e) { reject(new Error('Unexpected response from trail service')); }
+        catch(e) { reject(new Error('parse')); }
       });
     });
     req.on('error', reject);
     req.write(body);
     req.end();
   });
+}
+
+async function overpassQuery(lat, lng, radiusKm) {
+  const r = radiusKm * 1000;
+  const query = `[out:json][timeout:20];relation["route"="hiking"](around:${r},${lat},${lng});out tags;`;
+  const body = 'data=' + encodeURIComponent(query);
+
+  for (const { hostname, path } of OVERPASS_HOSTS) {
+    try {
+      const data = await overpassRequest(hostname, path, body);
+      return data;
+    } catch(e) {
+      console.log(`Overpass ${hostname} failed (${e.message}), trying next…`);
+    }
+  }
+  throw new Error('All trail data servers are busy — please try again in a minute');
 }
 
 function formatDistance(distMeters) {
