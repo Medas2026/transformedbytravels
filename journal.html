@@ -216,6 +216,17 @@
     </div>
 
     <div class="prompt-block">
+      <div class="prompt-label"><span>3.</span> What was the best memory you created today?</div>
+      <div class="mic-input-row">
+        <div class="mic-col">
+          <button class="mic-btn" id="mic-3" onclick="toggleMic(3)">🎤</button>
+          <span id="mic-3-status" class="mic-status"></span>
+        </div>
+        <textarea id="memory" class="mic-textarea" placeholder="What moment will you carry with you from today…"></textarea>
+      </div>
+    </div>
+
+    <div class="prompt-block">
       <div class="prompt-label">📷 Photo from today <span style="font-size:0.8rem;font-weight:400;color:#94a3b8;">(optional)</span></div>
       <input type="hidden" id="photo-url" />
       <div id="photo-linked" style="display:none;display:none;align-items:center;gap:10px;padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:10px;">
@@ -267,8 +278,9 @@
         const existing = (d.records || []).find(r => r.fields['Entry Date'] === dateStr);
         if (existing) {
           existingRecordId = existing.id;
-          document.getElementById('reflection').value = existing.fields['Reflection'] || '';
-          document.getElementById('barriers').value   = existing.fields['Barriers']   || '';
+          document.getElementById('reflection').value = existing.fields['Reflection']    || '';
+          document.getElementById('barriers').value   = existing.fields['Barriers']      || '';
+          document.getElementById('memory').value     = existing.fields['Best Memory']   || '';
           const photoUrl = existing.fields['Photo URL'] || '';
           document.getElementById('photo-url').value = photoUrl;
           if (photoUrl) {
@@ -317,7 +329,7 @@
   function toggleMic(num) {
     const btnEl    = document.getElementById(`mic-${num}`);
     const statusEl = document.getElementById(`mic-${num}-status`);
-    const textareaId = num === 1 ? 'reflection' : 'barriers';
+    const textareaId = num === 1 ? 'reflection' : num === 2 ? 'barriers' : 'memory';
 
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       statusEl.textContent = 'Voice not supported in this browser.';
@@ -373,6 +385,7 @@
   async function submitJournal() {
     const reflection = document.getElementById('reflection').value.trim();
     const barriers   = document.getElementById('barriers').value.trim();
+    const memory     = document.getElementById('memory').value.trim();
     const photoUrl   = document.getElementById('photo-url').value.trim();
     const statusEl   = document.getElementById('status');
     const btn        = document.getElementById('submit-btn');
@@ -393,7 +406,7 @@
       const resp = await fetch('/api/journal', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, tripId, startDate, entryDate: dateStr, tripName, reflection, barriers, photoUrl, archetype: travelerArchetype, hopes: travelerHopes, recordId: existingRecordId })
+        body: JSON.stringify({ email, tripId, startDate, entryDate: dateStr, tripName, reflection, barriers, memory, photoUrl, archetype: travelerArchetype, hopes: travelerHopes, recordId: existingRecordId })
       });
       const data = await resp.json();
 

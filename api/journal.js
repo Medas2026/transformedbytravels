@@ -137,7 +137,7 @@ function sendMonthlyEmail(to, subject, html) {
   sendEmail(to, subject, html);
 }
 
-async function getClaudeReflection(reflection, barriers, tripName, dayNumber, archetype, hopes) {
+async function getClaudeReflection(reflection, barriers, memory, tripName, dayNumber, archetype, hopes) {
   const day    = ordinal(dayNumber);
   const dest   = tripName || 'your destination';
   const opener = `Hoping your ${day} day in ${dest} is going well.`;
@@ -152,8 +152,9 @@ ${context.length ? 'About this traveler:\n' + context.join('\n') + '\n' : ''}
 Today's journal:
 - Reflections on goals: "${reflection || '(none shared)'}"
 - Barriers encountered: "${barriers || '(none shared)'}"
+- Best memory created today: "${memory || '(none shared)'}"
 
-After the opener, write exactly 2 more sentences. Sentence 1: acknowledge something specific from what they wrote, connecting it naturally to their archetype or hopes. Sentence 2: a warm encouraging thought looking toward tomorrow. Speak directly as "you". Be specific — never generic.`;
+After the opener, write exactly 2 more sentences. Sentence 1: acknowledge something specific from what they wrote — especially their best memory if they shared one — connecting it naturally to their archetype or hopes. Sentence 2: a warm encouraging thought looking toward tomorrow. Speak directly as "you". Be specific — never generic.`;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -203,13 +204,14 @@ module.exports = async function handler(req, res) {
     const tripId     = (b.tripId     || '').trim();
     const reflection = (b.reflection || '').trim();
     const barriers   = (b.barriers   || '').trim();
+    const memory     = (b.memory     || '').trim();
     const photoUrl   = (b.photoUrl   || '').trim();
     const archetype  = (b.archetype  || '').trim();
     const hopes      = (b.hopes      || '').trim();
     const recordId   = (b.recordId   || '').trim();
 
     if (!email) return res.status(400).json({ error: 'email required' });
-    if (!reflection && !barriers) return res.status(400).json({ error: 'at least one response required' });
+    if (!reflection && !barriers && !memory) return res.status(400).json({ error: 'at least one response required' });
 
     const now   = new Date();
     // Use the date the traveler is journaling about (from URL param), not UTC server time
@@ -231,7 +233,7 @@ module.exports = async function handler(req, res) {
     let claudeReflection = '';
     let claudeError = '';
     try {
-      claudeReflection = await getClaudeReflection(reflection, barriers, b.tripName || '', dayNumber, archetype, hopes);
+      claudeReflection = await getClaudeReflection(reflection, barriers, memory, b.tripName || '', dayNumber, archetype, hopes);
     } catch(e) { claudeError = e.message; }
 
     const fields = {
@@ -239,6 +241,7 @@ module.exports = async function handler(req, res) {
       'Barriers':   barriers,
       'Entry Time': now.toISOString().split('T')[1].substring(0, 5) + ' UTC'
     };
+    if (memory)           fields['Best Memory']            = memory;
     if (photoUrl)         fields['Photo URL']              = photoUrl;
     if (claudeReflection) fields['Reflection from Claude'] = claudeReflection;
 
