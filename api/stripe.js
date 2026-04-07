@@ -20,7 +20,7 @@ function priceIdForPlan(plan) {
     premium:   process.env.STRIPE_PRICE_ID_PREMIUM,
     couples:   process.env.STRIPE_PRICE_ID_COUPLES,
     monthly:   process.env.STRIPE_PRICE_ID_MONTHLY,
-    dna_topup: process.env.STRIPE_PRICE_DNATOPUP
+    dna_topup: process.env.STRIPE_PRICE_DNATOPUP || 'price_1TJfFbB0u7QeMpM7nlhCU5wK'
   };
   return map[plan] || null;
 }
