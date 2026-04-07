@@ -20,7 +20,7 @@ function priceIdForPlan(plan) {
     premium:   process.env.STRIPE_PRICE_ID_PREMIUM,
     couples:   process.env.STRIPE_PRICE_ID_COUPLES,
     monthly:   process.env.STRIPE_PRICE_ID_MONTHLY,
-    dna_topup: process.env.STRIPE_PRICE_ID_DNA_TOPUP
+    dna_topup: process.env.STRIPE_PRICE_DNATOPUP
   };
   return map[plan] || null;
 }
@@ -98,7 +98,7 @@ module.exports = async function handler(req, res) {
 
     const priceId = priceIdForPlan(plan);
     console.log('stripe checkout v3: plan=', plan, 'priceId=', priceId);
-    if (!priceId) return res.status(500).json({ error: 'Price ID not configured for plan: ' + plan, v: 3, env_check: { dna_topup: !!process.env.STRIPE_PRICE_ID_DNA_TOPUP, annual: !!process.env.STRIPE_PRICE_ID_ANNUAL }, dna_topup_val: (process.env.STRIPE_PRICE_ID_DNA_TOPUP || '').slice(0,12) });
+    if (!priceId) return res.status(500).json({ error: 'Price ID not configured for plan: ' + plan, v: 3, env_check: { dna_topup: !!process.env.STRIPE_PRICE_DNATOPUP, annual: !!process.env.STRIPE_PRICE_ID_ANNUAL }, dna_topup_val: (process.env.STRIPE_PRICE_DNATOPUP || '').slice(0,12) });
 
     try {
       const session = await stripe.checkout.sessions.create({
