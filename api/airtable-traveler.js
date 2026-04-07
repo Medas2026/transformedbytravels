@@ -167,8 +167,8 @@ function buildFields(b, isNew) {
   // DNA query counter update
   if (b.dnaQueryUpdate) {
     return {
-      'DNA Queries To Date':   Number(b.dnaToDate   || 0),
-      'DNA Queries Remaining': Number(b.dnaRemaining || 0)
+      'DNA Guides To Date':   Number(b.dnaToDate   || 0),
+      'DNA Guides Remaining': Number(b.dnaRemaining || 0)
     };
   }
 
@@ -219,8 +219,8 @@ function buildFields(b, isNew) {
   }
 
   if (isNew) {
-    fields['DNA Queries To Date']   = 0;
-    fields['DNA Queries Remaining'] = 5;
+    fields['DNA Guides To Date']   = 0;
+    fields['DNA Guides Remaining'] = 5;
     fields['Package Status']        = 'Free';
   }
 

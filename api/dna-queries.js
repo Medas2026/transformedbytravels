@@ -1,7 +1,7 @@
 const https = require('https');
 
 const BASE_ID    = 'appdlxcWb45dIqNK2';
-const TABLE_NAME = 'DNA Queries';
+const TABLE_NAME = 'DNA Guides';
 
 function airtableRequest(method, path, body, callback) {
   const apiKey  = process.env.AIRTABLE_API_KEY;

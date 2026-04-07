@@ -292,24 +292,24 @@
   };
 
   // ── DNA Counter ──────────────────────────────────────────────
-  // Decrement DNA Queries Remaining + increment DNA Queries To Date in Airtable.
+  // Decrement DNA Guides Remaining + increment DNA Guides To Date in Airtable.
   // Pass localProfile (portalProfile) to avoid an extra GET call when available.
   window.dnaDecrement = async function (email, localProfile) {
     if (!email) return;
     try {
       let toDate, remaining;
-      const raw = localProfile && localProfile['DNA Queries Remaining'];
+      const raw = localProfile && localProfile['DNA Guides Remaining'];
 
       if (localProfile && (raw !== null && raw !== undefined && raw !== '')) {
-        toDate    = Number(localProfile['DNA Queries To Date']    || 0) + 1;
+        toDate    = Number(localProfile['DNA Guides To Date']    || 0) + 1;
         remaining = Math.max(0, Number(raw) - 1);
       } else {
         const r = await fetch('/api/airtable-traveler?email=' + encodeURIComponent(email));
         const d = await r.json();
         if (!d.record) return;
         const f   = d.record.fields;
-        toDate    = Number(f['DNA Queries To Date']    || 0) + 1;
-        remaining = Math.max(0, Number(f['DNA Queries Remaining'] || 0) - 1);
+        toDate    = Number(f['DNA Guides To Date']    || 0) + 1;
+        remaining = Math.max(0, Number(f['DNA Guides Remaining'] || 0) - 1);
       }
 
       fetch('/api/airtable-traveler', {

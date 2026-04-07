@@ -128,7 +128,7 @@ module.exports = async function handler(req, res) {
           'Subscription End Date': endDate,
           'Subscription Plan':     plan === 'premium' ? 'Premium' : 'Annual',
           'Stripe Customer ID':    customerId,
-          'DNA Queries Remaining': dnaQueries
+          'DNA Guides Remaining': dnaQueries
         };
 
         airtablePatch(record.id, fields, (err2) => {

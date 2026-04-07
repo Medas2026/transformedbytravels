@@ -1486,7 +1486,7 @@ async function loadProfile(email) {
       document.getElementById('pf-sub-active').textContent    = f['Subscription Active'] ? 'Yes' : 'No';
       document.getElementById('pf-sub-end').textContent       = f['Subscription End Date'] || '—';
       document.getElementById('pf-trips-remaining').textContent = f['Trips Remaining'] !== undefined ? f['Trips Remaining'] : '—';
-      const _dnaDisp = f['DNA Queries Remaining'];
+      const _dnaDisp = f['DNA Guides Remaining'];
       const _dnaVal = (_dnaDisp === null || _dnaDisp === undefined || _dnaDisp === '') ? '—' : _dnaDisp;
       document.getElementById('pf-dna-remaining').textContent = _dnaVal;
       const _dnaBadge2 = document.getElementById('dna-page-remaining');
@@ -2020,8 +2020,8 @@ function loadAdminCustomers() {
           <td style="padding:10px 12px;">${subActive}</td>
           <td style="padding:10px 12px;color:var(--soft);">${f['Subscription Plan'] || '—'}</td>
           <td style="padding:10px 12px;color:var(--soft);white-space:nowrap;">${f['Subscription End Date'] || '—'}</td>
-          <td style="padding:10px 12px;text-align:right;color:var(--soft);">${f['DNA Queries To Date'] ?? '—'}</td>
-          <td style="padding:10px 12px;text-align:right;color:var(--soft);">${f['DNA Queries Remaining'] ?? '—'}</td>
+          <td style="padding:10px 12px;text-align:right;color:var(--soft);">${f['DNA Guides To Date'] ?? '—'}</td>
+          <td style="padding:10px 12px;text-align:right;color:var(--soft);">${f['DNA Guides Remaining'] ?? '—'}</td>
           <td style="padding:10px 12px;color:var(--soft);white-space:nowrap;">${f['Phone Number'] || '—'}</td>
           <td style="padding:10px 12px;color:var(--muted);white-space:nowrap;">${f['Assessment Date'] || '—'}</td>
         </tr>`;
@@ -4284,7 +4284,7 @@ async function generateDestDNA(pickerCtx) {
   const content = document.getElementById(prefix === 'dna' ? 'dna-page-content' : 'trip-dna-content');
 
   // Check query limit (use cached profile — only blocks when explicitly 0)
-  const _dnaRaw   = (portalProfile || {})['DNA Queries Remaining'];
+  const _dnaRaw   = (portalProfile || {})['DNA Guides Remaining'];
   const remaining = (_dnaRaw === null || _dnaRaw === undefined || _dnaRaw === '') ? Infinity : Number(_dnaRaw);
   if (remaining <= 0) {
     showPortalDNAUpsell();
@@ -4365,8 +4365,8 @@ async function generateDestDNA(pickerCtx) {
       // Decrement DNA counter
       dnaDecrement(userEmail, portalProfile).then(result => {
         if (result && portalProfile) {
-          portalProfile['DNA Queries To Date']  = result.toDate;
-          portalProfile['DNA Queries Remaining'] = result.remaining;
+          portalProfile['DNA Guides To Date']  = result.toDate;
+          portalProfile['DNA Guides Remaining'] = result.remaining;
           const badge = document.getElementById('pf-dna-remaining');
           if (badge) badge.textContent = result.remaining;
           const badge2 = document.getElementById('dna-page-remaining');
@@ -5475,7 +5475,7 @@ async function submitSupportIssue() {
   }
 }
 
-// ── DNA Queries Upsell (portal) ───────────────────────────────────────────────
+// ── DNA Guides Upsell (portal) ───────────────────────────────────────────────
 function showPortalDNAUpsell() {
   document.getElementById('portal-dna-upsell-modal').style.display = 'flex';
 }
