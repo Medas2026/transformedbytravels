@@ -1,9 +1,29 @@
 const Stripe = require('stripe');
 
-const AIRTABLE_BASE    = 'appdlxcWb45dIqNK2';
-const AIRTABLE_TABLE   = 'Traveler';
-const SUCCESS_URL      = 'https://transformedbytravels.vercel.app/portal.html?subscribed=1&session_id={CHECKOUT_SESSION_ID}';
-const CANCEL_URL       = 'https://transformedbytravels.vercel.app/portal.html';
+const AIRTABLE_BASE  = 'appdlxcWb45dIqNK2';
+const AIRTABLE_TABLE = 'Traveler';
+const SUCCESS_URL    = 'https://app.transformedbytravels.com/portal.html?subscribed=1&session_id={CHECKOUT_SESSION_ID}';
+const CANCEL_URL     = 'https://app.transformedbytravels.com/portal.html';
+
+// Plan config — single source of truth
+const PLANS = {
+  annual:   { label: 'Annual',   dna: 10, trips: 1, status: 'Annual',  mode: 'subscription' },
+  premium:  { label: 'Premium',  dna: 25, trips: 5, status: 'Premium', mode: 'subscription' },
+  couples:  { label: 'Couples',  dna: 50, trips: 5, status: 'Couples', mode: 'subscription' },
+  monthly:  { label: 'Monthly',  dna:  5, trips: 1, status: 'Monthly', mode: 'subscription' },
+  dna_topup:{ label: 'DNA Top-up', dna: 25, trips: 0, status: null,   mode: 'payment' }
+};
+
+function priceIdForPlan(plan) {
+  const map = {
+    annual:    process.env.STRIPE_PRICE_ID_ANNUAL,
+    premium:   process.env.STRIPE_PRICE_ID_PREMIUM,
+    couples:   process.env.STRIPE_PRICE_ID_COUPLES,
+    monthly:   process.env.STRIPE_PRICE_ID_MONTHLY,
+    dna_topup: process.env.STRIPE_PRICE_ID_DNA_TOPUP
+  };
+  return map[plan] || null;
+}
 
 function airtablePatch(recordId, fields, callback) {
   const https   = require('https');
@@ -59,37 +79,35 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-
   let stripe;
   try {
     stripe = Stripe(process.env.STRIPE_SECRET_KEY);
   } catch(e) {
-    console.error('Stripe init error:', e.message);
     return res.status(500).json({ error: 'Stripe init failed: ' + e.message });
   }
 
-  // POST — create checkout session
+  // ── POST: create checkout session ────────────────────────────────────────────
   if (req.method === 'POST') {
     const b     = req.body || {};
-    const plan  = (b.plan  || '').toLowerCase();  // 'annual' or 'premium'
+    const plan  = (b.plan  || '').toLowerCase();
     const email = (b.email || '').toLowerCase().trim();
     if (!plan || !email) return res.status(400).json({ error: 'plan and email required' });
 
-    const priceId = plan === 'premium'
-      ? process.env.STRIPE_PRICE_ID_PREMIUM
-      : process.env.STRIPE_PRICE_ID_ANNUAL;
+    const planConfig = PLANS[plan];
+    if (!planConfig) return res.status(400).json({ error: 'Unknown plan: ' + plan });
 
-    if (!priceId) return res.status(500).json({ error: 'Price ID not configured', plan, annual: !!process.env.STRIPE_PRICE_ID_ANNUAL, premium: !!process.env.STRIPE_PRICE_ID_PREMIUM });
+    const priceId = priceIdForPlan(plan);
+    if (!priceId) return res.status(500).json({ error: 'Price ID not configured for plan: ' + plan });
 
     try {
       const session = await stripe.checkout.sessions.create({
-        mode:                'subscription',
+        mode:                 planConfig.mode,
         payment_method_types: ['card'],
-        customer_email:      email,
-        line_items: [{ price: priceId, quantity: 1 }],
-        success_url: SUCCESS_URL,
-        cancel_url:  CANCEL_URL,
-        metadata:    { email, plan }
+        customer_email:       email,
+        line_items:           [{ price: priceId, quantity: 1 }],
+        success_url:          SUCCESS_URL,
+        cancel_url:           CANCEL_URL,
+        metadata:             { email, plan }
       });
       return res.status(200).json({ url: session.url });
     } catch(e) {
@@ -97,7 +115,7 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  // GET — verify session after successful payment and activate subscription
+  // ── GET: verify session after successful payment ─────────────────────────────
   if (req.method === 'GET' && req.query.action === 'verify') {
     const sessionId = (req.query.session_id || '').trim();
     if (!sessionId) return res.status(400).json({ error: 'session_id required' });
@@ -112,29 +130,47 @@ module.exports = async function handler(req, res) {
       }
 
       const email      = session.metadata.email || (session.customer_details && session.customer_details.email) || '';
-      const plan       = session.metadata.plan  || 'annual';
+      const plan       = (session.metadata.plan || 'annual').toLowerCase();
+      const planConfig = PLANS[plan] || PLANS.annual;
       const customerId = session.customer;
-      const sub        = session.subscription;
-      const endDate    = sub && sub.current_period_end
+
+      // Subscription end date (recurring) or null (one-time)
+      const sub     = session.subscription;
+      const endDate = sub && sub.current_period_end
         ? new Date(sub.current_period_end * 1000).toISOString().split('T')[0]
-        : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const dnaQueries = plan === 'premium' ? 25 : 10;
+        : null;
 
       airtableFind(email, (err, record) => {
         if (err || !record) return res.status(200).json({ success: false, reason: 'traveler not found' });
 
-        const fields = {
-          'Subscription Active':   true,
-          'Subscription End Date': endDate,
-          'Subscription Plan':     plan === 'premium' ? 'Premium' : 'Annual',
-          'Stripe Customer ID':    customerId,
-          'DNA Guides Remaining': dnaQueries
-        };
+        const f = record.fields;
 
-        airtablePatch(record.id, fields, (err2) => {
-          if (err2) return res.status(500).json({ error: err2.message });
-          res.status(200).json({ success: true, plan, endDate });
-        });
+        if (plan === 'dna_topup') {
+          // Top-up: add 25 guides to existing balance, don't touch subscription fields
+          const currentRemaining = Number(f['DNA Guides Remaining'] || 0);
+          const fields = {
+            'DNA Guides Remaining': currentRemaining + planConfig.dna,
+            'Stripe Customer ID':   customerId
+          };
+          airtablePatch(record.id, fields, (err2) => {
+            if (err2) return res.status(500).json({ error: err2.message });
+            res.status(200).json({ success: true, plan, added: planConfig.dna });
+          });
+        } else {
+          // Subscription plan — activate / update
+          const fields = {
+            'Subscription Active':   true,
+            'Subscription End Date': endDate,
+            'Package Status':        planConfig.status,
+            'Stripe Customer ID':    customerId,
+            'DNA Guides Remaining':  planConfig.dna,
+            'Trips Remaining':       planConfig.trips
+          };
+          airtablePatch(record.id, fields, (err2) => {
+            if (err2) return res.status(500).json({ error: err2.message });
+            res.status(200).json({ success: true, plan, endDate });
+          });
+        }
       });
     } catch(e) {
       return res.status(500).json({ error: e.message });
