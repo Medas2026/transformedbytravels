@@ -98,7 +98,7 @@ module.exports = async function handler(req, res) {
 
     const priceId = priceIdForPlan(plan);
     console.log('stripe checkout: plan=', plan, 'priceId=', priceId ? priceId.slice(0,20) : 'none');
-    if (!priceId) return res.status(500).json({ error: 'Price ID not configured for plan: ' + plan, has_topup: !!process.env.STRIPE_PRICE_ID_DNA_TOPUP, topup_len: (process.env.STRIPE_PRICE_ID_DNA_TOPUP||'').length });
+    if (!priceId) return res.status(500).json({ error: 'Price ID not configured for plan: ' + plan });
 
     try {
       const session = await stripe.checkout.sessions.create({
