@@ -2582,7 +2582,7 @@ async function startCheckout(plan) {
     if (d.url) {
       window.location.href = d.url;
     } else {
-      alert('Error starting checkout: ' + JSON.stringify(d));
+      alert('Error starting checkout: ' + (d.error || 'unknown'));
       if (btn) { btn.textContent = PLAN_LABELS[plan] || 'Subscribe'; btn.disabled = false; }
     }
   } catch(e) {
