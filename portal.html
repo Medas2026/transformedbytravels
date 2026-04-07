@@ -2655,6 +2655,9 @@ function showPage(name) {
     if (nav) nav.style.display = 'none';
   });
   if (name === 'dna') {
+    const _dnaRaw2 = (portalProfile || {})['DNA Guides Remaining'];
+    const _dnaLeft = (_dnaRaw2 === null || _dnaRaw2 === undefined || _dnaRaw2 === '') ? Infinity : Number(_dnaRaw2);
+    if (_dnaLeft <= 0) { showPortalDNAUpsell(); return; }
     initDNAPartnerToggle();
     loadDNAHistory();
     const preFill = sessionStorage.getItem('dnaPreFill');
