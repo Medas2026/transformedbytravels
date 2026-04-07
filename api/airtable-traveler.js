@@ -219,8 +219,9 @@ function buildFields(b, isNew) {
   }
 
   if (isNew) {
-    fields['DNA Queries To Date']  = 0;
+    fields['DNA Queries To Date']   = 0;
     fields['DNA Queries Remaining'] = 5;
+    fields['Package Status']        = 'Free';
   }
 
   return fields;
