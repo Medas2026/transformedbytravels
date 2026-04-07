@@ -97,8 +97,8 @@ module.exports = async function handler(req, res) {
     if (!planConfig) return res.status(400).json({ error: 'Unknown plan: ' + plan });
 
     const priceId = priceIdForPlan(plan);
-    console.log('stripe checkout v2: plan=', plan, 'priceId=', priceId, 'env=', process.env.STRIPE_PRICE_ID_DNA_TOPUP ? 'set' : 'missing');
-    if (!priceId) return res.status(500).json({ error: 'Price ID not configured for plan: ' + plan, v: 2, env_check: { dna_topup: !!process.env.STRIPE_PRICE_ID_DNA_TOPUP, annual: !!process.env.STRIPE_PRICE_ID_ANNUAL } });
+    console.log('stripe checkout v3: plan=', plan, 'priceId=', priceId);
+    if (!priceId) return res.status(500).json({ error: 'Price ID not configured for plan: ' + plan, v: 3, env_check: { dna_topup: !!process.env.STRIPE_PRICE_ID_DNA_TOPUP, annual: !!process.env.STRIPE_PRICE_ID_ANNUAL }, dna_topup_val: (process.env.STRIPE_PRICE_ID_DNA_TOPUP || '').slice(0,12) });
 
     try {
       const session = await stripe.checkout.sessions.create({
