@@ -257,7 +257,7 @@ module.exports = function handler(req, res) {
     const oneDayFormula = encodeURIComponent(
       `AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),{Start Date}="${tomorrowStr}")`
     );
-    fetchTemplate('TRIP_REMINDER', (tmplErr, tmpl) => {
+    fetchTemplate('TRIP_REMINDER_1DAY', (tmplErr, tmpl) => {
       airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${oneDayFormula}`, null, (err, data) => {
         if (!err) {
           (data.records || []).forEach(r => {
@@ -268,7 +268,7 @@ module.exports = function handler(req, res) {
             const country     = f['Country']     || '';
             const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
             const startDate   = f['Start Date']  || tomorrowStr;
-            const activateUrl = `${PORTAL_URL}/portal.html?page=planning&tripId=${r.id}`;
+            const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
             if (!email) return;
             const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
             airtableRequest('GET', TRAVEL_TABLE, filter, null, (err2, travData) => {
@@ -282,17 +282,16 @@ module.exports = function handler(req, res) {
                   ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${substitute(text, vars).replace(/\n/g, '<br>')}</p>`
                   : '';
                 html = emailHTML(subject, subject,
-                  para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3) +
-                  `<p style="margin:20px 0 0;">Ready to go? Activate your trip now to start your daily journey support.</p>`,
-                  'Activate My Trip →', activateUrl);
+                  para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3),
+                  'Start My Trip →', activateUrl);
               } else {
                 subject = `Your trip to ${tripName} starts tomorrow!`;
                 html = emailHTML(subject, subject,
                   `<p>Just a reminder — your trip to <strong>${tripName}</strong> begins tomorrow. Activate it in your portal to start your daily journal reminders.</p>`,
-                  'Activate My Trip →', activateUrl);
+                  'Start My Trip →', activateUrl);
               }
               sendEmail(email, name, subject, html, () => {});
-              if (coEmail && tmpl && tmpl.coTraveler) sendEmail(coEmail, name, subject, html, () => {});
+              if (coEmail) sendEmail(coEmail, name, subject, html, () => {});
             });
           });
         }
@@ -300,37 +299,50 @@ module.exports = function handler(req, res) {
       });
     });
 
-    // ── 3. Three-day notice: you can activate early ───────────────────
+    // ── 3. Three-day notice ───────────────────────────────────────────
     const threeDayFormula = encodeURIComponent(
       `AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),{Start Date}="${threeDayStr}")`
     );
-    airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${threeDayFormula}`, null, (err, data) => {
-      if (!err) {
-        (data.records || []).forEach(r => {
-          const f           = r.fields;
-          const email       = f['Traveler Email'];
-          const coEmail     = (f['Co-Traveler Email'] || '').trim();
-          const destination = f['Destination'] || '';
-          const country     = f['Country']     || '';
-          const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
-          const startDate   = f['Start Date']  || threeDayStr;
-          const activateUrl = `${PORTAL_URL}/portal.html?page=planning&tripId=${r.id}`;
-          if (!email) return;
-          const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
-          airtableRequest('GET', TRAVEL_TABLE, filter, null, (err2, travData) => {
-            const rec  = travData && travData.records && travData.records[0];
-            const name = rec ? (rec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
-            const subject = `Your trip to ${tripName} is in 3 days — you can activate now!`;
-            const html = emailHTML(subject, `Almost time, ${name}!`,
-              `<p>Your trip to <strong>${tripName}</strong> starts on <strong>${startDate}</strong> — just 3 days away!</p>
-               <p>You can activate your trip now to get your daily journal support started early. Use the button below to head to your portal.</p>`,
-              'Activate My Trip →', activateUrl);
-            sendEmail(email, name, subject, html, () => {});
-            if (coEmail) sendEmail(coEmail, name, subject, html, () => {});
+    fetchTemplate('TRIP_REMINDER_3DAY', (tmplErr, tmpl) => {
+      airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${threeDayFormula}`, null, (err, data) => {
+        if (!err) {
+          (data.records || []).forEach(r => {
+            const f           = r.fields;
+            const email       = f['Traveler Email'];
+            const coEmail     = (f['Co-Traveler Email'] || '').trim();
+            const destination = f['Destination'] || '';
+            const country     = f['Country']     || '';
+            const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
+            const startDate   = f['Start Date']  || threeDayStr;
+            const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
+            if (!email) return;
+            const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
+            airtableRequest('GET', TRAVEL_TABLE, filter, null, (err2, travData) => {
+              const rec  = travData && travData.records && travData.records[0];
+              const name = rec ? (rec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
+              const vars = { name, tripName, destination, country, startDate };
+              let subject, html;
+              if (tmpl) {
+                subject = substitute(tmpl.subject, vars) || `Your trip to ${tripName} is in 3 days!`;
+                const para = text => text
+                  ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${substitute(text, vars).replace(/\n/g, '<br>')}</p>`
+                  : '';
+                html = emailHTML(subject, subject,
+                  para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3),
+                  'Start My Trip →', activateUrl);
+              } else {
+                subject = `Your trip to ${tripName} is in 3 days!`;
+                html = emailHTML(subject, subject,
+                  `<p>Your trip to <strong>${tripName}</strong> starts on <strong>${startDate}</strong> — just 3 days away! Head to your portal to activate it.</p>`,
+                  'Start My Trip →', activateUrl);
+              }
+              sendEmail(email, name, subject, html, () => {});
+              if (coEmail) sendEmail(coEmail, name, subject, html, () => {});
+            });
           });
-        });
-      }
-      done();
+        }
+        done();
+      });
     });
 
     return;
