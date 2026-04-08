@@ -97,7 +97,8 @@ module.exports = async function handler(req, res) {
       'Subscription End Date': endDateStr,
       'Package Status':        'Monthly',
       'DNA Guides Remaining':  5,
-      'Trips Remaining':       1
+      'Trips Remaining':       1,
+      'Acquisition Promo':     code.trim().toUpperCase()
     });
 
     return res.status(200).json({ success: true, endDate: endDateStr });
