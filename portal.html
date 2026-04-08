@@ -265,9 +265,6 @@
       <div class="menu-item" onclick="showPage('dna')" data-page="dna" data-tooltip="Generate a personalized destination guide tailored to your unique traveler DNA and travel style.">
         <i class="ph ph-sparkle menu-icon"></i> DNA Guide
       </div>
-      <div class="menu-item" onclick="showPageGated('my-trip')" data-page="my-trip" data-tooltip="Start your trip, log daily journal reflections, and track your transformational travel journey.">
-        <i class="ph ph-airplane menu-icon"></i> My Trip <span class="menu-lock" id="lock-my-trip">🔒</span>
-      </div>
       <div class="menu-item" onclick="showPageGated('integration')" data-page="integration" data-tooltip="Reflect on your completed journey and capture the lasting insights and growth from your travels.">
         <i class="ph ph-lightbulb menu-icon"></i> Integration Workshop <span class="menu-lock" id="lock-integration">🔒</span>
       </div>
@@ -3129,7 +3126,10 @@ function checkActiveTripBanner() {
             if (divider2) divider2.style.display = 'none';
           }
           if (statusEl)   statusEl.textContent = statusLine;
-          if (journalBtn) journalBtn.style.display = status === 'Active' ? 'block' : 'none';
+          if (journalBtn) {
+            journalBtn.textContent = status === 'Active' ? '📓 Journal Today' : '✈️ Start My Trip →';
+            journalBtn.style.display = 'block';
+          }
           statusBar.style.display = 'flex';
         }
 
