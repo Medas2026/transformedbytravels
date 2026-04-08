@@ -221,7 +221,8 @@ function buildFields(b, isNew) {
   if (isNew) {
     fields['DNA Guides To Date']   = 0;
     fields['DNA Guides Remaining'] = 5;
-    fields['Package Status']        = 'Free';
+    fields['Package Status']       = 'Free';
+    fields['Date Created']         = new Date().toISOString().split('T')[0];
   }
 
   return fields;
