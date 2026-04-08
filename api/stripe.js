@@ -101,7 +101,6 @@ module.exports = async function handler(req, res) {
     if (!priceId) return res.status(500).json({ error: 'Price ID not configured for plan: ' + plan });
 
     try {
-      console.log('creating session: plan=', plan, 'mode=', planConfig.mode, 'priceId=', priceId, 'keyPrefix=', (process.env.STRIPE_SECRET_KEY||'').slice(0,12));
       const session = await stripe.checkout.sessions.create({
         mode:                 planConfig.mode,
         payment_method_types: ['card'],

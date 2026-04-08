@@ -2594,11 +2594,7 @@ async function startCheckout(plan) {
     if (d.url) {
       window.location.href = d.url;
     } else {
-      const errDiv = document.createElement('div');
-      errDiv.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid #f43f5e;border-radius:10px;padding:16px 20px;max-width:500px;width:90%;color:#f43f5e;font-size:0.82rem;z-index:9999;word-break:break-all;cursor:text;';
-      errDiv.textContent = JSON.stringify(d);
-      document.body.appendChild(errDiv);
-      setTimeout(() => errDiv.remove(), 30000);
+      alert('Error starting checkout: ' + (d.error || 'unknown'));
       if (btn) { btn.textContent = PLAN_LABELS[plan] || 'Subscribe'; btn.disabled = false; }
     }
   } catch(e) {
