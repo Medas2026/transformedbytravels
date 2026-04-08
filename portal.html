@@ -3073,8 +3073,16 @@ function checkActiveTripBanner() {
   fetch('/api/trips?email=' + encodeURIComponent(userEmail))
     .then(r => r.json())
     .then(data => {
-      // Show for Active or Committed trips
-      const trip = (data.records || []).find(r => r.fields['Status of Trip'] === 'Active' || r.fields['Status of Trip'] === 'Committed');
+      // Show for Active trips always; show for any other status within 7 days of start
+      const trip = (data.records || []).find(r => {
+        const status = r.fields['Status of Trip'];
+        if (status === 'Completed' || status === 'Cancelled') return false;
+        if (status === 'Active') return true;
+        const startDate = r.fields['Start Date'];
+        if (!startDate) return false;
+        const daysUntil = Math.ceil((new Date(startDate) - new Date()) / (1000 * 60 * 60 * 24));
+        return daysUntil >= 0 && daysUntil <= 7;
+      });
       const banner   = document.getElementById('active-trip-banner');
       const pfRow    = document.getElementById('pf-active-trip-row');
       const statusBar = document.getElementById('trip-status-bar');
@@ -3105,13 +3113,15 @@ function checkActiveTripBanner() {
         let statusLine = '';
         if (status === 'Active') {
           statusLine = '🟢 Trip underway';
-        } else if (status === 'Committed' && startDateStr) {
+        } else if (startDateStr) {
           const daysUntil = Math.ceil((new Date(startDateStr) - new Date()) / (1000 * 60 * 60 * 24));
           statusLine = daysUntil > 0 ? `Starts in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}` : 'Starting today!';
         }
 
         // ── Update sidebar status bar ────────────────────────────────────
         if (statusBar) {
+          const tsbLabel = statusBar.querySelector('.tsb-label');
+          if (tsbLabel) tsbLabel.textContent = status === 'Active' ? '✈️ Trip in Progress' : '✈️ Coming Up';
           document.getElementById('tsb-name').textContent   = name;
           const placeEl    = document.getElementById('tsb-place');
           const divider2   = document.getElementById('tsb-divider-2');

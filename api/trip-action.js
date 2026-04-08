@@ -44,6 +44,34 @@ async function fetchTripPlaces(tripId) {
   }
 }
 
+async function generatePostTripSummary(name, tripName, entriesText) {
+  try {
+    const prompt = `You are a warm travel coach for Transformed by Travels. A traveler named ${name} has just returned from their trip to ${tripName}. Below are their daily journal entries. Write a warm, personal 3-paragraph summary of their journey — what they experienced, what they noticed about themselves, and a forward-looking thought about how this trip may continue to shape them. Speak directly to "${name}" as "you". Be specific to what they actually wrote — never generic.
+
+Journal entries:
+${entriesText}`;
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type':      'application/json',
+        'x-api-key':         process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model:      'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        messages:   [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    return (data.content && data.content[0] && data.content[0].text) || '';
+  } catch(e) {
+    console.error('[generatePostTripSummary]', e.message);
+    return '';
+  }
+}
+
 async function generateTripSummary(destination, country, places, startDate, endDate) {
   try {
     const loc      = [destination, country].filter(Boolean).join(', ');
@@ -219,9 +247,10 @@ module.exports = function handler(req, res) {
     const todayStr      = dateOffsetStr(0);
     const tomorrowStr   = dateOffsetStr(1);
     const threeDayStr   = dateOffsetStr(3);
+    const yesterdayStr  = dateOffsetStr(-1);
 
     let completed = 0;
-    const done = () => { if (++completed === 3) res.status(200).json({ success: true }); };
+    const done = () => { if (++completed === 4) res.status(200).json({ success: true }); };
 
     // ── 1. Same-day nudge: trip starts today, not yet activated ───────
     const sameDayFormula = encodeURIComponent(
@@ -344,6 +373,83 @@ module.exports = function handler(req, res) {
         done();
       });
     });
+
+    // ── 4. Post-trip summary: trip ended yesterday ────────────────────
+    const postTripFormula = encodeURIComponent(
+      `AND(OR({Status of Trip}="Active",{Status of Trip}="Completed"),{End Date}="${yesterdayStr}")`
+    );
+    (async () => {
+      try {
+        const apiKey  = process.env.AIRTABLE_API_KEY;
+        const headers = { 'Authorization': 'Bearer ' + apiKey };
+
+        const tripsResp = await fetch(
+          `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TRIPS_TABLE)}?filterByFormula=${postTripFormula}`,
+          { headers }
+        );
+        const tripsData = await tripsResp.json();
+
+        for (const r of (tripsData.records || [])) {
+          const f     = r.fields;
+          const email = f['Traveler Email'];
+          if (!email) continue;
+
+          const destination = f['Destination'] || '';
+          const country     = f['Country']     || '';
+          const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
+          const startDate   = f['Start Date']  || '';
+          const endDate     = f['End Date']    || yesterdayStr;
+          const coEmail     = (f['Co-Traveler Email'] || '').trim();
+
+          const travFilter    = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
+          const journalFilter = `?filterByFormula=${encodeURIComponent(`({Trip ID}="${r.id}")`)}` +
+                                `&sort[0][field]=Entry%20Date&sort[0][direction]=asc`;
+
+          const [travResp, journalResp] = await Promise.all([
+            fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TRAVEL_TABLE)}${travFilter}`, { headers }),
+            fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent('Journal Entries')}${journalFilter}`, { headers })
+          ]);
+          const [travData, journalData] = await Promise.all([travResp.json(), journalResp.json()]);
+
+          const travRec = (travData.records || [])[0];
+          const name    = travRec ? (travRec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
+          const entries = (journalData.records || []).filter(e => e.fields['Reflection'] || e.fields['Best Memory']);
+
+          let summaryHtml = '';
+          if (entries.length > 0) {
+            const entriesText = entries.map((e, i) => {
+              const ef    = e.fields;
+              const parts = [];
+              if (ef['Reflection'])   parts.push(`Reflection: ${ef['Reflection']}`);
+              if (ef['Barriers'])     parts.push(`Barriers: ${ef['Barriers']}`);
+              if (ef['Best Memory'])  parts.push(`Best memory: ${ef['Best Memory']}`);
+              return `Day ${ef['Day Number'] || (i + 1)}:\n${parts.join('\n')}`;
+            }).join('\n\n');
+
+            const summaryText = await generatePostTripSummary(name, tripName, entriesText);
+            summaryHtml = summaryText.split('\n').filter(l => l.trim()).map(line =>
+              `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${line.trim()}</p>`
+            ).join('');
+          }
+
+          const subject = `Your journey to ${tripName} — a reflection`;
+          const portalUrl = `${PORTAL_URL}/portal.html`;
+          const html = emailHTML(subject, `Welcome home, ${name}!`,
+            `<p>Your trip to <strong>${tripName}</strong>${startDate ? ` (${startDate} – ${endDate})` : ''} is now complete. Here's a reflection on your journey:</p>
+             ${summaryHtml || `<p>What an incredible journey — we hope it was everything you imagined and more.</p>`}
+             <p>Now is the perfect time to complete your <strong>Integration Workshop</strong> to capture the lasting insights from your travels.</p>`,
+            'Start Integration Workshop →', portalUrl + '?page=integration'
+          );
+
+          sendEmail(email, name, subject, html, () => {});
+          if (coEmail) sendEmail(coEmail, name, subject, html, () => {});
+          console.log('[post-trip summary] sent to', email, tripName);
+        }
+      } catch(e) {
+        console.error('[post-trip summary]', e.message);
+      }
+      done();
+    })();
 
     return;
   }
