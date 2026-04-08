@@ -43,7 +43,13 @@
     .wrapper.workshop-mode .sidebar { display: none; }
 
     /* SIDEBAR MENU */
-    .sidebar { display: flex; flex-direction: column; gap: 8px; }
+    .sidebar { display: flex; flex-direction: column; gap: 8px; position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto; }
+    #trip-status-bar { background:linear-gradient(135deg,rgba(45,212,191,0.12),rgba(45,212,191,0.04)); border:1px solid rgba(45,212,191,0.35); border-radius:10px; padding:10px 12px; margin-bottom:4px; }
+    #trip-status-bar .tsb-label { font-family:'Montserrat',sans-serif; font-weight:800; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--teal); margin-bottom:4px; }
+    #trip-status-bar .tsb-name  { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.88rem; color:#fff; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #trip-status-bar .tsb-place { font-size:0.78rem; color:var(--soft); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #trip-status-bar .tsb-status { font-size:0.75rem; color:var(--muted); margin-bottom:8px; }
+    #trip-status-bar .tsb-btn { display:block; width:100%; padding:6px 0; background:rgba(45,212,191,0.15); border:1px solid rgba(45,212,191,0.4); border-radius:6px; color:var(--teal); font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.75rem; text-align:center; cursor:pointer; }
     .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.88rem; color: var(--soft); border: 1px solid transparent; transition: all 0.2s; text-decoration: none; position: relative; }
     .menu-item:hover { background: var(--s1); color: var(--text); border-color: var(--bd); }
     .menu-item.active { background: var(--tdim); color: var(--teal); border-color: rgba(45,212,191,0.3); }
@@ -220,6 +226,16 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
+
+      <!-- Trip Status Bar -->
+      <div id="trip-status-bar" style="display:none;">
+        <div class="tsb-label">✈️ Trip in Progress</div>
+        <div class="tsb-name"  id="tsb-name">—</div>
+        <div class="tsb-place" id="tsb-place"></div>
+        <div class="tsb-status" id="tsb-status"></div>
+        <button class="tsb-btn" id="tsb-journal-btn" onclick="showPageGated('my-trip')" style="display:none;">📓 Journal Today</button>
+      </div>
+
       <div class="menu-item" onclick="showPage('guide')" data-page="guide" data-tooltip="Learn how Travel For Growth works.">
         <i class="ph ph-question menu-icon"></i> How It Works
       </div>
@@ -3053,15 +3069,59 @@ function checkActiveTripBanner() {
   fetch('/api/trips?email=' + encodeURIComponent(userEmail))
     .then(r => r.json())
     .then(data => {
-      const active = (data.records || []).find(r => r.fields['Status of Trip'] === 'Active');
-      const banner = document.getElementById('active-trip-banner');
-      const pfRow  = document.getElementById('pf-active-trip-row');
-      if (active) {
-        const f    = active.fields;
-        const name = f['Trip Name'] || [f['Destination'], f['Country']].filter(Boolean).join(', ') || 'Active Trip';
+      // Show for Active or Committed trips
+      const trip = (data.records || []).find(r => r.fields['Status of Trip'] === 'Active' || r.fields['Status of Trip'] === 'Committed');
+      const banner   = document.getElementById('active-trip-banner');
+      const pfRow    = document.getElementById('pf-active-trip-row');
+      const statusBar = document.getElementById('trip-status-bar');
+
+      if (trip) {
+        const f      = trip.fields;
+        const status = f['Status of Trip'];
+        const name   = f['Trip Name'] || [f['Destination'], f['Country']].filter(Boolean).join(', ') || 'Active Trip';
+        const startDateStr = f['Start Date'] || '';
+
+        // ── Current place ────────────────────────────────────────────────
+        let currentPlace = '';
+        if (status === 'Active' && startDateStr) {
+          const startDate = new Date(startDateStr);
+          const today     = new Date();
+          const tripDay   = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
+          // Find the place whose day is <= tripDay, pick the latest one
+          let bestPlace = '', bestDay = 0;
+          for (let i = 1; i <= 7; i++) {
+            const p = f['Place ' + i];
+            const d = Number(f['Day ' + i] || 0);
+            if (p && d <= tripDay && d >= bestDay) { bestPlace = p; bestDay = d; }
+          }
+          currentPlace = bestPlace || (f['Place 1'] || '');
+        }
+
+        // ── Status line ──────────────────────────────────────────────────
+        let statusLine = '';
+        if (status === 'Active') {
+          statusLine = '🟢 Trip underway';
+        } else if (status === 'Committed' && startDateStr) {
+          const daysUntil = Math.ceil((new Date(startDateStr) - new Date()) / (1000 * 60 * 60 * 24));
+          statusLine = daysUntil > 0 ? `Starts in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}` : 'Starting today!';
+        }
+
+        // ── Update sidebar status bar ────────────────────────────────────
+        if (statusBar) {
+          document.getElementById('tsb-name').textContent   = name;
+          document.getElementById('tsb-place').textContent  = currentPlace ? '📍 ' + currentPlace : '';
+          document.getElementById('tsb-status').textContent = statusLine;
+          const journalBtn = document.getElementById('tsb-journal-btn');
+          if (journalBtn) journalBtn.style.display = status === 'Active' ? 'block' : 'none';
+          statusBar.style.display = 'block';
+        }
+
+        // ── Update profile banner & row ──────────────────────────────────
         if (banner) { document.getElementById('active-trip-name').textContent = name; banner.style.display = 'block'; }
         if (pfRow)  { document.getElementById('pf-active-trip-name').textContent = name; pfRow.style.display = 'flex'; }
+
       } else {
+        if (statusBar) statusBar.style.display = 'none';
         if (banner) banner.style.display = 'none';
         if (pfRow)  pfRow.style.display = 'none';
       }
