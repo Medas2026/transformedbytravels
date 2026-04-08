@@ -2594,7 +2594,7 @@ async function startCheckout(plan) {
     if (d.url) {
       window.location.href = d.url;
     } else {
-      alert('Error starting checkout: ' + (d.error || 'unknown'));
+      alert('Error starting checkout: ' + JSON.stringify(d));
       if (btn) { btn.textContent = PLAN_LABELS[plan] || 'Subscribe'; btn.disabled = false; }
     }
   } catch(e) {
