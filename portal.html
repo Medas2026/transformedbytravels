@@ -44,12 +44,13 @@
 
     /* SIDEBAR MENU */
     .sidebar { display: flex; flex-direction: column; gap: 8px; position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto; }
-    #trip-status-bar { background:linear-gradient(135deg,rgba(45,212,191,0.12),rgba(45,212,191,0.04)); border:1px solid rgba(45,212,191,0.35); border-radius:10px; padding:10px 12px; margin-bottom:4px; }
-    #trip-status-bar .tsb-label { font-family:'Montserrat',sans-serif; font-weight:800; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--teal); margin-bottom:4px; }
-    #trip-status-bar .tsb-name  { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.88rem; color:#fff; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    #trip-status-bar .tsb-place { font-size:0.78rem; color:var(--soft); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    #trip-status-bar .tsb-status { font-size:0.75rem; color:var(--muted); margin-bottom:8px; }
-    #trip-status-bar .tsb-btn { display:block; width:100%; padding:6px 0; background:rgba(45,212,191,0.15); border:1px solid rgba(45,212,191,0.4); border-radius:6px; color:var(--teal); font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.75rem; text-align:center; cursor:pointer; }
+    #trip-status-bar { background:linear-gradient(135deg,rgba(45,212,191,0.12),rgba(45,212,191,0.04)); border-bottom:1px solid rgba(45,212,191,0.35); padding:10px 28px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; position:sticky; top:56px; z-index:90; }
+    #trip-status-bar .tsb-label  { font-family:'Montserrat',sans-serif; font-weight:800; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--teal); white-space:nowrap; }
+    #trip-status-bar .tsb-name   { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.88rem; color:#fff; white-space:nowrap; }
+    #trip-status-bar .tsb-divider { color:var(--bd); font-size:1rem; }
+    #trip-status-bar .tsb-place  { font-size:0.82rem; color:var(--soft); white-space:nowrap; }
+    #trip-status-bar .tsb-status { font-size:0.78rem; color:var(--muted); white-space:nowrap; }
+    #trip-status-bar .tsb-btn { padding:5px 16px; background:rgba(45,212,191,0.15); border:1px solid rgba(45,212,191,0.4); border-radius:6px; color:var(--teal); font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.75rem; cursor:pointer; white-space:nowrap; margin-left:auto; }
     .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.88rem; color: var(--soft); border: 1px solid transparent; transition: all 0.2s; text-decoration: none; position: relative; }
     .menu-item:hover { background: var(--s1); color: var(--text); border-color: var(--bd); }
     .menu-item.active { background: var(--tdim); color: var(--teal); border-color: rgba(45,212,191,0.3); }
@@ -222,20 +223,21 @@
     </div>
   </nav>
 
+  <!-- Trip Status Bar (spans full width, sticky below nav) -->
+  <div id="trip-status-bar" style="display:none;">
+    <div class="tsb-label">✈️ Trip in Progress</div>
+    <div class="tsb-name" id="tsb-name">—</div>
+    <span class="tsb-divider">·</span>
+    <div class="tsb-place" id="tsb-place" style="display:none;"></div>
+    <span class="tsb-divider" id="tsb-divider-2" style="display:none;">·</span>
+    <div class="tsb-status" id="tsb-status"></div>
+    <button class="tsb-btn" id="tsb-journal-btn" onclick="showPageGated('my-trip')" style="display:none;">📓 Journal Today</button>
+  </div>
+
   <div class="wrapper">
 
     <!-- Sidebar -->
     <div class="sidebar">
-
-      <!-- Trip Status Bar -->
-      <div id="trip-status-bar" style="display:none;">
-        <div class="tsb-label">✈️ Trip in Progress</div>
-        <div class="tsb-name"  id="tsb-name">—</div>
-        <div class="tsb-place" id="tsb-place"></div>
-        <div class="tsb-status" id="tsb-status"></div>
-        <button class="tsb-btn" id="tsb-journal-btn" onclick="showPageGated('my-trip')" style="display:none;">📓 Journal Today</button>
-      </div>
-
       <div class="menu-item" onclick="showPage('guide')" data-page="guide" data-tooltip="Learn how Travel For Growth works.">
         <i class="ph ph-question menu-icon"></i> How It Works
       </div>
@@ -3109,11 +3111,21 @@ function checkActiveTripBanner() {
         // ── Update sidebar status bar ────────────────────────────────────
         if (statusBar) {
           document.getElementById('tsb-name').textContent   = name;
-          document.getElementById('tsb-place').textContent  = currentPlace ? '📍 ' + currentPlace : '';
-          document.getElementById('tsb-status').textContent = statusLine;
+          const placeEl    = document.getElementById('tsb-place');
+          const divider2   = document.getElementById('tsb-divider-2');
+          const statusEl   = document.getElementById('tsb-status');
           const journalBtn = document.getElementById('tsb-journal-btn');
+          if (currentPlace) {
+            placeEl.textContent  = '📍 ' + currentPlace;
+            placeEl.style.display = '';
+            if (divider2) divider2.style.display = '';
+          } else {
+            placeEl.style.display  = 'none';
+            if (divider2) divider2.style.display = 'none';
+          }
+          if (statusEl)   statusEl.textContent = statusLine;
           if (journalBtn) journalBtn.style.display = status === 'Active' ? 'block' : 'none';
-          statusBar.style.display = 'block';
+          statusBar.style.display = 'flex';
         }
 
         // ── Update profile banner & row ──────────────────────────────────
