@@ -302,12 +302,6 @@
         <div class="loading" id="profile-loading">Loading your profile…</div>
         <div id="profile-content" style="display:none;">
 
-          <!-- Active Trip Banner -->
-          <div id="active-trip-banner" style="display:none;background:linear-gradient(135deg,rgba(45,212,191,0.15),rgba(45,212,191,0.05));border:1px solid rgba(45,212,191,0.4);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:none;">
-            <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--teal);margin-bottom:4px;">✈️ Trip in Progress</div>
-            <div id="active-trip-name" style="color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;"></div>
-          </div>
-
           <div class="profile-section">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--bd);">
               <div class="profile-section-title" style="margin-bottom:0;padding-bottom:0;border-bottom:none;">Your Identity</div>
@@ -2925,7 +2919,18 @@ function loadTripsByStatus(status, mode) {
   fetch('/api/trips?email=' + encodeURIComponent(userEmail))
     .then(r => r.json())
     .then(data => {
-document.getElementById(loadingId).style.display = 'none';
+      document.getElementById(loadingId).style.display = 'none';
+
+      // Block starting a trip if one is already Active
+      if (mode === 'start') {
+        const alreadyActive = (data.records || []).find(r => r.fields['Status of Trip'] === 'Active');
+        if (alreadyActive) {
+          const activeName = alreadyActive.fields['Trip Name'] || alreadyActive.fields['Destination'] || 'a trip';
+          document.getElementById(listId).innerHTML = `<p style="color:#fbbf24;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.9rem;">You already have an active trip (<strong>${activeName}</strong>). Please end that trip before starting a new one.</p>`;
+          return;
+        }
+      }
+
       const records = (data.records || []).filter(r => r.fields['Status of Trip'] === status);
       if (!records.length) {
         const msg = mode === 'start'
@@ -3128,13 +3133,11 @@ function checkActiveTripBanner() {
           statusBar.style.display = 'flex';
         }
 
-        // ── Update profile banner & row ──────────────────────────────────
-        if (banner) { document.getElementById('active-trip-name').textContent = name; banner.style.display = 'block'; }
-        if (pfRow)  { document.getElementById('pf-active-trip-name').textContent = name; pfRow.style.display = 'flex'; }
+        // ── Update profile row ───────────────────────────────────────────
+        if (pfRow) { document.getElementById('pf-active-trip-name').textContent = name; pfRow.style.display = 'flex'; }
 
       } else {
         if (statusBar) statusBar.style.display = 'none';
-        if (banner) banner.style.display = 'none';
         if (pfRow)  pfRow.style.display = 'none';
       }
     }).catch(() => {});
