@@ -68,25 +68,25 @@ module.exports = async function handler(req, res) {
     const validCode = (process.env.PROMO_CODE || '').trim().toUpperCase();
     if (!validCode) return res.status(500).json({ error: 'No promo code configured' });
     if (code.trim().toUpperCase() !== validCode) {
-      return res.status(400).json({ error: 'Invalid promo code' });
+      return res.status(400).json({ error: 'That code doesn\'t look right — please double-check and try again.' });
     }
 
     // Check code expiry (Aug 31, 2026)
     const EXPIRY = new Date('2026-09-01'); // exclusive upper bound
     if (new Date() >= EXPIRY) {
-      return res.status(400).json({ error: 'This promo code has expired' });
+      return res.status(400).json({ error: 'Sorry, that promo code has expired.' });
     }
 
     // Look up traveler
     const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email.toLowerCase()}")`)}`;
     const data   = await airtableGet(filter);
     const record = (data.records || [])[0];
-    if (!record) return res.status(404).json({ error: 'Account not found' });
+    if (!record) return res.status(404).json({ error: 'We couldn\'t find your account. Please make sure you\'re signed in.' });
 
     // Check not already subscribed
     const f = record.fields;
     if (f['Subscription Active']) {
-      return res.status(400).json({ error: 'You already have an active subscription' });
+      return res.status(400).json({ error: 'You already have an active subscription — you\'re all set!' });
     }
 
     // Grant free Monthly subscription through Aug 31, 2026

@@ -2552,7 +2552,7 @@ async function applyPromoCode() {
     const data = await resp.json();
     if (data.success) {
       msg.style.color = '#86efac';
-      msg.textContent = '✓ Promo applied! Your free month is active.';
+      msg.textContent = '✓ Promo applied! Your free subscription is now active.';
       // Reload profile to reflect new subscription status
       setTimeout(async () => {
         await loadProfile(userEmail);
