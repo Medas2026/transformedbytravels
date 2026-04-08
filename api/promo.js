@@ -71,6 +71,12 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid promo code' });
     }
 
+    // Check code expiry (Aug 31, 2026)
+    const EXPIRY = new Date('2026-09-01'); // exclusive upper bound
+    if (new Date() >= EXPIRY) {
+      return res.status(400).json({ error: 'This promo code has expired' });
+    }
+
     // Look up traveler
     const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email.toLowerCase()}")`)}`;
     const data   = await airtableGet(filter);
@@ -83,16 +89,15 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'You already have an active subscription' });
     }
 
-    // Set free month subscription
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 90);
-    const endDateStr = endDate.toISOString().split('T')[0];
+    // Grant free Monthly subscription through Aug 31, 2026
+    const endDateStr = '2026-08-31';
 
     await airtablePatch(record.id, {
       'Subscription Active':   true,
       'Subscription End Date': endDateStr,
-      'Package Status':        'Annual Member',
-      'Trips Remaining':       2
+      'Package Status':        'Monthly',
+      'DNA Guides Remaining':  5,
+      'Trips Remaining':       1
     });
 
     return res.status(200).json({ success: true, endDate: endDateStr });
