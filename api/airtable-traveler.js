@@ -176,13 +176,16 @@ function buildFields(b, isNew) {
 
   // Profile edit — only update contact fields
   if (b.profileEdit) {
-    const fields = { 'Traveler Name': b.name || '' };
-    if (b.phone        !== undefined) fields['Phone Number']   = b.phone;
-    if (b.address      !== undefined) fields['Address']        = b.address;
-    if (b.homeAirport  !== undefined) fields['Home Airport']   = b.homeAirport;
-    if (b.travelStyle  !== undefined) fields['Travel Style']   = b.travelStyle;
-    if (b.homeTimezone  !== undefined) fields['Home Timezone']    = b.homeTimezone;
-    if (b.distanceUnits !== undefined) fields['Distance Units']   = b.distanceUnits;
+    const fields = {};
+    if (b.name              !== undefined) fields['Traveler Name']            = b.name;
+    if (b.phone             !== undefined) fields['Phone Number']             = b.phone;
+    if (b.address           !== undefined) fields['Address']                  = b.address;
+    if (b.homeAirport       !== undefined) fields['Home Airport']             = b.homeAirport;
+    if (b.travelStyle       !== undefined) fields['Travel Style']             = b.travelStyle;
+    if (b.homeTimezone      !== undefined) fields['Home Timezone']            = b.homeTimezone;
+    if (b.distanceUnits     !== undefined) fields['Distance Units']           = b.distanceUnits;
+    if (b.preTripWorkshopDate     !== undefined) fields['Pre-Trip Workshop Date']     = b.preTripWorkshopDate;
+    if (b.integrationWorkshopDate !== undefined) fields['Integration Workshop Date'] = b.integrationWorkshopDate;
     return fields;
   }
 

@@ -5112,6 +5112,14 @@ async function wsNext(code) {
     document.getElementById('ws-player-'   + code).style.display = 'none';
     document.getElementById('ws-nav-'      + code).style.display = 'none';
     document.getElementById('ws-complete-' + code).style.display = 'block';
+    // Write completion date to Airtable
+    const _wsField = code === 'PRE_TRIP' ? 'Pre-Trip Workshop Date' : 'Integration Workshop Date';
+    const _wsDate  = new Date().toISOString().split('T')[0];
+    fetch('/api/airtable-traveler', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email: userEmail, profileEdit: true, [_wsField === 'Pre-Trip Workshop Date' ? 'preTripWorkshopDate' : 'integrationWorkshopDate']: _wsDate })
+    }).catch(() => {});
   }
 }
 
