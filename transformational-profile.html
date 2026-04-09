@@ -1373,24 +1373,26 @@ function buildResults() {
 
   _lastArch = getDisplayArchetype(arch.name);
 
-  // Save record after all data is ready
-  saveRecord(raw, getDisplayArchetype(arch.name), topActivities);
+  // Skip save and email when just viewing the report (not a new submission)
+  if (!window._reportRaw) {
+    saveRecord(raw, getDisplayArchetype(arch.name), topActivities);
 
-  // Send results email
-  console.log('Sending email to:', userEmail, 'name:', userName);
-  fetch('/api/send-email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name: userName,
-      email: userEmail,
-      archetype: arch.name,
-      archetypePassions: (addAnswers['A1']||[]).filter(p=>PASSION_LABELS[p]).map(p=>PASSION_LABELS[p]).join(' / '),
-      archetypeTag: arch.tag,
-      archetypeDesc: arch.desc,
-      scores: raw
-    })
-  }).catch(() => {}); // fire and forget — don't block UI on failure
+    // Send results email
+    console.log('Sending email to:', userEmail, 'name:', userName);
+    fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: userName,
+        email: userEmail,
+        archetype: arch.name,
+        archetypePassions: (addAnswers['A1']||[]).filter(p=>PASSION_LABELS[p]).map(p=>PASSION_LABELS[p]).join(' / '),
+        archetypeTag: arch.tag,
+        archetypeDesc: arch.desc,
+        scores: raw
+      })
+    }).catch(() => {}); // fire and forget — don't block UI on failure
+  }
 
 }
 
