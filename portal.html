@@ -223,15 +223,23 @@
     </div>
   </nav>
 
-  <!-- Trip Status Bar (spans full width, sticky below nav) -->
+  <!-- Trip Status Bar / Marketing Banner (spans full width, sticky below nav) -->
   <div id="trip-status-bar" style="display:none;">
-    <div class="tsb-label">✈️ Trip in Progress</div>
-    <div class="tsb-name" id="tsb-name">—</div>
-    <span class="tsb-divider">·</span>
-    <div class="tsb-place" id="tsb-place" style="display:none;"></div>
-    <span class="tsb-divider" id="tsb-divider-2" style="display:none;">·</span>
-    <div class="tsb-status" id="tsb-status"></div>
-    <button class="tsb-btn" id="tsb-journal-btn" onclick="showPageGated('my-trip')" style="display:none;">📓 Journal Today</button>
+    <!-- Trip mode -->
+    <div id="tsb-trip-mode" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;width:100%;">
+      <div class="tsb-label" id="tsb-label">✈️ Trip in Progress</div>
+      <div class="tsb-name" id="tsb-name">—</div>
+      <span class="tsb-divider">·</span>
+      <div class="tsb-place" id="tsb-place" style="display:none;"></div>
+      <span class="tsb-divider" id="tsb-divider-2" style="display:none;">·</span>
+      <div class="tsb-status" id="tsb-status"></div>
+      <button class="tsb-btn" id="tsb-journal-btn" onclick="showPageGated('my-trip')" style="display:none;">📓 Journal Today</button>
+    </div>
+    <!-- Marketing mode -->
+    <div id="tsb-marketing-mode" style="display:none;align-items:center;gap:16px;flex-wrap:wrap;width:100%;">
+      <div id="tsb-marketing-msg" style="flex:1;font-family:'Open Sans',sans-serif;font-size:0.85rem;color:var(--soft);">✦ Unlock Trip Planning, DNA Guides &amp; Workshops — starting at $29.95/yr</div>
+      <button onclick="showPage('store')" class="tsb-btn">Subscribe →</button>
+    </div>
   </div>
 
   <div class="wrapper">
@@ -3077,6 +3085,19 @@ async function doTripAction(tripId, mode) {
 }
 
 function checkActiveTripBanner() {
+  const subscribed = portalProfile && portalProfile['Subscription Active'];
+  const statusBar  = document.getElementById('trip-status-bar');
+  const tripMode   = document.getElementById('tsb-trip-mode');
+  const mktMode    = document.getElementById('tsb-marketing-mode');
+
+  // Free users — show marketing banner immediately, no need to check trips
+  if (!subscribed) {
+    if (tripMode)  tripMode.style.display  = 'none';
+    if (mktMode)   mktMode.style.display   = 'flex';
+    if (statusBar) statusBar.style.display = 'flex';
+    return;
+  }
+
   fetch('/api/trips?email=' + encodeURIComponent(userEmail))
     .then(r => r.json())
     .then(data => {
@@ -3092,7 +3113,8 @@ function checkActiveTripBanner() {
       });
       const banner   = document.getElementById('active-trip-banner');
       const pfRow    = document.getElementById('pf-active-trip-row');
-      const statusBar = document.getElementById('trip-status-bar');
+      if (tripMode)  tripMode.style.display  = 'flex';
+      if (mktMode)   mktMode.style.display   = 'none';
 
       if (trip) {
         const f      = trip.fields;
