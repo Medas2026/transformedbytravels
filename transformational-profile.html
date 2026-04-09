@@ -1257,6 +1257,7 @@ function buildResults() {
   const _passions = (addAnswers['A1']||[]).filter(p=>PASSION_LABELS[p]).map(p=>PASSION_LABELS[p]);
   const _passionLabel = _passions.length === 1 ? 'Passion' : _passions.length > 1 ? 'Passions' : '';
   document.getElementById('archetype-card').innerHTML = `
+    <img src="${arch.iconImg}" class="archetype-icon-img" alt="${arch.name}" />
     <h2 class="archetype-name">${arch.name}</h2>
     ${_passions.length ? `<p style="font-size:1.05rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;margin:0 0 16px;"><span style="color:var(--soft);font-weight:400;">${_passionLabel}:</span> ${_passions.join(' / ')}</p>` : ''}
     <p class="archetype-desc">${arch.desc}</p>
