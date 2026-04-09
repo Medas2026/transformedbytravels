@@ -299,6 +299,10 @@
         <div class="loading" id="profile-loading">Loading your profile…</div>
         <div id="profile-content" style="display:none;">
 
+          <div id="profile-arch-icon-wrap" style="display:none;text-align:center;margin-bottom:20px;">
+            <img id="profile-arch-icon" src="" alt="" style="width:200px;height:200px;object-fit:contain;" />
+          </div>
+
           <div class="profile-section">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--bd);">
               <div class="profile-section-title" style="margin-bottom:0;padding-bottom:0;border-bottom:none;">Your Identity</div>
@@ -1557,6 +1561,15 @@ async function loadProfile(email) {
       document.getElementById('pf-travelage').textContent     = f['Life Stage'] || '—';
       document.getElementById('pf-travelstyle').textContent  = f['Travel Style'] || '—';
       renderDimBars(f);
+      // Archetype icon above Your Identity
+      const _archData = ARCHETYPE_DATA[f['Archetype']];
+      const _archIconWrap = document.getElementById('profile-arch-icon-wrap');
+      const _archIconImg  = document.getElementById('profile-arch-icon');
+      if (_archData && _archIconWrap && _archIconImg) {
+        _archIconImg.src = _archData.iconImg;
+        _archIconImg.alt = f['Archetype'];
+        _archIconWrap.style.display = 'block';
+      }
       if (f['TGI'] !== undefined && f['TGI'] !== null && f['TGI'] !== '') {
         document.getElementById('pf-tgi').textContent = f['TGI'];
         document.getElementById('pf-tgi-row').style.display = 'flex';
