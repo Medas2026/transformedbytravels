@@ -8092,7 +8092,6 @@ async function loadDreamingPage() {
     // Populate trips summary paragraph directly (not inside async function)
     const _tripsDescEl = document.getElementById('trips-desc');
     if (_tripsDescEl && arch && arch.trips) _tripsDescEl.textContent = arch.trips;
-    console.log('[TD2] el:', !!_tripsDescEl, 'text:', _tripsDescEl && _tripsDescEl.textContent && _tripsDescEl.textContent.slice(0,40));
 
     document.getElementById('dreaming-arch-banner-icon').src          = arch.iconImg || '';
     document.getElementById('dreaming-arch-banner-name').textContent  = arch.name || '';
