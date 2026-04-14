@@ -7720,8 +7720,10 @@ async function _rptBuildPassionDests(addAnswers) {
   section.style.display = 'block';
   container.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:8px 0;">Loading…</p>';
   try {
-    const resp = await fetch('/api/passion-dests');
-    const rows = await resp.json();
+    if (!window._passionDestsCache) {
+      window._passionDestsCache = await fetch('/api/passion-dests').then(r => r.json());
+    }
+    const rows = window._passionDestsCache;
     container.innerHTML = '';
     passions.forEach(passion => {
       const label = REPORT_PASSION_LABELS[passion];
@@ -7789,7 +7791,7 @@ async function _rptBuildItemHighlights(f) {
   } catch(e) {}
 }
 
-function _rptBuildDestinations(raw, arch) {
+async function _rptBuildDestinations(raw, arch) {
   document.getElementById('trips-desc').textContent = arch.trips;
   function scoreDestForUser(dest, r) {
     const uNorm={ Cur:(r.Curiosity/7)*10, Adv:(r.Adventure/7)*10, Con:(r.Connection/7)*10, Int:(r['Travel Purpose']/7)*10, Ref:(r.Reflection/7)*10 };
@@ -7803,7 +7805,7 @@ function _rptBuildDestinations(raw, arch) {
     return;
   }
   const scored = DESTINATIONS.map(d => {
-    const obj={name:d[0],country:d[1],continent:d[2],Cur:d[7],Adv:d[8],Con:d[9],Int:d[10],Ref:d[11]};
+    const obj={name:d[0],country:d[1],continent:d[2],passion:d[6],Cur:d[7],Adv:d[8],Con:d[9],Int:d[10],Ref:d[11]};
     return {...obj, matchPct:scoreDestForUser(obj, raw)};
   });
   for (let i=scored.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[scored[i],scored[j]]=[scored[j],scored[i]];}
@@ -7816,54 +7818,50 @@ function _rptBuildDestinations(raw, arch) {
     if ((_cc[c]||0)<2){_cc[c]=(_cc[c]||0)+1;globalTop.push(d);}
   }
   const usTop=scored.filter(d=>d.country==='United States').slice(0,5);
-  function _dreamDNA(dest, country) {
-    sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest, country }));
-    showPage('dna');
+
+  // Fetch passion-dests for descriptions (shared cache with passion section)
+  if (!window._passionDestsCache) {
+    try { window._passionDestsCache = await fetch('/api/passion-dests').then(r => r.json()); } catch(e) { window._passionDestsCache = []; }
+  }
+  const passionRows = window._passionDestsCache || [];
+  function getDesc(destName) {
+    const match = passionRows.find(r => r.destination === destName);
+    return match ? (match.description || '') : '';
+  }
+
+  function buildDestCard(d, country) {
+    const card = document.createElement('div');
+    card.className = 'passion-dest-card';
+    card.style.marginBottom = '12px';
+    const nameEl = document.createElement('div');
+    nameEl.className = 'passion-dest-name';
+    nameEl.style.color = 'var(--teal)';
+    nameEl.textContent = d.name;
+    const sub = document.createElement('div');
+    sub.style.cssText = 'color:var(--muted);font-size:0.78rem;margin-bottom:4px;';
+    sub.textContent = country === 'United States' ? `${d.matchPct}% match` : `${country}, ${d.matchPct}% match`;
+    const desc = getDesc(d.name);
+    const descEl = document.createElement('div');
+    descEl.className = 'passion-dest-desc';
+    descEl.textContent = desc;
+    const btn = document.createElement('a');
+    btn.href = 'javascript:void(0)';
+    btn.style.cssText = 'display:inline-block;margin-top:8px;font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;';
+    btn.textContent = '✦ DNA Guide';
+    btn.onclick = () => { sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: d.name, country })); showPage('dna'); };
+    card.appendChild(nameEl); card.appendChild(sub);
+    if (desc) card.appendChild(descEl);
+    card.appendChild(btn);
+    return card;
   }
 
   const _globalEl = document.getElementById('dest-global');
   _globalEl.innerHTML = '';
-  globalTop.forEach(d => {
-    const row = document.createElement('div');
-    row.style.cssText = 'margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;';
-    const label = document.createElement('div');
-    const strong = document.createElement('strong');
-    strong.style.cssText = 'color:var(--teal);font-size:0.9rem;';
-    strong.textContent = d.name;
-    const sub = document.createElement('span');
-    sub.style.cssText = 'color:var(--muted);font-size:0.8rem;';
-    sub.textContent = ` (${d.country}, ${d.matchPct}% match)`;
-    label.appendChild(strong); label.appendChild(sub);
-    const btn = document.createElement('a');
-    btn.href = 'javascript:void(0)';
-    btn.style.cssText = 'font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;';
-    btn.textContent = '✦ DNA Guide';
-    btn.onclick = () => _dreamDNA(d.name, d.country);
-    row.appendChild(label); row.appendChild(btn);
-    _globalEl.appendChild(row);
-  });
+  globalTop.forEach(d => _globalEl.appendChild(buildDestCard(d, d.country)));
 
   const _usEl = document.getElementById('dest-us');
   _usEl.innerHTML = '';
-  usTop.forEach(d => {
-    const row = document.createElement('div');
-    row.style.cssText = 'margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;';
-    const label = document.createElement('div');
-    const strong = document.createElement('strong');
-    strong.style.cssText = 'color:var(--teal);font-size:0.9rem;';
-    strong.textContent = d.name;
-    const sub = document.createElement('span');
-    sub.style.cssText = 'color:var(--muted);font-size:0.8rem;';
-    sub.textContent = ` (${d.matchPct}% match)`;
-    label.appendChild(strong); label.appendChild(sub);
-    const btn = document.createElement('a');
-    btn.href = 'javascript:void(0)';
-    btn.style.cssText = 'font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;';
-    btn.textContent = '✦ DNA Guide';
-    btn.onclick = () => _dreamDNA(d.name, 'United States');
-    row.appendChild(label); row.appendChild(btn);
-    _usEl.appendChild(row);
-  });
+  usTop.forEach(d => _usEl.appendChild(buildDestCard(d, 'United States')));
 }
 
 let _reportPageLoaded = false;
@@ -8135,7 +8133,7 @@ async function loadDreamingPage() {
     }
     // ── End surprise pick ────────────────────────────────────────
 
-    _rptBuildDestinations(raw, arch);
+    _rptBuildDestinations(raw, arch).catch(() => {});
     _rptBuildPassionDests(addAnswers);
 
     document.getElementById('dreaming-loading').style.display  = 'none';
