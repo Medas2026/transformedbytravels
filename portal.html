@@ -1746,9 +1746,21 @@
           <!-- Surprise pick -->
           <div id="dreaming-surprise-section" style="display:none;margin-bottom:8px;">
             <div style="background:var(--s2);border:1px solid rgba(251,191,36,0.25);border-radius:12px;padding:18px 20px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
                 <span style="font-size:1.3rem;">🎲</span>
                 <span style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.88rem;color:#fbbf24;">One That Might Surprise You</span>
+                <select id="surprise-continent" onchange="_refreshSurprisePick()" style="margin-left:auto;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:4px 8px;font-size:0.8rem;font-family:'Montserrat',sans-serif;cursor:pointer;">
+                  <option value="">Any Continent</option>
+                  <option value="Africa">Africa</option>
+                  <option value="Asia">Asia</option>
+                  <option value="Caribbean">Caribbean</option>
+                  <option value="Central America">Central America</option>
+                  <option value="Europe">Europe</option>
+                  <option value="North America">North America</option>
+                  <option value="Oceania">Oceania</option>
+                  <option value="South America">South America</option>
+                </select>
+                <button onclick="_refreshSurprisePick()" style="background:none;border:1px solid rgba(251,191,36,0.35);border-radius:6px;padding:4px 10px;color:#fbbf24;font-family:'Montserrat',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;">↻ Pick Again</button>
               </div>
               <div id="dreaming-surprise-content" style="font-size:0.9rem;color:var(--soft);line-height:1.8;"></div>
             </div>
@@ -1773,7 +1785,7 @@
           </div>
           <div class="result-section" id="destinations-section">
             <div class="result-section-title">Trips You Will Love</div>
-            <p class="result-section-sub" id="trips-desc"></p>
+            <p id="trips-desc" style="font-size:0.9rem;color:var(--soft);line-height:1.75;margin-bottom:16px;"></p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px;" id="dest-grid">
               <div>
                 <div class="result-section-title" style="font-size:0.88rem;margin-bottom:10px;">🌍 Global Destinations</div>
@@ -7710,17 +7722,42 @@ async function _rptBuildPassionDests(addAnswers) {
   try {
     const resp = await fetch('/api/passion-dests');
     const rows = await resp.json();
-    container.innerHTML = passions.map(passion => {
+    container.innerHTML = '';
+    passions.forEach(passion => {
       const label = REPORT_PASSION_LABELS[passion];
       const dests = rows.filter(r => r.passion && r.passion.toLowerCase().trim()===passion.toLowerCase().trim());
-      if (!dests.length) return '';
-      return `<div class="passion-group">
-        <div class="passion-group-title">${REPORT_PASSION_ICONS[passion]||'✦'} ${label}</div>
-        <div class="passion-dest-grid">
-          ${dests.map(d=>`<div class="passion-dest-card"><div class="passion-dest-name" style="color:var(--teal);">${d.destination}</div><div class="passion-dest-desc">${d.description}</div></div>`).join('')}
-        </div>
-      </div>`;
-    }).join('');
+      if (!dests.length) return;
+      const group = document.createElement('div');
+      group.className = 'passion-group';
+      const title = document.createElement('div');
+      title.className = 'passion-group-title';
+      title.textContent = (REPORT_PASSION_ICONS[passion]||'✦') + ' ' + label;
+      const grid = document.createElement('div');
+      grid.className = 'passion-dest-grid';
+      dests.forEach(d => {
+        const card = document.createElement('div');
+        card.className = 'passion-dest-card';
+        const name = document.createElement('div');
+        name.className = 'passion-dest-name';
+        name.style.color = 'var(--teal)';
+        name.textContent = d.destination;
+        const desc = document.createElement('div');
+        desc.className = 'passion-dest-desc';
+        desc.textContent = d.description || '';
+        // DNA Guide button — look up country from DESTINATIONS array
+        const destMatch = typeof DESTINATIONS !== 'undefined' ? DESTINATIONS.find(x => x[0] === d.destination) : null;
+        const country = d.country || (destMatch ? destMatch[1] : '');
+        const dnaBtn = document.createElement('a');
+        dnaBtn.href = 'javascript:void(0)';
+        dnaBtn.style.cssText = 'display:inline-block;margin-top:8px;font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;';
+        dnaBtn.textContent = '✦ DNA Guide';
+        dnaBtn.onclick = () => { sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: d.destination, country })); showPage('dna'); };
+        card.appendChild(name); card.appendChild(desc); card.appendChild(dnaBtn);
+        grid.appendChild(card);
+      });
+      group.appendChild(title); group.appendChild(grid);
+      container.appendChild(group);
+    });
   } catch(e) {
     container.innerHTML = '<p style="color:var(--soft);">Could not load passion destinations.</p>';
   }
@@ -8066,20 +8103,35 @@ async function loadDreamingPage() {
         ['Cur','Adv','Con','Int','Ref'].forEach(k => { total += 1 - Math.abs(uNorm[k] - dest[k]) / 10; });
         return Math.round((total / 5) * 100);
       }
-      const surpriseScored = DESTINATIONS
-        .filter(d => d[1] !== 'United States')
-        .map(d => ({ name:d[0], country:d[1], pct:_surpriseScore({Cur:d[7],Adv:d[8],Con:d[9],Int:d[10],Ref:d[11]}, raw) }))
-        .sort((a,b) => b.pct - a.pct);
-      // Pick randomly from rank 6–15 (good fit, not the obvious top)
-      const pool = surpriseScored.slice(5, 15);
-      if (pool.length) {
-        const pick = pool[Math.floor(Math.random() * pool.length)];
-        window._dreamingSurprisePick = { dest: pick.name, country: pick.country };
-        document.getElementById('dreaming-surprise-content').innerHTML =
-          `<strong style="color:var(--teal);">${pick.name}</strong><span style="color:var(--muted);font-size:0.8rem;"> (${pick.country}, ${pick.pct}% match)</span>
-           &nbsp;<a href="javascript:void(0)" onclick="sessionStorage.setItem('dnaPreFill',JSON.stringify(window._dreamingSurprisePick));showPage('dna')" style="font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;">✦ DNA Guide</a>`;
+      window._surpriseRaw = raw;
+      window._surpriseScore = _surpriseScore;
+      window._refreshSurprisePick = function() {
+        const continent = (document.getElementById('surprise-continent') || {}).value || '';
+        const scored = DESTINATIONS
+          .filter(d => d[1] !== 'United States' && (!continent || d[2] === continent))
+          .map(d => ({ name:d[0], country:d[1], pct:_surpriseScore({Cur:d[7],Adv:d[8],Con:d[9],Int:d[10],Ref:d[11]}, window._surpriseRaw) }))
+          .sort((a,b) => b.pct - a.pct);
+        const pool = scored.slice(5, Math.min(15, scored.length));
+        const finalPool = pool.length ? pool : scored.slice(0, Math.min(5, scored.length));
+        if (!finalPool.length) return;
+        const pick = finalPool[Math.floor(Math.random() * finalPool.length)];
+        const el = document.getElementById('dreaming-surprise-content');
+        el.innerHTML = '';
+        const strong = document.createElement('strong');
+        strong.style.color = 'var(--teal)';
+        strong.textContent = pick.name;
+        const sub = document.createElement('span');
+        sub.style.cssText = 'color:var(--muted);font-size:0.8rem;';
+        sub.textContent = ` (${pick.country}, ${pick.pct}% match)  `;
+        const btn = document.createElement('a');
+        btn.href = 'javascript:void(0)';
+        btn.style.cssText = 'font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;';
+        btn.textContent = '✦ DNA Guide';
+        btn.onclick = () => { sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: pick.name, country: pick.country })); showPage('dna'); };
+        el.appendChild(strong); el.appendChild(sub); el.appendChild(btn);
         document.getElementById('dreaming-surprise-section').style.display = 'block';
-      }
+      };
+      window._refreshSurprisePick();
     }
     // ── End surprise pick ────────────────────────────────────────
 
