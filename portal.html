@@ -8085,7 +8085,10 @@ async function loadDreamingPage() {
     }
     // ── End partner compatibility ────────────────────────────────
 
-    const arch = _rptGetArchetype(raw);
+    // Use stored archetype from profile; fall back to score-derived
+    const _storedArch = (portalProfile && portalProfile['Archetype']) || '';
+    const _archByName = Object.values(REPORT_ARCHETYPES).find(a => a.name === _storedArch || a.name === 'The ' + _storedArch);
+    const arch = _archByName || _rptGetArchetype(raw);
 
     document.getElementById('dreaming-arch-banner-icon').src          = arch.iconImg || '';
     document.getElementById('dreaming-arch-banner-name').textContent  = arch.name || '';
