@@ -1785,7 +1785,7 @@
           </div>
           <div class="result-section" id="destinations-section">
             <div class="result-section-title">Trips You Will Love</div>
-            <div id="trips-desc" style="font-size:0.9rem;color:#e2e8f0;line-height:1.75;margin-bottom:16px;"></div>
+            <div id="trips-desc" style="font-size:0.9rem;color:#e2e8f0;line-height:1.75;margin-bottom:16px;padding:10px;background:rgba(45,212,191,0.08);border-radius:8px;"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px;" id="dest-grid">
               <div>
                 <div class="result-section-title" style="font-size:0.88rem;margin-bottom:10px;">🌍 Global Destinations</div>
@@ -8092,6 +8092,7 @@ async function loadDreamingPage() {
     // Populate trips summary paragraph directly (not inside async function)
     const _tripsDescEl = document.getElementById('trips-desc');
     if (_tripsDescEl && arch && arch.trips) _tripsDescEl.textContent = arch.trips;
+    console.log('[TD2] el:', !!_tripsDescEl, 'text:', _tripsDescEl && _tripsDescEl.textContent && _tripsDescEl.textContent.slice(0,40));
 
     document.getElementById('dreaming-arch-banner-icon').src          = arch.iconImg || '';
     document.getElementById('dreaming-arch-banner-name').textContent  = arch.name || '';
