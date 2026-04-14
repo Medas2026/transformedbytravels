@@ -7804,7 +7804,7 @@ async function _rptBuildDestinations(raw, arch) {
     return;
   }
   const scored = DESTINATIONS.map(d => {
-    const obj={name:d[0],country:d[1],continent:d[2],passion:d[6],Cur:d[7],Adv:d[8],Con:d[9],Int:d[10],Ref:d[11]};
+    const obj={name:d[0],country:d[1],continent:d[2],arch1:d[4],arch2:d[5],passion:d[6],Cur:d[7],Adv:d[8],Con:d[9],Int:d[10],Ref:d[11]};
     return {...obj, matchPct:scoreDestForUser(obj, raw)};
   });
   for (let i=scored.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[scored[i],scored[j]]=[scored[j],scored[i]];}
@@ -7823,9 +7823,29 @@ async function _rptBuildDestinations(raw, arch) {
     try { window._passionDestsCache = await fetch('/api/passion-dests').then(r => r.json()); } catch(e) { window._passionDestsCache = []; }
   }
   const passionRows = window._passionDestsCache || [];
-  function getDesc(destName) {
-    const match = passionRows.find(r => r.destination === destName);
-    return match ? (match.description || '') : '';
+  function getDesc(dest) {
+    const nm = dest.name;
+    const match = passionRows.find(r => r.destination === nm) ||
+                  passionRows.find(r => (r.destination||'').toLowerCase() === nm.toLowerCase());
+    if (match && match.description) return match.description;
+    // Auto-generate from destination data
+    const traits = [];
+    if (dest.Adv >= 9) traits.push('world-class adventure and outdoor challenge');
+    else if (dest.Adv >= 7) traits.push('active exploration and outdoor adventure');
+    if (dest.Cur >= 9) traits.push('exceptional cultural and natural discovery');
+    else if (dest.Cur >= 7) traits.push('rich curiosity and learning');
+    if (dest.Ref >= 9) traits.push('profound reflection and solitude');
+    else if (dest.Ref >= 7) traits.push('space for reflection');
+    if (dest.Con >= 9) traits.push('deep human connection');
+    else if (dest.Con >= 7) traits.push('meaningful encounters with locals');
+    if (dest.Int >= 9) traits.push('transformative, purposeful experiences');
+    else if (dest.Int >= 7) traits.push('intentional, purposeful travel');
+    const top = traits.slice(0, 3);
+    const traitStr = top.length >= 2
+      ? top.slice(0,-1).join(', ') + ' and ' + top[top.length-1]
+      : top[0] || 'a richly rewarding travel experience';
+    const passion = (dest.passion || '').toLowerCase();
+    return `${dest.name} in ${dest.country} is a standout destination${passion ? ' for ' + passion : ''}. It offers ${traitStr}, making it especially rewarding for the ${dest.arch1 || 'curious'} traveler.`;
   }
 
   function buildDestCard(d, country) {
@@ -7839,7 +7859,7 @@ async function _rptBuildDestinations(raw, arch) {
     const sub = document.createElement('div');
     sub.style.cssText = 'color:var(--muted);font-size:0.78rem;margin-bottom:4px;';
     sub.textContent = country === 'United States' ? `${d.matchPct}% match` : `${country}, ${d.matchPct}% match`;
-    const desc = getDesc(d.name);
+    const desc = getDesc(d);
     const descEl = document.createElement('div');
     descEl.className = 'passion-dest-desc';
     descEl.textContent = desc;
