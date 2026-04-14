@@ -50,26 +50,28 @@ function claudeGuide(prompt) {
   });
 }
 
+function truncate(val, max) { return (val || '').slice(0, max); }
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   try {
     const qs  = req.url.includes('?') ? req.url.slice(req.url.indexOf('?') + 1) : '';
     const p   = new URLSearchParams(qs);
-    const partnerName = p.get('partnerName') || '';
+    const partnerName = truncate(p.get('partnerName'), 100);
 
     // Partner mode — generate combined guide with Claude
     if (partnerName) {
-      const destination = p.get('destination') || '';
-      const country     = p.get('country')     || '';
-      const archetype   = p.get('archetype')   || '';
-      const passions    = (p.get('passions')   || '').replace(/\|/g, ', ');
-      const hopes       = (p.get('hopes')      || '').replace(/\|/g, ', ');
-      const lifeStage   = p.get('lifeStage')   || '';
-      const travelStyle = p.get('travelStyle') || '';
-      const travelerName = p.get('travelerName') || 'Traveler A';
+      const destination  = truncate(p.get('destination'), 100);
+      const country      = truncate(p.get('country'), 100);
+      const archetype    = truncate(p.get('archetype'), 100);
+      const passions     = truncate((p.get('passions')   || '').replace(/\|/g, ', '), 300);
+      const hopes        = truncate((p.get('hopes')      || '').replace(/\|/g, ', '), 300);
+      const lifeStage    = truncate(p.get('lifeStage'), 100);
+      const travelStyle  = truncate(p.get('travelStyle'), 100);
+      const travelerName = truncate(p.get('travelerName') || 'Traveler A', 100);
 
-      const pArchetype  = p.get('partnerArchetype') || '';
-      const pPassions   = (p.get('partnerPassions') || '').replace(/\|/g, ', ');
+      const pArchetype  = truncate(p.get('partnerArchetype'), 100);
+      const pPassions   = truncate((p.get('partnerPassions') || '').replace(/\|/g, ', '), 300);
 
       const dims = ['Curiosity','Adventure','Reflection','Connection','Intention'];
       const scoreA = dims.map(d => `${d}: ${p.get(d) || 0}/7`).join(', ');
@@ -77,7 +79,7 @@ module.exports = async function handler(req, res) {
 
       const prompt = `You are an expert travel writer and destination specialist. Create a rich, personalized Destination DNA Guide for ${destination}${country ? ', ' + country : ''} tailored to two travel partners traveling together.
 
-Traveler 1:
+${travelerName}:
 - Archetype: ${archetype}
 - Passions: ${passions || 'not specified'}
 - Hopes to experience: ${hopes || 'not specified'}
@@ -85,7 +87,7 @@ Traveler 1:
 - Travel style: ${travelStyle}
 - Dimension scores: ${scoreA}
 
-Traveler 2 (${partnerName}):
+${partnerName}:
 - Archetype: ${pArchetype}
 - Passions: ${pPassions || 'not specified'}
 - Dimension scores: ${scoreB}
@@ -96,7 +98,7 @@ Write a destination guide that speaks to BOTH travelers — finding the sweet sp
 
 ## Why This Destination Works For You Both
 ## Experiences That Speak to Both of You
-## For the ${archetype} (moments just for Traveler 1)
+## For the ${archetype} (moments just for ${travelerName})
 ## For the ${pArchetype} (moments just for ${partnerName})
 ## How to Structure Your Days Together
 ## Practical Tips
@@ -108,8 +110,14 @@ Use vivid, inspiring language. Be specific to this destination. 600-800 words.`;
     }
 
     // Standard solo guide — proxy to Google Apps Script
+    // Re-build query string with truncated inputs before forwarding
+    const safeP = new URLSearchParams();
+    for (const [k, v] of p.entries()) {
+      const limit = ['hopes','passions','partnerPassions'].includes(k) ? 300 : 100;
+      safeP.set(k, v.slice(0, limit));
+    }
     const base = 'https://script.google.com/macros/s/AKfycbxxqhkHPKSnj48H6tpFtWbbCsrs6zkNvrmSIcw3NGdWhSNBehqjAsqMUIIbTpAUShx6mA/exec';
-    const url  = base + '?' + qs;
+    const url  = base + '?' + safeP.toString();
     console.log('dest-guide fetching:', url.slice(0, 120));
 
     get(url, 10, (err, data) => {

@@ -1,5 +1,5 @@
 const https             = require('https');
-const sendTemplateEmail = require('./template-email');
+const { sendTemplateEmail } = require('./template-email');
 
 const BASE_ID      = 'appdlxcWb45dIqNK2';
 const TABLE_NAME   = 'Trips';
@@ -444,7 +444,8 @@ module.exports = function handler(req, res) {
 
 function buildFields(b) {
   const fields = {};
-  if (b.tripName    !== undefined) fields['Trip Name']    = b.tripName;
+  const autoName = b.tripName || (b.destination ? (b.destination + (b.country ? ', ' + b.country : '')) : '');
+  if (autoName) fields['Trip Name'] = autoName;
   if (b.destination !== undefined) fields['Destination']  = b.destination;
   if (b.country     !== undefined) fields['Country']      = b.country;
   if (b.startDate) fields['Start Date'] = b.startDate;

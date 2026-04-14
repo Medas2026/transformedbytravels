@@ -154,7 +154,12 @@ function fetchTemplate(code, callback) {
 
 function substitute(text, vars) {
   if (!text) return '';
-  return text.replace(/\{(\w+)\}/g, (_, key) => vars[key] !== undefined ? vars[key] : '{' + key + '}');
+  const lowerVars = {};
+  Object.keys(vars).forEach(k => { lowerVars[k.toLowerCase()] = vars[k]; });
+  return text.replace(/\{(\w+)\}/g, (_, key) => {
+    const val = vars[key] !== undefined ? vars[key] : lowerVars[key.toLowerCase()];
+    return val !== undefined ? val : '{' + key + '}';
+  });
 }
 
 function airtableRequest(method, table, path, body, callback) {
@@ -243,6 +248,26 @@ module.exports = function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   // GET ?action=reminders — daily cron: 3-day, 1-day, same-day activation nudges
+  // GET ?action=debug-reminders — returns what trips the cron would find, without sending emails
+  if (req.method === 'GET' && req.query.action === 'debug-reminders') {
+    const todayStr     = dateOffsetStr(0);
+    const tomorrowStr  = dateOffsetStr(1);
+    const threeDayStr  = dateOffsetStr(3);
+    const yesterdayStr = dateOffsetStr(-1);
+    const results = { dates: { today: todayStr, tomorrow: tomorrowStr, threeDays: threeDayStr, yesterday: yesterdayStr }, sameDay: [], oneDay: [], threeDay: [], postTrip: [] };
+    let pending = 4;
+    const finish = () => { if (--pending === 0) res.status(200).json(results); };
+    const f1 = encodeURIComponent(`AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),DATESTR({Start Date})="${todayStr}")`);
+    const f2 = encodeURIComponent(`AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),DATESTR({Start Date})="${tomorrowStr}")`);
+    const f3 = encodeURIComponent(`AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),DATESTR({Start Date})="${threeDayStr}")`);
+    const f4 = encodeURIComponent(`AND(OR({Status of Trip}="Active",{Status of Trip}="Completed"),DATESTR({End Date})="${yesterdayStr}")`);
+    airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${f1}`, null, (e, d) => { results.sameDay  = d || { error: e && e.message }; finish(); });
+    airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${f2}`, null, (e, d) => { results.oneDay   = d || { error: e && e.message }; finish(); });
+    airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${f3}`, null, (e, d) => { results.threeDay = d || { error: e && e.message }; finish(); });
+    airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${f4}`, null, (e, d) => { results.postTrip = d || { error: e && e.message }; finish(); });
+    return;
+  }
+
   if (req.method === 'GET' && req.query.action === 'reminders') {
     const todayStr      = dateOffsetStr(0);
     const tomorrowStr   = dateOffsetStr(1);
@@ -252,131 +277,138 @@ module.exports = function handler(req, res) {
     let completed = 0;
     const done = () => { if (++completed === 4) res.status(200).json({ success: true }); };
 
+    const apiKey  = process.env.AIRTABLE_API_KEY;
+    const headers = { 'Authorization': 'Bearer ' + apiKey };
+
+    async function fetchTravelerName(email) {
+      try {
+        const r = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TRAVEL_TABLE)}?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`, { headers });
+        const d = await r.json();
+        const rec = (d.records || [])[0];
+        return rec ? (rec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
+      } catch(e) { return 'Traveler'; }
+    }
+
+    function sendEmailAsync(to, name, subject, html) {
+      return new Promise(resolve => sendEmail(to, name, subject, html, resolve));
+    }
+
+    async function fetchTemplateAsync(code) {
+      try {
+        const r = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(EMAILS_TABLE)}?filterByFormula=${encodeURIComponent(`({Code}="${code}")`)}`, { headers });
+        const d = await r.json();
+        const rec = (d.records || [])[0];
+        if (!rec) return null;
+        const f = rec.fields;
+        return { subject: f['Subject'] || '', p1: f['Paragraph 1'] || '', p2: f['Paragraph 2'] || '', p3: f['Paragraph 3'] || '' };
+      } catch(e) { return null; }
+    }
+
     // ── 1. Same-day nudge: trip starts today, not yet activated ───────
-    const sameDayFormula = encodeURIComponent(
-      `AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),{Start Date}="${todayStr}")`
-    );
-    airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${sameDayFormula}`, null, (err, data) => {
-      if (!err) {
-        (data.records || []).forEach(r => {
-          const f     = r.fields;
+    (async () => {
+      try {
+        const formula = encodeURIComponent(`AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),DATESTR({Start Date})="${todayStr}")`);
+        const r = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TRIPS_TABLE)}?filterByFormula=${formula}`, { headers });
+        const data = await r.json();
+        for (const rec of (data.records || [])) {
+          const f = rec.fields;
           const email = f['Traveler Email'];
-          if (!email) return;
-          const tripName = f['Trip Name'] || f['Destination'] || 'your trip';
-          const activateUrl = `${PORTAL_URL}/portal.html?page=planning&tripId=${r.id}`;
-          const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
-          airtableRequest('GET', TRAVEL_TABLE, filter, null, (err2, travData) => {
-            const rec  = travData && travData.records && travData.records[0];
-            const name = rec ? (rec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
-            const subject = `Today is the day — activate your trip to ${tripName}!`;
-            const html = emailHTML(subject, `Your trip starts today, ${name}!`,
-              `<p>Your trip to <strong>${tripName}</strong> begins today. Don't forget to activate it in your portal so your daily journal reminders and trip support can begin.</p>`,
-              'Activate My Trip →', activateUrl);
-            sendEmail(email, name, subject, html, () => {});
-            if ((f['Co-Traveler Email'] || '').trim()) {
-              sendEmail(f['Co-Traveler Email'].trim(), name, subject, html, () => {});
-            }
-          });
-        });
-      }
+          if (!email) continue;
+          const tripName    = f['Trip Name'] || f['Destination'] || 'your trip';
+          const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
+          const name        = await fetchTravelerName(email);
+          const subject     = `Today is the day — activate your trip to ${tripName}!`;
+          const html        = emailHTML(subject, `Your trip starts today, ${name}!`,
+            `<p>Your trip to <strong>${tripName}</strong> begins today. Don't forget to activate it in your portal so your daily journal reminders and trip support can begin.</p>`,
+            'Activate My Trip →', activateUrl);
+          await sendEmailAsync(email, name, subject, html);
+          const coEmail = (f['Co-Traveler Email'] || '').trim();
+          if (coEmail) await sendEmailAsync(coEmail, name, subject, html);
+          console.log('[same-day] sent to', email, tripName);
+        }
+      } catch(e) { console.error('[same-day]', e.message); }
       done();
-    });
+    })();
 
     // ── 2. One-day reminder: starts tomorrow ──────────────────────────
-    const oneDayFormula = encodeURIComponent(
-      `AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),{Start Date}="${tomorrowStr}")`
-    );
-    fetchTemplate('TRIP_REMINDER_1DAY', (tmplErr, tmpl) => {
-      airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${oneDayFormula}`, null, (err, data) => {
-        if (!err) {
-          (data.records || []).forEach(r => {
-            const f           = r.fields;
-            const email       = f['Traveler Email'];
-            const coEmail     = (f['Co-Traveler Email'] || '').trim();
-            const destination = f['Destination'] || '';
-            const country     = f['Country']     || '';
-            const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
-            const startDate   = f['Start Date']  || tomorrowStr;
-            const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
-            if (!email) return;
-            const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
-            airtableRequest('GET', TRAVEL_TABLE, filter, null, (err2, travData) => {
-              const rec  = travData && travData.records && travData.records[0];
-              const name = rec ? (rec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
-              const vars = { name, tripName, destination, country, startDate };
-              let subject, html;
-              if (tmpl) {
-                subject = substitute(tmpl.subject, vars) || `Your trip to ${tripName} starts tomorrow!`;
-                const para = text => text
-                  ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${substitute(text, vars).replace(/\n/g, '<br>')}</p>`
-                  : '';
-                html = emailHTML(subject, subject,
-                  para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3),
-                  'Start My Trip →', activateUrl);
-              } else {
-                subject = `Your trip to ${tripName} starts tomorrow!`;
-                html = emailHTML(subject, subject,
-                  `<p>Just a reminder — your trip to <strong>${tripName}</strong> begins tomorrow. Activate it in your portal to start your daily journal reminders.</p>`,
-                  'Start My Trip →', activateUrl);
-              }
-              sendEmail(email, name, subject, html, () => {});
-              if (coEmail) sendEmail(coEmail, name, subject, html, () => {});
-            });
-          });
+    (async () => {
+      try {
+        const formula = encodeURIComponent(`AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),DATESTR({Start Date})="${tomorrowStr}")`);
+        const [tripsResp, tmpl] = await Promise.all([
+          fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TRIPS_TABLE)}?filterByFormula=${formula}`, { headers }),
+          fetchTemplateAsync('TRIP_REMINDER_1DAY')
+        ]);
+        const data = await tripsResp.json();
+        for (const rec of (data.records || [])) {
+          const f           = rec.fields;
+          const email       = f['Traveler Email'];
+          if (!email) continue;
+          const destination = f['Destination'] || '';
+          const country     = f['Country']     || '';
+          const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
+          const startDate   = f['Start Date']  || tomorrowStr;
+          const coEmail     = (f['Co-Traveler Email'] || '').trim();
+          const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
+          const name        = await fetchTravelerName(email);
+          const vars        = { name, tripName, destination, country, startDate };
+          const para        = text => text ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${substitute(text, vars).replace(/\n/g, '<br>')}</p>` : '';
+          let subject, html;
+          if (tmpl) {
+            subject = substitute(tmpl.subject, vars) || `Your trip to ${tripName} starts tomorrow!`;
+            html    = emailHTML(subject, subject, para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3), 'Start My Trip →', activateUrl);
+          } else {
+            subject = `Your trip to ${tripName} starts tomorrow!`;
+            html    = emailHTML(subject, subject, `<p>Just a reminder — your trip to <strong>${tripName}</strong> begins tomorrow. Activate it in your portal to start your daily journal reminders.</p>`, 'Start My Trip →', activateUrl);
+          }
+          await sendEmailAsync(email, name, subject, html);
+          if (coEmail) await sendEmailAsync(coEmail, name, subject, html);
+          console.log('[1-day] sent to', email, tripName);
         }
-        done();
-      });
-    });
+      } catch(e) { console.error('[1-day]', e.message); }
+      done();
+    })();
 
     // ── 3. Three-day notice ───────────────────────────────────────────
-    const threeDayFormula = encodeURIComponent(
-      `AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),{Start Date}="${threeDayStr}")`
-    );
-    fetchTemplate('TRIP_REMINDER_3DAY', (tmplErr, tmpl) => {
-      airtableRequest('GET', TRIPS_TABLE, `?filterByFormula=${threeDayFormula}`, null, (err, data) => {
-        if (!err) {
-          (data.records || []).forEach(r => {
-            const f           = r.fields;
-            const email       = f['Traveler Email'];
-            const coEmail     = (f['Co-Traveler Email'] || '').trim();
-            const destination = f['Destination'] || '';
-            const country     = f['Country']     || '';
-            const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
-            const startDate   = f['Start Date']  || threeDayStr;
-            const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
-            if (!email) return;
-            const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
-            airtableRequest('GET', TRAVEL_TABLE, filter, null, (err2, travData) => {
-              const rec  = travData && travData.records && travData.records[0];
-              const name = rec ? (rec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
-              const vars = { name, tripName, destination, country, startDate };
-              let subject, html;
-              if (tmpl) {
-                subject = substitute(tmpl.subject, vars) || `Your trip to ${tripName} is in 3 days!`;
-                const para = text => text
-                  ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${substitute(text, vars).replace(/\n/g, '<br>')}</p>`
-                  : '';
-                html = emailHTML(subject, subject,
-                  para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3),
-                  'Start My Trip →', activateUrl);
-              } else {
-                subject = `Your trip to ${tripName} is in 3 days!`;
-                html = emailHTML(subject, subject,
-                  `<p>Your trip to <strong>${tripName}</strong> starts on <strong>${startDate}</strong> — just 3 days away! Head to your portal to activate it.</p>`,
-                  'Start My Trip →', activateUrl);
-              }
-              sendEmail(email, name, subject, html, () => {});
-              if (coEmail) sendEmail(coEmail, name, subject, html, () => {});
-            });
-          });
+    (async () => {
+      try {
+        const formula = encodeURIComponent(`AND(OR({Status of Trip}="Committed",{Status of Trip}="Planned",{Status of Trip}="Research"),DATESTR({Start Date})="${threeDayStr}")`);
+        const [tripsResp, tmpl] = await Promise.all([
+          fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TRIPS_TABLE)}?filterByFormula=${formula}`, { headers }),
+          fetchTemplateAsync('TRIP_REMINDER_3DAY')
+        ]);
+        const data = await tripsResp.json();
+        for (const rec of (data.records || [])) {
+          const f           = rec.fields;
+          const email       = f['Traveler Email'];
+          if (!email) continue;
+          const destination = f['Destination'] || '';
+          const country     = f['Country']     || '';
+          const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
+          const startDate   = f['Start Date']  || threeDayStr;
+          const coEmail     = (f['Co-Traveler Email'] || '').trim();
+          const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
+          const name        = await fetchTravelerName(email);
+          const vars        = { name, tripName, destination, country, startDate };
+          const para        = text => text ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${substitute(text, vars).replace(/\n/g, '<br>')}</p>` : '';
+          let subject, html;
+          if (tmpl) {
+            subject = substitute(tmpl.subject, vars) || `Your trip to ${tripName} is in 3 days!`;
+            html    = emailHTML(subject, subject, para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3), 'Start My Trip →', activateUrl);
+          } else {
+            subject = `Your trip to ${tripName} is in 3 days!`;
+            html    = emailHTML(subject, subject, `<p>Your trip to <strong>${tripName}</strong> starts on <strong>${startDate}</strong> — just 3 days away! Head to your portal to activate it.</p>`, 'Start My Trip →', activateUrl);
+          }
+          await sendEmailAsync(email, name, subject, html);
+          if (coEmail) await sendEmailAsync(coEmail, name, subject, html);
+          console.log('[3-day] sent to', email, tripName);
         }
-        done();
-      });
-    });
+      } catch(e) { console.error('[3-day]', e.message); }
+      done();
+    })();
 
     // ── 4. Post-trip summary: trip ended yesterday ────────────────────
     const postTripFormula = encodeURIComponent(
-      `AND(OR({Status of Trip}="Active",{Status of Trip}="Completed"),{End Date}="${yesterdayStr}")`
+      `AND(OR({Status of Trip}="Active",{Status of Trip}="Completed"),DATESTR({End Date})="${yesterdayStr}")`
     );
     (async () => {
       try {
@@ -457,9 +489,9 @@ module.exports = function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const b      = req.body || {};
-  const action = b.action;
-  const tripId = b.tripId;
-  const email  = (b.email || '').toLowerCase().trim();
+  const action = (b.action || '').slice(0, 50);
+  const tripId = (b.tripId || '').slice(0, 100);
+  const email  = (b.email  || '').toLowerCase().trim().slice(0, 200);
 
   if (!action || !tripId || !email) return res.status(400).json({ error: 'action, tripId, email required' });
 
@@ -476,7 +508,10 @@ module.exports = function handler(req, res) {
       if (b.timezone)    fields['Time Zone']    = b.timezone;
     }
   }
-  if (action === 'end') fields['End Date'] = today;
+  if (action === 'end') {
+    fields['End Date'] = today;
+    if (b.tripRating) fields['Trip Rating'] = b.tripRating;
+  }
 
   console.log('[trip-action start] fields being patched:', JSON.stringify(fields));
   airtableRequest('PATCH', TRIPS_TABLE, `/${tripId}`, { fields }, (err, tripData) => {

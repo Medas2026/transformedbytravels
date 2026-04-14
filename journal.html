@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
+  <link rel="apple-touch-icon" href="/images/app-icon.png">
   <title>Travel Journal · Transformed by Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Georgia&display=swap" rel="stylesheet" />
   <style>
@@ -183,6 +187,14 @@
       line-height: 1.6;
     }
   </style>
+  <!-- Privacy-friendly analytics by Plausible -->
+  <script async src="https://plausible.io/js/pa-_E9cFdzUFrWlkW9MIz16L.js"></script>
+  <script>
+    window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+    plausible.init()
+  </script>
+  <!-- DOMPurify: sanitize AI-generated HTML before rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 </head>
 <body>
 
@@ -192,6 +204,10 @@
   <a href="/portal.html" style="display:inline-block;margin-bottom:20px;padding:8px 20px;background:none;border:1.5px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-size:0.8rem;font-weight:600;text-decoration:none;">← Return to Portal</a>
 
   <div class="card" id="journal-card">
+
+    <div id="journal-lead-in" style="margin-bottom:22px;padding:16px 20px;background:rgba(45,212,191,0.07);border-left:3px solid #2dd4bf;border-radius:0 10px 10px 0;display:none;">
+      <p id="journal-lead-in-text" style="margin:0;font-size:0.95rem;color:#e2e8f0;line-height:1.75;"></p>
+    </div>
 
     <div class="prompt-block">
       <div class="prompt-label"><span>1.</span> Any reflections on your goals from today's activities?</div>
@@ -248,11 +264,24 @@
 <script>
   // — Parse URL params
   const params     = new URLSearchParams(location.search);
-  const email      = params.get('email') || '';
-  const tripId     = params.get('trip')  || '';
-  const dateStr    = params.get('date')  || new Date().toISOString().split('T')[0];
-  const startDate  = params.get('start') || '';
-  const tripName   = params.get('dest')  || '';
+  const email      = params.get('email')   || '';
+  const tripId     = params.get('trip')    || '';
+  const dateStr    = params.get('date')    || new Date().toISOString().split('T')[0];
+  const startDate  = params.get('start')   || '';
+  const tripName   = params.get('dest')    || '';
+  const dayType    = (params.get('daytype') || 'MIDDLE').toUpperCase();
+
+  // — Fetch and display lead-in prompt
+  fetch('/api/journal-prompts')
+    .then(r => r.json())
+    .then(prompts => {
+      const text = prompts[dayType] || '';
+      if (text) {
+        document.getElementById('journal-lead-in-text').textContent = text;
+        document.getElementById('journal-lead-in').style.display = 'block';
+      }
+    })
+    .catch(() => {});
 
   // — Fetch traveler profile for archetype + hopes
   let travelerArchetype = '';
@@ -411,12 +440,14 @@
       const data = await resp.json();
 
       if (data.success) {
-        const claudeBlock = data.claudeReflection
+        try { plausible('Journal Entry Saved'); } catch(e) {}
+        const _reflectionRaw = data.claudeReflection
           ? `<div style="margin-top:20px;padding:16px;background:#0f172a;border-radius:10px;border-left:3px solid #2dd4bf;text-align:left;">
                <div style="font-size:0.75rem;color:#2dd4bf;font-weight:700;margin-bottom:8px;letter-spacing:0.05em;">YOUR COACH REFLECTS</div>
                ${data.claudeReflection.match(/[^.!?]+[.!?]+/g)?.map(s => `<p style="color:#e2e8f0;font-size:0.9rem;line-height:1.7;margin-bottom:10px;">${s.trim()}</p>`).join('') || `<p style="color:#e2e8f0;font-size:0.9rem;line-height:1.7;">${data.claudeReflection}</p>`}
              </div>`
           : '';
+        const claudeBlock = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(_reflectionRaw) : _reflectionRaw;
         document.getElementById('journal-card').innerHTML = `
           <div class="success-msg">
             <div class="icon">🌟</div>

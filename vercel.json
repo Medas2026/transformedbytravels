@@ -1,8 +1,36 @@
 {
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.auth0.com https://cdn.jsdelivr.net https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.airtable.com https://api.anthropic.com https://api.mapbox.com https://events.mapbox.com https://plausible.io https://*.auth0.com https://acuityscheduling.com; frame-src https://acuityscheduling.com https://*.auth0.com; object-src 'none';"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "api/journal.js":    { "maxDuration": 45 },
+    "api/dest-guide.js": { "maxDuration": 45 },
+    "api/dna-queries.js":{ "maxDuration": 45 }
+  },
   "crons": [
     {
       "path": "/api/trip-action?action=reminders",
-      "schedule": "0 9 * * *"
+      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/journal?action=send-daily",

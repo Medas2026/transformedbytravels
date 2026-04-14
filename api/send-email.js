@@ -61,6 +61,17 @@ function buildEmailHTML(name, archetype, archetypePassions, archetypeTag, archet
     (introParagraphs || []).filter(p => p).map(p =>
       '<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 16px;">' + p.replace(/\n/g, '<br>') + '</p>'
     ).join('') +
+    // Promo offer block
+    '<tr><td style="padding:0 40px 28px;">' +
+    '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf9;border:2px solid #2dd4bf;border-radius:12px;">' +
+    '<tr><td style="padding:24px 28px;">' +
+    '<p style="font-family:Arial,sans-serif;font-size:13px;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase;color:#0d9488;margin:0 0 10px;">Limited-Time Offer</p>' +
+    '<p style="font-family:Arial,sans-serif;font-size:15px;color:#0f172a;line-height:1.7;margin:0 0 12px;">As part of our product introduction, we\'re offering a <strong>free subscription through the end of August 2026</strong> — no commitment after that. You\'ll get access to our online TFG Workshops and learn how to get the most out of your assessment.</p>' +
+    '<p style="font-family:Arial,sans-serif;font-size:15px;color:#0f172a;line-height:1.7;margin:0 0 18px;">Click the button below and enter promo code <strong style="color:#0d9488;">FREE_SUMMER</strong> to claim your free access.</p>' +
+    '<a href="https://app.transformedbytravels.com/portal.html?page=upsell" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;text-decoration:none;padding:12px 28px;border-radius:8px;">Claim Free Access</a>' +
+    '</td></tr></table></td></tr>' +
+    '<tr><td style="padding:16px 40px 8px;">' +
+    '<p style="font-family:Arial,sans-serif;font-size:13px;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;margin:0;">Your Assessment Summary</p>' +
     '</td></tr>' +
     '<tr><td style="padding:0 40px 32px;">' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:12px;">' +
@@ -74,7 +85,7 @@ function buildEmailHTML(name, archetype, archetypePassions, archetypeTag, archet
     '<h3 style="font-family:Georgia,serif;font-size:17px;color:#0f172a;margin:0 0 18px;">Your Dimension Scores</h3>' +
     '<table width="100%" cellpadding="0" cellspacing="0">' + dimRows + '</table></td></tr>' +
     '<tr><td style="padding:0 40px 48px;text-align:center;">' +
-    '<a href="https://transformedbytravels.vercel.app/trip-planner.html" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Explore Your Destinations</a>' +
+    '<a href="https://app.transformedbytravels.com/portal.html?page=upsell" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Claim Your Free Access →</a>' +
     '</td></tr>' +
     '<tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">' +
     '<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>' +
@@ -263,7 +274,7 @@ module.exports = async function handler(req, res) {
       from: 'TravelForGrowth@transformedbytravels.com',
       to: email,
       subject,
-      html: html.replace('trip-planner.html', 'trip-planner.html?email=' + encodeURIComponent(email))
+      html
     }, apiKey, res);
 
   } catch(err) {

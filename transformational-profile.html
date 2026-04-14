@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
+  <link rel="apple-touch-icon" href="/images/app-icon.png">
   <title>Travel for Growth Assessment | Transformed by Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
@@ -112,7 +116,7 @@
     /* ARCHETYPE CARD */
     .archetype-card { background: linear-gradient(135deg, var(--s1) 0%, var(--s2) 100%); border: 1px solid rgba(45,212,191,0.35); border-radius: 16px; padding: 36px 32px; margin-bottom: 40px; text-align: center; }
     .archetype-icon { font-size: 3.5rem; margin-bottom: 12px; }
-    .archetype-icon-img { width: 200px; height: 200px; object-fit: contain; margin: 0 auto 16px; display: block; }
+    .archetype-icon-img { width: 220px; height: 220px; object-fit: contain; margin: 0 auto 16px; display: block; }
     .archetype-tag { display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); background: var(--tdim); border: 1px solid rgba(45,212,191,0.3); border-radius: 20px; padding: 4px 14px; margin-bottom: 14px; }
     .archetype-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.85rem; color: #fff; margin-bottom: 14px; }
     .archetype-desc { color: var(--soft); font-size: 0.97rem; line-height: 1.75; margin-bottom: 22px; max-width: 520px; margin-left: auto; margin-right: auto; }
@@ -246,6 +250,14 @@
     button { display: none !important; }
   }
   </style>
+  <!-- Privacy-friendly analytics by Plausible -->
+  <script async src="https://plausible.io/js/pa-_E9cFdzUFrWlkW9MIz16L.js"></script>
+  <script>
+    window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+    plausible.init()
+  </script>
+  <!-- DOMPurify: sanitize AI-generated HTML before rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 </head>
 <body>
 
@@ -471,30 +483,6 @@
         <p id="travel-style-desc" style="color:var(--soft);font-size:0.95rem;line-height:1.75;"></p>
       </div>
 
-      <!-- HEADER 2 -->
-      <hr class="section-divider">
-      <div class="section-header">
-        <h2>Here is What You Would Enjoy Doing on <span>Your Next Vacation</span></h2>
-      </div>
-
-      <!-- Top Activities -->
-      <div class="result-section">
-        <div class="result-section-title">Your Top Travel Activities</div>
-        <p class="result-section-sub">Activities most aligned with your full dimension profile, with your passions featured first.</p>
-        <div class="activities-grid" id="matrix-activities-list"></div>
-
-        <!-- Find Experiences Panel -->
-        <div style="margin-top:24px;padding:20px;background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%);border:1px solid rgba(45,212,191,0.25);border-radius:12px;">
-          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Find Experiences for a Destination</div>
-          <p style="font-size:0.85rem;color:var(--soft);margin-bottom:14px;line-height:1.6;">Enter a destination and we'll suggest specific operators and experiences tailored to your activity profile.</p>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <input id="exp-destination-input" type="text" placeholder="e.g. Kyoto, Japan" style="flex:1;min-width:180px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#fff;font-family:'Open Sans',sans-serif;font-size:0.9rem;padding:10px 14px;outline:none;" />
-            <button onclick="findExperiences()" id="exp-btn" style="padding:10px 20px;background:var(--teal);border:none;border-radius:8px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.85rem;cursor:pointer;white-space:nowrap;">Find Experiences →</button>
-          </div>
-          <div id="exp-results" style="display:none;margin-top:20px;"></div>
-        </div>
-      </div>
-
       <!-- HEADER 3 -->
       <hr class="section-divider">
       <div class="section-header">
@@ -519,6 +507,7 @@
       </div>
 
       <!-- HEADER 4 -->
+      <div id="destinations-block" style="display:none;">
       <hr class="section-divider">
       <div class="section-header">
         <h2>Here are Trips That You Might Find <span>Fabulous</span></h2>
@@ -540,6 +529,7 @@
           </div>
         </div>
       </div>
+      </div><!-- end destinations-block -->
 
 
       <!-- Feedback -->
@@ -560,7 +550,6 @@
         <div class="cta-btns">
           <button class="btn btn-outline btn-lg" onclick="downloadPDF()">⬇ Download PDF</button>
           <button class="btn btn-primary btn-lg" id="create-account-btn" onclick="showCreateAccount()">Sign Up for Subscription</button>
-          <a href="/portal.html" class="btn btn-outline btn-lg">← Back to Profile</a>
         </div>
 
         <!-- Create Account Modal -->
@@ -927,8 +916,8 @@ function getArchetype(raw) {
   // 2. Purpose-Driven Traveler: Growth Signal >= 5 AND Adventure < 6
   if (GS >= 5 && Adv < 6) return ARCHETYPES.PDT;
 
-  // 3. Adventure-Oriented Traveler: Adventure >= 6 AND Growth Signal <= 6
-  if (Adv >= 6 && GS <= 6) return ARCHETYPES.AOT;
+  // 3. Adventure-Oriented Traveler: Adventure >= 6
+  if (Adv >= 6) return ARCHETYPES.AOT;
 
   // 4. Cultural Explorer: Curiosity >= 6 AND (Connection >= 4 OR Travel Purpose >= 4) AND Adventure < 6 AND GS < 6
   if (C >= 6 && (Con >= 4 || TP >= 4) && Adv < 6 && GS < 6) return ARCHETYPES.CE;
@@ -1201,6 +1190,7 @@ function nextAdditional() {
       if (_tgiMin < 3) tgi = Math.min(tgi, 60);
       else if (_tgiMin < 4) tgi = Math.min(tgi, 70);
 
+      console.log('[assessment save] email:', userEmail, 'name:', userName, 'archetype:', arch.name);
       fetch('/api/airtable-traveler', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1221,11 +1211,15 @@ function nextAdditional() {
       })
       .then(r => r.json())
       .then(data => {
+        console.log('[assessment save] response:', JSON.stringify(data).slice(0, 300));
         if (data.record || data.success) {
+          try { plausible('Assessment Completed', { props: { archetype: arch.name } }); } catch(e) {}
           document.getElementById('create-account-btn').textContent = 'Go to My Portal';
           document.getElementById('create-account-btn').onclick = function() { window.location.href = '/portal.html'; };
+        } else if (data.error) {
+          console.error('[assessment save] Airtable error:', data.error, data.detail || '');
         }
-      }).catch(() => {});
+      }).catch(e => console.error('[assessment save] fetch error:', e));
     }
   }
 }
@@ -1357,9 +1351,6 @@ function buildResults() {
 
   // Activities (returns list for saving)
   const topActivities = buildActivities(raw);
-
-  // Top activities from matrix
-  buildMatrixActivities(raw);
 
   // Preferences
   buildPrefs();
@@ -1646,7 +1637,10 @@ const HOPED_FOR_CHANGE_TEXT = {
 async function buildPrefs() {
   const container = document.getElementById('a4-section');
   const selected = Array.isArray(addAnswers['A5']) ? addAnswers['A5'] : (addAnswers['A5'] ? [addAnswers['A5']] : []);
-  if (!selected.length) return;
+  if (!selected.length) {
+    container.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:8px 0;">Complete the assessment to see your personalized travel goals here.</p>';
+    return;
+  }
 
   container.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">Loading your results...</p>';
 
@@ -2159,8 +2153,12 @@ async function initAssessmentMode() {
     userName = user.given_name || 'Traveler';
   }
 
-  // Skip welcome form and go straight to questions
-  await proceedToAssessment();
+  // Always show welcome form — pre-fill from Auth0 so user can confirm before starting
+  const parts = (user.name || '').split(' ');
+  document.getElementById('inp-email').value = userEmail;
+  if (parts[0]) document.getElementById('inp-first').value = parts[0];
+  if (parts[1]) document.getElementById('inp-last').value  = parts.slice(1).join(' ');
+  document.getElementById('screen-welcome').classList.add('active');
 }
 
 function downloadPDF() {

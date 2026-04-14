@@ -37,11 +37,15 @@ module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // GET — fetch places for a trip, sorted by Day
+  // GET — fetch places for a trip or DNA guide, sorted by Day
   if (req.method === 'GET') {
-    const tripId = (req.query && req.query.tripId) || '';
-    if (!tripId) return res.status(400).json({ error: 'tripId required' });
-    const filter = '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`);
+    const tripId     = (req.query && req.query.tripId)     || '';
+    const dnaGuideId = (req.query && req.query.dnaGuideId) || '';
+    if (!tripId && !dnaGuideId) return res.status(400).json({ error: 'tripId or dnaGuideId required' });
+    const formula = tripId
+      ? `({Trip ID}="${tripId}")`
+      : `({DNA Guide ID}="${dnaGuideId}")`;
+    const filter = '?filterByFormula=' + encodeURIComponent(formula);
     const sort   = '&sort[0][field]=Day&sort[0][direction]=asc';
     airtableRequest('GET', filter + sort, null, (err, data) => {
       if (err) return res.status(500).json({ error: err.message });
