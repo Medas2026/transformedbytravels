@@ -7779,18 +7779,54 @@ function _rptBuildDestinations(raw, arch) {
     if ((_cc[c]||0)<2){_cc[c]=(_cc[c]||0)+1;globalTop.push(d);}
   }
   const usTop=scored.filter(d=>d.country==='United States').slice(0,5);
-  document.getElementById('dest-global').innerHTML = globalTop.map(d=>
-    `<div style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <div><strong style="color:var(--teal);font-size:0.9rem;">${d.name}</strong><span style="color:var(--muted);font-size:0.8rem;"> (${d.country}, ${d.matchPct}% match)</span></div>
-      <a href="javascript:void(0)" onclick="sessionStorage.setItem('dnaPreFill',JSON.stringify({dest:${JSON.stringify(d.name)},country:${JSON.stringify(d.country)}}));showPage('dna')" style="font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;">✦ DNA Guide</a>
-    </div>`
-  ).join('');
-  document.getElementById('dest-us').innerHTML = usTop.map(d=>
-    `<div style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <div><strong style="color:var(--teal);font-size:0.9rem;">${d.name}</strong><span style="color:var(--muted);font-size:0.8rem;"> (${d.matchPct}% match)</span></div>
-      <a href="javascript:void(0)" onclick="sessionStorage.setItem('dnaPreFill',JSON.stringify({dest:${JSON.stringify(d.name)},country:'United States'}));showPage('dna')" style="font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;">✦ DNA Guide</a>
-    </div>`
-  ).join('');
+  function _dreamDNA(dest, country) {
+    sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest, country }));
+    showPage('dna');
+  }
+
+  const _globalEl = document.getElementById('dest-global');
+  _globalEl.innerHTML = '';
+  globalTop.forEach(d => {
+    const row = document.createElement('div');
+    row.style.cssText = 'margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;';
+    const label = document.createElement('div');
+    const strong = document.createElement('strong');
+    strong.style.cssText = 'color:var(--teal);font-size:0.9rem;';
+    strong.textContent = d.name;
+    const sub = document.createElement('span');
+    sub.style.cssText = 'color:var(--muted);font-size:0.8rem;';
+    sub.textContent = ` (${d.country}, ${d.matchPct}% match)`;
+    label.appendChild(strong); label.appendChild(sub);
+    const btn = document.createElement('a');
+    btn.href = 'javascript:void(0)';
+    btn.style.cssText = 'font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;';
+    btn.textContent = '✦ DNA Guide';
+    btn.onclick = () => _dreamDNA(d.name, d.country);
+    row.appendChild(label); row.appendChild(btn);
+    _globalEl.appendChild(row);
+  });
+
+  const _usEl = document.getElementById('dest-us');
+  _usEl.innerHTML = '';
+  usTop.forEach(d => {
+    const row = document.createElement('div');
+    row.style.cssText = 'margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;';
+    const label = document.createElement('div');
+    const strong = document.createElement('strong');
+    strong.style.cssText = 'color:var(--teal);font-size:0.9rem;';
+    strong.textContent = d.name;
+    const sub = document.createElement('span');
+    sub.style.cssText = 'color:var(--muted);font-size:0.8rem;';
+    sub.textContent = ` (${d.matchPct}% match)`;
+    label.appendChild(strong); label.appendChild(sub);
+    const btn = document.createElement('a');
+    btn.href = 'javascript:void(0)';
+    btn.style.cssText = 'font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;';
+    btn.textContent = '✦ DNA Guide';
+    btn.onclick = () => _dreamDNA(d.name, 'United States');
+    row.appendChild(label); row.appendChild(btn);
+    _usEl.appendChild(row);
+  });
 }
 
 let _reportPageLoaded = false;
