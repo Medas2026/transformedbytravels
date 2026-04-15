@@ -553,6 +553,142 @@ ${tomorrowBlockHtml}
     return;
   }
 
+  // GET ?action=preview-email&email=X — send a test journal reminder email immediately (bypasses hour check)
+  if (req.method === 'GET' && _action === 'preview-email') {
+    const previewEmail = ((req.query && req.query.email) || _qp.get('email') || '').toLowerCase().trim();
+    if (!previewEmail) return res.status(400).json({ error: 'email required' });
+    (async () => {
+      try {
+        const airtableGetP = (table, filter) => new Promise((resolve, reject) =>
+          airtableGet(table, filter, (err, data) => err ? reject(err) : resolve(data))
+        );
+        const tripsData = await airtableGetP(TRIPS_TABLE, '?filterByFormula=' + encodeURIComponent(`AND({Status of Trip}="Active",{Traveler Email}="${previewEmail}")`));
+        const tripRec = (tripsData.records || [])[0];
+        if (!tripRec) return res.status(404).json({ error: 'No active trip found for ' + previewEmail });
+
+        const f             = tripRec.fields;
+        const tripId        = tripRec.id;
+        const destination   = f['Destination'] || '';
+        const country       = f['Country'] || '';
+        const tripName      = f['Trip Name'] || destination || 'your trip';
+        const tripPhotoUrl  = f['Trip Photo URL'] || '';
+        const activationDate = f['Activation Date'] || f['Start Date'] || '';
+        const endDate       = f['End Date'] || '';
+        const now           = new Date();
+        const tz            = f['Time Zone'] || 'UTC';
+        const localDate     = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(now);
+
+        const travData = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${previewEmail}")`));
+        const travRec  = (travData.records || [])[0];
+        const name     = travRec ? (travRec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
+
+        let dayNum = null;
+        if (activationDate) {
+          const diff = Math.round((new Date(localDate) - new Date(activationDate)) / 86400000);
+          dayNum = diff >= 0 ? diff + 1 : 1;
+        }
+        if (!dayNum) dayNum = 1;
+
+        const places = [1,2,3,4,5,6,7].map(n => ({
+          name: f['Place ' + n] || '', day: Number(f['Day ' + n]) || 0
+        })).filter(p => p.name && p.day);
+
+        let currentPlace = destination || tripName;
+        if (dayNum && places.length) {
+          const current = places.slice().sort((a, b) => a.day - b.day).filter(p => p.day <= dayNum).pop();
+          if (current) currentPlace = current.name;
+        }
+
+        const isLastDay  = endDate && localDate >= endDate;
+        const isFirstDay = dayNum === 1;
+        const dayType    = isLastDay ? 'LAST' : isFirstDay ? 'FIRST' : 'MIDDLE';
+        const dayLabel   = `Day ${dayNum}`;
+        const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(previewEmail)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}&daytype=${dayType}`;
+        const finishLink = `${PORTAL_URL}/portal.html`;
+
+        const tomorrowDate = new Date(localDate + 'T12:00:00');
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        const weatherPlace = currentPlace !== tripName ? currentPlace : (destination || tripName);
+        const [weather, lunar] = await Promise.all([
+          getWeatherForecast(weatherPlace, country),
+          Promise.resolve(getLunarPhase(tomorrowDate))
+        ]);
+
+        const tomorrowLabel = tomorrowDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        const weatherHtml = weather
+          ? `<td style="text-align:center;padding:0 16px 0 0;">
+              <div style="font-size:2rem;line-height:1;">${weather.emoji}</div>
+              <div style="font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0f172a;margin-top:6px;">${weather.maxTemp}° / ${weather.minTemp}°F</div>
+              <div style="font-family:Arial,sans-serif;font-size:12px;color:#64748b;margin-top:2px;">${weather.desc}${weather.precip > 0 ? ' · ' + weather.precip + '" precip' : ''}</div>
+            </td>` : '';
+        const lunarHtml = `<td style="text-align:center;padding:0 0 0 16px;border-left:1px solid #e2e8f0;">
+            <div style="font-size:2rem;line-height:1;">${lunar.emoji}</div>
+            <div style="font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0f172a;margin-top:6px;">${lunar.name}</div>
+            <div style="font-family:Arial,sans-serif;font-size:12px;color:#64748b;margin-top:2px;">${lunar.illumination}% illuminated</div>
+          </td>`;
+        const tomorrowBlockHtml = `
+<tr><td style="padding:0 40px 28px;">
+  <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;">
+    <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:14px;">Tomorrow · ${tomorrowLabel}</div>
+    <table cellpadding="0" cellspacing="0" style="width:100%;"><tr>${weatherHtml}${lunarHtml}</tr></table>
+  </div>
+</td></tr>`;
+
+        const tripPhotoHtml = tripPhotoUrl
+          ? `<tr><td style="padding:0;"><img src="${tripPhotoUrl}" alt="${tripName}" style="width:100%;max-height:220px;object-fit:cover;display:block;" /></td></tr>`
+          : '';
+
+        const subject = isLastDay
+          ? `[PREVIEW] Last Day — ${currentPlace} 🏁`
+          : `[PREVIEW] ${dayLabel} Journal — ${currentPlace}`;
+
+        const html = isLastDay
+          ? `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+<tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
+<img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
+${tripPhotoHtml}
+<tr><td style="padding:36px 40px 28px;">
+<h1 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">Last Day in ${currentPlace}, ${name}!</h1>
+<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 16px;">Today marks the final day of <strong>${tripName}</strong>.</p>
+</td></tr>
+<tr><td style="padding:0 40px 36px;text-align:center;">
+<a href="${finishLink}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Finish My Trip 🏁</a>
+</td></tr>
+<tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
+</td></tr></table></td></tr></table></body></html>`
+          : `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+<tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
+<img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
+${tripPhotoHtml}
+<tr><td style="padding:36px 40px 28px;">
+<h1 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">Hello ${name},</h1>
+<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">Hoping your ${ordinal(dayNum)} day in ${currentPlace} is going well. Take a moment to capture your reflection before the day slips by.</p>
+</td></tr>
+<tr><td style="padding:0 40px 28px;text-align:center;">
+<a href="${link}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Write Today's Journal →</a>
+</td></tr>
+${tomorrowBlockHtml}
+<tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
+</td></tr></table></td></tr></table></body></html>`;
+
+        await sendEmail(previewEmail, subject, html);
+        res.status(200).json({ success: true, to: previewEmail, trip: tripName, day: dayLabel, place: currentPlace, hasPhoto: !!tripPhotoUrl });
+      } catch(e) {
+        console.error('[preview-email]', e.message);
+        res.status(500).json({ error: e.message });
+      }
+    })();
+    return;
+  }
+
   // GET ?action=send-monthly — cron: send monthly journal prompt to eligible subscribers
   if (req.method === 'GET' && _action === 'send-monthly') {
     // 1. Get all active trip emails (to skip)
