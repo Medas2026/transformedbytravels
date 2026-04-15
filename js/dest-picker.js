@@ -49,6 +49,12 @@
     document.head.appendChild(s);
   }
 
+  const DP_STATE_COUNTRIES = new Set([
+    'United States','Canada','Australia','India','Brazil',
+    'Mexico','Argentina','South Africa','Nigeria','Indonesia',
+    'Malaysia','Russia','China'
+  ]);
+
   const PASSION_LIST = [
     'Scuba Diving', 'Mountain Climbing/Mountaineering', 'Day Hiking', 'Photography',
     'Sailing', 'Canoeing/Kayaking', 'Mountain Biking', 'Wildlife Tracking',
@@ -126,6 +132,12 @@
                oninput="_dpFireCb('${p}')" />
         <div class="dp-manual-note">Not in the list — you can still generate your guide.</div>
       </div>
+      <div class="dp-field-group" id="${p}-state-wrap" style="display:none;">
+        <div class="dp-label">State / Province</div>
+        <input id="${p}-state" type="text" class="dp-text-input"
+               placeholder="e.g. WI, Ontario, Queensland…"
+               oninput="_dpFireCb('${p}')" />
+      </div>
       ${airportHtml}
       ${passionHtml}`;
 
@@ -169,13 +181,16 @@
   };
 
   window._dpCountry = function (p) {
-    const continent = document.getElementById(`${p}-continent`).value;
-    const country   = document.getElementById(`${p}-country`).value;
-    const destSel   = document.getElementById(`${p}-dest`);
-    const manWrap   = document.getElementById(`${p}-manual-wrap`);
+    const continent  = document.getElementById(`${p}-continent`).value;
+    const country    = document.getElementById(`${p}-country`).value;
+    const destSel    = document.getElementById(`${p}-dest`);
+    const manWrap    = document.getElementById(`${p}-manual-wrap`);
+    const stateWrap  = document.getElementById(`${p}-state-wrap`);
+    const stateEl    = document.getElementById(`${p}-state`);
 
     destSel.innerHTML = '<option value="">— Select Destination —</option>';
     if (manWrap) manWrap.style.display = 'none';
+    if (stateWrap) { stateWrap.style.display = 'none'; if (stateEl) stateEl.value = ''; }
 
     if (!country) { destSel.disabled = true; return; }
 
@@ -195,15 +210,22 @@
   };
 
   window._dpDest = function (p) {
-    const continent = document.getElementById(`${p}-continent`).value;
-    const country   = document.getElementById(`${p}-country`).value;
-    const dest      = document.getElementById(`${p}-dest`).value;
-    const manWrap   = document.getElementById(`${p}-manual-wrap`);
-    const airportEl = document.getElementById(`${p}-airport`);
-    const hintEl    = document.getElementById(`${p}-airport-hint`);
-    const passionEl = document.getElementById(`${p}-passion`);
+    const continent  = document.getElementById(`${p}-continent`).value;
+    const country    = document.getElementById(`${p}-country`).value;
+    const dest       = document.getElementById(`${p}-dest`).value;
+    const manWrap    = document.getElementById(`${p}-manual-wrap`);
+    const stateWrap  = document.getElementById(`${p}-state-wrap`);
+    const stateEl    = document.getElementById(`${p}-state`);
+    const airportEl  = document.getElementById(`${p}-airport`);
+    const hintEl     = document.getElementById(`${p}-airport-hint`);
+    const passionEl  = document.getElementById(`${p}-passion`);
 
     if (manWrap) manWrap.style.display = dest === '__other__' ? 'block' : 'none';
+    if (stateWrap) {
+      const showState = dest === '__other__' && DP_STATE_COUNTRIES.has(country);
+      stateWrap.style.display = showState ? 'block' : 'none';
+      if (!showState && stateEl) stateEl.value = '';
+    }
 
     if (dest && dest !== '__other__') {
       const row = DESTINATIONS.find(r => r[2] === continent && r[1] === country && r[0] === dest);
@@ -234,12 +256,18 @@
   window.dpGetValues = function (p) {
     const v = id => (document.getElementById(id) || {}).value || '';
     const destSel = v(`${p}-dest`);
+    let destination = destSel;
+    if (destSel === '__other__') {
+      const city  = v(`${p}-manual`).trim();
+      const state = v(`${p}-state`).trim();
+      destination = (city && state) ? `${city}, ${state}` : city;
+    }
     return {
-      destination: destSel === '__other__' ? v(`${p}-manual`).trim() : destSel,
-      country:     v(`${p}-country`),
-      continent:   v(`${p}-continent`),
-      airport:     v(`${p}-airport`).trim().toUpperCase(),
-      passion:     v(`${p}-passion`)
+      destination,
+      country:   v(`${p}-country`),
+      continent: v(`${p}-continent`),
+      airport:   v(`${p}-airport`).trim().toUpperCase(),
+      passion:   v(`${p}-passion`)
     };
   };
 
@@ -266,8 +294,20 @@
       destSel.value = '__other__';
       const mw = document.getElementById(`${p}-manual-wrap`);
       const mi = document.getElementById(`${p}-manual`);
+      const sw = document.getElementById(`${p}-state-wrap`);
+      const si = document.getElementById(`${p}-state`);
       if (mw) mw.style.display = 'block';
-      if (mi) mi.value = destination;
+      // Split "City, State" into separate fields for state-needing countries
+      if (sw && si && DP_STATE_COUNTRIES.has(country) && destination.includes(',')) {
+        const lastComma = destination.lastIndexOf(',');
+        const city  = destination.slice(0, lastComma).trim();
+        const state = destination.slice(lastComma + 1).trim();
+        if (mi) mi.value = city;
+        si.value = state;
+        sw.style.display = 'block';
+      } else {
+        if (mi) mi.value = destination;
+      }
     }
 
     const airportEl = document.getElementById(`${p}-airport`);
@@ -277,7 +317,7 @@
   };
 
   window.dpClear = function (p) {
-    ['continent', 'country', 'dest', 'airport', 'passion', 'manual'].forEach(field => {
+    ['continent', 'country', 'dest', 'airport', 'passion', 'manual', 'state'].forEach(field => {
       const el = document.getElementById(`${p}-${field}`);
       if (el) el.value = '';
     });
@@ -287,6 +327,8 @@
     if (destSel) { destSel.innerHTML = '<option value="">— Select Destination —</option>'; destSel.disabled = true; }
     const mw = document.getElementById(`${p}-manual-wrap`);
     if (mw) mw.style.display = 'none';
+    const sw = document.getElementById(`${p}-state-wrap`);
+    if (sw) sw.style.display = 'none';
     const hint = document.getElementById(`${p}-airport-hint`);
     if (hint) hint.textContent = '';
   };
