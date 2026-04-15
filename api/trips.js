@@ -338,6 +338,7 @@ module.exports = function handler(req, res) {
           try {
             if (newStatus === 'Committed') {
               (async () => {
+                const coEmail = (f['Co-Traveler Email'] || '').toLowerCase().trim();
                 const places  = await fetchTripPlaces(id);
                 const summary = await generateTripSummary(destination, country, places, startDate, endDate);
                 const details = buildTripDetailsBlock(destination, country, startDate, endDate, places);
@@ -355,6 +356,14 @@ module.exports = function handler(req, res) {
                    <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`,
                   photoUrl);
                 await sendResendEmail(email, subject, html);
+                if (coEmail && coEmail !== email.toLowerCase().trim()) {
+                  const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
+                    `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
+                     ${details}${summaryHtml}
+                     <p>Get ready for an incredible journey!</p>`,
+                    photoUrl);
+                  await sendResendEmail(coEmail, subject, coHtml);
+                }
               })().catch(e => console.error('Committed email error:', e.message));
             } else {
               const vars = { name: tripName, destination, startDate, endDate, photoUrl };
