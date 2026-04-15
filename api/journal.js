@@ -385,8 +385,8 @@ module.exports = async function handler(req, res) {
           .filter(r => {
             const tz          = r.fields['Time Zone'] || 'UTC';
             const journalHour = Number(r.fields['Journal Time'] || 19);
-            const localHour   = Number(new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', hour12: false }).format(now));
-            console.log(`[send-daily] ${r.fields['Traveler Email']} tz=${tz} localHour=${localHour} journalHour=${journalHour}`);
+            const localHour   = Number(new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', hour12: false }).format(now));
+            console.log(`[send-daily] ${r.fields['Traveler Email']} tz=${tz} localHour=${localHour} journalHour=${journalHour} match=${localHour === journalHour}`);
             return localHour === journalHour;
           })
           .map(r => {
