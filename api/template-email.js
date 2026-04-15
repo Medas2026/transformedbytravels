@@ -42,9 +42,12 @@ function substitute(text, vars) {
 }
 
 // ── Build branded HTML email from 3 paragraphs ───────────────────────────────
-function buildHTML(p1, p2, p3) {
+function buildHTML(p1, p2, p3, photoUrl) {
   const para = (text) => text
     ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${text.replace(/\n/g, '<br>')}</p>`
+    : '';
+  const photoHtml = photoUrl
+    ? `<tr><td style="padding:0;"><img src="${photoUrl}" alt="" style="width:100%;max-height:220px;object-fit:cover;display:block;" /></td></tr>`
     : '';
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
@@ -52,9 +55,7 @@ function buildHTML(p1, p2, p3) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;">
   <tr><td align="center" style="padding:32px 16px;">
     <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
-      <tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
-        <img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" />
-      </td></tr>
+      ${photoHtml}
       <tr><td style="padding:36px 40px 28px;">
         ${para(p1)}
         ${para(p2)}
@@ -116,7 +117,7 @@ function sendTemplateEmail(code, toEmail, mergeFields) {
       const p1      = substitute(tmpl.p1, vars);
       const p2      = substitute(tmpl.p2, vars);
       const p3      = substitute(tmpl.p3, vars);
-      const html    = buildHTML(p1, p2, p3);
+      const html    = buildHTML(p1, p2, p3, vars.photoUrl || '');
       sendViaResend({
         from:    'TravelForGrowth@transformedbytravels.com',
         to:      toEmail,
@@ -130,10 +131,8 @@ function sendTemplateEmail(code, toEmail, mergeFields) {
   });
 }
 
-module.exports = sendTemplateEmail;
-
 // ── HTTP handler — POST { code, email, name, ...mergeFields } ─────────────────
-module.exports.handler = async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -154,4 +153,7 @@ module.exports.handler = async function handler(req, res) {
     console.error('template-email error:', e.message);
     res.status(500).json({ error: e.message });
   }
-};
+}
+
+module.exports         = handler;
+module.exports.sendTemplateEmail = sendTemplateEmail;

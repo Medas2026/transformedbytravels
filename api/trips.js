@@ -60,8 +60,6 @@ function buildEmailHTML(title, heading, body, photoUrl) {
 <body style="margin:0;padding:0;background:#f1f5f9;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
-<tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
-<img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
 ${photoHtml}
 <tr><td style="padding:36px 40px;">
 <h2 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">${heading}</h2>
@@ -359,7 +357,7 @@ module.exports = function handler(req, res) {
                 await sendResendEmail(email, subject, html);
               })().catch(e => console.error('Committed email error:', e.message));
             } else {
-              const vars = { name: tripName, destination, startDate, endDate };
+              const vars = { name: tripName, destination, startDate, endDate, photoUrl };
               const templateMap = { 'Active': 'TRIP_START', 'Completed': 'TRIP_COMPLETED' };
               if (typeof sendTemplateEmail === 'function') {
                 sendTemplateEmail(templateMap[newStatus], email, vars)
