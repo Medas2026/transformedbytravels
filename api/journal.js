@@ -443,7 +443,10 @@ module.exports = async function handler(req, res) {
             Promise.resolve(getLunarPhase(tomorrowDate))
           ]);
 
-          const dayLabel = dayNum ? `Day ${dayNum}` : 'Today';
+          const isLastDay  = endDate && localDate >= endDate;
+          const isFirstDay = dayNum === 1;
+          const dayType    = isLastDay ? 'LAST' : isFirstDay ? 'FIRST' : 'MIDDLE';
+          const dayLabel   = dayNum ? `Day ${dayNum}` : 'Today';
           const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(email)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}&daytype=${dayType}`;
 
           // ── Tomorrow section HTML ──────────────────────────────────
@@ -469,9 +472,6 @@ module.exports = async function handler(req, res) {
   </div>
 </td></tr>`;
 
-          const isLastDay = endDate && localDate >= endDate;
-          const isFirstDay = dayNum === 1;
-          const dayType = isLastDay ? 'LAST' : isFirstDay ? 'FIRST' : 'MIDDLE';
           const finishLink = `${PORTAL_URL}/portal.html`;
 
           if (phone) {
