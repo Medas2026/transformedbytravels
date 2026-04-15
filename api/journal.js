@@ -266,6 +266,7 @@ module.exports = async function handler(req, res) {
   const _qs     = req.url && req.url.includes('?') ? req.url.slice(req.url.indexOf('?') + 1) : '';
   const _qp     = new URLSearchParams(_qs);
   const _action = (req.query && req.query.action) || _qp.get('action') || '';
+  console.log(`[journal] method=${req.method} url=${req.url} action=${_action}`);
 
   // GET ?action=prompts — fetch lead-in prompts from Journal Prompts table
   if (req.method === 'GET' && _action === 'prompts') {
