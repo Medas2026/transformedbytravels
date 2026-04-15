@@ -52,13 +52,17 @@ function buildTripDetailsBlock(destination, country, startDate, endDate, places)
   </div>`;
 }
 
-function buildEmailHTML(title, heading, body) {
+function buildEmailHTML(title, heading, body, photoUrl) {
+  const photoHtml = photoUrl
+    ? `<tr><td style="padding:0;"><img src="${photoUrl}" alt="${heading}" style="width:100%;max-height:220px;object-fit:cover;display:block;" /></td></tr>`
+    : '';
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
 <tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
 <img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
+${photoHtml}
 <tr><td style="padding:36px 40px;">
 <h2 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">${heading}</h2>
 <div style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;">${body}</div>
@@ -328,6 +332,7 @@ module.exports = function handler(req, res) {
         const startDate   = f['Start Date']  || '';
         const endDate     = f['End Date']    || '';
         const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
+        const photoUrl    = f['Trip Photo URL'] || '';
         if (email) {
           if (newStatus === 'Committed') {
             // Rich committed email with places + Claude summary
@@ -346,7 +351,8 @@ module.exports = function handler(req, res) {
               const html = buildEmailHTML(subject, `You're committed, traveler!`,
                 `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
                  ${details}${summaryHtml}
-                 <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`);
+                 <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`,
+                photoUrl);
               await sendResendEmail(email, subject, html);
             })().catch(e => console.error('Committed email error:', e.message));
           } else {
@@ -473,5 +479,6 @@ function buildFields(b) {
   if (b.coTravelerEmail      !== undefined) fields['Co-Traveler Email']  = b.coTravelerEmail;
   if (b.history              !== undefined) fields['History']            = !!b.history;
   if (b.tripRating !== undefined && b.tripRating !== '') fields['Trip Rating'] = b.tripRating;
+  if (b.tripPhotoUrl !== undefined && b.tripPhotoUrl !== '') fields['Trip Photo URL'] = b.tripPhotoUrl;
   return fields;
 }

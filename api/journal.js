@@ -402,6 +402,7 @@ module.exports = async function handler(req, res) {
               activationDate: r.fields['Activation Date'] || r.fields['Start Date'] || '',
               endDate:        r.fields['End Date'] || '',
               tripName:       r.fields['Trip Name'] || r.fields['Destination'] || 'your trip',
+              tripPhotoUrl:   r.fields['Trip Photo URL'] || '',
               localDate,
               places: [1,2,3,4,5,6,7].map(n => ({
                 name: r.fields['Place ' + n] || '',
@@ -414,7 +415,7 @@ module.exports = async function handler(req, res) {
 
         let sent = 0;
 
-        for (const { email, tripId, destination, country, activationDate, endDate, tripName, localDate, places } of toSend) {
+        for (const { email, tripId, destination, country, activationDate, endDate, tripName, tripPhotoUrl, localDate, places } of toSend) {
           // Traveler info
           const travData = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${email}")`));
           const travRec  = (travData.records || [])[0];
@@ -492,6 +493,9 @@ module.exports = async function handler(req, res) {
               resolve();
             }));
           }
+          const tripPhotoHtml = tripPhotoUrl
+            ? `<tr><td style="padding:0;"><img src="${tripPhotoUrl}" alt="${tripName}" style="width:100%;max-height:220px;object-fit:cover;display:block;" /></td></tr>`
+            : '';
           if (isLastDay) {
             const subject = `Last Day — ${currentPlace} 🏁`;
             const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
@@ -500,6 +504,7 @@ module.exports = async function handler(req, res) {
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
 <tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
 <img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
+${tripPhotoHtml}
 <tr><td style="padding:36px 40px 28px;">
 <h1 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">Last Day in ${currentPlace}, ${name}!</h1>
 <p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 16px;">Today marks the final day of <strong>${tripName}</strong>. Before the journey fades, take a moment to capture any final reflections — then go ahead and officially finish your trip.</p>
@@ -520,6 +525,7 @@ module.exports = async function handler(req, res) {
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
 <tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
 <img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
+${tripPhotoHtml}
 <tr><td style="padding:36px 40px 28px;">
 <h1 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">Hello ${name},</h1>
 <p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">Hoping your ${ordinal(dayNum)} day in ${currentPlace} is going well. Take a moment to capture your reflection before the day slips by.</p>

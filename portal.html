@@ -819,6 +819,11 @@
           </div>
           <div id="trip-pinned-content" style="display:none;margin-top:12px;font-size:0.85rem;color:var(--soft);line-height:1.8;border-top:1px solid rgba(45,212,191,0.2);padding-top:12px;"></div>
 
+          <!-- Trip Photo Banner (shown when trip has a photo) -->
+          <div id="td-photo-banner" style="display:none;margin-bottom:16px;">
+            <img id="td-photo-banner-img" src="" alt="Trip photo" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;" />
+          </div>
+
           <div class="profile-section">
             <div class="trip-field-group">
               <div class="trip-field-label">Trip Name</div>
@@ -874,6 +879,19 @@
               <div class="trip-field-label">Notes</div>
               <textarea id="td-notes" class="trip-textarea" placeholder="Ideas, wishes, things to research…"></textarea>
             </div>
+            <div class="trip-field-group">
+              <div class="trip-field-label">Trip Photo <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(optional · horizontal recommended)</span></div>
+              <div id="td-photo-preview" style="display:none;position:relative;margin-bottom:8px;">
+                <img id="td-photo-img" src="" alt="Trip photo" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;border:1px solid var(--bd);" />
+                <button onclick="clearTripPhoto()" style="position:absolute;top:8px;right:8px;background:rgba(15,23,42,0.75);border:none;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;border-radius:6px;padding:5px 10px;cursor:pointer;">✕ Remove</button>
+              </div>
+              <div id="td-photo-dropzone" style="display:flex;align-items:center;gap:12px;">
+                <input type="file" id="td-photo-file" accept="image/*" onchange="uploadTripPhoto(this)" style="display:none;" />
+                <button onclick="document.getElementById('td-photo-file').click()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:7px 16px;cursor:pointer;">+ Upload Photo</button>
+                <span id="td-photo-status" style="font-size:0.8rem;color:var(--soft);"></span>
+              </div>
+            </div>
+            <input type="hidden" id="td-photo-url" value="" />
             <input type="hidden" id="td-history" value="false" />
             <div class="trip-field-group">
               <div class="trip-field-label">Places to Visit</div>
@@ -4303,18 +4321,22 @@ function loadTravelStory() {
           const dates  = start && end ? `${start} – ${end}` : (start || end || '');
           const rating = f['Trip Rating'] ? `<span style="color:var(--text);font-size:0.9rem;" title="${f['Trip Rating']}">${ratingStars[f['Trip Rating']] || f['Trip Rating']}</span>` : '';
           const notes  = f['Notes'] ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.82rem;color:var(--text);margin-top:6px;line-height:1.5;border-left:2px solid rgba(45,212,191,0.3);padding-left:10px;">${f['Notes']}</div>` : '';
-          return `<div style="background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-              <div>
-                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">${name}</div>
-                ${dest}
+          const photo  = f['Trip Photo URL'] ? `<img src="${f['Trip Photo URL']}" alt="${name}" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-bottom:10px;" />` : '';
+          return `<div style="background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.3);border-radius:12px;overflow:hidden;margin-bottom:10px;">
+            ${photo}
+            <div style="padding:14px 16px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <div>
+                  <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">${name}</div>
+                  ${dest}
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                  ${rating ? `<div>${rating}</div>` : ''}
+                  ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--text);margin-top:2px;">${dates}</div>` : ''}
+                </div>
               </div>
-              <div style="text-align:right;flex-shrink:0;">
-                ${rating ? `<div>${rating}</div>` : ''}
-                ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--text);margin-top:2px;">${dates}</div>` : ''}
-              </div>
+              ${notes}
             </div>
-            ${notes}
           </div>`;
         }).join('');
         document.getElementById('story-taken-block').style.display = 'block';
@@ -4459,6 +4481,21 @@ function openTrip(record) {
   document.getElementById('td-cotraveler').value  = f['Co-Traveler Email'] || '';
   document.getElementById('td-rating').value      = f['Trip Rating'] || '';
   document.getElementById('td-history').value = f['History'] ? 'true' : 'false';
+  // Photo
+  const _photoUrl = f['Trip Photo URL'] || '';
+  document.getElementById('td-photo-url').value = _photoUrl;
+  if (_photoUrl) {
+    document.getElementById('td-photo-img').src = _photoUrl;
+    document.getElementById('td-photo-preview').style.display = 'block';
+    document.getElementById('td-photo-dropzone').style.display = 'none';
+    document.getElementById('td-photo-banner-img').src = _photoUrl;
+    document.getElementById('td-photo-banner').style.display = 'block';
+  } else {
+    document.getElementById('td-photo-img').src = '';
+    document.getElementById('td-photo-preview').style.display = 'none';
+    document.getElementById('td-photo-dropzone').style.display = 'flex';
+    document.getElementById('td-photo-banner').style.display = 'none';
+  }
   const mapSection = document.getElementById('trip-map-section');
   if (mapSection) mapSection.style.display = 'none';
   loadTripPlaces(record.id);
@@ -5395,6 +5432,7 @@ function showNewTripForm() {
   ['td-name','td-start','td-end','td-cotraveler','td-notes','td-status'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  _clearTripPhotoField();
   // Planning trips: dates must be today or later
   const todayStr = new Date().toISOString().split('T')[0];
   document.getElementById('td-start').min = todayStr;
@@ -5419,6 +5457,7 @@ function showNewHistoryTripForm() {
   ['td-name','td-start','td-end','td-cotraveler','td-notes'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  _clearTripPhotoField();
   document.getElementById('td-status').value = 'Completed';
   document.getElementById('td-status-group').style.display = 'none';
   document.getElementById('td-rating').value = '';
@@ -5493,6 +5532,53 @@ async function _doCancelTrip() {
   }
 }
 
+function _clearTripPhotoField() {
+  document.getElementById('td-photo-url').value = '';
+  document.getElementById('td-photo-img').src = '';
+  document.getElementById('td-photo-preview').style.display = 'none';
+  document.getElementById('td-photo-dropzone').style.display = 'flex';
+  document.getElementById('td-photo-banner').style.display = 'none';
+  document.getElementById('td-photo-status').textContent = '';
+}
+
+function clearTripPhoto() {
+  _clearTripPhotoField();
+}
+
+async function uploadTripPhoto(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const status = document.getElementById('td-photo-status');
+  if (file.size > 5 * 1024 * 1024) {
+    status.textContent = 'Photo must be under 5MB.';
+    input.value = '';
+    return;
+  }
+  status.textContent = 'Uploading…';
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', 'Trip Image');
+  try {
+    const resp = await fetch('https://api.cloudinary.com/v1_1/dporenlvw/image/upload', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (data.secure_url) {
+      document.getElementById('td-photo-url').value = data.secure_url;
+      document.getElementById('td-photo-img').src = data.secure_url;
+      document.getElementById('td-photo-preview').style.display = 'block';
+      document.getElementById('td-photo-dropzone').style.display = 'none';
+      document.getElementById('td-photo-banner-img').src = data.secure_url;
+      document.getElementById('td-photo-banner').style.display = 'block';
+      status.textContent = '';
+    } else {
+      status.textContent = 'Upload failed. Please try again.';
+      console.error('[uploadTripPhoto] error:', data);
+    }
+  } catch(e) {
+    status.textContent = 'Upload error: ' + e.message;
+  }
+  input.value = '';
+}
+
 async function saveTrip() {
   const msg = document.getElementById('trip-save-msg');
   msg.style.display = 'block';
@@ -5538,7 +5624,8 @@ async function saveTrip() {
     coTravelerEmail: (document.getElementById('td-cotraveler') || {}).value || '',
     dnaGuideId:  _pendingDnaGuideId || undefined,
     history:     _isHistoryTrip || document.getElementById('td-history').value === 'true',
-    tripRating:  document.getElementById('td-rating').value || ''
+    tripRating:  document.getElementById('td-rating').value || '',
+    tripPhotoUrl: document.getElementById('td-photo-url').value || ''
   };
 
   if (currentTripId) {
