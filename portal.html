@@ -5408,7 +5408,8 @@ async function saveTripPlaces(tripId) {
 
   const errors = [];
   await Promise.all(toSave.map(async p => {
-    const body = { tripId, travelerId: portalRecordId, place: p.place, day: p.day, country: p.country, notes: p.notes || '', dnaGuideId: p.dnaGuideId || '', photosUrl: p.photosUrl || '', stayedAtUrl: p.stayedAtUrl || '', rating: p.rating || 0 };
+    const tripName = document.getElementById('td-name').value || document.getElementById('trip-detail-title').textContent || '';
+    const body = { tripId, tripName, travelerId: portalRecordId, place: p.place, day: p.day, country: p.country, notes: p.notes || '', dnaGuideId: p.dnaGuideId || '', photosUrl: p.photosUrl || '', stayedAtUrl: p.stayedAtUrl || '', rating: p.rating || 0 };
     try {
       const r = await fetch('/api/trip-places', {
         method:  'POST',

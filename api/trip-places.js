@@ -59,7 +59,7 @@ module.exports = function handler(req, res) {
   // POST — create a place
   if (req.method === 'POST') {
     const fields = {
-      'Trip Name': b.place || '',
+      'Trip Name': b.tripName || b.place || '',
       'Trip ID':   b.tripId || '',
       'Place':     b.place || '',
     };
