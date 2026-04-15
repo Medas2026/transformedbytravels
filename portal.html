@@ -1945,8 +1945,17 @@
         <input class="trip-input" id="pm-stayed-url" type="url" placeholder="https://…" />
       </div>
       <div class="pm-field">
-        <div class="pm-label">Place Photo URL (optional)</div>
-        <input class="trip-input" id="pm-place-photo-url" type="url" placeholder="https://…" />
+        <div class="pm-label">Place Photo (optional)</div>
+        <div id="pm-place-photo-preview" style="display:none;position:relative;margin-bottom:8px;">
+          <img id="pm-place-photo-img" src="" alt="Place photo" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;border:1px solid var(--bd);" />
+          <button onclick="clearPlacePhoto()" style="position:absolute;top:8px;right:8px;background:rgba(15,23,42,0.75);border:none;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;border-radius:6px;padding:5px 10px;cursor:pointer;">✕ Remove</button>
+        </div>
+        <input class="trip-input" id="pm-place-photo-url" type="url" placeholder="https://…" oninput="pmPhotoUrlInput()" style="margin-bottom:8px;" />
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="file" id="pm-place-photo-file" accept="image/*" onchange="uploadPlacePhoto(this)" style="display:none;" />
+          <button onclick="document.getElementById('pm-place-photo-file').click()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:7px 16px;cursor:pointer;">+ Upload Photo</button>
+          <span id="pm-place-photo-status" style="font-size:0.8rem;color:var(--soft);"></span>
+        </div>
       </div>
       <!-- Photos link -->
       <div class="pm-field">
@@ -5017,6 +5026,7 @@ function openPlaceModal(idx) {
   document.getElementById('pm-notes').value           = p.notes         || '';
   document.getElementById('pm-stayed-url').value      = p.stayedAtUrl   || '';
   document.getElementById('pm-place-photo-url').value = p.placePhotoUrl || '';
+  _pmShowPlacePhotoPreview(p.placePhotoUrl || '');
 
   // Populate arrival date dropdown from trip start/end dates
   const daySel   = document.getElementById('pm-day');
@@ -5577,6 +5587,56 @@ function _clearTripPhotoField() {
   document.getElementById('td-photo-dropzone').style.display = 'flex';
   document.getElementById('td-photo-banner').style.display = 'none';
   document.getElementById('td-photo-status').textContent = '';
+}
+
+function _pmShowPlacePhotoPreview(url) {
+  const preview = document.getElementById('pm-place-photo-preview');
+  const img     = document.getElementById('pm-place-photo-img');
+  if (url) {
+    img.src = url;
+    preview.style.display = 'block';
+  } else {
+    img.src = '';
+    preview.style.display = 'none';
+  }
+  document.getElementById('pm-place-photo-status').textContent = '';
+}
+
+function pmPhotoUrlInput() {
+  _pmShowPlacePhotoPreview(document.getElementById('pm-place-photo-url').value.trim());
+}
+
+function clearPlacePhoto() {
+  document.getElementById('pm-place-photo-url').value = '';
+  _pmShowPlacePhotoPreview('');
+}
+
+async function uploadPlacePhoto(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const status = document.getElementById('pm-place-photo-status');
+  if (file.size > 5 * 1024 * 1024) {
+    status.textContent = 'Photo must be under 5MB.';
+    input.value = '';
+    return;
+  }
+  status.textContent = 'Uploading…';
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', 'Trip Image');
+  try {
+    const resp = await fetch('https://api.cloudinary.com/v1_1/dporenlvw/image/upload', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (data.secure_url) {
+      document.getElementById('pm-place-photo-url').value = data.secure_url;
+      _pmShowPlacePhotoPreview(data.secure_url);
+    } else {
+      status.textContent = 'Upload failed. Please try again.';
+    }
+  } catch(e) {
+    status.textContent = 'Upload error: ' + e.message;
+  }
+  input.value = '';
 }
 
 function clearTripPhoto() {
