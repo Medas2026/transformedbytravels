@@ -475,7 +475,7 @@ module.exports = async function handler(req, res) {
 
           const finishLink = `${PORTAL_URL}/portal.html`;
 
-          let smsSent = false;
+          let smsSent = false; // reserved for future SMS-only logic
           if (phone) {
             let smsBody;
             if (isLastDay) {
@@ -492,7 +492,7 @@ module.exports = async function handler(req, res) {
               resolve();
             }));
           }
-          if (!smsSent && isLastDay) {
+          if (isLastDay) {
             const subject = `Last Day — ${currentPlace} 🏁`;
             const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;">
@@ -512,7 +512,7 @@ module.exports = async function handler(req, res) {
 <p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
 </td></tr></table></td></tr></table></body></html>`;
             await sendEmail(email, subject, html);
-          } else if (!smsSent) {
+          } else {
             const subject = `${dayLabel} Journal — ${currentPlace}`;
             const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;">
