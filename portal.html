@@ -4453,14 +4453,40 @@ function renderTripList(records) {
     list.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">No trips yet. Click "+ New Trip" to create your first one.</p>';
     return;
   }
-  list.innerHTML = records.map(r => {
+  // Sort by start date ascending; trips with no date go to the end
+  const sorted = records.slice().sort((a, b) => {
+    const da = a.fields['Start Date'] ? new Date(a.fields['Start Date'] + 'T00:00:00') : null;
+    const db = b.fields['Start Date'] ? new Date(b.fields['Start Date'] + 'T00:00:00') : null;
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return da - db;
+  });
+  const today = new Date(); today.setHours(0,0,0,0);
+  list.innerHTML = sorted.map(r => {
     const f     = r.fields;
     const name  = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
     const start = f['Start Date'] ? new Date(f['Start Date'] + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
     const end   = f['End Date']   ? new Date(f['End Date']   + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
     const dates = start && end ? `${start} – ${end}` : (start || '');
+    let badgeHtml = '';
+    if (f['Start Date']) {
+      const startDt = new Date(f['Start Date'] + 'T00:00:00');
+      const diffDays = Math.round((startDt - today) / 86400000);
+      if (diffDays > 0) {
+        const label = diffDays <= 30
+          ? `${diffDays} day${diffDays !== 1 ? 's' : ''} away`
+          : `${Math.round(diffDays / 30.44)} month${Math.round(diffDays / 30.44) !== 1 ? 's' : ''} away`;
+        const bg    = diffDays <= 30 ? '#2dd4bf' : diffDays <= 90 ? '#f59e0b' : '#64748b';
+        const color = diffDays <= 30 ? '#0f172a' : '#ffffff';
+        badgeHtml = `<span style="display:inline-block;background:${bg};color:${color};font-size:0.7rem;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:10px;margin-bottom:5px;">${label}</span>`;
+      } else if (diffDays === 0) {
+        badgeHtml = `<span style="display:inline-block;background:#f43f5e;color:#fff;font-size:0.7rem;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:10px;margin-bottom:5px;">Today!</span>`;
+      }
+    }
     return `<div class="trip-card" onclick='openTrip(${JSON.stringify(r)})'>
       <div>
+        ${badgeHtml}
         <div class="trip-card-name">${name}</div>
         <div class="trip-card-dates">${dates}</div>
       </div>
