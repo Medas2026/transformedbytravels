@@ -4484,7 +4484,7 @@ function renderTripList(records) {
     const start = f['Start Date'] ? new Date(f['Start Date'] + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
     const end   = f['End Date']   ? new Date(f['End Date']   + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
     const dates = start && end ? `${start} – ${end}` : (start || '');
-    let badgeHtml = '';
+    let countdownBadge = '';
     if (f['Start Date']) {
       const startDt = new Date(f['Start Date'] + 'T00:00:00');
       const diffDays = Math.round((startDt - today) / 86400000);
@@ -4494,11 +4494,22 @@ function renderTripList(records) {
           : `${Math.round(diffDays / 30.44)} month${Math.round(diffDays / 30.44) !== 1 ? 's' : ''} away`;
         const bg    = diffDays <= 30 ? '#2dd4bf' : diffDays <= 90 ? '#f59e0b' : '#64748b';
         const color = diffDays <= 30 ? '#0f172a' : '#ffffff';
-        badgeHtml = `<span style="display:inline-block;background:${bg};color:${color};font-size:0.7rem;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:10px;margin-bottom:5px;">${label}</span>`;
+        countdownBadge = `<span style="display:inline-block;background:${bg};color:${color};font-size:0.7rem;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:10px;">${label}</span>`;
       } else if (diffDays === 0) {
-        badgeHtml = `<span style="display:inline-block;background:#f43f5e;color:#fff;font-size:0.7rem;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:10px;margin-bottom:5px;">Today!</span>`;
+        countdownBadge = `<span style="display:inline-block;background:#f43f5e;color:#fff;font-size:0.7rem;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:10px;">Today!</span>`;
       }
     }
+    const statusColors = {
+      'Research':  { bg: '#334155', color: '#94a3b8' },
+      'Planned':   { bg: '#1e3a5f', color: '#60a5fa' },
+      'Committed': { bg: '#14532d', color: '#4ade80' },
+      'Active':    { bg: '#7c2d12', color: '#fb923c' },
+      'Completed': { bg: '#312e81', color: '#a78bfa' }
+    };
+    const st = f['Status of Trip'] || 'Research';
+    const sc = statusColors[st] || statusColors['Research'];
+    const statusBadge = `<span style="display:inline-block;background:${sc.bg};color:${sc.color};font-size:0.7rem;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:10px;">${st}</span>`;
+    const badgeHtml = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px;">${countdownBadge}${statusBadge}</div>`;
     return `<div class="trip-card" onclick='openTrip(${JSON.stringify(r)})'>
       <div>
         ${badgeHtml}
