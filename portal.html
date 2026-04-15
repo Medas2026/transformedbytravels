@@ -4187,6 +4187,7 @@ let currentTripDestination = '';
 let currentTripCountry     = '';
 let currentTripStart       = '';
 let currentTripEnd         = '';
+let currentTripStatus      = '';
 let tripsLoaded        = false;
 let historyTripsLoaded = false;
 let _returnToHistory   = false;
@@ -4476,6 +4477,7 @@ function openTrip(record) {
   currentTripStart = f['Start Date'] || '';
   currentTripEnd   = f['End Date']   || '';
   // airport loaded via dpSetValues
+  currentTripStatus = f['Status of Trip'] || 'Research';
   document.getElementById('td-status').value      = f['Status of Trip'] || 'Research';
   document.getElementById('td-notes').value       = f['Notes']        || '';
   document.getElementById('td-cotraveler').value  = f['Co-Traveler Email'] || '';
@@ -5625,7 +5627,8 @@ async function saveTrip() {
     dnaGuideId:  _pendingDnaGuideId || undefined,
     history:     _isHistoryTrip || document.getElementById('td-history').value === 'true',
     tripRating:  document.getElementById('td-rating').value || '',
-    tripPhotoUrl: document.getElementById('td-photo-url').value || ''
+    tripPhotoUrl: document.getElementById('td-photo-url').value || '',
+    _prevStatus: currentTripId ? currentTripStatus : ''
   };
 
   if (currentTripId) {
@@ -5656,6 +5659,7 @@ async function saveTrip() {
         document.getElementById('pf-trips-remaining').textContent = data.tripsRemaining;
       }
       document.getElementById('trip-detail-title').textContent = payload.tripName || 'Trip Details';
+      currentTripStatus = payload['Status of Trip'] || currentTripStatus;
       msg.style.display = 'none';
       renderTripMap();
       document.getElementById('trip-saved-modal').style.display = 'flex';
