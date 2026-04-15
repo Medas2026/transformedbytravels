@@ -429,11 +429,48 @@ module.exports = function handler(req, res) {
             if (data.error) return res.status(500).json({ error: data.error.message || JSON.stringify(data.error) });
             const createdStatus = fields['Status of Trip'];
             if (createdStatus === 'Committed') {
-              sendTemplateEmail('TRIP_COMMITTED', email, {
-                name:        b.tripName || b.destination || '',
-                destination: b.destination || '',
-                startDate:   b.startDate || ''
-              }).catch(e => console.error('Committed email error:', e.message));
+              (async () => {
+                try {
+                  const tripId      = data.id;
+                  const destination = fields['Destination'] || b.destination || '';
+                  const country     = fields['Country']     || b.country     || '';
+                  const startDate   = fields['Start Date']  || b.startDate   || '';
+                  const endDate     = fields['End Date']    || b.endDate     || '';
+                  const tripName    = fields['Trip Name']   || b.tripName    || destination;
+                  const photoUrl    = fields['Trip Photo URL'] || b.tripPhotoUrl || '';
+                  const coEmail     = (fields['Co-Traveler Email'] || b.coTravelerEmail || '').toLowerCase().trim();
+
+                  const places  = await fetchTripPlaces(tripId);
+                  const summary = await generateTripSummary(destination, country, places, startDate, endDate);
+                  const details = buildTripDetailsBlock(destination, country, startDate, endDate, places);
+                  const summaryHtml = summary
+                    ? summary.split('\n').map(line => {
+                        const h = line.match(/^#+\s*(.+)/);
+                        if (h) return `<h3 style="font-family:Georgia,serif;font-size:16px;font-weight:bold;color:#0f172a;margin:0 0 8px;">${h[1]}</h3>`;
+                        return line.trim() ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#0f172a;line-height:1.75;margin:0 0 18px;">${line.trim()}</p>` : '';
+                      }).join('')
+                    : '';
+                  const subject = `Your trip to ${tripName} is confirmed!`;
+                  const html = buildEmailHTML(subject, `You're committed, traveler!`,
+                    `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
+                     ${details}${summaryHtml}
+                     <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`,
+                    photoUrl);
+                  await sendResendEmail(email, subject, html);
+
+                  // Also notify co-traveler if linked
+                  if (coEmail && coEmail !== email) {
+                    const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
+                      `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
+                       ${details}${summaryHtml}
+                       <p>Get ready for an incredible journey!</p>`,
+                      photoUrl);
+                    await sendResendEmail(coEmail, subject, coHtml);
+                  }
+                } catch(e) {
+                  console.error('[POST committed email]', e.message);
+                }
+              })();
               res.status(200).json({ success: true, record: data, tripsRemaining: Math.max(0, remaining - 1) });
             } else if (b.history) {
               sendTripHistoryEmail(email, b.name || '', b, () => {
