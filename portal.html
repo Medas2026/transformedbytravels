@@ -876,7 +876,10 @@
               </select>
             </div>
             <div class="trip-field-group">
-              <div class="trip-field-label">Notes</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div class="trip-field-label" style="margin-bottom:0;">Notes</div>
+                <a id="td-flights-link" href="#" target="_blank" rel="noopener" onclick="return openFlightsSearch()" style="display:inline-flex;align-items:center;gap:5px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;color:var(--teal);text-decoration:none;opacity:0.85;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.85">✈ Search Flights</a>
+              </div>
               <textarea id="td-notes" class="trip-textarea" placeholder="Ideas, wishes, things to research…"></textarea>
             </div>
             <div class="trip-field-group">
@@ -5533,6 +5536,28 @@ async function _doCancelTrip() {
   } catch(e) {
     msg.textContent = 'Error: ' + e.message;
   }
+}
+
+function openFlightsSearch() {
+  const airport   = (dpGetValues('tdp').airport || '').trim().toUpperCase();
+  const dest      = currentTripDestination || dpGetValues('tdp').destination || '';
+  const country   = currentTripCountry    || dpGetValues('tdp').country    || '';
+  const startDate = document.getElementById('td-start').value || '';
+  const endDate   = document.getElementById('td-end').value   || '';
+
+  let url;
+  if (airport && startDate && endDate) {
+    url = `https://www.kayak.com/flights/-${airport}/${startDate}/${endDate}`;
+  } else if (airport && startDate) {
+    url = `https://www.kayak.com/flights/-${airport}/${startDate}`;
+  } else {
+    const loc = [dest, country].filter(Boolean).join(', ');
+    url = loc
+      ? `https://www.google.com/travel/flights?q=${encodeURIComponent('flights to ' + loc)}`
+      : 'https://www.google.com/travel/flights';
+  }
+  window.open(url, '_blank', 'noopener');
+  return false;
 }
 
 function _clearTripPhotoField() {
