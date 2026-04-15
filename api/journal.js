@@ -379,6 +379,7 @@ module.exports = async function handler(req, res) {
 
         const tripsResp = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TRIPS_TABLE)}?filterByFormula=${encodeURIComponent(`{Status of Trip}="Active"`)}`, { headers });
         const tripsData = await tripsResp.json();
+        console.log(`[send-daily] active trips found: ${(tripsData.records||[]).length} error=${tripsData.error||''}`);
 
         const toSend = (tripsData.records || [])
           .filter(r => r.fields['Traveler Email'] && r.fields['Journal Enabled'] !== false)
