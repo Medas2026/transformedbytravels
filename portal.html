@@ -5620,6 +5620,27 @@ async function _doCancelTrip() {
   }
 }
 
+// Build Google Flights tfs= protobuf parameter (survives redirects unlike #flt= hash)
+// Reverse-engineered from actual Google Flights search URLs.
+function _buildGFTFS(origin, dest, departDate, returnDate) {
+  function varint(n) {
+    const b = [];
+    do { let byte = n & 0x7f; n >>>= 7; if (n > 0) byte |= 0x80; b.push(byte); } while (n > 0);
+    return b;
+  }
+  function encStr(s) { return Array.from(s).map(c => c.charCodeAt(0)); }
+  function vf(num, val)   { return [...varint((num << 3) | 0), ...varint(val)]; }
+  function lf(num, bytes) { return [...varint((num << 3) | 2), ...varint(bytes.length), ...bytes]; }
+  function airport(code)  { return [...vf(1, 1), ...lf(2, encStr(code))]; }
+  function leg(date, from, to) {
+    return [...lf(2, encStr(date)), ...lf(13, airport(from)), ...lf(14, airport(to))];
+  }
+  const isRT = !!(returnDate);
+  const bytes = [...vf(1, 28), ...vf(2, isRT ? 2 : 1), ...lf(3, leg(departDate, origin, dest))];
+  if (isRT) bytes.push(...lf(3, leg(returnDate, dest, origin)));
+  return btoa(bytes.map(b => String.fromCharCode(b)).join(''));
+}
+
 function openFlightsSearch() {
   const destAirport = (document.getElementById('td-airport').value || '').trim().toUpperCase();
   const homeAirport = (portalProfile && portalProfile['Home Airport'] || '').trim().toUpperCase();
@@ -5629,15 +5650,9 @@ function openFlightsSearch() {
   const endDate     = document.getElementById('td-end').value   || '';
 
   let url;
-  if (homeAirport && destAirport && startDate && endDate) {
-    // Deep-link: round-trip with both airports and dates
-    url = `https://www.google.com/travel/flights#flt=${homeAirport}.${destAirport}.${startDate}*${destAirport}.${homeAirport}.${endDate};c:USD;e:1;sd:1;t:f`;
-  } else if (homeAirport && destAirport && startDate) {
-    // One-way outbound
-    url = `https://www.google.com/travel/flights#flt=${homeAirport}.${destAirport}.${startDate};c:USD;e:1;sd:1;t:f`;
-  } else if (destAirport && startDate && endDate) {
-    // Destination airport known but no home airport — open Google Flights with search query
-    url = `https://www.google.com/travel/flights?q=${encodeURIComponent('flights to ' + destAirport + ' ' + startDate)}`;
+  if (homeAirport && destAirport && startDate) {
+    const tfs = _buildGFTFS(homeAirport, destAirport, startDate, endDate || null);
+    url = `https://www.google.com/travel/flights/search?tfs=${encodeURIComponent(tfs)}`;
   } else {
     const loc = [dest, country].filter(Boolean).join(', ');
     url = loc
