@@ -1944,6 +1944,10 @@
         <div class="pm-label">Stayed at URL (optional)</div>
         <input class="trip-input" id="pm-stayed-url" type="url" placeholder="https://…" />
       </div>
+      <div class="pm-field">
+        <div class="pm-label">Place Photo URL (optional)</div>
+        <input class="trip-input" id="pm-place-photo-url" type="url" placeholder="https://…" />
+      </div>
       <!-- Photos link -->
       <div class="pm-field">
         <div class="pm-label">Photos (optional)</div>
@@ -4663,13 +4667,14 @@ async function loadDnaPlaces(guideId) {
     const resp = await fetch('/api/trip-places?dnaGuideId=' + encodeURIComponent(guideId));
     const data = await resp.json();
     _dnaPlaces = (data.records || []).map(r => ({
-      place:       r.fields['Place']        || '',
-      country:     r.fields['Country']      || '',
-      notes:       r.fields['Notes']        || '',
-      photosUrl:   r.fields['Photos URL']    || '',
-      stayedAtUrl: r.fields['Stayed at URL'] || '',
-      rating:      r.fields['Rating']        || 0,
-      _recId:      r.id
+      place:         r.fields['Place']          || '',
+      country:       r.fields['Country']        || '',
+      notes:         r.fields['Notes']          || '',
+      photosUrl:     r.fields['Photos URL']     || '',
+      stayedAtUrl:   r.fields['Stayed at URL']  || '',
+      placePhotoUrl: r.fields['Place Photo URL']|| '',
+      rating:        r.fields['Rating']         || 0,
+      _recId:        r.id
     }));
   } catch(e) { _dnaPlaces = []; }
   renderDnaPlaceCards();
@@ -5008,9 +5013,10 @@ function openPlaceModal(idx) {
 
   const sourceArr = _dnaPlacesMode ? _dnaPlaces : _places;
   const p = idx === -1 ? {} : (sourceArr[idx] || {});
-  document.getElementById('pm-name').value       = p.place      || '';
-  document.getElementById('pm-notes').value      = p.notes      || '';
-  document.getElementById('pm-stayed-url').value = p.stayedAtUrl || '';
+  document.getElementById('pm-name').value            = p.place         || '';
+  document.getElementById('pm-notes').value           = p.notes         || '';
+  document.getElementById('pm-stayed-url').value      = p.stayedAtUrl   || '';
+  document.getElementById('pm-place-photo-url').value = p.placePhotoUrl || '';
 
   // Populate arrival date dropdown from trip start/end dates
   const daySel   = document.getElementById('pm-day');
@@ -5306,20 +5312,22 @@ function savePlaceModal() {
   const idx     = parseInt(document.getElementById('pm-index').value, 10);
   const country = document.getElementById('pm-country').value;
   const day     = document.getElementById('pm-day').value || '';
-  const notes       = document.getElementById('pm-notes').value.trim();
-  const stayedAtUrl = document.getElementById('pm-stayed-url').value.trim();
-  const rating      = parseInt(document.getElementById('pm-rating').value, 10) || 0;
+  const notes         = document.getElementById('pm-notes').value.trim();
+  const stayedAtUrl   = document.getElementById('pm-stayed-url').value.trim();
+  const placePhotoUrl = document.getElementById('pm-place-photo-url').value.trim();
+  const rating        = parseInt(document.getElementById('pm-rating').value, 10) || 0;
 
   if (_dnaPlacesMode) {
     const entry = {
-      place:       name,
-      day:         day ? parseInt(day, 10) : null,
-      country:     country || '',
-      notes:       notes,
-      photosUrl:   _pmPhotosUrl || '',
-      stayedAtUrl: stayedAtUrl || '',
-      rating:      rating,
-      _recId:      idx === -1 ? '' : ((_dnaPlaces[idx] || {})._recId || '')
+      place:         name,
+      day:           day ? parseInt(day, 10) : null,
+      country:       country || '',
+      notes:         notes,
+      photosUrl:     _pmPhotosUrl || '',
+      stayedAtUrl:   stayedAtUrl || '',
+      placePhotoUrl: placePhotoUrl || '',
+      rating:        rating,
+      _recId:        idx === -1 ? '' : ((_dnaPlaces[idx] || {})._recId || '')
     };
     if (idx === -1) {
       _dnaPlaces.push(entry);
@@ -5333,7 +5341,7 @@ function savePlaceModal() {
       renderDnaPlaceCards();
     }
     // Persist immediately
-    const body = { dnaGuideId: _currentDnaGuideId, travelerId: portalRecordId, place: name, day: entry.day, country: country, notes: notes, photosUrl: entry.photosUrl, stayedAtUrl: stayedAtUrl, rating: rating };
+    const body = { dnaGuideId: _currentDnaGuideId, travelerId: portalRecordId, place: name, day: entry.day, country: country, notes: notes, photosUrl: entry.photosUrl, stayedAtUrl: stayedAtUrl, placePhotoUrl: placePhotoUrl || '', rating: rating };
     if (entry._recId) {
       fetch('/api/trip-places?id=' + entry._recId, { method: 'DELETE' }).catch(() => {});
     }
@@ -5345,15 +5353,16 @@ function savePlaceModal() {
   }
 
   const entry   = {
-    place:       name,
-    day:         day ? parseInt(day, 10) : null,
-    country:     country || '',
-    notes:       notes,
-    dnaGuideId:  _pmConnectedGuideId || '',
-    photosUrl:   _pmPhotosUrl || '',
-    stayedAtUrl: stayedAtUrl || '',
-    rating:      rating,
-    _recId:      idx === -1 ? '' : ((_places[idx] || {})._recId || '')
+    place:         name,
+    day:           day ? parseInt(day, 10) : null,
+    country:       country || '',
+    notes:         notes,
+    dnaGuideId:    _pmConnectedGuideId || '',
+    photosUrl:     _pmPhotosUrl || '',
+    stayedAtUrl:   stayedAtUrl || '',
+    placePhotoUrl: placePhotoUrl || '',
+    rating:        rating,
+    _recId:        idx === -1 ? '' : ((_places[idx] || {})._recId || '')
   };
   if (idx === -1) {
     _places.push(entry);
@@ -5371,10 +5380,11 @@ function renderPlaceRows(records) {
     country:     r.fields['Country']      || '',
     notes:       r.fields['Notes']        || '',
     dnaGuideId:  r.fields['DNA Guide ID'] || '',
-    photosUrl:   r.fields['Photos URL']    || '',
-    stayedAtUrl: r.fields['Stayed at URL'] || '',
-    rating:      r.fields['Rating']        || 0,
-    _recId:      r.id
+    photosUrl:     r.fields['Photos URL']      || '',
+    stayedAtUrl:   r.fields['Stayed at URL']   || '',
+    placePhotoUrl: r.fields['Place Photo URL'] || '',
+    rating:        r.fields['Rating']          || 0,
+    _recId:        r.id
   }));
   renderPlaceCards();
 }
@@ -5409,7 +5419,7 @@ async function saveTripPlaces(tripId) {
   const errors = [];
   await Promise.all(toSave.map(async p => {
     const tripName = document.getElementById('td-name').value || document.getElementById('trip-detail-title').textContent || '';
-    const body = { tripId, tripName, travelerId: portalRecordId, place: p.place, day: p.day, country: p.country, notes: p.notes || '', dnaGuideId: p.dnaGuideId || '', photosUrl: p.photosUrl || '', stayedAtUrl: p.stayedAtUrl || '', rating: p.rating || 0 };
+    const body = { tripId, tripName, travelerId: portalRecordId, place: p.place, day: p.day, country: p.country, notes: p.notes || '', dnaGuideId: p.dnaGuideId || '', photosUrl: p.photosUrl || '', stayedAtUrl: p.stayedAtUrl || '', placePhotoUrl: p.placePhotoUrl || '', rating: p.rating || 0 };
     try {
       const r = await fetch('/api/trip-places', {
         method:  'POST',

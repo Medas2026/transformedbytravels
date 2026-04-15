@@ -68,9 +68,10 @@ module.exports = function handler(req, res) {
     if (b.day)        fields['Day']            = Number(b.day);
     if (b.country)    fields['Country']        = b.country;
     if (b.notes)      fields['Notes']          = b.notes;
-    if (b.dnaGuideId)  fields['DNA Guide ID']  = b.dnaGuideId;
-    if (b.photosUrl)   fields['Photos URL']    = b.photosUrl;
-    if (b.stayedAtUrl) fields['Stayed at URL'] = b.stayedAtUrl;
+    if (b.dnaGuideId)    fields['DNA Guide ID']   = b.dnaGuideId;
+    if (b.photosUrl)     fields['Photos URL']     = b.photosUrl;
+    if (b.stayedAtUrl)   fields['Stayed at URL']  = b.stayedAtUrl;
+    if (b.placePhotoUrl) fields['Place Photo URL']= b.placePhotoUrl;
     if (b.rating)      fields['Rating']        = Number(b.rating);
 
     airtableRequest('POST', '', { fields }, (err, data) => {
