@@ -4505,6 +4505,7 @@ function openTrip(record) {
   document.getElementById('cancel-trip-btn').style.display = 'inline-block';
   document.getElementById('trip-list-section').style.display = 'none';
   document.getElementById('trip-detail').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   loadTripDNAGuides(f['Destination'] || '', f['Country'] || '', f['DNA Guide ID'] || null);
   // Pre-load DNA records for place modal guide picker
   if (!_pmDNARecords) fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail)).then(r=>r.json()).then(d=>{ _pmDNARecords = d.records||[]; }).catch(()=>{});
