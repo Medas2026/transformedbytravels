@@ -1558,6 +1558,19 @@
                     <div class="trip-field-label">Notes <span style="font-weight:400;opacity:0.6;">(optional)</span></div>
                     <textarea id="planner-td-notes" class="trip-textarea" rows="3" placeholder="Any notes for this trip…"></textarea>
                   </div>
+                  <div>
+                    <div class="trip-field-label">Trip Photo <span style="font-weight:400;opacity:0.6;">(optional · horizontal recommended)</span></div>
+                    <div id="planner-photo-preview" style="display:none;position:relative;margin-bottom:8px;">
+                      <img id="planner-photo-img" src="" alt="Trip photo" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;border:1px solid var(--bd);" />
+                      <button onclick="clearPlannerPhoto()" style="position:absolute;top:8px;right:8px;background:rgba(15,23,42,0.75);border:none;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;border-radius:6px;padding:5px 10px;cursor:pointer;">✕ Remove</button>
+                    </div>
+                    <input class="trip-input" id="planner-td-photo-url" type="url" placeholder="https://…" oninput="plannerPhotoUrlInput()" style="margin-bottom:8px;" />
+                    <div style="display:flex;align-items:center;gap:12px;">
+                      <input type="file" id="planner-photo-file" accept="image/*" onchange="uploadPlannerPhoto(this)" style="display:none;" />
+                      <button onclick="document.getElementById('planner-photo-file').click()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:7px 16px;cursor:pointer;">+ Upload Photo</button>
+                      <span id="planner-photo-status" style="font-size:0.8rem;color:var(--soft);"></span>
+                    </div>
+                  </div>
                   <div style="display:flex;gap:10px;align-items:center;">
                     <button onclick="plannerSaveTrip()" style="padding:11px 28px;background:var(--teal);border:none;border-radius:8px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save Trip</button>
                     <button onclick="document.getElementById('planner-trip-form').style.display='none';document.getElementById('planner-places-section').style.display='none';document.getElementById('planner-add-place-form').style.display='none';" style="padding:11px 20px;background:none;border:1px solid var(--bd);border-radius:8px;color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;cursor:pointer;">Cancel</button>
@@ -2790,11 +2803,13 @@ function _plannerOpenForm(title) {
 
 function plannerCreateTrip() {
   _plannerEditTripId = null;
-  document.getElementById('planner-td-name').value   = '';
-  document.getElementById('planner-td-start').value  = '';
-  document.getElementById('planner-td-end').value    = '';
-  document.getElementById('planner-td-notes').value  = '';
-  document.getElementById('planner-td-status').value = 'Research';
+  document.getElementById('planner-td-name').value      = '';
+  document.getElementById('planner-td-start').value     = '';
+  document.getElementById('planner-td-end').value       = '';
+  document.getElementById('planner-td-notes').value     = '';
+  document.getElementById('planner-td-status').value    = 'Research';
+  document.getElementById('planner-td-photo-url').value = '';
+  _plannerShowPhotoPreview('');
   document.getElementById('planner-dest-picker-wrap').style.display = 'block';
   document.getElementById('planner-places-section').style.display   = 'none';
   document.getElementById('planner-add-place-form').style.display   = 'none';
@@ -2804,11 +2819,13 @@ function plannerCreateTrip() {
 function plannerOpenEdit(rec) {
   _plannerEditTripId = rec.id;
   const f = rec.fields;
-  document.getElementById('planner-td-name').value   = f['Trip Name']       || '';
-  document.getElementById('planner-td-start').value  = f['Start Date']      || '';
-  document.getElementById('planner-td-end').value    = f['End Date']        || '';
-  document.getElementById('planner-td-notes').value  = f['Notes']           || '';
-  document.getElementById('planner-td-status').value = f['Status of Trip']  || 'Research';
+  document.getElementById('planner-td-name').value      = f['Trip Name']       || '';
+  document.getElementById('planner-td-start').value     = f['Start Date']      || '';
+  document.getElementById('planner-td-end').value       = f['End Date']        || '';
+  document.getElementById('planner-td-notes').value     = f['Notes']           || '';
+  document.getElementById('planner-td-status').value    = f['Status of Trip']  || 'Research';
+  document.getElementById('planner-td-photo-url').value = f['Trip Photo URL']  || '';
+  _plannerShowPhotoPreview(f['Trip Photo URL'] || '');
   document.getElementById('planner-dest-picker-wrap').style.display = 'none';
   document.getElementById('planner-add-place-form').style.display   = 'none';
   _plannerOpenForm('Edit Trip');
@@ -2837,7 +2854,9 @@ async function plannerSaveTrip() {
       startDate:       _s,
       endDate:         _e,
       notes:           document.getElementById('planner-td-notes').value,
-      'Status of Trip': document.getElementById('planner-td-status').value || 'Research'
+      'Status of Trip': document.getElementById('planner-td-status').value || 'Research',
+      tripPhotoUrl:    document.getElementById('planner-td-photo-url').value.trim(),
+      _prevStatus:     ''
     };
   } else {
     // POST — new trip
@@ -2851,7 +2870,8 @@ async function plannerSaveTrip() {
       startDate:       _s,
       endDate:         _e,
       notes:           document.getElementById('planner-td-notes').value,
-      'Status of Trip': document.getElementById('planner-td-status').value || 'Research'
+      'Status of Trip': document.getElementById('planner-td-status').value || 'Research',
+      tripPhotoUrl:    document.getElementById('planner-td-photo-url').value.trim()
     };
   }
 
@@ -5587,6 +5607,45 @@ function _clearTripPhotoField() {
   document.getElementById('td-photo-dropzone').style.display = 'flex';
   document.getElementById('td-photo-banner').style.display = 'none';
   document.getElementById('td-photo-status').textContent = '';
+}
+
+function _plannerShowPhotoPreview(url) {
+  const preview = document.getElementById('planner-photo-preview');
+  const img     = document.getElementById('planner-photo-img');
+  if (url) { img.src = url; preview.style.display = 'block'; }
+  else     { img.src = '';  preview.style.display = 'none';  }
+  document.getElementById('planner-photo-status').textContent = '';
+}
+
+function plannerPhotoUrlInput() {
+  _plannerShowPhotoPreview(document.getElementById('planner-td-photo-url').value.trim());
+}
+
+function clearPlannerPhoto() {
+  document.getElementById('planner-td-photo-url').value = '';
+  _plannerShowPhotoPreview('');
+}
+
+async function uploadPlannerPhoto(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const status = document.getElementById('planner-photo-status');
+  if (file.size > 5 * 1024 * 1024) { status.textContent = 'Photo must be under 5MB.'; input.value = ''; return; }
+  status.textContent = 'Uploading…';
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', 'Trip Image');
+  try {
+    const resp = await fetch('https://api.cloudinary.com/v1_1/dporenlvw/image/upload', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (data.secure_url) {
+      document.getElementById('planner-td-photo-url').value = data.secure_url;
+      _plannerShowPhotoPreview(data.secure_url);
+    } else {
+      status.textContent = 'Upload failed. Please try again.';
+    }
+  } catch(e) { status.textContent = 'Upload error: ' + e.message; }
+  input.value = '';
 }
 
 function _pmShowPlacePhotoPreview(url) {
