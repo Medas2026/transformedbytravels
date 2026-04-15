@@ -373,13 +373,13 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET' && _action === 'send-daily') {
     (async () => {
       try {
-        const apiKey  = process.env.AIRTABLE_API_KEY;
-        const headers = { 'Authorization': 'Bearer ' + apiKey };
-        const now     = new Date();
+        const now = new Date();
+        const airtableGetP = (table, filter) => new Promise((resolve, reject) =>
+          airtableGet(table, filter, (err, data) => err ? reject(err) : resolve(data))
+        );
 
-        const tripsResp = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TRIPS_TABLE)}?filterByFormula=${encodeURIComponent(`{Status of Trip}="Active"`)}`, { headers });
-        const tripsData = await tripsResp.json();
-        console.log(`[send-daily] active trips found: ${(tripsData.records||[]).length} error=${tripsData.error ? JSON.stringify(tripsData.error) : ''} status=${tripsResp.status}`);
+        const tripsData = await airtableGetP(TRIPS_TABLE, '?filterByFormula=' + encodeURIComponent('{Status of Trip}="Active"'));
+        console.log(`[send-daily] active trips found: ${(tripsData.records||[]).length} error=${tripsData.error ? JSON.stringify(tripsData.error) : ''}`);
 
         const toSend = (tripsData.records || [])
           .filter(r => r.fields['Traveler Email'] && r.fields['Journal Enabled'] !== false)
@@ -415,8 +415,7 @@ module.exports = async function handler(req, res) {
 
         for (const { email, tripId, destination, country, activationDate, endDate, tripName, localDate, places } of toSend) {
           // Traveler info
-          const travResp = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TRAVELER_TABLE)}?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`, { headers });
-          const travData = await travResp.json();
+          const travData = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${email}")`));
           const travRec  = (travData.records || [])[0];
           const name     = travRec ? (travRec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
           const phone    = travRec ? (travRec.fields['Phone Number'] || '') : '';
