@@ -952,29 +952,6 @@
         </div><!-- /trip-detail -->
       </div>
 
-      <!-- Trip History Page -->
-      <div class="page" id="page-history">
-
-        <!-- Archetype Banner -->
-        <div class="arch-banner" id="history-arch-banner" style="display:none;">
-          <img class="arch-banner-icon" id="history-arch-icon" src="" alt="" />
-          <div>
-            <div class="arch-banner-name" id="history-arch-name"></div>
-            <div class="arch-banner-tag" id="history-arch-tag"></div>
-            <div class="arch-banner-desc" id="history-arch-desc"></div>
-          </div>
-        </div>
-
-        <div id="history-list-section">
-          <div class="trips-header">
-            <div class="trips-title">Your Taken Trips</div>
-            <button class="btn-new-trip" onclick="showNewHistoryTripForm()">+ Taken Trip</button>
-          </div>
-          <div id="history-list-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading trips…</div>
-          <div id="history-list"></div>
-        </div>
-      </div>
-
       <!-- Your Travel Story Page -->
       <div class="page" id="page-story">
         <!-- Archetype Banner -->
@@ -3650,7 +3627,6 @@ function showPage(name) {
     }
   }
   if (name === 'planning')     loadTrips();
-  if (name === 'history')      loadTripHistory();
   if (name === 'story')        loadTravelStory();
   if (name === 'my-trip')      loadMyTrip();
   if (name === 'workshop')     { delete wsState['PRE_TRIP']; loadWorkshop('PRE_TRIP'); }
@@ -4255,7 +4231,6 @@ let currentTripStart       = '';
 let currentTripEnd         = '';
 let currentTripStatus      = '';
 let tripsLoaded        = false;
-let historyTripsLoaded = false;
 let _returnToHistory   = false;
 let _isHistoryTrip     = false;
 
@@ -4286,40 +4261,6 @@ function loadTrips() {
     })
     .catch(() => {
       document.getElementById('trip-list-loading').textContent = 'Could not load trips.';
-    });
-}
-
-function loadTripHistory() {
-  // Always reset section visibility when navigating to history page
-  document.getElementById('history-list-section').style.display = 'block';
-  // Populate archetype banner (same data as trip planning banner)
-  const hBanner = document.getElementById('history-arch-banner');
-  if (hBanner && portalProfile) {
-    const archData = ARCHETYPE_DATA[portalProfile['Archetype']];
-    if (archData) {
-      document.getElementById('history-arch-icon').src           = archData.iconImg;
-      document.getElementById('history-arch-name').textContent   = portalProfile['Archetype'];
-      document.getElementById('history-arch-tag').textContent    = archData.tag;
-      document.getElementById('history-arch-desc').textContent   = archData.desc;
-      hBanner.style.display = 'flex';
-    }
-  }
-  if (historyTripsLoaded) return;
-  fetch('/api/trips?email=' + encodeURIComponent(userEmail))
-    .then(r => r.json())
-    .then(data => {
-      historyTripsLoaded = true;
-      document.getElementById('history-list-loading').style.display = 'none';
-      const history = (data.records || []).filter(r => r.fields['History'])
-        .sort((a, b) => {
-          const da = new Date((a.fields['End Date'] || a.fields['Start Date'] || '1900-01-01') + 'T00:00:00');
-          const db = new Date((b.fields['End Date'] || b.fields['Start Date'] || '1900-01-01') + 'T00:00:00');
-          return db - da;
-        });
-      renderHistoryList(history);
-    })
-    .catch(() => {
-      document.getElementById('history-list-loading').textContent = 'Could not load trip history.';
     });
 }
 
@@ -4441,30 +4382,6 @@ function loadTravelStory() {
     .catch(() => {
       document.getElementById('story-loading').textContent = 'Could not load your travel story.';
     });
-}
-
-function renderHistoryList(records) {
-  const list = document.getElementById('history-list');
-  if (!records.length) {
-    list.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:12px 0;">No taken trips recorded yet. Click "+ Taken Trip" to add one.</p>';
-    return;
-  }
-  const ratingStars = { 'Top 3 Ever': '★★★★★', 'Outstanding': '★★★★', 'Met Expectations': '★★★', 'So So': '★★', 'Disappointing': '★' };
-  list.innerHTML = records.map(r => {
-    const f      = r.fields;
-    const name   = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
-    const start  = f['Start Date'] ? new Date(f['Start Date'] + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
-    const end    = f['End Date']   ? new Date(f['End Date']   + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
-    const dates  = start && end ? `${start} – ${end}` : (start || '');
-    const stars  = f['Trip Rating'] ? `<span style="color:var(--teal);font-size:0.85rem;" title="${f['Trip Rating']}">${ratingStars[f['Trip Rating']] || ''}</span>` : '';
-    return `<div class="trip-card" onclick='openTripFromHistory(${JSON.stringify(r)})'>
-      <div>
-        <div class="trip-card-name">${name}</div>
-        <div class="trip-card-dates">${dates}${stars ? ' &nbsp;' + stars : ''}</div>
-      </div>
-      <div class="trip-card-arrow">›</div>
-    </div>`;
-  }).join('');
 }
 
 function renderTravelInsights(records) {
@@ -4675,7 +4592,6 @@ function renderTravelInsights(records) {
 function openTripFromHistory(record) {
   _returnToHistory = true;
   _isHistoryTrip   = true;
-  document.getElementById('history-list-section').style.display = 'none';
   showPage('planning');
   document.getElementById('trip-list-section').style.display = 'none';
   document.getElementById('td-status-group').style.display = 'none';
@@ -5794,7 +5710,6 @@ function showNewHistoryTripForm() {
   dpClear('tdp');
   document.getElementById('trip-dest-picker').style.display = 'block';
   document.getElementById('trip-dest-readonly').style.display = 'none';
-  document.getElementById('history-list-section').style.display = 'none';
   // Show planning page content without changing the active menu highlight
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-planning').classList.add('active');
@@ -5813,7 +5728,6 @@ function closeTripDetail() {
   _isHistoryTrip = false;
   if (_returnToHistory) {
     _returnToHistory = false;
-    historyTripsLoaded = false;
     showPage('story');
   } else {
     document.getElementById('trip-list-section').style.display = 'block';
