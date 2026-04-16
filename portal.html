@@ -800,6 +800,12 @@
           </div>
           <div id="trip-list-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading trips…</div>
           <div id="trip-list"></div>
+
+          <!-- Taken / History Trips -->
+          <div id="history-trip-list-section" style="display:none;margin-top:24px;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">Taken Trips</div>
+            <div id="history-trip-list"></div>
+          </div>
         </div>
 
         <!-- Trip Detail -->
@@ -4357,8 +4363,15 @@ function loadTrips() {
     .then(data => {
       tripsLoaded = true;
       document.getElementById('trip-list-loading').style.display = 'none';
-      const active = (data.records || []).filter(r => !r.fields['History']);
+      const all     = data.records || [];
+      const active  = all.filter(r => !r.fields['History']);
+      const history = all.filter(r =>  r.fields['History']).sort((a, b) => {
+        const da = a.fields['End Date'] || a.fields['Start Date'] || '0';
+        const db = b.fields['End Date'] || b.fields['Start Date'] || '0';
+        return new Date(db) - new Date(da);
+      });
       renderTripList(active);
+      renderHistoryTripList(history);
     })
     .catch(() => {
       document.getElementById('trip-list-loading').textContent = 'Could not load trips.';
@@ -4844,6 +4857,40 @@ function renderTripList(records) {
       <div class="trip-card-arrow">›</div>
     </div>`;
   }).join('');
+}
+
+function renderHistoryTripList(records) {
+  const section = document.getElementById('history-trip-list-section');
+  const list    = document.getElementById('history-trip-list');
+  if (!section || !list) return;
+  if (!records.length) { section.style.display = 'none'; return; }
+
+  const RATING_STARS = { 'Top 3 Ever':'★★★★★', 'Outstanding':'★★★★', 'Met Expectations':'★★★', 'So So':'★★', 'Disappointing':'★' };
+  const RATING_COLOR = { 'Top 3 Ever':'#2dd4bf', 'Outstanding':'#4ade80', 'Met Expectations':'#60a5fa', 'So So':'#f59e0b', 'Disappointing':'#f43f5e' };
+
+  list.innerHTML = records.map(r => {
+    const f      = r.fields;
+    const name   = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
+    const dest   = [f['Destination'], f['Country']].filter(Boolean).join(', ');
+    const start  = f['Start Date'] ? new Date(f['Start Date'] + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
+    const end    = f['End Date']   ? new Date(f['End Date']   + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
+    const dates  = start && end ? `${start} – ${end}` : (start || end || '');
+    const rating = f['Trip Rating'];
+    const ratingHtml = rating
+      ? `<span style="color:${RATING_COLOR[rating]||'var(--soft)'};font-size:0.85rem;" title="${rating}">${RATING_STARS[rating]||rating}</span>`
+      : '';
+    return `<div class="trip-card" onclick='openTripFromHistory(${JSON.stringify(r)})'>
+      <div>
+        <div class="trip-card-name">${name}</div>
+        ${dest ? `<div class="trip-card-dates">${dest}</div>` : ''}
+        ${dates ? `<div class="trip-card-dates">${dates}</div>` : ''}
+        ${ratingHtml}
+      </div>
+      <div class="trip-card-arrow">›</div>
+    </div>`;
+  }).join('');
+
+  section.style.display = 'block';
 }
 
 function updateDuration() {
