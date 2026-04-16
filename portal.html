@@ -972,6 +972,21 @@
           </div>
           <div id="history-list-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading trips…</div>
           <div id="history-list"></div>
+
+          <!-- Travel Insights -->
+          <div id="travel-insights-section" style="display:none;margin-top:36px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Travel Insights</div>
+            </div>
+            <div id="insights-stats" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;"></div>
+            <div id="insights-timeline" style="margin-bottom:24px;"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+              <div id="insights-ratings"></div>
+              <div id="insights-continents"></div>
+            </div>
+            <div id="insights-key"></div>
+          </div>
         </div>
       </div>
 
@@ -4297,11 +4312,12 @@ function loadTripHistory() {
       document.getElementById('history-list-loading').style.display = 'none';
       const history = (data.records || []).filter(r => r.fields['History'])
         .sort((a, b) => {
-          const da = a.fields['End Date'] || a.fields['Start Date'] || '';
-          const db = b.fields['End Date'] || b.fields['Start Date'] || '';
-          return db.localeCompare(da);
+          const da = new Date((a.fields['End Date'] || a.fields['Start Date'] || '1900-01-01') + 'T00:00:00');
+          const db = new Date((b.fields['End Date'] || b.fields['Start Date'] || '1900-01-01') + 'T00:00:00');
+          return db - da;
         });
       renderHistoryList(history);
+      renderTravelInsights(history);
     })
     .catch(() => {
       document.getElementById('history-list-loading').textContent = 'Could not load trip history.';
@@ -4449,6 +4465,211 @@ function renderHistoryList(records) {
       <div class="trip-card-arrow">›</div>
     </div>`;
   }).join('');
+}
+
+function renderTravelInsights(records) {
+  const section = document.getElementById('travel-insights-section');
+  if (!records.length) return;
+  section.style.display = 'block';
+
+  const RATING_ORDER = ['Top 3 Ever','Outstanding','Met Expectations','So So','Disappointing'];
+  const RATING_COLOR = { 'Top 3 Ever':'#2dd4bf','Outstanding':'#4ade80','Met Expectations':'#60a5fa','So So':'#f59e0b','Disappointing':'#f43f5e' };
+  const CONTINENT_MAP = {
+    'United States':'North America','Canada':'North America','Mexico':'North America',
+    'Belize':'North America','Costa Rica':'North America','Panama':'North America',
+    'Argentina':'South America','Brazil':'South America','Chile':'South America','Peru':'South America','Colombia':'South America','Ecuador':'South America',
+    'Uganda':'Africa','Kenya':'Africa','Tanzania':'Africa','South Africa':'Africa','Morocco':'Africa','Ethiopia':'Africa',
+    'Italy':'Europe','Greece':'Europe','France':'Europe','Spain':'Europe','Portugal':'Europe','Germany':'Europe','Croatia':'Europe','Switzerland':'Europe','Austria':'Europe','Netherlands':'Europe','Ireland':'Europe','United Kingdom':'Europe','Norway':'Europe','Sweden':'Europe','Iceland':'Europe',
+    'Japan':'Asia','Thailand':'Asia','Vietnam':'Asia','Indonesia':'Asia','Philippines':'Asia','India':'Asia','Nepal':'Asia','Bhutan':'Asia','Cambodia':'Asia','Laos':'Asia','Myanmar':'Asia','Sri Lanka':'Asia','China':'Asia','Mongolia':'Asia',
+    'Australia':'Oceania','New Zealand':'Oceania','Fiji':'Oceania',
+    'Antarctica':'Antarctica'
+  };
+
+  // ── Compute stats ──────────────────────────────────────────────
+  const rated = records.filter(r => r.fields['Trip Rating']);
+  let totalDays = 0;
+  const countriesSet = new Set(), continentsSet = new Set();
+  const byYear = {}, ratingCounts = {};
+  const monthCounts = {};
+
+  records.forEach(r => {
+    const f = r.fields;
+    const country   = (f['Country'] || '').trim();
+    const continent = CONTINENT_MAP[country] || 'Other';
+    if (country)    countriesSet.add(country);
+    if (continent)  continentsSet.add(continent);
+
+    if (f['Start Date'] && f['End Date']) {
+      const s = new Date(f['Start Date'] + 'T00:00:00');
+      const e = new Date(f['End Date']   + 'T00:00:00');
+      const days = Math.round((e - s) / 86400000);
+      if (days > 0 && days < 400) totalDays += days;
+    }
+    const yr = (f['Start Date'] || '').slice(0,4);
+    if (yr && yr > '2000') {
+      if (!byYear[yr]) byYear[yr] = [];
+      byYear[yr].push(r);
+    }
+    if (f['Trip Rating']) ratingCounts[f['Trip Rating']] = (ratingCounts[f['Trip Rating']] || 0) + 1;
+    if (f['Start Date']) {
+      const mo = new Date(f['Start Date'] + 'T00:00:00').toLocaleString('en-US', {month:'short'});
+      monthCounts[mo] = (monthCounts[mo] || 0) + 1;
+    }
+  });
+
+  const topMonth = Object.entries(monthCounts).sort((a,b) => b[1]-a[1])[0];
+  const bestRatedTrip = records.filter(r => r.fields['Trip Rating'] === 'Top 3 Ever').sort((a,b) => {
+    const da = new Date((a.fields['End Date']||a.fields['Start Date']||'') + 'T00:00:00');
+    const db = new Date((b.fields['End Date']||b.fields['Start Date']||'') + 'T00:00:00');
+    return db - da;
+  })[0];
+
+  // Duration vs rating
+  const durationByRating = {};
+  records.filter(r => r.fields['Trip Rating'] && r.fields['Start Date'] && r.fields['End Date']).forEach(r => {
+    const days = Math.round((new Date(r.fields['End Date']+'T00:00:00') - new Date(r.fields['Start Date']+'T00:00:00')) / 86400000);
+    if (days > 0 && days < 400) {
+      if (!durationByRating[r.fields['Trip Rating']]) durationByRating[r.fields['Trip Rating']] = [];
+      durationByRating[r.fields['Trip Rating']].push(days);
+    }
+  });
+  const avgDuration = rating => {
+    const arr = durationByRating[rating];
+    return arr && arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : null;
+  };
+
+  function statCard(value, label, color) {
+    return `<div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;text-align:center;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.6rem;color:${color||'var(--teal)'};">${value}</div>
+      <div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--soft);margin-top:3px;">${label}</div>
+    </div>`;
+  }
+
+  // ── Stats row ──────────────────────────────────────────────────
+  document.getElementById('insights-stats').innerHTML =
+    statCard(records.length, 'Trips Taken', 'var(--teal)') +
+    statCard(countriesSet.size, 'Countries', '#60a5fa') +
+    statCard(continentsSet.size, 'Continents', '#a78bfa') +
+    statCard(totalDays, 'Days Abroad', '#4ade80');
+
+  // ── Year timeline ──────────────────────────────────────────────
+  const years = Object.keys(byYear).sort();
+  const tlHtml = years.map(yr => {
+    const trips = byYear[yr];
+    const tripDots = trips.map(r => {
+      const name   = r.fields['Trip Name'] || r.fields['Destination'] || '?';
+      const rating = r.fields['Trip Rating'] || '';
+      const color  = RATING_COLOR[rating] || '#64748b';
+      const country = (r.fields['Country'] || '').trim();
+      const cont   = CONTINENT_MAP[country] || '';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--s2);border-radius:8px;border-left:3px solid ${color};">
+        <div>
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;color:var(--text);">${name}</div>
+          <div style="font-family:'Open Sans',sans-serif;font-size:0.74rem;color:var(--muted);">${country}${cont ? ' · '+cont : ''}${rating ? ' · <span style="color:'+color+'">'+rating+'</span>' : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div style="margin-bottom:14px;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">${yr}</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">${tripDots}</div>
+    </div>`;
+  }).join('');
+
+  const timelineEl = document.getElementById('insights-timeline');
+  timelineEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.06em;">Year by Year</div>
+  </div>${tlHtml}`;
+
+  // ── Ratings breakdown ──────────────────────────────────────────
+  const maxCount = Math.max(...Object.values(ratingCounts), 1);
+  const ratingBars = RATING_ORDER.filter(r => ratingCounts[r]).map(r => {
+    const pct = Math.round((ratingCounts[r] / maxCount) * 100);
+    const avg = avgDuration(r);
+    return `<div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+        <span style="font-family:'Open Sans',sans-serif;font-size:0.8rem;color:var(--text);">${r}</span>
+        <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;color:${RATING_COLOR[r]};">${ratingCounts[r]} trip${ratingCounts[r]>1?'s':''}</span>
+      </div>
+      <div style="background:var(--s2);border-radius:4px;height:8px;">
+        <div style="background:${RATING_COLOR[r]};width:${pct}%;height:8px;border-radius:4px;"></div>
+      </div>
+      ${avg ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">avg ${avg} days</div>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('insights-ratings').innerHTML = `
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Ratings</div>
+      ${ratingBars}
+    </div>`;
+
+  // ── Continents ─────────────────────────────────────────────────
+  const contCounts = {};
+  records.forEach(r => {
+    const cont = CONTINENT_MAP[(r.fields['Country']||'').trim()] || 'Other';
+    contCounts[cont] = (contCounts[cont] || 0) + 1;
+  });
+  const ALL_CONTINENTS = ['North America','South America','Europe','Africa','Asia','Oceania','Antarctica'];
+  const contRows = ALL_CONTINENTS.map(c => {
+    const count = contCounts[c] || 0;
+    const visited = count > 0;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+      <span style="font-family:'Open Sans',sans-serif;font-size:0.82rem;color:${visited?'var(--text)':'var(--muted)'};">${visited?'✓':' '} ${c}</span>
+      <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:${visited?'var(--teal)':'var(--muted)'};">${count > 0 ? count+' trip'+(count>1?'s':'') : '—'}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('insights-continents').innerHTML = `
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Continents</div>
+      ${contRows}
+    </div>`;
+
+  // ── Key insights ───────────────────────────────────────────────
+  const insights = [];
+
+  // Duration correlation
+  const top3Avg = avgDuration('Top 3 Ever');
+  const metAvg  = avgDuration('Met Expectations');
+  if (top3Avg && metAvg && top3Avg > metAvg) {
+    insights.push(`Your Top 3 Ever trips average <strong>${top3Avg} days</strong> vs. <strong>${metAvg} days</strong> for Met Expectations trips — longer trips consistently deliver more for you.`);
+  }
+
+  // Untouched continents
+  const unvisited = ALL_CONTINENTS.filter(c => !contCounts[c] && c !== 'Antarctica');
+  if (unvisited.length) {
+    insights.push(`You haven't visited <strong>${unvisited.join(', ')}</strong> yet — wide open territory.`);
+  }
+
+  // Best month
+  if (topMonth) {
+    insights.push(`<strong>${topMonth[0]}</strong> is your most common departure month (${topMonth[1]} trip${topMonth[1]>1?'s':''}).`);
+  }
+
+  // Repeat destination warning
+  const destCounts = {};
+  records.forEach(r => { const d = r.fields['Destination']||''; if (d) destCounts[d] = (destCounts[d]||0)+1; });
+  const repeats = Object.entries(destCounts).filter(([,c]) => c > 1);
+  if (repeats.length) {
+    const repeatNames = repeats.map(([d]) => d).join(', ');
+    insights.push(`You've returned to <strong>${repeatNames}</strong> — and repeat visits tend to rate lower than first-time destinations in your history.`);
+  }
+
+  // Most recent Top 3
+  if (bestRatedTrip) {
+    insights.push(`Your most recent Top 3 Ever trip was <strong>${bestRatedTrip.fields['Trip Name']||bestRatedTrip.fields['Destination']}</strong> in <strong>${(bestRatedTrip.fields['Start Date']||'').slice(0,4)}</strong>. What made it exceptional?`);
+  }
+
+  const insightCards = insights.map(text =>
+    `<div style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;background:var(--s1);border:1px solid var(--bd);border-radius:10px;margin-bottom:10px;">
+      <div style="color:var(--teal);font-size:1rem;flex-shrink:0;margin-top:1px;">→</div>
+      <div style="font-family:'Open Sans',sans-serif;font-size:0.85rem;color:var(--soft);line-height:1.6;">${text}</div>
+    </div>`
+  ).join('');
+
+  document.getElementById('insights-key').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.06em;">What Your History Tells You</div>
+    </div>
+    ${insightCards}`;
 }
 
 function openTripFromHistory(record) {
