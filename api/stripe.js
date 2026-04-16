@@ -1,4 +1,5 @@
-const Stripe = require('stripe');
+const Stripe            = require('stripe');
+const { sendTemplateEmail } = require('./template-email');
 
 const AIRTABLE_BASE  = 'appdlxcWb45dIqNK2';
 const AIRTABLE_TABLE = 'Traveler';
@@ -167,11 +168,48 @@ module.exports = async function handler(req, res) {
             'DNA Guides Remaining':  planConfig.dna,
             'Trips Remaining':       planConfig.trips
           };
+          if (!record.fields['Created Date']) {
+            fields['Created Date'] = new Date().toISOString().split('T')[0];
+          }
           airtablePatch(record.id, fields, (err2) => {
             if (err2) return res.status(500).json({ error: err2.message });
+            const name = record.fields['Traveler Name'] || email;
+            sendTemplateEmail('WELCOME_SUB', email, { name }).catch(e => console.error('WELCOME_SUB email failed:', e.message));
             res.status(200).json({ success: true, plan, endDate });
           });
         }
+      });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+    return;
+  }
+
+  // ── POST action=cancel: cancel subscription at period end ───────────────────
+  if (req.method === 'POST' && (req.query.action === 'cancel' || (req.body && req.body.action === 'cancel'))) {
+    const email = ((req.body && req.body.email) || '').toLowerCase().trim();
+    if (!email) return res.status(400).json({ error: 'email required' });
+
+    try {
+      airtableFind(email, async (err, record) => {
+        if (err || !record) return res.status(404).json({ error: 'Traveler not found' });
+        const customerId = record.fields['Stripe Customer ID'];
+        if (!customerId) return res.status(400).json({ error: 'No Stripe customer on file' });
+
+        // Find active subscription
+        const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 });
+        if (!subs.data.length) return res.status(400).json({ error: 'No active subscription found' });
+
+        const sub = subs.data[0];
+        const updated = await stripe.subscriptions.update(sub.id, { cancel_at_period_end: true });
+        const endDate = new Date(updated.current_period_end * 1000).toISOString().split('T')[0];
+
+        // Mark in Airtable — keep end date so access continues until then
+        airtablePatch(record.id, { 'Subscription Active': false }, (err2) => {
+          if (err2) console.error('Airtable cancel patch failed:', err2.message);
+        });
+
+        return res.status(200).json({ success: true, cancelAt: endDate });
       });
     } catch(e) {
       return res.status(500).json({ error: e.message });

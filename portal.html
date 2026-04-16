@@ -477,6 +477,9 @@
             <div class="profile-field" id="pf-active-trip-row" style="display:none;"><span class="field-label">Active Trip</span><span class="field-value" id="pf-active-trip-name" style="color:#2dd4bf;">—</span></div>
             <div class="profile-field" id="pf-ws-pretrip-row" style="display:none;"><span class="field-label">Pre-Trip Workshop</span><span class="field-value" id="pf-ws-pretrip-status">—</span></div>
             <div class="profile-field" id="pf-ws-integration-row" style="display:none;"><span class="field-label">Integration Workshop</span><span class="field-value" id="pf-ws-integration-status">—</span></div>
+            <div id="pf-cancel-sub-row" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);">
+              <button onclick="showCancelSubModal()" style="background:none;border:1px solid #f43f5e;color:#f43f5e;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;border-radius:7px;padding:7px 18px;cursor:pointer;letter-spacing:0.04em;">Cancel Subscription</button>
+            </div>
           </div>
 
           <div class="profile-section">
@@ -853,7 +856,7 @@
               <div class="trip-field-label">Destination Airport Code</div>
               <div style="display:flex;gap:10px;align-items:center;">
                 <input id="td-airport" type="text" maxlength="4" class="trip-input" placeholder="e.g. CDG" style="width:110px;text-transform:uppercase;flex-shrink:0;" oninput="this.value=this.value.toUpperCase()" />
-                <button onclick="openFlightsSearch()" type="button" style="display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:7px;padding:8px 14px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='rgba(45,212,191,0.4)'">
+                <button onclick="openFlightsModal()" type="button" style="display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:7px;padding:8px 14px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='rgba(45,212,191,0.4)'">
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-2-5.5-.5L10 5 1.8 3.2l-1 1L6 9l-2 2-4-1-1 1 3 3 3 3 1-1-1-4 2-2 4.2 5.2 1-1z"/></svg>
                   Search Google Flights
                 </button>
@@ -874,6 +877,10 @@
             <div class="trip-field-group">
               <div class="trip-field-label">Co-Traveler Email <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(optional)</span></div>
               <input id="td-cotraveler" type="email" class="trip-input" placeholder="partner@email.com" />
+            </div>
+            <div class="trip-field-group">
+              <div class="trip-field-label">Trip Passions <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(select up to 3)</span></div>
+              <div id="td-passions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
             </div>
             <div class="trip-field-group" id="td-rating-group" style="display:none;">
               <div class="trip-field-label">Trip Rating</div>
@@ -984,23 +991,6 @@
           </div>
 
           <!-- Planned Trips -->
-          <div id="story-planned-block" style="display:none;margin-bottom:28px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
-              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You're Planning</div>
-            </div>
-            <div id="story-planned-list"></div>
-          </div>
-
-          <!-- Taken Trips -->
-          <div id="story-taken-block" style="display:none;margin-bottom:28px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
-              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You've Taken</div>
-            </div>
-            <div id="story-taken-list"></div>
-          </div>
-
           <!-- What's Ahead -->
           <div id="ahead-section" style="display:none;margin-bottom:28px;"></div>
 
@@ -1016,6 +1006,7 @@
               <div id="insights-ratings"></div>
               <div id="insights-continents"></div>
             </div>
+            <div id="insights-passions" style="display:none;margin-bottom:20px;"></div>
             <div id="insights-key"></div>
           </div>
 
@@ -1893,6 +1884,62 @@
     </div>
   </div>
 
+  <!-- Google Flights Modal -->
+  <div id="flights-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9000;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;max-width:400px;width:100%;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;margin-bottom:4px;">Search Google Flights</div>
+      <div style="font-family:'Open Sans',sans-serif;font-size:0.82rem;color:var(--muted);margin-bottom:20px;">Review or adjust details before searching.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div>
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--soft);margin-bottom:5px;">From (Airport Code)</div>
+          <input id="gf-origin" type="text" maxlength="4" placeholder="e.g. MSP"
+            style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;text-transform:uppercase;box-sizing:border-box;outline:none;"
+            oninput="this.value=this.value.toUpperCase()" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
+        </div>
+        <div>
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--soft);margin-bottom:5px;">To (Airport Code)</div>
+          <input id="gf-dest" type="text" maxlength="4" placeholder="e.g. CDG"
+            style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;text-transform:uppercase;box-sizing:border-box;outline:none;"
+            oninput="this.value=this.value.toUpperCase()" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div>
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--soft);margin-bottom:5px;">Departure Date</div>
+          <input id="gf-depart" type="date"
+            style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;box-sizing:border-box;outline:none;color-scheme:dark;"
+            onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
+        </div>
+        <div>
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--soft);margin-bottom:5px;">Return Date <span style="font-weight:400;color:var(--muted);">(optional)</span></div>
+          <input id="gf-return" type="date"
+            style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;box-sizing:border-box;outline:none;color-scheme:dark;"
+            onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="launchFlightsSearch()" style="flex:1;background:var(--teal);border:none;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:12px;cursor:pointer;">Open Google Flights →</button>
+        <button onclick="document.getElementById('flights-modal').style.display='none'" style="background:none;border:1px solid #475569;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:12px 18px;cursor:pointer;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel Subscription Modal -->
+  <div id="cancel-sub-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9000;display:none;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px 28px;max-width:420px;width:100%;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;margin-bottom:12px;">Cancel Subscription?</div>
+      <p style="font-family:'Open Sans',sans-serif;font-size:0.88rem;color:#94a3b8;line-height:1.7;margin:0 0 20px;">Your access will continue until the end of your current billing period. After that, your account will revert to a free plan.</p>
+      <div id="cancel-sub-msg" style="display:none;font-size:0.82rem;margin-bottom:14px;"></div>
+      <div style="display:flex;gap:12px;">
+        <button onclick="confirmCancelSub()" id="cancel-sub-confirm-btn" style="flex:1;background:#f43f5e;border:none;color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:11px;cursor:pointer;">Yes, Cancel</button>
+        <button onclick="hideCancelSubModal()" style="flex:1;background:none;border:1px solid #475569;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:11px;cursor:pointer;">Keep My Plan</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Place Modal -->
   <div id="place-modal" style="display:none;">
     <div class="pm-box">
@@ -2168,6 +2215,9 @@ async function loadProfile(email) {
       document.getElementById('pf-status').textContent     = f['Package Status'] || 'Not yet purchased';
       document.getElementById('pf-sub-active').textContent    = f['Subscription Active'] ? 'Yes' : 'No';
       document.getElementById('pf-sub-end').textContent       = f['Subscription End Date'] || '—';
+      // Show cancel button only for active paying subscribers
+      const _cancelRow = document.getElementById('pf-cancel-sub-row');
+      if (_cancelRow) _cancelRow.style.display = (f['Subscription Active'] && f['Stripe Customer ID']) ? 'block' : 'none';
       document.getElementById('pf-trips-remaining').textContent = f['Trips Remaining'] !== undefined ? f['Trips Remaining'] : '—';
       const _dnaDisp = f['DNA Guides Remaining'];
       const _dnaVal = (_dnaDisp === null || _dnaDisp === undefined || _dnaDisp === '') ? '—' : _dnaDisp;
@@ -4197,6 +4247,63 @@ initDestPicker({ containerId:'trip-dest-picker', idPrefix:'tdp', showPassion:tru
 });
 initDestPicker({ containerId:'dna-dest-picker',  idPrefix:'dna', showPassion:true, showAirport:false });
 
+// ── Trip Passions checkbox grid ────────────────────────────────────────────
+(function() {
+  const PASSIONS = [
+    'Scuba Diving','Mountain Climbing/Mountaineering','Day Hiking','Photography',
+    'Sailing','Canoeing/Kayaking','Mountain Biking','Wildlife Tracking',
+    'Sports Fishing','History and Art Tracker','Archaeology and Science',
+    'Birding','Culinary Travel','Wine Tasting','Pilgrimage','Volunteerism'
+  ];
+  const grid = document.getElementById('td-passions-grid');
+  if (!grid) return;
+  grid.innerHTML = PASSIONS.map(p =>
+    `<label id="td-passion-label-${CSS.escape(p)}" style="display:flex;align-items:center;gap:7px;padding:6px 10px;background:var(--s2);border:1.5px solid rgba(255,255,255,0.08);border-radius:7px;cursor:pointer;font-family:'Open Sans',sans-serif;font-size:0.8rem;color:var(--soft);transition:border-color 0.15s,color 0.15s;">
+      <input type="checkbox" value="${p}" onchange="_tdPassionChange()" style="accent-color:var(--teal);width:14px;height:14px;flex-shrink:0;" />
+      ${p}
+    </label>`
+  ).join('');
+})();
+
+window._tdPassionChange = function() {
+  const checked = Array.from(document.querySelectorAll('#td-passions-grid input[type=checkbox]:checked'));
+  const all     = Array.from(document.querySelectorAll('#td-passions-grid input[type=checkbox]'));
+  const limit   = checked.length >= 3;
+  all.forEach(cb => {
+    const label = cb.closest('label');
+    if (cb.checked) {
+      label.style.borderColor = 'var(--teal)';
+      label.style.color = 'var(--text)';
+      cb.disabled = false;
+    } else {
+      label.style.borderColor = limit ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.08)';
+      label.style.color = limit ? 'var(--muted)' : 'var(--soft)';
+      cb.disabled = limit;
+    }
+  });
+};
+
+window._tdGetPassions = function() {
+  return Array.from(document.querySelectorAll('#td-passions-grid input[type=checkbox]:checked')).map(cb => cb.value);
+};
+
+window._tdSetPassions = function(str) {
+  const vals = (str || '').split(',').map(s => s.trim()).filter(Boolean);
+  document.querySelectorAll('#td-passions-grid input[type=checkbox]').forEach(cb => {
+    cb.checked = vals.includes(cb.value);
+    cb.disabled = false;
+  });
+  _tdPassionChange();
+};
+
+window._tdClearPassions = function() {
+  document.querySelectorAll('#td-passions-grid input[type=checkbox]').forEach(cb => {
+    cb.checked = false; cb.disabled = false;
+    const label = cb.closest('label');
+    if (label) { label.style.borderColor = 'rgba(255,255,255,0.08)'; label.style.color = 'var(--soft)'; }
+  });
+};
+
 // Stash ?dest=&country= for DNA pre-fill before initAuth0 cleans the URL
 (function() {
   const p = new URLSearchParams(window.location.search);
@@ -4305,61 +4412,13 @@ function loadTravelStory() {
         }
       }
 
-      // Taken trips
+      // Taken trips — drive insights + ahead sections
       if (taken.length) {
-        const ratingStars = { 'Top 3 Ever': '★★★★★', 'Outstanding': '★★★★', 'Met Expectations': '★★★', 'So So': '★★', 'Disappointing': '★' };
-        document.getElementById('story-taken-list').innerHTML = taken.map(r => {
-          const f      = r.fields;
-          const name   = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
-          const dest   = f['Destination'] ? `<span style="color:var(--text);font-size:0.8rem;">${f['Destination']}${f['Country'] ? ', ' + f['Country'] : ''}</span>` : '';
-          const start  = f['Start Date'] ? new Date(f['Start Date'] + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
-          const end    = f['End Date']   ? new Date(f['End Date']   + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
-          const dates  = start && end ? `${start} – ${end}` : (start || end || '');
-          const rating = f['Trip Rating'] ? `<span style="color:var(--text);font-size:0.9rem;" title="${f['Trip Rating']}">${ratingStars[f['Trip Rating']] || f['Trip Rating']}</span>` : '';
-          const notes  = f['Notes'] ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.82rem;color:var(--text);margin-top:6px;line-height:1.5;border-left:2px solid rgba(45,212,191,0.3);padding-left:10px;">${f['Notes']}</div>` : '';
-          const photo  = f['Trip Photo URL'] ? `<img src="${f['Trip Photo URL']}" alt="${name}" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-bottom:10px;" />` : '';
-          return `<div style="background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.3);border-radius:12px;overflow:hidden;margin-bottom:10px;">
-            ${photo}
-            <div style="padding:14px 16px;">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-                <div>
-                  <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">${name}</div>
-                  ${dest}
-                </div>
-                <div style="text-align:right;flex-shrink:0;">
-                  ${rating ? `<div>${rating}</div>` : ''}
-                  ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--text);margin-top:2px;">${dates}</div>` : ''}
-                </div>
-              </div>
-              ${notes}
-            </div>
-          </div>`;
-        }).join('');
-        document.getElementById('story-taken-block').style.display = 'block';
         hasContent = true;
         renderTravelInsights(taken);
       }
 
-      // Planned trips
       if (planned.length) {
-        document.getElementById('story-planned-list').innerHTML = planned.map(r => {
-          const f     = r.fields;
-          const name  = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
-          const dest  = f['Destination'] ? `<span style="color:var(--muted);font-size:0.8rem;">${f['Destination']}${f['Country'] ? ', ' + f['Country'] : ''}</span>` : '';
-          const start = f['Start Date'] ? new Date(f['Start Date'] + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
-          const end   = f['End Date']   ? new Date(f['End Date']   + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
-          const dates = start && end ? `${start} – ${end}` : (start || end || '');
-          return `<div style="background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-              <div>
-                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">${name}</div>
-                <span style="color:var(--text);font-size:0.8rem;">${f['Destination'] || ''}${f['Country'] ? ', ' + f['Country'] : ''}</span>
-              </div>
-              ${dates ? `<div style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--text);flex-shrink:0;">${dates}</div>` : ''}
-            </div>
-          </div>`;
-        }).join('');
-        document.getElementById('story-planned-block').style.display = 'block';
         hasContent = true;
         renderAheadInsights(planned, taken);
       }
@@ -4619,6 +4678,44 @@ function renderTravelInsights(records) {
       ${contRows}
     </div>`;
 
+  // ── Passions breakdown ─────────────────────────────────────────
+  const passionCounts = {}, passionTopRated = {};
+  records.forEach(r => {
+    const f = r.fields;
+    const raw = (f['Trip Passions'] || '').trim();
+    if (!raw) return;
+    raw.split(',').map(s => s.trim()).filter(Boolean).forEach(p => {
+      passionCounts[p] = (passionCounts[p] || 0) + 1;
+      if (f['Trip Rating'] === 'Top 3 Ever' || f['Trip Rating'] === 'Outstanding') {
+        passionTopRated[p] = (passionTopRated[p] || 0) + 1;
+      }
+    });
+  });
+  const passionEntries = Object.entries(passionCounts).sort((a,b) => b[1]-a[1]);
+  if (passionEntries.length) {
+    const maxP = passionEntries[0][1];
+    const passionBars = passionEntries.map(([p, count]) => {
+      const pct = Math.round((count / maxP) * 100);
+      const topCount = passionTopRated[p] || 0;
+      const topNote = topCount > 0 ? `<span style="color:#4ade80;font-size:0.7rem;"> · ${topCount} top-rated</span>` : '';
+      return `<div style="margin-bottom:9px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+          <span style="font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--text);">${p}${topNote}</span>
+          <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;color:var(--teal);">${count}</span>
+        </div>
+        <div style="background:var(--s2);border-radius:4px;height:6px;">
+          <div style="background:var(--teal);width:${pct}%;height:6px;border-radius:4px;opacity:0.7;"></div>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('insights-passions').innerHTML = `
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Trip Passions</div>
+        ${passionBars}
+      </div>`;
+    document.getElementById('insights-passions').style.display = 'block';
+  }
+
   // ── Key insights ───────────────────────────────────────────────
   const insights = [];
 
@@ -4652,6 +4749,18 @@ function renderTravelInsights(records) {
   // Most recent Top 3
   if (bestRatedTrip) {
     insights.push(`Your most recent Top 3 Ever trip was <strong>${bestRatedTrip.fields['Trip Name']||bestRatedTrip.fields['Destination']}</strong> in <strong>${(bestRatedTrip.fields['Start Date']||'').slice(0,4)}</strong>. What made it exceptional?`);
+  }
+
+  // Top passion insight
+  if (passionEntries.length) {
+    const topPassion = passionEntries[0][0];
+    const topPassionCount = passionEntries[0][1];
+    const topPassionTopRated = passionTopRated[topPassion] || 0;
+    if (topPassionTopRated > 0) {
+      insights.push(`<strong>${topPassion}</strong> is your most traveled passion (${topPassionCount} trip${topPassionCount>1?'s':''}), and appears in <strong>${topPassionTopRated}</strong> of your top-rated trips — lean into it.`);
+    } else {
+      insights.push(`<strong>${topPassion}</strong> is your most frequent trip passion (${topPassionCount} trip${topPassionCount>1?'s':''}). It hasn't yet landed a top rating — could be the sweet spot worth pushing harder.`);
+    }
   }
 
   const insightCards = insights.map(text =>
@@ -4788,6 +4897,7 @@ function openTrip(record) {
   document.getElementById('td-cotraveler').value  = f['Co-Traveler Email'] || '';
   document.getElementById('td-rating').value      = f['Trip Rating'] || '';
   document.getElementById('td-history').value = f['History'] ? 'true' : 'false';
+  _tdSetPassions(f['Trip Passions'] || '');
   // Photo
   const _photoUrl = f['Trip Photo URL'] || '';
   document.getElementById('td-photo-url').value = _photoUrl;
@@ -5757,6 +5867,7 @@ function showNewTripForm() {
   document.getElementById('td-end').max   = '';
   renderPlaceRows([]);
   dpClear('tdp');
+  _tdClearPassions();
   document.getElementById('trip-dest-picker').style.display = 'block';
   document.getElementById('trip-dest-readonly').style.display = 'none';
   document.getElementById('trip-list-section').style.display = 'none';
@@ -5787,6 +5898,7 @@ function showNewHistoryTripForm() {
   document.getElementById('td-end').max   = yStr;
   renderPlaceRows([]);
   dpClear('tdp');
+  _tdClearPassions();
   document.getElementById('trip-dest-picker').style.display = 'block';
   document.getElementById('trip-dest-readonly').style.display = 'none';
   // Show planning page content without changing the active menu highlight
@@ -5866,20 +5978,35 @@ function _buildGFTFS(origin, dest, departDate, returnDate) {
   return btoa(bytes.map(b => String.fromCharCode(b)).join(''));
 }
 
-function openFlightsSearch() {
-  const destAirport = (document.getElementById('td-airport').value || '').trim().toUpperCase();
+function openFlightsModal() {
   const homeAirport = (portalProfile && portalProfile['Home Airport'] || '').trim().toUpperCase();
-  const dest        = currentTripDestination || dpGetValues('tdp').destination || '';
-  const country     = currentTripCountry    || dpGetValues('tdp').country    || '';
+  const destAirport = (document.getElementById('td-airport').value || '').trim().toUpperCase();
   const startDate   = document.getElementById('td-start').value || '';
   const endDate     = document.getElementById('td-end').value   || '';
 
+  document.getElementById('gf-origin').value = homeAirport;
+  document.getElementById('gf-dest').value   = destAirport;
+  document.getElementById('gf-depart').value = startDate;
+  document.getElementById('gf-return').value = endDate;
+  document.getElementById('flights-modal').style.display = 'flex';
+}
+
+function launchFlightsSearch() {
+  const origin    = (document.getElementById('gf-origin').value || '').trim().toUpperCase();
+  const dest      = (document.getElementById('gf-dest').value   || '').trim().toUpperCase();
+  const depart    = document.getElementById('gf-depart').value || '';
+  const returnDt  = document.getElementById('gf-return').value || '';
+
+  document.getElementById('flights-modal').style.display = 'none';
+
   let url;
-  if (homeAirport && destAirport && startDate) {
-    const tfs = _buildGFTFS(homeAirport, destAirport, startDate, endDate || null);
+  if (origin && dest && depart) {
+    const tfs = _buildGFTFS(origin, dest, depart, returnDt || null);
     url = `https://www.google.com/travel/flights/search?tfs=${encodeURIComponent(tfs)}`;
   } else {
-    const loc = [dest, country].filter(Boolean).join(', ');
+    const tripDest = currentTripDestination || dpGetValues('tdp').destination || '';
+    const country  = currentTripCountry    || dpGetValues('tdp').country    || '';
+    const loc = [tripDest, country].filter(Boolean).join(', ');
     url = loc
       ? `https://www.google.com/travel/flights?q=${encodeURIComponent('flights to ' + loc)}`
       : 'https://www.google.com/travel/flights';
@@ -6071,6 +6198,7 @@ async function saveTrip() {
     history:     _isHistoryTrip || document.getElementById('td-history').value === 'true',
     tripRating:  document.getElementById('td-rating').value || '',
     tripPhotoUrl: document.getElementById('td-photo-url').value || '',
+    tripPassions: _tdGetPassions().join(', '),
     _prevStatus: currentTripId ? currentTripStatus : ''
   };
 
@@ -8867,6 +8995,56 @@ async function renderTripMap() {
     } else {
       _tripMap.fitBounds(bounds, { padding: 60, maxZoom: 12 });
     }
+  }
+}
+
+// ── Cancel Subscription ──────────────────────────────────────────────────────
+function showCancelSubModal() {
+  const modal = document.getElementById('cancel-sub-modal');
+  const msg   = document.getElementById('cancel-sub-msg');
+  if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+  const btn = document.getElementById('cancel-sub-confirm-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Yes, Cancel'; }
+  if (modal) modal.style.display = 'flex';
+}
+
+function hideCancelSubModal() {
+  const modal = document.getElementById('cancel-sub-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function confirmCancelSub() {
+  const msg = document.getElementById('cancel-sub-msg');
+  const btn = document.getElementById('cancel-sub-confirm-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Cancelling…';
+  msg.style.display   = 'block';
+  msg.style.color     = 'var(--teal)';
+  msg.textContent     = 'Processing…';
+  try {
+    const resp = await fetch('/api/stripe?action=cancel', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action: 'cancel', email: userEmail })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      msg.style.color = '#4ade80';
+      msg.textContent = `Subscription cancelled. Your access continues until ${data.cancelAt}.`;
+      btn.style.display = 'none';
+      document.getElementById('pf-sub-active').textContent = 'No';
+      document.getElementById('pf-cancel-sub-row').style.display = 'none';
+    } else {
+      msg.style.color = '#f43f5e';
+      msg.textContent = data.error || 'Cancellation failed. Please try again.';
+      btn.disabled    = false;
+      btn.textContent = 'Yes, Cancel';
+    }
+  } catch(e) {
+    msg.style.color = '#f43f5e';
+    msg.textContent = 'Error: ' + e.message;
+    btn.disabled    = false;
+    btn.textContent = 'Yes, Cancel';
   }
 }
 

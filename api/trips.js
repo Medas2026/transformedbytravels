@@ -545,5 +545,6 @@ function buildFields(b) {
   if (b.history              !== undefined) fields['History']            = !!b.history;
   if (b.tripRating !== undefined && b.tripRating !== '') fields['Trip Rating'] = b.tripRating;
   if (b.tripPhotoUrl !== undefined && b.tripPhotoUrl !== '') fields['Trip Photo URL'] = b.tripPhotoUrl;
+  if (b.tripPassions !== undefined) fields['Trip Passions'] = b.tripPassions;
   return fields;
 }
