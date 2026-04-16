@@ -954,15 +954,6 @@
 
       <!-- Your Travel Story Page -->
       <div class="page" id="page-story">
-        <!-- Archetype Banner -->
-        <div class="arch-banner" id="story-arch-banner" style="display:none;">
-          <img class="arch-banner-icon" id="story-arch-banner-icon" src="" alt="" />
-          <div>
-            <div class="arch-banner-name" id="story-arch-banner-name"></div>
-            <div class="arch-banner-tag" id="story-arch-banner-tag"></div>
-            <div class="arch-banner-desc" id="story-arch-banner-desc"></div>
-          </div>
-        </div>
         <div id="story-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading your story…</div>
         <div id="story-content" style="display:none;">
 
@@ -4297,12 +4288,6 @@ function loadTravelStory() {
       if (portalProfile && portalProfile['Archetype']) {
         const archData = ARCHETYPE_DATA[portalProfile['Archetype']];
         if (archData) {
-          // Sticky banner at top
-          document.getElementById('story-arch-banner-icon').src         = archData.iconImg;
-          document.getElementById('story-arch-banner-name').textContent = portalProfile['Archetype'];
-          document.getElementById('story-arch-banner-tag').textContent  = archData.tag;
-          document.getElementById('story-arch-banner-desc').textContent = archData.desc;
-          document.getElementById('story-arch-banner').style.display    = 'flex';
           // Inline archetype block (lower in page)
           document.getElementById('story-arch-icon').src          = archData.iconImg;
           document.getElementById('story-arch-name').textContent  = portalProfile['Archetype'];
