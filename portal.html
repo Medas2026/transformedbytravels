@@ -4340,6 +4340,7 @@ let currentTripStatus      = '';
 let tripsLoaded        = false;
 let _returnToHistory   = false;
 let _isHistoryTrip     = false;
+const _tripRecordsMap  = {}; // id → record, avoids JSON-in-HTML apostrophe bug
 
 function loadTrips() {
   // Always reset section visibility when navigating to planning page
@@ -4790,6 +4791,16 @@ function renderTravelInsights(records) {
     ${insightCards}`;
 }
 
+function _openTripById(id) {
+  const r = _tripRecordsMap[id];
+  if (r) openTrip(r);
+}
+
+function _openHistoryTripById(id) {
+  const r = _tripRecordsMap[id];
+  if (r) openTripFromHistory(r);
+}
+
 function openTripFromHistory(record) {
   _returnToHistory = true;
   _isHistoryTrip   = true;
@@ -4848,7 +4859,8 @@ function renderTripList(records) {
     const sc = statusColors[st] || statusColors['Research'];
     const statusBadge = `<span style="display:inline-block;background:${sc.bg};color:${sc.color};font-size:0.7rem;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:10px;">${st}</span>`;
     const badgeHtml = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px;">${countdownBadge}${statusBadge}</div>`;
-    return `<div class="trip-card" onclick='openTrip(${JSON.stringify(r)})'>
+    _tripRecordsMap[r.id] = r;
+    return `<div class="trip-card" data-trip-id="${r.id}" onclick="_openTripById(this.dataset.tripId)">
       <div>
         ${badgeHtml}
         <div class="trip-card-name">${name}</div>
@@ -4879,7 +4891,8 @@ function renderHistoryTripList(records) {
     const ratingHtml = rating
       ? `<span style="color:${RATING_COLOR[rating]||'var(--soft)'};font-size:0.85rem;" title="${rating}">${RATING_STARS[rating]||rating}</span>`
       : '';
-    return `<div class="trip-card" onclick='openTripFromHistory(${JSON.stringify(r)})'>
+    _tripRecordsMap[r.id] = r;
+    return `<div class="trip-card" data-trip-id="${r.id}" onclick="_openHistoryTripById(this.dataset.tripId)">
       <div>
         <div class="trip-card-name">${name}</div>
         ${dest ? `<div class="trip-card-dates">${dest}</div>` : ''}
