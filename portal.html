@@ -972,21 +972,6 @@
           </div>
           <div id="history-list-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading trips…</div>
           <div id="history-list"></div>
-
-          <!-- Travel Insights -->
-          <div id="travel-insights-section" style="display:none;margin-top:36px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
-              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
-              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Travel Insights</div>
-            </div>
-            <div id="insights-stats" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;"></div>
-            <div id="insights-timeline" style="margin-bottom:24px;"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
-              <div id="insights-ratings"></div>
-              <div id="insights-continents"></div>
-            </div>
-            <div id="insights-key"></div>
-          </div>
         </div>
       </div>
 
@@ -1046,6 +1031,21 @@
               <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Trips You've Taken</div>
             </div>
             <div id="story-taken-list"></div>
+          </div>
+
+          <!-- Travel Insights -->
+          <div id="travel-insights-section" style="display:none;margin-bottom:28px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+              <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">Travel Insights</div>
+            </div>
+            <div id="insights-stats" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;"></div>
+            <div id="insights-timeline" style="margin-bottom:24px;"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+              <div id="insights-ratings"></div>
+              <div id="insights-continents"></div>
+            </div>
+            <div id="insights-key"></div>
           </div>
 
           <!-- Empty state -->
@@ -4317,7 +4317,6 @@ function loadTripHistory() {
           return db - da;
         });
       renderHistoryList(history);
-      renderTravelInsights(history);
     })
     .catch(() => {
       document.getElementById('history-list-loading').textContent = 'Could not load trip history.';
@@ -4409,6 +4408,7 @@ function loadTravelStory() {
         }).join('');
         document.getElementById('story-taken-block').style.display = 'block';
         hasContent = true;
+        renderTravelInsights(taken);
       }
 
       // Planned trips
