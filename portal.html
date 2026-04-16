@@ -1010,6 +1010,9 @@
             <div id="story-taken-list"></div>
           </div>
 
+          <!-- What's Ahead -->
+          <div id="ahead-section" style="display:none;margin-bottom:28px;"></div>
+
           <!-- Travel Insights -->
           <div id="travel-insights-section" style="display:none;margin-bottom:28px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
@@ -4373,6 +4376,7 @@ function loadTravelStory() {
         }).join('');
         document.getElementById('story-planned-block').style.display = 'block';
         hasContent = true;
+        renderAheadInsights(planned, taken);
       }
 
       if (!hasContent) {
@@ -4382,6 +4386,96 @@ function loadTravelStory() {
     .catch(() => {
       document.getElementById('story-loading').textContent = 'Could not load your travel story.';
     });
+}
+
+function renderAheadInsights(planned, taken) {
+  const section = document.getElementById('ahead-section');
+  if (!planned.length) return;
+  section.style.display = 'block';
+
+  const CONTINENT_MAP = {
+    'United States':'North America','Canada':'North America','Mexico':'North America',
+    'Belize':'North America','Costa Rica':'North America','Panama':'North America',
+    'Argentina':'South America','Brazil':'South America','Chile':'South America','Peru':'South America','Colombia':'South America','Ecuador':'South America',
+    'Uganda':'Africa','Kenya':'Africa','Tanzania':'Africa','South Africa':'Africa','Morocco':'Africa','Ethiopia':'Africa',
+    'Italy':'Europe','Greece':'Europe','France':'Europe','Spain':'Europe','Portugal':'Europe','Germany':'Europe','Croatia':'Europe','Switzerland':'Europe','Austria':'Europe','Netherlands':'Europe','Ireland':'Europe','United Kingdom':'Europe','Norway':'Europe','Sweden':'Europe','Iceland':'Europe',
+    'Japan':'Asia','Thailand':'Asia','Vietnam':'Asia','Indonesia':'Asia','Philippines':'Asia','India':'Asia','Nepal':'Asia','Bhutan':'Asia','Cambodia':'Asia','Laos':'Asia','Myanmar':'Asia','Sri Lanka':'Asia','China':'Asia','Mongolia':'Asia',
+    'Australia':'Oceania','New Zealand':'Oceania','Fiji':'Oceania','Antarctica':'Antarctica'
+  };
+  const STATUS_COLOR = { 'Research':'#64748b','Planned':'#60a5fa','Committed':'#4ade80','Active':'#fb923c' };
+
+  // ── Historical averages ────────────────────────────────────────
+  const takenWithDates = taken.filter(r => r.fields['Start Date'] && r.fields['End Date']);
+  const histAvgDays = takenWithDates.length
+    ? Math.round(takenWithDates.reduce((sum, r) => {
+        const d = Math.round((new Date(r.fields['End Date']+'T00:00:00') - new Date(r.fields['Start Date']+'T00:00:00')) / 86400000);
+        return sum + (d > 0 && d < 400 ? d : 0);
+      }, 0) / takenWithDates.length)
+    : null;
+
+  const takenContinents = new Set(taken.map(r => CONTINENT_MAP[(r.fields['Country']||'').trim()]).filter(Boolean));
+  const takenCountries  = new Set(taken.map(r => (r.fields['Country']||'').trim()).filter(Boolean));
+
+  // ── Planned analysis ───────────────────────────────────────────
+  const newContinents = [...new Set(planned.map(r => CONTINENT_MAP[(r.fields['Country']||'').trim()]).filter(Boolean))]
+    .filter(c => !takenContinents.has(c));
+  const repeatDests = planned.filter(r => takenCountries.has((r.fields['Country']||'').trim()));
+  const statusCounts = {};
+  planned.forEach(r => { const s = r.fields['Status of Trip']||'Research'; statusCounts[s] = (statusCounts[s]||0)+1; });
+
+  const plannedWithDates = planned.filter(r => r.fields['Start Date'] && r.fields['End Date']);
+  const planAvgDays = plannedWithDates.length
+    ? Math.round(plannedWithDates.reduce((sum, r) => {
+        const d = Math.round((new Date(r.fields['End Date']+'T00:00:00') - new Date(r.fields['Start Date']+'T00:00:00')) / 86400000);
+        return sum + (d > 0 && d < 400 ? d : 0);
+      }, 0) / plannedWithDates.length)
+    : null;
+
+  // ── Status badges row ──────────────────────────────────────────
+  const statusHtml = Object.entries(statusCounts).map(([s, c]) =>
+    `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:5px 12px;font-family:'Montserrat',sans-serif;font-size:0.78rem;font-weight:700;">
+      <span style="width:8px;height:8px;border-radius:50%;background:${STATUS_COLOR[s]||'#64748b'};flex-shrink:0;"></span>
+      <span style="color:var(--text);">${c} ${s}</span>
+    </span>`
+  ).join('');
+
+  // ── Duration comparison ────────────────────────────────────────
+  let durationHtml = '';
+  if (histAvgDays && planAvgDays) {
+    const diff = planAvgDays - histAvgDays;
+    const arrow = diff > 0 ? `<span style="color:#4ade80;">↑ ${diff} days longer than your historical average</span>`
+                : diff < 0 ? `<span style="color:#f59e0b;">↓ ${Math.abs(diff)} days shorter than your historical average</span>`
+                : `<span style="color:var(--soft);">matches your historical average</span>`;
+    durationHtml = `<div style="font-family:'Open Sans',sans-serif;font-size:0.83rem;color:var(--soft);margin-top:8px;">
+      Avg planned duration: <strong style="color:var(--text);">${planAvgDays} days</strong> — ${arrow}
+    </div>`;
+  }
+
+  // ── New continents ─────────────────────────────────────────────
+  const newContHtml = newContinents.length
+    ? `<div style="margin-top:10px;font-family:'Open Sans',sans-serif;font-size:0.83rem;color:var(--soft);">
+        → New territory: <strong style="color:var(--teal);">${newContinents.join(', ')}</strong>
+       </div>`
+    : '';
+
+  // ── Repeat destinations ────────────────────────────────────────
+  const repeatHtml = repeatDests.length
+    ? `<div style="margin-top:8px;font-family:'Open Sans',sans-serif;font-size:0.83rem;color:var(--soft);">
+        → Returning to familiar ground: <strong style="color:#f59e0b;">${repeatDests.map(r => r.fields['Trip Name']||r.fields['Destination']).join(', ')}</strong> — your history shows repeat visits tend to rate lower.
+       </div>`
+    : '';
+
+  section.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <div style="width:3px;height:24px;background:var(--teal);border-radius:2px;"></div>
+      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;color:var(--teal);letter-spacing:0.08em;text-transform:uppercase;">What's Ahead</div>
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;">${statusHtml}</div>
+      ${durationHtml}
+      ${newContHtml}
+      ${repeatHtml}
+    </div>`;
 }
 
 function renderTravelInsights(records) {
