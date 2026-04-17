@@ -62,7 +62,7 @@ function buildHTML(p1, p2, p3, photoUrl) {
         ${para(p3)}
       </td></tr>
       <tr><td style="padding:0 40px 36px;text-align:center;">
-        <a href="https://transformedbytravels.vercel.app/portal.html"
+        <a href="https://app.transformedbytravels.com/portal.html"
            style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">
           Go to My Portal
         </a>
