@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMS Opt-In | Transformed by Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: 'Open Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 40px 36px;
+      max-width: 560px;
+      width: 100%;
+    }
+    .logo {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #2dd4bf;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: #ffffff;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .subtitle {
+      font-size: 0.92rem;
+      color: #94a3b8;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .section-label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+    .field-group {
+      margin-bottom: 20px;
+    }
+    .field-label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+    .field-input {
+      width: 100%;
+      background: #0f172a;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: #e2e8f0;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 0.9rem;
+    }
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin: 28px 0;
+    }
+    .consent-block {
+      background: rgba(45,212,191,0.06);
+      border: 1.5px solid rgba(45,212,191,0.25);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .consent-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .consent-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: #2dd4bf;
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .consent-text {
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+    .consent-fine {
+      font-size: 0.75rem;
+      color: #64748b;
+      line-height: 1.6;
+      padding-left: 30px;
+    }
+    .time-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .time-label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+    .time-select {
+      background: #0f172a;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #e2e8f0;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 0.88rem;
+    }
+    .sample-message {
+      background: #0f172a;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+    }
+    .sample-label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+    .sample-text {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    .info-list {
+      list-style: none;
+      margin-bottom: 24px;
+    }
+    .info-list li {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      line-height: 1.6;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      gap: 10px;
+    }
+    .info-list li::before {
+      content: '→';
+      color: #2dd4bf;
+      flex-shrink: 0;
+    }
+    .footer-links {
+      text-align: center;
+      margin-top: 32px;
+      font-size: 0.78rem;
+      color: #475569;
+    }
+    .footer-links a {
+      color: #64748b;
+      text-decoration: underline;
+      margin: 0 8px;
+    }
+    @media (max-width: 500px) {
+      .card { padding: 28px 20px; }
+      .field-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+
+    <div class="logo">Transformed by Travels</div>
+
+    <h1>Daily Journal SMS Reminders</h1>
+    <p class="subtitle">During your trip, Transformed by Travels sends you one SMS per day to prompt your travel reflection journal. You opt in when setting up your trip journal — here is exactly what that looks like.</p>
+
+    <hr class="divider" />
+
+    <!-- How opt-in appears in the app -->
+    <div class="section-label">How Opt-In Appears in the Portal</div>
+
+    <div class="field-group">
+      <div class="field-label">Phone Number</div>
+      <input class="field-input" type="tel" placeholder="+1 (612) 555-0100" disabled />
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-row">
+        <input class="consent-checkbox" type="checkbox" checked disabled />
+        <span class="consent-text">Send me a daily SMS reminder to journal during my trip</span>
+      </div>
+      <div class="consent-fine">
+        By checking this box you consent to receive 1 SMS per day during your trip from Transformed by Travels.
+        Msg &amp; data rates may apply. Reply <strong>STOP</strong> to opt out at any time.
+        Reply <strong>HELP</strong> for help.
+      </div>
+      <div class="time-row">
+        <span class="time-label">Send reminder at:</span>
+        <select class="time-select" disabled>
+          <option>7:00 AM</option>
+          <option selected>8:00 AM</option>
+          <option>9:00 AM</option>
+        </select>
+        <span style="font-size:0.8rem;color:#64748b;">local time</span>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- Sample messages -->
+    <div class="section-label">Sample SMS Messages</div>
+
+    <div class="sample-message">
+      <div class="sample-label">Daily Reminder</div>
+      <div class="sample-text">Day 3 — Paris<br>Hi Michael, time to capture your travel reflection!<br>Tomorrow: ⛅ 68°/54°F · 🌙 Waxing Crescent<br>https://app.transformedbytravels.com/portal.html</div>
+    </div>
+
+    <div class="sample-message">
+      <div class="sample-label">Last Day Reminder</div>
+      <div class="sample-text">Last Day — Paris 🏁<br>Hi Michael, today's your last day! Take a moment to journal and finish your trip.<br>https://app.transformedbytravels.com/portal.html</div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- Program details -->
+    <div class="section-label">Program Details</div>
+
+    <ul class="info-list">
+      <li>Message frequency: 1 SMS per day, only during active trip dates</li>
+      <li>Sender: Transformed by Travels (TravelForGrowth)</li>
+      <li>To opt out at any time, reply STOP to any message</li>
+      <li>To get help, reply HELP or email support@transformedbytravels.com</li>
+      <li>Msg &amp; data rates may apply</li>
+      <li>Supported carriers: AT&amp;T, Verizon, T-Mobile, Sprint, and most US carriers</li>
+    </ul>
+
+  </div>
+
+  <div class="footer-links">
+    <a href="/privacy-policy.html">Privacy Policy</a>
+    <a href="/terms.html">Terms &amp; Conditions</a>
+    <a href="https://app.transformedbytravels.com/portal.html">Go to Portal</a>
+  </div>
+
+</body>
+</html>
