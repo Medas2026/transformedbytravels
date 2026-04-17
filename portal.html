@@ -780,15 +780,6 @@
       <div class="page" id="page-planning">
 
         <!-- Archetype Banner -->
-        <div class="arch-banner" id="trip-arch-banner" style="display:none;">
-          <img class="arch-banner-icon" id="trip-arch-icon" src="" alt="" />
-          <div>
-            <div class="arch-banner-name" id="trip-arch-name"></div>
-            <div class="arch-banner-tag" id="trip-arch-tag"></div>
-            <div class="arch-banner-desc" id="trip-arch-desc"></div>
-          </div>
-        </div>
-
         <!-- Trip List -->
         <div id="trip-list-section">
           <div class="trips-header">
@@ -4358,18 +4349,6 @@ function loadTrips() {
   // Always reset section visibility when navigating to planning page
   document.getElementById('trip-list-section').style.display = 'block';
   document.getElementById('trip-detail').style.display = 'none';
-  // Populate archetype banner from profile
-  if (portalProfile) {
-    const arch = ARCHETYPE_DATA[portalProfile['Archetype']];
-    if (arch) {
-      document.getElementById('trip-arch-icon').src = arch.iconImg;
-      document.getElementById('trip-arch-name').textContent = portalProfile['Archetype'];
-      document.getElementById('trip-arch-tag').textContent  = arch.tag;
-      document.getElementById('trip-arch-desc').textContent = arch.desc;
-      document.getElementById('trip-arch-banner').style.display = 'flex';
-    }
-  }
-
   if (tripsLoaded) return;
   fetch('/api/trips?email=' + encodeURIComponent(userEmail))
     .then(r => r.json())
