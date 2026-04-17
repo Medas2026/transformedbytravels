@@ -870,6 +870,14 @@
               </div>
             </div>
 
+            <div class="trip-field-group">
+              <div class="trip-field-label">Experiences</div>
+              <button onclick="openGYGSearch()" type="button" style="display:inline-flex;align-items:center;gap:7px;background:none;border:1px solid rgba(255,140,0,0.4);color:#ff8c00;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:7px;padding:8px 14px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.borderColor='#ff8c00'" onmouseout="this.style.borderColor='rgba(255,140,0,0.4)'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                Find Experiences on GetYourGuide
+              </button>
+            </div>
+
             <div class="trip-field-group" id="td-status-group">
               <div class="trip-field-label">Trip Status</div>
               <select id="td-status" class="trip-input" style="appearance:none;-webkit-appearance:none;cursor:pointer;">
@@ -6055,6 +6063,14 @@ function _buildGFTFS(origin, dest, departDate, returnDate) {
   const bytes = [...vf(1, 28), ...vf(2, isRT ? 2 : 1), ...lf(3, leg(departDate, origin, dest))];
   if (isRT) bytes.push(...lf(3, leg(returnDate, dest, origin)));
   return btoa(bytes.map(b => String.fromCharCode(b)).join(''));
+}
+
+function openGYGSearch() {
+  const dest    = currentTripDestination || dpGetValues('tdp').destination || '';
+  const country = currentTripCountry    || dpGetValues('tdp').country    || '';
+  const q       = [dest, country].filter(Boolean).join(', ');
+  const url     = 'https://www.getyourguide.com/s/?q=' + encodeURIComponent(q) + '&partner_id=RXYXYWV';
+  window.open(url, '_blank', 'noopener');
 }
 
 function openFlightsModal() {
