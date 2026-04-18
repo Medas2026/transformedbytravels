@@ -1069,9 +1069,10 @@
               <div id="dna-places-container"></div>
             </div>
             <!-- Save & Return -->
-            <div style="margin-top:24px;border-top:1px solid rgba(255,255,255,0.07);padding-top:18px;display:flex;gap:12px;align-items:center;">
+            <div style="margin-top:24px;border-top:1px solid rgba(255,255,255,0.07);padding-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
               <div style="flex:1;font-family:'Open Sans',sans-serif;font-size:0.82rem;color:#2dd4bf;"><span style="font-size:1rem;">✓</span> Guide saved to your history</div>
-              <button onclick="dnaReturnToTop()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 20px;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">↩ Return</button>
+              <button id="dna-back-to-trip-btn" onclick="dnaBackToTrip()" style="display:none;background:var(--teal);border:none;border-radius:8px;padding:10px 20px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">← Back to Trip</button>
+              <button onclick="dnaReturnToTop()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 20px;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">↩ New Guide</button>
             </div>
           </div>
         </div>
@@ -5711,6 +5712,7 @@ function pmCreateGuideForPlace() {
   const country   = (document.getElementById('pm-country') ? document.getElementById('pm-country').value : '') || '';
   closePlaceModal();
   sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: placeName, country }));
+  sessionStorage.setItem('dnaReturnToTrip', '1');
   showPage('dna');
 }
 
@@ -6410,6 +6412,14 @@ function loadDNAHistory() {
     .catch(() => {});
 }
 
+function dnaBackToTrip() {
+  sessionStorage.removeItem('dnaReturnToTrip');
+  const _backBtn = document.getElementById('dna-back-to-trip-btn');
+  if (_backBtn) _backBtn.style.display = 'none';
+  dnaReturnToTop();
+  showPage('planning');
+}
+
 function dnaReturnToTop() {
   document.getElementById('dna-page-panel').style.display = 'none';
   document.getElementById('dna-page-content').style.display = 'none';
@@ -6728,6 +6738,9 @@ async function generateDestDNA(pickerCtx) {
       content.innerHTML  = travelBadge + mapImg + `<p style="margin-bottom:14px;">${guideHtml}</p>`;
       content.style.display = 'block';
       document.getElementById('dna-exp-section').style.display = 'block';
+      // Show Back to Trip button if we came from a place modal
+      const _backBtn = document.getElementById('dna-back-to-trip-btn');
+      if (_backBtn) _backBtn.style.display = sessionStorage.getItem('dnaReturnToTrip') ? 'inline-block' : 'none';
       document.getElementById('dna-exp-results').style.display = 'none';
       document.getElementById('dna-exp-btn').textContent = '✦ Find Specific Experiences & Providers';
     } else {

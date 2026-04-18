@@ -273,7 +273,21 @@
 
   window.dpSetValues = function (p, { continent, country, destination, airport, passion } = {}) {
     const contSel = document.getElementById(`${p}-continent`);
-    if (!contSel || !continent) return;
+    if (!contSel) return;
+
+    // If no continent (e.g. place not in DESTINATIONS), drop straight to manual entry
+    if (!continent) {
+      if (destination) {
+        const mw = document.getElementById(`${p}-manual-wrap`);
+        const mi = document.getElementById(`${p}-manual`);
+        if (mw) mw.style.display = 'block';
+        if (mi) mi.value = destination;
+        const destSel = document.getElementById(`${p}-dest`);
+        if (destSel) destSel.value = '__other__';
+      }
+      return;
+    }
+
     contSel.value = continent;
     _dpContinent(p);
 
