@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
   <link rel="apple-touch-icon" href="/images/app-icon.png">
   <title>My Portal | Transformed by Travels</title>
-  <!-- portal-version: v20260418f -->
+  <!-- portal-version: v20260418g -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -5721,6 +5721,36 @@ async function pmConnectDNAGuide() {
     // Navigate to DNA Guide page to create one
     const country = (document.getElementById('pm-country') ? document.getElementById('pm-country').value : '') || '';
     console.log('[DNA] navigating to DNA page — dest:', placeName, 'country:', country);
+
+    // Save the place to _places NOW so it isn't lost when we navigate away
+    const _pmIdx = parseInt(document.getElementById('pm-index').value, 10);
+    const _pmDay = document.getElementById('pm-day') ? (parseInt(document.getElementById('pm-day').value, 10) || null) : null;
+    const _pmEntry = {
+      place:         placeName,
+      day:           _pmDay,
+      country:       country,
+      notes:         document.getElementById('pm-notes') ? document.getElementById('pm-notes').value.trim() : '',
+      dnaGuideId:    '',
+      photosUrl:     _pmPhotosUrl || '',
+      stayedAtUrl:   document.getElementById('pm-stayed-url') ? document.getElementById('pm-stayed-url').value.trim() : '',
+      placePhotoUrl: document.getElementById('pm-place-photo-url') ? document.getElementById('pm-place-photo-url').value.trim() : '',
+      rating:        parseInt((document.getElementById('pm-rating') || {}).value || '0', 10) || 0,
+      _recId:        _pmIdx === -1 ? '' : ((_places[_pmIdx] || {})._recId || '')
+    };
+    if (_pmIdx === -1) _places.push(_pmEntry);
+    else _places[_pmIdx] = _pmEntry;
+
+    // Also persist to Airtable so the place survives the trip reload on return
+    if (currentTripId) {
+      const _tripName = document.getElementById('td-name') ? document.getElementById('td-name').value : '';
+      fetch('/api/trip-places', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tripId: currentTripId, tripName: _tripName, travelerId: portalRecordId, place: placeName, day: _pmDay, country, notes: _pmEntry.notes, dnaGuideId: '', photosUrl: '', stayedAtUrl: _pmEntry.stayedAtUrl, placePhotoUrl: _pmEntry.placePhotoUrl || '', rating: _pmEntry.rating })
+      }).catch(() => {});
+    }
+    sessionStorage.setItem('dnaConnectReturn', JSON.stringify({ tripId: currentTripId, placeName }));
+
     msgEl.textContent = 'Opening DNA Guide for ' + placeName + '…';
     msgEl.style.color = '#2dd4bf';
     msgEl.style.display = 'block';
@@ -5928,6 +5958,27 @@ function renderPlaceRows(records) {
     rating:        r.fields['Rating']          || 0,
     _recId:        r.id
   }));
+
+  // Auto-connect guide if returning from DNA Guide creation
+  const _ac = sessionStorage.getItem('dnaAutoConnect');
+  if (_ac) {
+    try {
+      const { guideId, placeName } = JSON.parse(_ac);
+      const _p = _places.find(p => p.place.toLowerCase().trim() === placeName.toLowerCase().trim());
+      if (_p && !_p.dnaGuideId) {
+        _p.dnaGuideId = guideId;
+        // Update the Airtable record: delete old, create new with guideId
+        const _tripName = document.getElementById('td-name') ? document.getElementById('td-name').value : '';
+        if (_p._recId) fetch('/api/trip-places?id=' + _p._recId, { method: 'DELETE' }).catch(() => {});
+        fetch('/api/trip-places', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tripId: currentTripId, tripName: _tripName, travelerId: portalRecordId, place: _p.place, day: _p.day, country: _p.country, notes: _p.notes || '', dnaGuideId: guideId, photosUrl: _p.photosUrl || '', stayedAtUrl: _p.stayedAtUrl || '', placePhotoUrl: _p.placePhotoUrl || '', rating: _p.rating || 0 })
+        }).then(r => r.json()).then(saved => { if (saved.record) _p._recId = saved.record.id; }).catch(() => {});
+      }
+    } catch(e) {}
+    sessionStorage.removeItem('dnaAutoConnect');
+  }
+
   renderPlaceCards();
 }
 
@@ -6458,8 +6509,24 @@ function dnaBackToTrip() {
   if (_backBtn) _backBtn.style.display = 'none';
   const _tripBar = document.getElementById('dna-trip-return-bar');
   if (_tripBar) _tripBar.style.display = 'none';
+
+  // If a guide was just created, set up auto-connect when trip places reload
+  const _connectReturnRaw = sessionStorage.getItem('dnaConnectReturn');
+  if (_connectReturnRaw && _currentDnaGuideId) {
+    try {
+      const _cr = JSON.parse(_connectReturnRaw);
+      sessionStorage.setItem('dnaAutoConnect', JSON.stringify({ guideId: _currentDnaGuideId, placeName: _cr.placeName }));
+    } catch(e) {}
+  }
+  sessionStorage.removeItem('dnaConnectReturn');
+  _pmDNARecords = null; // clear cache so new guide is found on next connect attempt
+
   dnaReturnToTop();
   showPage('planning');
+  // Reopen the trip so user lands back on their trip, not the trip list
+  if (currentTripId && _tripRecordsMap[currentTripId]) {
+    openTrip(_tripRecordsMap[currentTripId]);
+  }
 }
 
 function dnaBackToProfile() {
