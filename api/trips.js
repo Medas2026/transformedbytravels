@@ -541,6 +541,7 @@ function buildFields(b) {
   if (b.journalTime          !== undefined) fields['Journal Time']    = String(b.journalTime);
   if (b.timezone             !== undefined) fields['Time Zone']       = b.timezone;
   if (b['Status of Trip']    !== undefined) fields['Status of Trip']  = b['Status of Trip'];
+  if (b['Status of Trip'] === 'Completed') fields['History'] = true;
   if (b.dnaGuideId           !== undefined) fields['DNA Guide ID']       = b.dnaGuideId;
   if (b.coTravelerEmail      !== undefined) fields['Co-Traveler Email']  = b.coTravelerEmail;
   if (b.history              !== undefined) fields['History']            = !!b.history;
