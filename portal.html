@@ -4447,12 +4447,13 @@ function renderAheadInsights(planned, taken) {
 
   const CONTINENT_MAP = {
     'United States':'North America','Canada':'North America','Mexico':'North America',
-    'Belize':'North America','Costa Rica':'North America','Panama':'North America',
-    'Argentina':'South America','Brazil':'South America','Chile':'South America','Peru':'South America','Colombia':'South America','Ecuador':'South America',
-    'Uganda':'Africa','Kenya':'Africa','Tanzania':'Africa','South Africa':'Africa','Morocco':'Africa','Ethiopia':'Africa',
-    'Italy':'Europe','Greece':'Europe','France':'Europe','Spain':'Europe','Portugal':'Europe','Germany':'Europe','Croatia':'Europe','Switzerland':'Europe','Austria':'Europe','Netherlands':'Europe','Ireland':'Europe','United Kingdom':'Europe','Norway':'Europe','Sweden':'Europe','Iceland':'Europe',
-    'Japan':'Asia','Thailand':'Asia','Vietnam':'Asia','Indonesia':'Asia','Philippines':'Asia','India':'Asia','Nepal':'Asia','Bhutan':'Asia','Cambodia':'Asia','Laos':'Asia','Myanmar':'Asia','Sri Lanka':'Asia','China':'Asia','Mongolia':'Asia',
-    'Australia':'Oceania','New Zealand':'Oceania','Fiji':'Oceania','Antarctica':'Antarctica'
+    'Belize':'North America','Costa Rica':'North America','Panama':'North America','Guatemala':'North America','Honduras':'North America','El Salvador':'North America','Nicaragua':'North America','Cuba':'Caribbean','Jamaica':'Caribbean','Dominican Republic':'Caribbean','Puerto Rico':'Caribbean','Haiti':'Caribbean','Bahamas':'Caribbean','Barbados':'Caribbean','Trinidad and Tobago':'Caribbean','Cayman Islands':'Caribbean','Turks and Caicos':'Caribbean','Aruba':'Caribbean','Bermuda':'Caribbean','St. Lucia':'Caribbean','Antigua and Barbuda':'Caribbean',
+    'Argentina':'South America','Brazil':'South America','Chile':'South America','Peru':'South America','Colombia':'South America','Ecuador':'South America','Bolivia':'South America','Uruguay':'South America','Paraguay':'South America','Venezuela':'South America','Guyana':'South America','Suriname':'South America',
+    'Uganda':'Africa','Kenya':'Africa','Tanzania':'Africa','South Africa':'Africa','Morocco':'Africa','Ethiopia':'Africa','Egypt':'Africa','Ghana':'Africa','Nigeria':'Africa','Rwanda':'Africa','Botswana':'Africa','Namibia':'Africa','Zimbabwe':'Africa','Mozambique':'Africa','Zambia':'Africa','Senegal':'Africa','Tunisia':'Africa',
+    'Italy':'Europe','Greece':'Europe','France':'Europe','Spain':'Europe','Portugal':'Europe','Germany':'Europe','Croatia':'Europe','Switzerland':'Europe','Austria':'Europe','Netherlands':'Europe','Ireland':'Europe','United Kingdom':'Europe','Norway':'Europe','Sweden':'Europe','Iceland':'Europe','Denmark':'Europe','Finland':'Europe','Belgium':'Europe','Czech Republic':'Europe','Czechia':'Europe','Poland':'Europe','Hungary':'Europe','Romania':'Europe','Bulgaria':'Europe','Slovakia':'Europe','Slovenia':'Europe','Serbia':'Europe','Montenegro':'Europe','Albania':'Europe','North Macedonia':'Europe','Bosnia and Herzegovina':'Europe','Kosovo':'Europe','Estonia':'Europe','Latvia':'Europe','Lithuania':'Europe','Luxembourg':'Europe','Malta':'Europe','Cyprus':'Europe','Turkey':'Europe','Ukraine':'Europe','Russia':'Europe','Georgia':'Europe','Armenia':'Europe','Moldova':'Europe','Belarus':'Europe','Scotland':'Europe','Wales':'Europe','England':'Europe',
+    'Japan':'Asia','Thailand':'Asia','Vietnam':'Asia','Indonesia':'Asia','Philippines':'Asia','India':'Asia','Nepal':'Asia','Bhutan':'Asia','Cambodia':'Asia','Laos':'Asia','Myanmar':'Asia','Sri Lanka':'Asia','China':'Asia','Mongolia':'Asia','South Korea':'Asia','North Korea':'Asia','Taiwan':'Asia','Malaysia':'Asia','Singapore':'Asia','Brunei':'Asia','Timor-Leste':'Asia','Bangladesh':'Asia','Pakistan':'Asia','Afghanistan':'Asia','Iran':'Asia','Iraq':'Asia','Jordan':'Asia','Israel':'Asia','Palestine':'Asia','Lebanon':'Asia','Syria':'Asia','Saudi Arabia':'Asia','UAE':'Asia','United Arab Emirates':'Asia','Qatar':'Asia','Kuwait':'Asia','Bahrain':'Asia','Oman':'Asia','Yemen':'Asia','Maldives':'Asia','Kazakhstan':'Asia','Uzbekistan':'Asia','Kyrgyzstan':'Asia','Tajikistan':'Asia','Turkmenistan':'Asia','Azerbaijan':'Asia',
+    'Australia':'Oceania','New Zealand':'Oceania','Fiji':'Oceania','Papua New Guinea':'Oceania','Solomon Islands':'Oceania','Vanuatu':'Oceania','Samoa':'Oceania','Tonga':'Oceania','Palau':'Oceania','Micronesia':'Oceania','French Polynesia':'Oceania','Cook Islands':'Oceania','Tahiti':'Oceania',
+    'Antarctica':'Antarctica'
   };
   const STATUS_COLOR = { 'Research':'#64748b','Planned':'#60a5fa','Committed':'#4ade80','Active':'#fb923c' };
 
@@ -4465,11 +4466,11 @@ function renderAheadInsights(planned, taken) {
       }, 0) / takenWithDates.length)
     : null;
 
-  const takenContinents = new Set(taken.map(r => CONTINENT_MAP[(r.fields['Country']||'').trim()]).filter(Boolean));
+  const takenContinents = new Set(taken.map(r => r.fields['Continent'] || CONTINENT_MAP[(r.fields['Country']||'').trim()]).filter(Boolean));
   const takenCountries  = new Set(taken.map(r => (r.fields['Country']||'').trim()).filter(Boolean));
 
   // ── Planned analysis ───────────────────────────────────────────
-  const newContinents = [...new Set(planned.map(r => CONTINENT_MAP[(r.fields['Country']||'').trim()]).filter(Boolean))]
+  const newContinents = [...new Set(planned.map(r => r.fields['Continent'] || CONTINENT_MAP[(r.fields['Country']||'').trim()]).filter(Boolean))]
     .filter(c => !takenContinents.has(c));
   const repeatDests = planned.filter(r => takenCountries.has((r.fields['Country']||'').trim()));
   const statusCounts = {};
@@ -4539,12 +4540,12 @@ function renderTravelInsights(records) {
   const RATING_COLOR = { 'Top 3 Ever':'#2dd4bf','Outstanding':'#4ade80','Met Expectations':'#60a5fa','So So':'#f59e0b','Disappointing':'#f43f5e' };
   const CONTINENT_MAP = {
     'United States':'North America','Canada':'North America','Mexico':'North America',
-    'Belize':'North America','Costa Rica':'North America','Panama':'North America',
-    'Argentina':'South America','Brazil':'South America','Chile':'South America','Peru':'South America','Colombia':'South America','Ecuador':'South America',
-    'Uganda':'Africa','Kenya':'Africa','Tanzania':'Africa','South Africa':'Africa','Morocco':'Africa','Ethiopia':'Africa',
-    'Italy':'Europe','Greece':'Europe','France':'Europe','Spain':'Europe','Portugal':'Europe','Germany':'Europe','Croatia':'Europe','Switzerland':'Europe','Austria':'Europe','Netherlands':'Europe','Ireland':'Europe','United Kingdom':'Europe','Norway':'Europe','Sweden':'Europe','Iceland':'Europe',
-    'Japan':'Asia','Thailand':'Asia','Vietnam':'Asia','Indonesia':'Asia','Philippines':'Asia','India':'Asia','Nepal':'Asia','Bhutan':'Asia','Cambodia':'Asia','Laos':'Asia','Myanmar':'Asia','Sri Lanka':'Asia','China':'Asia','Mongolia':'Asia',
-    'Australia':'Oceania','New Zealand':'Oceania','Fiji':'Oceania',
+    'Belize':'North America','Costa Rica':'North America','Panama':'North America','Guatemala':'North America','Honduras':'North America','El Salvador':'North America','Nicaragua':'North America','Cuba':'Caribbean','Jamaica':'Caribbean','Dominican Republic':'Caribbean','Puerto Rico':'Caribbean','Haiti':'Caribbean','Bahamas':'Caribbean','Barbados':'Caribbean','Trinidad and Tobago':'Caribbean','Cayman Islands':'Caribbean','Turks and Caicos':'Caribbean','Aruba':'Caribbean','Bermuda':'Caribbean','St. Lucia':'Caribbean','Antigua and Barbuda':'Caribbean',
+    'Argentina':'South America','Brazil':'South America','Chile':'South America','Peru':'South America','Colombia':'South America','Ecuador':'South America','Bolivia':'South America','Uruguay':'South America','Paraguay':'South America','Venezuela':'South America','Guyana':'South America','Suriname':'South America',
+    'Uganda':'Africa','Kenya':'Africa','Tanzania':'Africa','South Africa':'Africa','Morocco':'Africa','Ethiopia':'Africa','Egypt':'Africa','Ghana':'Africa','Nigeria':'Africa','Rwanda':'Africa','Botswana':'Africa','Namibia':'Africa','Zimbabwe':'Africa','Mozambique':'Africa','Zambia':'Africa','Senegal':'Africa','Tunisia':'Africa',
+    'Italy':'Europe','Greece':'Europe','France':'Europe','Spain':'Europe','Portugal':'Europe','Germany':'Europe','Croatia':'Europe','Switzerland':'Europe','Austria':'Europe','Netherlands':'Europe','Ireland':'Europe','United Kingdom':'Europe','Norway':'Europe','Sweden':'Europe','Iceland':'Europe','Denmark':'Europe','Finland':'Europe','Belgium':'Europe','Czech Republic':'Europe','Czechia':'Europe','Poland':'Europe','Hungary':'Europe','Romania':'Europe','Bulgaria':'Europe','Slovakia':'Europe','Slovenia':'Europe','Serbia':'Europe','Montenegro':'Europe','Albania':'Europe','North Macedonia':'Europe','Bosnia and Herzegovina':'Europe','Kosovo':'Europe','Estonia':'Europe','Latvia':'Europe','Lithuania':'Europe','Luxembourg':'Europe','Malta':'Europe','Cyprus':'Europe','Turkey':'Europe','Ukraine':'Europe','Russia':'Europe','Georgia':'Europe','Armenia':'Europe','Moldova':'Europe','Belarus':'Europe','Scotland':'Europe','Wales':'Europe','England':'Europe',
+    'Japan':'Asia','Thailand':'Asia','Vietnam':'Asia','Indonesia':'Asia','Philippines':'Asia','India':'Asia','Nepal':'Asia','Bhutan':'Asia','Cambodia':'Asia','Laos':'Asia','Myanmar':'Asia','Sri Lanka':'Asia','China':'Asia','Mongolia':'Asia','South Korea':'Asia','North Korea':'Asia','Taiwan':'Asia','Malaysia':'Asia','Singapore':'Asia','Brunei':'Asia','Timor-Leste':'Asia','Bangladesh':'Asia','Pakistan':'Asia','Afghanistan':'Asia','Iran':'Asia','Iraq':'Asia','Jordan':'Asia','Israel':'Asia','Palestine':'Asia','Lebanon':'Asia','Syria':'Asia','Saudi Arabia':'Asia','UAE':'Asia','United Arab Emirates':'Asia','Qatar':'Asia','Kuwait':'Asia','Bahrain':'Asia','Oman':'Asia','Yemen':'Asia','Maldives':'Asia','Kazakhstan':'Asia','Uzbekistan':'Asia','Kyrgyzstan':'Asia','Tajikistan':'Asia','Turkmenistan':'Asia','Azerbaijan':'Asia',
+    'Australia':'Oceania','New Zealand':'Oceania','Fiji':'Oceania','Papua New Guinea':'Oceania','Solomon Islands':'Oceania','Vanuatu':'Oceania','Samoa':'Oceania','Tonga':'Oceania','Palau':'Oceania','Micronesia':'Oceania','French Polynesia':'Oceania','Cook Islands':'Oceania','Tahiti':'Oceania',
     'Antarctica':'Antarctica'
   };
 
@@ -4558,7 +4559,7 @@ function renderTravelInsights(records) {
   records.forEach(r => {
     const f = r.fields;
     const country   = (f['Country'] || '').trim();
-    const continent = CONTINENT_MAP[country] || 'Other';
+    const continent = f['Continent'] || CONTINENT_MAP[country] || 'Other';
     if (country)    countriesSet.add(country);
     if (continent)  continentsSet.add(continent);
 
@@ -4668,7 +4669,7 @@ function renderTravelInsights(records) {
   // ── Continents ─────────────────────────────────────────────────
   const contCounts = {};
   records.forEach(r => {
-    const cont = CONTINENT_MAP[(r.fields['Country']||'').trim()] || 'Other';
+    const cont = r.fields['Continent'] || CONTINENT_MAP[(r.fields['Country']||'').trim()] || 'Other';
     contCounts[cont] = (contCounts[cont] || 0) + 1;
   });
   const ALL_CONTINENTS = ['North America','South America','Europe','Africa','Asia','Oceania','Antarctica'];

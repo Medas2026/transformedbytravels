@@ -519,6 +519,7 @@ function buildFields(b) {
   if (autoName) fields['Trip Name'] = autoName;
   if (b.destination !== undefined) fields['Destination']  = b.destination;
   if (b.country     !== undefined) fields['Country']      = b.country;
+  if (b.continent   !== undefined) fields['Continent']    = b.continent;
   if (b.startDate) fields['Start Date'] = b.startDate;
   if (b.endDate)   fields['End Date']   = b.endDate;
   if (b.airportCode !== undefined) fields['Destination Airport'] = b.airportCode;
