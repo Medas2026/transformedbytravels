@@ -930,27 +930,22 @@
             </div>
 
             <!-- Places Map -->
-            <div id="trip-map-section" style="display:none;margin-bottom:20px;">
+            <div id="trip-map-section" style="display:none;margin-bottom:16px;">
               <div class="trip-field-label" style="margin-bottom:8px;">Places on Map</div>
-              <div id="trip-map" style="width:100%;height:280px;border-radius:12px;border:1px solid var(--bd);"></div>
+              <div id="trip-map" style="width:100%;height:336px;border-radius:12px;border:1px solid var(--bd);"></div>
               <div id="trip-map-status" style="font-size:0.78rem;color:var(--muted);margin-top:6px;"></div>
             </div>
 
-
             <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
-            <div style="display:flex;gap:12px;align-items:center;">
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
               <button onclick="saveTrip()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">Save Trip</button>
+              <button onclick="buildItinerary()" id="build-itinerary-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">✦ Build Itinerary</button>
               <button onclick="closeTripDetail()" style="background:none;border:1px solid #475569;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 20px;cursor:pointer;">Cancel</button>
             </div>
 
             <!-- Build Itinerary -->
             <div id="itinerary-section" style="margin-top:28px;border-top:1px solid var(--bd);padding-top:24px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                <i class="ph ph-map-trifold" style="color:var(--teal);font-size:1rem;"></i>
-                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Trip Itinerary</div>
-              </div>
-              <button onclick="buildItinerary()" id="build-itinerary-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">✦ Build Itinerary</button>
-              <div id="itinerary-panel" style="display:none;margin-top:20px;"></div>
+              <div id="itinerary-panel" style="display:none;"></div>
             </div>
 
             <!-- Integration Report — shown for Completed trips -->
