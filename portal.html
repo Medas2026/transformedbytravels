@@ -2046,8 +2046,9 @@
           </div>
         </div>
         <div id="pm-guide-none">
-          <button onclick="pmConnectDNAGuide()" id="pm-guide-connect-btn" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:6px 14px;cursor:pointer;">🧬 Connect DNA Guide</button>
-          <div id="pm-guide-msg" style="margin-top:6px;font-size:0.78rem;color:var(--muted);display:none;"></div>
+          <button onclick="pmConnectDNAGuide()" id="pm-guide-connect-btn" style="background:none;border:1px solid rgba(45,212,191,0.4);color:#2dd4bf;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:6px 14px;cursor:pointer;">🧬 Connect DNA Guide</button>
+          <div id="pm-guide-msg" style="margin-top:8px;font-size:0.82rem;color:var(--muted);display:none;"></div>
+          <button id="pm-guide-create-btn" onclick="pmCreateGuideForPlace()" style="display:none;margin-top:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:#2dd4bf;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;border-radius:6px;padding:6px 14px;cursor:pointer;">+ Create DNA Guide for this Place</button>
         </div>
       </div>
       <div class="pm-actions">
@@ -5545,6 +5546,8 @@ function openPlaceModal(idx) {
   _pmConnectedGuideName = '';
   const _pmGuideMsgEl = document.getElementById('pm-guide-msg');
   if (_pmGuideMsgEl) { _pmGuideMsgEl.style.display = 'none'; _pmGuideMsgEl.innerHTML = ''; }
+  const _pmCreateBtn = document.getElementById('pm-guide-create-btn');
+  if (_pmCreateBtn) _pmCreateBtn.style.display = 'none';
   document.getElementById('pm-guide-connect-btn').textContent = '🧬 Connect DNA Guide';
   if (_pmConnectedGuideId && _pmDNARecords) {
     const rec = _pmDNARecords.find(r => r.id === _pmConnectedGuideId);
@@ -5675,25 +5678,16 @@ async function pmConnectDNAGuide() {
     (r.fields['Destination'] || '').toLowerCase().trim() === placeName.toLowerCase()
   );
 
+  const createBtn = document.getElementById('pm-guide-create-btn');
   if (match) {
     const name = [match.fields['Destination'], match.fields['Country']].filter(Boolean).join(', ');
     pmConnectGuide(match.id, name);
+    msgEl.style.display = 'none';
+    if (createBtn) createBtn.style.display = 'none';
   } else {
-    // No match — prompt to create one
-    msgEl.innerHTML = `No DNA Guide found for <strong style="color:#fff;">${placeName}</strong>.`;
-    msgEl.style.color = 'var(--muted)';
+    msgEl.innerHTML = `No DNA Guide found for <strong style="color:#e2e8f0;">${placeName}</strong>.`;
     msgEl.style.display = 'block';
-    // Add a Create button inline
-    const createBtn = document.createElement('button');
-    createBtn.textContent = '+ Create DNA Guide for this Place';
-    createBtn.style.cssText = 'display:block;margin-top:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:#2dd4bf;font-family:Montserrat,sans-serif;font-weight:700;font-size:0.78rem;border-radius:6px;padding:6px 14px;cursor:pointer;';
-    createBtn.onclick = function() {
-      const country = (document.getElementById('pm-country') ? document.getElementById('pm-country').value : '') || '';
-      closePlaceModal();
-      sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: placeName, country }));
-      showPage('dna');
-    };
-    msgEl.appendChild(createBtn);
+    if (createBtn) createBtn.style.display = 'block';
   }
 }
 
@@ -5709,6 +5703,14 @@ function pmDisconnectGuide() {
   _pmConnectedGuideId   = '';
   _pmConnectedGuideName = '';
   _updatePmGuideDisplay();
+}
+
+function pmCreateGuideForPlace() {
+  const placeName = (document.getElementById('pm-name').value || '').trim();
+  const country   = (document.getElementById('pm-country') ? document.getElementById('pm-country').value : '') || '';
+  closePlaceModal();
+  sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: placeName, country }));
+  showPage('dna');
 }
 
 function _updatePmPhotosDisplay() {
