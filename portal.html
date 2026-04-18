@@ -5686,7 +5686,7 @@ async function pmConnectDNAGuide() {
     // Add a Create button inline
     const createBtn = document.createElement('button');
     createBtn.textContent = '+ Create DNA Guide for this Place';
-    createBtn.style.cssText = 'display:block;margin-top:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:\'Montserrat\',sans-serif;font-weight:700;font-size:0.78rem;border-radius:6px;padding:6px 14px;cursor:pointer;';
+    createBtn.style.cssText = 'display:block;margin-top:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:#2dd4bf;font-family:Montserrat,sans-serif;font-weight:700;font-size:0.78rem;border-radius:6px;padding:6px 14px;cursor:pointer;';
     createBtn.onclick = function() {
       const country = (document.getElementById('pm-country') ? document.getElementById('pm-country').value : '') || '';
       closePlaceModal();
