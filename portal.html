@@ -1985,7 +1985,7 @@
       <div class="pm-field">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div class="pm-label">Place Name</div>
-          <button type="button" onclick="pmUseHome()" style="background:none;border:none;color:var(--teal);font-size:0.78rem;font-family:'Open Sans',sans-serif;cursor:pointer;padding:0;opacity:0.85;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.85">🏠 Place of Origin</button>
+          <button type="button" onclick="pmUseHome()" style="background:none;border:none;color:var(--teal);font-size:0.78rem;font-family:'Open Sans',sans-serif;cursor:pointer;padding:0;opacity:0.85;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.85">🏠 Home Base</button>
         </div>
         <input class="trip-input" id="pm-name" placeholder="e.g. Paris, Machu Picchu, or specific site…" />
       </div>
@@ -5741,10 +5741,7 @@ function pmUnlinkPhotos() {
 }
 
 function pmUseHome() {
-  const addr = (portalProfile && portalProfile['Address']) || '';
-  // Use just the city portion (before first comma) or fallback to "Home"
-  const city = addr ? addr.split(',')[0].trim() : 'Home';
-  document.getElementById('pm-name').value = city;
+  document.getElementById('pm-name').value = 'Home Base';
   // Clear destination dropdowns since home isn't a travel destination
   document.getElementById('pm-country').value = '';
   const destEl = document.getElementById('pm-dest');
