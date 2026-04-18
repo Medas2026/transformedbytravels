@@ -5700,8 +5700,8 @@ async function pmConnectDNAGuide() {
 function pmConnectGuide(guideId, guideName) {
   _pmConnectedGuideId   = guideId;
   _pmConnectedGuideName = guideName;
-  document.getElementById('pm-guide-list').style.display = 'none';
-  document.getElementById('pm-guide-connect-btn').textContent = '+ Connect a DNA Guide';
+  const _msgEl = document.getElementById('pm-guide-msg');
+  if (_msgEl) { _msgEl.style.display = 'none'; _msgEl.innerHTML = ''; }
   _updatePmGuideDisplay();
 }
 
