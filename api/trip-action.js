@@ -214,7 +214,7 @@ function sendEmail(to, name, subject, html, callback) {
   req.end();
 }
 
-function emailHTML(title, heading, body, btnText, btnUrl) {
+function emailHTML(title, heading, body, btnText, btnUrl, photoUrl) {
   const btn = btnText && btnUrl
     ? `<tr><td style="padding:0 40px 36px;text-align:center;">
         <a href="${btnUrl}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">${btnText}</a>
@@ -222,11 +222,15 @@ function emailHTML(title, heading, body, btnText, btnUrl) {
     : `<tr><td style="padding:0 40px 36px;text-align:center;">
         <a href="${PORTAL_URL}/portal.html" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Go to My Portal</a>
       </td></tr>`;
+  const photoRow = photoUrl
+    ? `<tr><td style="padding:0;"><img src="${photoUrl}" alt="" style="width:100%;max-height:220px;object-fit:cover;display:block;" /></td></tr>`
+    : '';
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+${photoRow}
 <tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
 <img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
 <tr><td style="padding:36px 40px;">
@@ -347,6 +351,7 @@ module.exports = function handler(req, res) {
           const country     = f['Country']     || '';
           const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
           const startDate   = f['Start Date']  || tomorrowStr;
+          const photoUrl    = f['Trip Photo URL'] || '';
           const coEmail     = (f['Co-Traveler Email'] || '').trim();
           const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
           const name        = await fetchTravelerName(email);
@@ -355,10 +360,10 @@ module.exports = function handler(req, res) {
           let subject, html;
           if (tmpl) {
             subject = substitute(tmpl.subject, vars) || `Your trip to ${tripName} starts tomorrow!`;
-            html    = emailHTML(subject, subject, para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3), 'Start My Trip →', activateUrl);
+            html    = emailHTML(subject, subject, para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3), 'Start My Trip →', activateUrl, photoUrl);
           } else {
             subject = `Your trip to ${tripName} starts tomorrow!`;
-            html    = emailHTML(subject, subject, `<p>Just a reminder — your trip to <strong>${tripName}</strong> begins tomorrow. Activate it in your portal to start your daily journal reminders.</p>`, 'Start My Trip →', activateUrl);
+            html    = emailHTML(subject, subject, `<p>Just a reminder — your trip to <strong>${tripName}</strong> begins tomorrow. Activate it in your portal to start your daily journal reminders.</p>`, 'Start My Trip →', activateUrl, photoUrl);
           }
           await sendEmailAsync(email, name, subject, html);
           if (coEmail) await sendEmailAsync(coEmail, name, subject, html);
@@ -385,6 +390,7 @@ module.exports = function handler(req, res) {
           const country     = f['Country']     || '';
           const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
           const startDate   = f['Start Date']  || threeDayStr;
+          const photoUrl    = f['Trip Photo URL'] || '';
           const coEmail     = (f['Co-Traveler Email'] || '').trim();
           const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
           const name        = await fetchTravelerName(email);
@@ -393,10 +399,10 @@ module.exports = function handler(req, res) {
           let subject, html;
           if (tmpl) {
             subject = substitute(tmpl.subject, vars) || `Your trip to ${tripName} is in 3 days!`;
-            html    = emailHTML(subject, subject, para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3), 'Start My Trip →', activateUrl);
+            html    = emailHTML(subject, subject, para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3), 'Start My Trip →', activateUrl, photoUrl);
           } else {
             subject = `Your trip to ${tripName} is in 3 days!`;
-            html    = emailHTML(subject, subject, `<p>Your trip to <strong>${tripName}</strong> starts on <strong>${startDate}</strong> — just 3 days away! Head to your portal to activate it.</p>`, 'Start My Trip →', activateUrl);
+            html    = emailHTML(subject, subject, `<p>Your trip to <strong>${tripName}</strong> starts on <strong>${startDate}</strong> — just 3 days away! Head to your portal to activate it.</p>`, 'Start My Trip →', activateUrl, photoUrl);
           }
           await sendEmailAsync(email, name, subject, html);
           if (coEmail) await sendEmailAsync(coEmail, name, subject, html);
