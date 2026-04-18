@@ -3677,7 +3677,8 @@ function showPage(name) {
         ? DESTINATIONS.find(r => r[0] === dest && r[1] === country)
         : null;
       const continent = row ? row[2] : '';
-      if (continent) dpSetValues('dna', { destination: dest, country, continent });
+      // Always pre-fill — place may not be in DESTINATIONS (specific sites, lodges, etc.)
+      dpSetValues('dna', { destination: dest, country: country || '', continent: continent || '' });
     }
   }
   if (name === 'planning')     loadTrips();
