@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
   <link rel="apple-touch-icon" href="/images/app-icon.png">
   <title>My Portal | Transformed by Travels</title>
-  <!-- portal-version: v20260418b -->
+  <!-- portal-version: v20260418c -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -3667,10 +3667,12 @@ function showPage(name) {
   if (name === 'dna') {
     const _dnaRaw2 = (portalProfile || {})['DNA Guides Remaining'];
     const _dnaLeft = (_dnaRaw2 === null || _dnaRaw2 === undefined || _dnaRaw2 === '') ? Infinity : Number(_dnaRaw2);
+    console.log('[DNA] showPage dna — remaining:', _dnaLeft);
     if (_dnaLeft <= 0) { showPortalDNAUpsell(); return; }
     initDNAPartnerToggle();
     loadDNAHistory();
     const preFill = sessionStorage.getItem('dnaPreFill');
+    console.log('[DNA] preFill:', preFill);
     if (preFill) {
       sessionStorage.removeItem('dnaPreFill');
       const { dest, country } = JSON.parse(preFill);
@@ -5645,9 +5647,11 @@ function _updatePmGuideDisplay() {
 }
 
 async function pmConnectDNAGuide() {
+  console.log('[DNA] pmConnectDNAGuide called');
   const placeName = (document.getElementById('pm-name').value || '').trim();
   const msgEl = document.getElementById('pm-guide-msg');
   const btn   = document.getElementById('pm-guide-connect-btn');
+  console.log('[DNA] placeName:', placeName);
 
   // Must have a place name
   if (!placeName || placeName.toLowerCase() === 'home base') {
@@ -5663,11 +5667,15 @@ async function pmConnectDNAGuide() {
 
   // Load guides if not cached
   if (!_pmDNARecords) {
+    console.log('[DNA] fetching guides from API…');
     try {
       const r = await fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail));
       const d = await r.json();
       _pmDNARecords = d.records || [];
-    } catch(e) { _pmDNARecords = []; }
+      console.log('[DNA] guides loaded:', _pmDNARecords.length);
+    } catch(e) { _pmDNARecords = []; console.log('[DNA] fetch error:', e); }
+  } else {
+    console.log('[DNA] using cached guides:', _pmDNARecords.length);
   }
 
   btn.textContent = '🧬 Connect DNA Guide';
@@ -5677,6 +5685,7 @@ async function pmConnectDNAGuide() {
   const match = _pmDNARecords.find(r =>
     (r.fields['Destination'] || '').toLowerCase().trim() === placeName.toLowerCase()
   );
+  console.log('[DNA] match found:', match ? match.id : 'none');
 
   if (match) {
     // Guide found — auto-connect it
@@ -5689,6 +5698,7 @@ async function pmConnectDNAGuide() {
     // No guide — check if user can create one before navigating
     const _dnaRaw = (portalProfile || {})['DNA Guides Remaining'];
     const _dnaLeft = (_dnaRaw === null || _dnaRaw === undefined || _dnaRaw === '') ? Infinity : Number(_dnaRaw);
+    console.log('[DNA] guides remaining:', _dnaLeft, '| raw:', _dnaRaw);
     if (_dnaLeft <= 0) {
       msgEl.textContent = 'No DNA Guide credits remaining. Upgrade your plan to create more guides.';
       msgEl.style.color = '#f43f5e';
@@ -5697,6 +5707,7 @@ async function pmConnectDNAGuide() {
     }
     // Navigate to DNA Guide page to create one
     const country = (document.getElementById('pm-country') ? document.getElementById('pm-country').value : '') || '';
+    console.log('[DNA] navigating to DNA page — dest:', placeName, 'country:', country);
     closePlaceModal();
     sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: placeName, country }));
     sessionStorage.setItem('dnaReturnToTrip', '1');
