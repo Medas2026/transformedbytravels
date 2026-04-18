@@ -2038,7 +2038,7 @@
       </div>
       <!-- DNA Guide connection -->
       <div class="pm-field" id="pm-guide-field">
-        <div class="pm-label">DNA Guide (optional)</div>
+        <div class="pm-label">DNA Guide</div>
         <div id="pm-guide-connected" style="display:none;background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:10px 12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <span id="pm-guide-connected-name" style="font-size:0.85rem;color:#fff;font-weight:600;"></span>
@@ -2046,8 +2046,8 @@
           </div>
         </div>
         <div id="pm-guide-none">
-          <button onclick="pmToggleGuideList()" id="pm-guide-connect-btn" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:6px 14px;cursor:pointer;">+ Connect a DNA Guide</button>
-          <div id="pm-guide-list" style="display:none;margin-top:8px;max-height:160px;overflow-y:auto;display:none;flex-direction:column;gap:6px;"></div>
+          <button onclick="pmConnectDNAGuide()" id="pm-guide-connect-btn" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:6px 14px;cursor:pointer;">🧬 Connect DNA Guide</button>
+          <div id="pm-guide-msg" style="margin-top:6px;font-size:0.78rem;color:var(--muted);display:none;"></div>
         </div>
       </div>
       <div class="pm-actions">
@@ -5543,8 +5543,9 @@ function openPlaceModal(idx) {
   // Reset guide state
   _pmConnectedGuideId   = p.dnaGuideId || '';
   _pmConnectedGuideName = '';
-  document.getElementById('pm-guide-list').style.display = 'none';
-  document.getElementById('pm-guide-connect-btn').textContent = '+ Connect a DNA Guide';
+  const _pmGuideMsgEl = document.getElementById('pm-guide-msg');
+  if (_pmGuideMsgEl) { _pmGuideMsgEl.style.display = 'none'; _pmGuideMsgEl.innerHTML = ''; }
+  document.getElementById('pm-guide-connect-btn').textContent = '🧬 Connect DNA Guide';
   if (_pmConnectedGuideId && _pmDNARecords) {
     const rec = _pmDNARecords.find(r => r.id === _pmConnectedGuideId);
     if (rec) _pmConnectedGuideName = [rec.fields['Destination'], rec.fields['Country']].filter(Boolean).join(', ');
@@ -5640,13 +5641,24 @@ function _updatePmGuideDisplay() {
   }
 }
 
-async function pmToggleGuideList() {
-  const list = document.getElementById('pm-guide-list');
-  const btn  = document.getElementById('pm-guide-connect-btn');
-  const open = list.style.display === 'flex';
-  if (open) { list.style.display = 'none'; btn.textContent = '+ Connect a DNA Guide'; return; }
+async function pmConnectDNAGuide() {
+  const placeName = (document.getElementById('pm-name').value || '').trim();
+  const msgEl = document.getElementById('pm-guide-msg');
+  const btn   = document.getElementById('pm-guide-connect-btn');
 
-  btn.textContent = 'Loading…';
+  // Must have a place name
+  if (!placeName || placeName.toLowerCase() === 'home base') {
+    msgEl.textContent = 'Please enter a Place name first.';
+    msgEl.style.color = '#f43f5e';
+    msgEl.style.display = 'block';
+    return;
+  }
+  msgEl.style.display = 'none';
+
+  btn.textContent = 'Searching…';
+  btn.disabled = true;
+
+  // Load guides if not cached
   if (!_pmDNARecords) {
     try {
       const r = await fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail));
@@ -5654,27 +5666,35 @@ async function pmToggleGuideList() {
       _pmDNARecords = d.records || [];
     } catch(e) { _pmDNARecords = []; }
   }
-  btn.textContent = '− Hide Guide List';
-  if (!_pmDNARecords.length) {
-    list.innerHTML = '<em style="color:var(--muted);font-size:0.82rem;">No DNA Guides found.</em>';
-    list.style.display = 'flex';
-    return;
+
+  btn.textContent = '🧬 Connect DNA Guide';
+  btn.disabled = false;
+
+  // Look for a guide whose Destination matches the place name
+  const match = _pmDNARecords.find(r =>
+    (r.fields['Destination'] || '').toLowerCase().trim() === placeName.toLowerCase()
+  );
+
+  if (match) {
+    const name = [match.fields['Destination'], match.fields['Country']].filter(Boolean).join(', ');
+    pmConnectGuide(match.id, name);
+  } else {
+    // No match — prompt to create one
+    msgEl.innerHTML = `No DNA Guide found for <strong style="color:#fff;">${placeName}</strong>.`;
+    msgEl.style.color = 'var(--muted)';
+    msgEl.style.display = 'block';
+    // Add a Create button inline
+    const createBtn = document.createElement('button');
+    createBtn.textContent = '+ Create DNA Guide for this Place';
+    createBtn.style.cssText = 'display:block;margin-top:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:\'Montserrat\',sans-serif;font-weight:700;font-size:0.78rem;border-radius:6px;padding:6px 14px;cursor:pointer;';
+    createBtn.onclick = function() {
+      const country = (document.getElementById('pm-country') ? document.getElementById('pm-country').value : '') || '';
+      closePlaceModal();
+      sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: placeName, country }));
+      showPage('dna');
+    };
+    msgEl.appendChild(createBtn);
   }
-  list.innerHTML = _pmDNARecords.map(r => {
-    const f    = r.fields;
-    const name = [f['Destination'], f['Country']].filter(Boolean).join(', ');
-    const date = f['Date'] ? new Date(f['Date']).toLocaleDateString('en-US', {month:'short', year:'numeric'}) : '';
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--bd);border-radius:7px;">
-      <div>
-        <div style="font-size:0.85rem;color:#fff;font-weight:600;">${name}</div>
-        <div style="font-size:0.75rem;color:var(--muted);">${date}</div>
-      </div>
-      <button onclick="pmConnectGuide('${r.id}','${name.replace(/'/g,"&#39;")}')" style="background:var(--teal);border:none;border-radius:6px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;padding:4px 12px;cursor:pointer;">Connect</button>
-    </div>`;
-  }).join('');
-  list.style.display = 'flex';
-  list.style.flexDirection = 'column';
-  list.style.gap = '6px';
 }
 
 function pmConnectGuide(guideId, guideName) {
