@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
   <link rel="apple-touch-icon" href="/images/app-icon.png">
   <title>My Portal | Transformed by Travels</title>
-  <!-- portal-version: v20260418c -->
+  <!-- portal-version: v20260418d -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -1023,6 +1023,12 @@
 
       <!-- Destination DNA Page -->
       <div class="page" id="page-dna">
+
+        <!-- Back to Trip banner — shown when arriving from place modal -->
+        <div id="dna-trip-return-bar" style="display:none;background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:10px;padding:10px 16px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:12px;">
+          <span style="font-family:'Open Sans',sans-serif;font-size:0.85rem;color:#2dd4bf;">Generate your guide below, then return to your trip.</span>
+          <button onclick="dnaBackToTrip()" style="background:#2dd4bf;border:none;border-radius:7px;padding:7px 16px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;cursor:pointer;white-space:nowrap;">← Back to Trip</button>
+        </div>
 
         <!-- Past Guides -->
         <div id="dna-history-section" style="display:none;margin-bottom:20px;">
@@ -3669,6 +3675,9 @@ function showPage(name) {
     const _dnaLeft = (_dnaRaw2 === null || _dnaRaw2 === undefined || _dnaRaw2 === '') ? Infinity : Number(_dnaRaw2);
     console.log('[DNA] showPage dna — remaining:', _dnaLeft);
     if (_dnaLeft <= 0) { showPortalDNAUpsell(); return; }
+    // Show/hide Back to Trip banner
+    const _tripBar = document.getElementById('dna-trip-return-bar');
+    if (_tripBar) _tripBar.style.display = sessionStorage.getItem('dnaReturnToTrip') ? 'flex' : 'none';
     initDNAPartnerToggle();
     loadDNAHistory();
     const preFill = sessionStorage.getItem('dnaPreFill');
@@ -5708,10 +5717,15 @@ async function pmConnectDNAGuide() {
     // Navigate to DNA Guide page to create one
     const country = (document.getElementById('pm-country') ? document.getElementById('pm-country').value : '') || '';
     console.log('[DNA] navigating to DNA page — dest:', placeName, 'country:', country);
-    closePlaceModal();
-    sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: placeName, country }));
-    sessionStorage.setItem('dnaReturnToTrip', '1');
-    showPage('dna');
+    msgEl.textContent = 'Opening DNA Guide for ' + placeName + '…';
+    msgEl.style.color = '#2dd4bf';
+    msgEl.style.display = 'block';
+    setTimeout(() => {
+      closePlaceModal();
+      sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: placeName, country }));
+      sessionStorage.setItem('dnaReturnToTrip', '1');
+      showPage('dna');
+    }, 600);
   }
 }
 
@@ -6438,6 +6452,8 @@ function dnaBackToTrip() {
   sessionStorage.removeItem('dnaReturnToTrip');
   const _backBtn = document.getElementById('dna-back-to-trip-btn');
   if (_backBtn) _backBtn.style.display = 'none';
+  const _tripBar = document.getElementById('dna-trip-return-bar');
+  if (_tripBar) _tripBar.style.display = 'none';
   dnaReturnToTop();
   showPage('planning');
 }
