@@ -25,7 +25,8 @@
   "functions": {
     "api/journal.js":    { "maxDuration": 45 },
     "api/dest-guide.js": { "maxDuration": 45 },
-    "api/dna-queries.js":{ "maxDuration": 45 }
+    "api/dna-queries.js":{ "maxDuration": 45 },
+    "api/events.js":     { "maxDuration": 30 }
   },
   "crons": [
     {

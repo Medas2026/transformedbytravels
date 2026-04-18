@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
   <link rel="apple-touch-icon" href="/images/app-icon.png">
   <title>My Portal | Transformed by Travels</title>
-  <!-- portal-version: v20260418h -->
+  <!-- portal-version: v20260418i -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -5428,6 +5428,9 @@ async function loadActivityEvents(i) {
   try {
     const params = new URLSearchParams({ city: p.place, country: p.country || '', startDate: start, endDate: end, radius });
     const resp   = await fetch('/api/events?' + params.toString());
+    if (!resp.ok && !(resp.headers.get('content-type') || '').includes('json')) {
+      body.innerHTML = '<p style="color:#f43f5e;">Events service error (' + resp.status + ') — please try again.</p>'; return;
+    }
     const data   = await resp.json();
     if (data.error) { _setErrEl(body, 'Error: ' + data.error); return; }
     const events = data.events || [];
