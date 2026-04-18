@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
   <link rel="apple-touch-icon" href="/images/app-icon.png">
   <title>My Portal | Transformed by Travels</title>
-  <!-- portal-version: v20260418d -->
+  <!-- portal-version: v20260418e -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -5697,12 +5697,13 @@ async function pmConnectDNAGuide() {
   console.log('[DNA] match found:', match ? match.id : 'none');
 
   if (match) {
-    // Guide found — auto-connect it
+    // Guide found — connect it and open the viewer so the user sees the guide immediately
     const name = [match.fields['Destination'], match.fields['Country']].filter(Boolean).join(', ');
     pmConnectGuide(match.id, name);
     msgEl.style.display = 'none';
     const createBtn = document.getElementById('pm-guide-create-btn');
     if (createBtn) createBtn.style.display = 'none';
+    showPlaceGuide(match.id);
   } else {
     // No guide — check if user can create one before navigating
     const _dnaRaw = (portalProfile || {})['DNA Guides Remaining'];
