@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
   <link rel="apple-touch-icon" href="/images/app-icon.png">
   <title>My Portal | Transformed by Travels</title>
-  <!-- portal-version: v20260418g -->
+  <!-- portal-version: v20260418h -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -5119,6 +5119,8 @@ function renderPlaceCards() {
       ${isOrigin ? '' : `<button class="place-card-edit" onclick="openLodgingModal(${i})" title="Search for lodging" style="color:#38bdf8;border-color:rgba(56,189,248,0.3);">🏨 Lodging</button>`}
       ${isOrigin ? '' : `<button class="place-card-edit" onclick="openActivitiesModal(${i})" title="Find activities for this place" style="color:var(--teal);border-color:rgba(45,212,191,0.3);">⚡ Activities</button>`}
       <button class="place-card-edit" onclick="openPlaceModal(${i})" title="Edit place" style="padding:4px 8px;">✏</button>
+      <button class="place-card-edit" onclick="movePlaceCard(${i},-1)" title="Move up" style="padding:4px 7px;${i === 0 ? 'opacity:0.25;cursor:default;' : ''}">▲</button>
+      <button class="place-card-edit" onclick="movePlaceCard(${i},1)" title="Move down" style="padding:4px 7px;${i === _places.length - 1 ? 'opacity:0.25;cursor:default;' : ''}">▼</button>
       <button class="place-card-del" onclick="deletePlaceCard(${i})" title="Remove">×</button>`;
     container.appendChild(card);
   });
@@ -5479,6 +5481,13 @@ function deletePlaceCard(i) {
     _places.splice(i, 1);
     renderPlaceCards();
   });
+}
+
+function movePlaceCard(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= _places.length) return;
+  [_places[i], _places[j]] = [_places[j], _places[i]];
+  renderPlaceCards();
 }
 
 function openDnaPlaceModal(idx) {
