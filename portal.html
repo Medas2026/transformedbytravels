@@ -2591,7 +2591,7 @@ async function renderItineraryMap() {
   if (!coords || !coords.length) {
     const destination = currentTripDestination;
     const country     = currentTripCountry;
-    const places      = _places.map(p => p.place).filter(Boolean);
+    const places      = _places.map(p => p.place).filter(p => p && p.toLowerCase() !== 'home base');
     const geocodeList = [];
     if (destination) geocodeList.push(destination);
     places.forEach(p => { if (p !== destination) geocodeList.push(p); });
@@ -8991,7 +8991,7 @@ let _itineraryMap   = null;
 async function renderTripMap() {
   const destination = currentTripDestination;
   const country     = currentTripCountry;
-  const places      = _places.map(p => p.place).filter(Boolean);
+  const places      = _places.map(p => p.place).filter(p => p && p.toLowerCase() !== 'home base');
 
   const section = document.getElementById('trip-map-section');
   if (!destination && !places.length) { if (section) section.style.display = 'none'; return; }
