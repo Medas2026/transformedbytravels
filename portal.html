@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
   <link rel="apple-touch-icon" href="/images/app-icon.png">
   <title>My Portal | Transformed by Travels</title>
-  <!-- portal-version: v20260418a -->
+  <!-- portal-version: v20260418b -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -17,7 +17,7 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="/js/airports.js?v=20260418"></script>
   <script src="/js/destinations.js?v=20260418"></script>
-  <script src="/js/dest-picker.js?v=20260418"></script>
+  <script src="/js/dest-picker.js?v=20260418b"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -1071,8 +1071,9 @@
             <!-- Save & Return -->
             <div style="margin-top:24px;border-top:1px solid rgba(255,255,255,0.07);padding-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
               <div style="flex:1;font-family:'Open Sans',sans-serif;font-size:0.82rem;color:#2dd4bf;"><span style="font-size:1rem;">✓</span> Guide saved to your history</div>
-              <button id="dna-back-to-trip-btn" onclick="dnaBackToTrip()" style="display:none;background:var(--teal);border:none;border-radius:8px;padding:10px 20px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">← Back to Trip</button>
-              <button onclick="dnaReturnToTop()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 20px;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">↩ New Guide</button>
+              <button id="dna-back-to-trip-btn" onclick="dnaBackToTrip()" style="display:none;background:#2dd4bf;border:none;border-radius:8px;padding:10px 20px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">← Back to Trip</button>
+              <button onclick="dnaBackToProfile()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 20px;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">↩ Back to Profile</button>
+              <button onclick="dnaReturnToTop()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 20px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">+ New Guide</button>
             </div>
           </div>
         </div>
@@ -5685,7 +5686,16 @@ async function pmConnectDNAGuide() {
     const createBtn = document.getElementById('pm-guide-create-btn');
     if (createBtn) createBtn.style.display = 'none';
   } else {
-    // No guide — go straight to DNA Guide page to create one
+    // No guide — check if user can create one before navigating
+    const _dnaRaw = (portalProfile || {})['DNA Guides Remaining'];
+    const _dnaLeft = (_dnaRaw === null || _dnaRaw === undefined || _dnaRaw === '') ? Infinity : Number(_dnaRaw);
+    if (_dnaLeft <= 0) {
+      msgEl.textContent = 'No DNA Guide credits remaining. Upgrade your plan to create more guides.';
+      msgEl.style.color = '#f43f5e';
+      msgEl.style.display = 'block';
+      return;
+    }
+    // Navigate to DNA Guide page to create one
     const country = (document.getElementById('pm-country') ? document.getElementById('pm-country').value : '') || '';
     closePlaceModal();
     sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: placeName, country }));
@@ -6419,6 +6429,11 @@ function dnaBackToTrip() {
   if (_backBtn) _backBtn.style.display = 'none';
   dnaReturnToTop();
   showPage('planning');
+}
+
+function dnaBackToProfile() {
+  dnaReturnToTop();
+  showPage('profile');
 }
 
 function dnaReturnToTop() {
