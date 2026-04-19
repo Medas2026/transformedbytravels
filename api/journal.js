@@ -307,6 +307,7 @@ module.exports = async function handler(req, res) {
     const barriers   = (b.barriers   || '').trim().slice(0, 1000);
     const memory     = (b.memory     || '').trim().slice(0, 1000);
     const photoUrl   = (b.photoUrl   || '').trim().slice(0, 500);
+    const dayRating  = parseInt(b.dayRating, 10) || 0;
     const archetype  = (b.archetype  || '').trim().slice(0, 100);
     const hopes      = (b.hopes      || '').trim().slice(0, 500);
     const recordId   = (b.recordId   || '').trim().slice(0, 100);
@@ -342,9 +343,10 @@ module.exports = async function handler(req, res) {
       'Barriers':   barriers,
       'Entry Time': now.toISOString().split('T')[1].substring(0, 5) + ' UTC'
     };
-    if (memory)           fields['Best Memory']            = memory;
-    if (photoUrl)         fields['Photo URL']              = photoUrl;
-    if (claudeReflection) fields['Reflection from Claude'] = claudeReflection;
+    if (memory)                   fields['Best Memory']            = memory;
+    if (photoUrl)                 fields['Photo URL']              = photoUrl;
+    if (dayRating >= 1 && dayRating <= 5) fields['Day Rating']    = dayRating;
+    if (claudeReflection)         fields['Reflection from Claude'] = claudeReflection;
 
     if (recordId) {
       // Update existing entry
