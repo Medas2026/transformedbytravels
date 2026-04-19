@@ -288,6 +288,8 @@
     <a href="https://transformedbytravels.com" class="nav-logo" onclick="event.preventDefault();showPage('profile');">Transformed <span>by Travels</span></a>
     <div class="nav-right">
       <span class="nav-user" id="nav-user-email"></span>
+      <button onclick="showPage('guide')" title="How It Works" style="background:none;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer;padding:4px 6px;line-height:1;display:flex;align-items:center;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'"><i class="ph ph-question"></i></button>
+      <button onclick="showPage('profile')" title="Your Profile" style="background:none;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer;padding:4px 6px;line-height:1;display:flex;align-items:center;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'"><i class="ph ph-user-circle"></i></button>
       <button class="btn-logout" onclick="logout()">Log Out</button>
     </div>
   </nav>
@@ -326,26 +328,20 @@
       <div style="padding:12px 8px 16px;text-align:center;border-bottom:1px solid var(--bd);margin-bottom:4px;">
         <img src="/images/Final TbyT_Logo.png" alt="Transformed by Travels" style="width:100%;max-width:180px;height:auto;display:inline-block;" />
       </div>
-      <div class="menu-item" onclick="showPage('guide')" data-page="guide" data-tooltip="Learn how Travel For Growth works.">
-        <i class="ph ph-question menu-icon"></i> How It Works
-      </div>
-      <div class="menu-item active" onclick="showPage('profile')" data-page="profile">
-        <i class="ph ph-user-circle menu-icon"></i> Your Profile
-      </div>
-      <div class="menu-item" onclick="showPage('partners')" data-page="partners" data-tooltip="Invite and connect with your travel partner and view your compatibility report.">
-        <i class="ph ph-users menu-icon"></i> Travel Partners
-      </div>
       <div class="menu-item" onclick="showPage('assessment')" data-page="assessment" data-tooltip="Discover your traveler archetype and dimension scores through our transformational travel assessment.">
         <i class="ph ph-pencil-simple menu-icon"></i> Take Assessment
       </div>
       <div class="menu-item" onclick="showPage('report')" data-page="report" data-tooltip="View your full Travel for Growth Assessment report including archetype, dimension scores, and destination matches.">
         <i class="ph ph-chart-bar menu-icon"></i> My Report
       </div>
-      <div class="menu-item" onclick="showPageGated('workshop')" data-page="workshop" data-tooltip="Prepare for your journey with guided exercises to set intentions and deepen your travel experience.">
-        <i class="ph ph-compass menu-icon"></i> Pre-Trip Workshop <span class="menu-lock" id="lock-workshop">🔒</span>
-      </div>
       <div class="menu-item" onclick="showPage('dreaming')" data-page="dreaming" data-tooltip="Explore destinations matched to your traveler archetype and passions.">
         <i class="ph ph-shooting-star menu-icon"></i> Trip Dreaming
+      </div>
+      <div class="menu-item" onclick="showPage('dna')" data-page="dna" data-tooltip="Generate a personalized destination guide tailored to your unique traveler DNA and travel style.">
+        <i class="ph ph-sparkle menu-icon"></i> DNA Guide
+      </div>
+      <div class="menu-item" onclick="showPageGated('workshop')" data-page="workshop" data-tooltip="Prepare for your journey with guided exercises to set intentions and deepen your travel experience.">
+        <i class="ph ph-compass menu-icon"></i> Pre-Trip Workshop <span class="menu-lock" id="lock-workshop">🔒</span>
       </div>
       <div class="menu-item" onclick="showPageGated('planning')" data-page="planning" data-tooltip="Plan your trip details, connect your Destination DNA Guide, and organize the places you want to visit.">
         <i class="ph ph-suitcase menu-icon"></i> Trip Planning <span class="menu-lock" id="lock-planning">🔒</span>
@@ -353,11 +349,11 @@
       <div class="menu-item" onclick="showPage('story')" data-page="story" data-tooltip="See your travel journey — archetypes, trips taken, and trips ahead.">
         <i class="ph ph-book-open menu-icon"></i> Your Travel Story
       </div>
-      <div class="menu-item" onclick="showPage('dna')" data-page="dna" data-tooltip="Generate a personalized destination guide tailored to your unique traveler DNA and travel style.">
-        <i class="ph ph-sparkle menu-icon"></i> DNA Guide
-      </div>
       <div class="menu-item" onclick="showPageGated('integration')" data-page="integration" data-tooltip="Reflect on your completed journey and capture the lasting insights and growth from your travels.">
         <i class="ph ph-lightbulb menu-icon"></i> Integration Workshop <span class="menu-lock" id="lock-integration">🔒</span>
+      </div>
+      <div class="menu-item" onclick="showPage('partners')" data-page="partners" data-tooltip="Invite and connect with your travel partner and view your compatibility report.">
+        <i class="ph ph-users menu-icon"></i> Travel Partners
       </div>
       <div class="menu-item" onclick="showPage('store')" data-page="store" data-tooltip="Unlock workshops, trip planning, and DNA Guides with an Annual or Premium subscription.">
         <i class="ph ph-crown menu-icon"></i> Subscribe
