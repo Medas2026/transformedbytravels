@@ -58,7 +58,7 @@ module.exports = async function handler(req, res) {
   const { place, country } = req.body || {};
   if (!place) return res.status(400).json({ error: 'place is required' });
 
-  const apiKey = process.env.EBIRD_API_KEY;
+  const apiKey = (process.env.EBIRD_API_KEY || '').trim();
   if (!apiKey) return res.status(500).json({ error: 'eBird API key not configured' });
 
   try {
