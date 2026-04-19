@@ -9,7 +9,7 @@
   <link rel="apple-touch-icon" href="/images/app-icon.png">
   <title>My Portal | Transformed by Travels</title>
   <link rel="icon" href="/Favicon.png" type="image/png" />
-  <!-- portal-version: v20260418j -->
+  <!-- portal-version: v20260418k -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -1847,11 +1847,24 @@
       </div>
       <!-- Activity type picker -->
       <div id="exp-modal-picker" style="display:flex;flex-wrap:wrap;gap:8px;">
-        <button class="act-type-btn" onclick="selectActivity('experiences')" data-type="experiences">✦ Experiences</button>
-        <button class="act-type-btn" onclick="selectActivity('trails')"     data-type="trails">🥾 Hiking</button>
-        <button class="act-type-btn" onclick="selectActivity('diving')"     data-type="diving">🤿 Diving</button>
-        <button class="act-type-btn" onclick="selectActivity('fishing')"    data-type="fishing">🎣 Fishing</button>
-        <button class="act-type-btn" onclick="selectActivity('events')"     data-type="events">🎟 Events</button>
+        <button class="act-type-btn" onclick="selectActivity('experiences')"    data-type="experiences">✦ Experiences</button>
+        <button class="act-type-btn" onclick="selectActivity('trails')"         data-type="trails">🥾 Hiking</button>
+        <button class="act-type-btn" onclick="selectActivity('mountaineering')" data-type="mountaineering">🧗 Climbing</button>
+        <button class="act-type-btn" onclick="selectActivity('mountain-biking')" data-type="mountain-biking">🚵 MTB</button>
+        <button class="act-type-btn" onclick="selectActivity('diving')"         data-type="diving">🤿 Diving</button>
+        <button class="act-type-btn" onclick="selectActivity('kayaking')"       data-type="kayaking">🛶 Kayaking</button>
+        <button class="act-type-btn" onclick="selectActivity('sailing')"        data-type="sailing">⛵ Sailing</button>
+        <button class="act-type-btn" onclick="selectActivity('fishing')"        data-type="fishing">🎣 Fishing</button>
+        <button class="act-type-btn" onclick="selectActivity('birding')"        data-type="birding">🦅 Birding</button>
+        <button class="act-type-btn" onclick="selectActivity('wildlife')"       data-type="wildlife">🦁 Wildlife</button>
+        <button class="act-type-btn" onclick="selectActivity('photography')"    data-type="photography">📷 Photography</button>
+        <button class="act-type-btn" onclick="selectActivity('history-art')"    data-type="history-art">🏛 History & Art</button>
+        <button class="act-type-btn" onclick="selectActivity('archaeology')"    data-type="archaeology">🪨 Archaeology</button>
+        <button class="act-type-btn" onclick="selectActivity('culinary')"       data-type="culinary">🍽 Culinary</button>
+        <button class="act-type-btn" onclick="selectActivity('wine')"           data-type="wine">🍷 Wine</button>
+        <button class="act-type-btn" onclick="selectActivity('pilgrimage')"     data-type="pilgrimage">🙏 Pilgrimage</button>
+        <button class="act-type-btn" onclick="selectActivity('volunteerism')"   data-type="volunteerism">🤝 Volunteer</button>
+        <button class="act-type-btn" onclick="selectActivity('events')"         data-type="events">🎟 Events</button>
         <button onclick="openGYGFromActivities()" type="button" style="display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid rgba(255,140,0,0.4);color:#ff8c00;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.borderColor='#ff8c00'" onmouseout="this.style.borderColor='rgba(255,140,0,0.4)'">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
           GetYourGuide
@@ -5296,6 +5309,8 @@ function selectActivity(type) {
   else if (type === 'trails')  loadActivityTrails(i);
   else if (type === 'diving')  loadActivityDiving(i);
   else if (type === 'fishing') loadActivityFishing(i);
+  else if (type === 'birding') loadActivityBirding(i);
+  else loadActivityGeneric(i, type);
 }
 
 async function loadActivityExperiences(i) {
@@ -5412,6 +5427,114 @@ async function loadActivityFishing(i) {
         </div>
         ${s.highlights ? `<div style="font-size:0.82rem;color:var(--soft);line-height:1.6;">${s.highlights}</div>` : ''}
       </div>`).join('');
+    document.getElementById('exp-modal-done').style.display = 'block';
+  } catch(e) { _setErrEl(body, 'Error: ' + e.message); }
+}
+
+async function loadActivityBirding(i) {
+  const p    = (_activitiesSourceArr || _places)[i] || {};
+  const body = document.getElementById('exp-modal-body');
+  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Loading birding data near ' + (p.place || '') + '…</p>';
+  try {
+    const resp = await fetch('/api/birding', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ place: p.place, country: p.country })
+    });
+    const data = await resp.json();
+    if (data.error && !data.hotspots) { _setErrEl(body, 'Error: ' + data.error); return; }
+    const hotspots  = data.hotspots  || [];
+    const sightings = data.sightings || [];
+    if (!hotspots.length && !sightings.length) {
+      body.innerHTML = '<p style="color:var(--muted);">No birding data found near ' + (p.place || 'this location') + '.</p>';
+      document.getElementById('exp-modal-done').style.display = 'block'; return;
+    }
+    let html = '';
+    if (hotspots.length) {
+      html += `<div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Top Birding Hotspots</div>`;
+      html += hotspots.map(h => `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;flex:1;">${h.name}</div>
+          ${h.species ? `<div style="font-size:0.75rem;color:#86efac;white-space:nowrap;">${h.species} species</div>` : ''}
+        </div>
+        <div style="margin-top:4px;"><a href="https://ebird.org/hotspot/${h.locId}" target="_blank" rel="noopener" style="font-size:0.75rem;color:var(--teal);text-decoration:none;">↗ View on eBird</a></div>
+      </div>`).join('');
+    }
+    if (sightings.length) {
+      html += `<div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.07em;margin:16px 0 10px;">Recent Notable Sightings (30 days)</div>`;
+      html += sightings.map(s => `<div style="background:var(--s2);border-radius:8px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:#fff;">${s.comName}</div>
+          <div style="font-size:0.75rem;color:var(--muted);font-style:italic;">${s.sciName}</div>
+          ${s.locName ? `<div style="font-size:0.75rem;color:var(--soft);margin-top:3px;">${s.locName}</div>` : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          ${s.howMany ? `<div style="font-size:0.8rem;color:#86efac;font-weight:600;">${s.howMany}</div>` : ''}
+          ${s.obsDt ? `<div style="font-size:0.72rem;color:var(--muted);">${s.obsDt.slice(0,10)}</div>` : ''}
+        </div>
+      </div>`).join('');
+    }
+    body.innerHTML = html;
+    document.getElementById('exp-modal-done').style.display = 'block';
+  } catch(e) { _setErrEl(body, 'Error: ' + e.message); }
+}
+
+// Generic Claude-powered activity loader for all remaining passion types
+const _activityLabels = {
+  'sailing':        { label: 'sailing experiences', itemKey: 'name', fields: ['type','conditions','highlights'] },
+  'kayaking':       { label: 'kayaking spots',      itemKey: 'name', fields: ['type','difficulty','highlights'] },
+  'mountain-biking':{ label: 'MTB trails',           itemKey: 'name', fields: ['difficulty','terrain','highlights'] },
+  'wildlife':       { label: 'wildlife spots',       itemKey: 'name', fields: ['species','best_season','highlights'] },
+  'photography':    { label: 'photography spots',    itemKey: 'name', fields: ['type','best_time','highlights'] },
+  'mountaineering': { label: 'climbing routes',      itemKey: 'name', fields: ['type','difficulty','highlights'] },
+  'history-art':    { label: 'history & art sites',  itemKey: 'name', fields: ['type','era','highlights'] },
+  'archaeology':    { label: 'archaeological sites', itemKey: 'name', fields: ['civilization','era','highlights'] },
+  'culinary':       { label: 'culinary experiences', itemKey: 'name', fields: ['type','specialty','highlights'] },
+  'wine':           { label: 'wine experiences',     itemKey: 'name', fields: ['type','varietals','highlights'] },
+  'pilgrimage':     { label: 'pilgrimage sites',     itemKey: 'name', fields: ['tradition','type','highlights'] },
+  'volunteerism':   { label: 'volunteer programs',   itemKey: 'name', fields: ['focus','duration','highlights'] }
+};
+
+const _fieldLabels = {
+  type: 'Type', conditions: 'Conditions', difficulty: 'Difficulty', terrain: 'Terrain',
+  species: 'Wildlife', best_season: 'Best Season', best_time: 'Best Time',
+  era: 'Era', civilization: 'Civilization', specialty: 'Specialty',
+  varietals: 'Varietals', tradition: 'Tradition', focus: 'Focus', duration: 'Duration',
+  highlights: null  // rendered as body text
+};
+
+async function loadActivityGeneric(i, type) {
+  const p    = (_activitiesSourceArr || _places)[i] || {};
+  const meta = _activityLabels[type] || { label: type, fields: ['highlights'] };
+  const body = document.getElementById('exp-modal-body');
+  body.innerHTML = '<p style="color:var(--muted);font-style:italic;">Finding ' + meta.label + ' near ' + (p.place || '') + '…</p>';
+  try {
+    const resp = await fetch('/api/activities', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ place: p.place, country: p.country, type })
+    });
+    const data = await resp.json();
+    if (data.error) { _setErrEl(body, 'Error: ' + data.error); return; }
+    const items = data.items || [];
+    if (!items.length) {
+      body.innerHTML = '<p style="color:var(--muted);">No ' + meta.label + ' found near ' + (p.place || 'this location') + '.</p>';
+      document.getElementById('exp-modal-done').style.display = 'block'; return;
+    }
+    const diffColors = { 'Easy':'#86efac','Green':'#86efac','Moderate':'#fbbf24','Blue':'#38bdf8','Beginner':'#86efac','Intermediate':'#fbbf24','Advanced':'#fb923c','Difficult':'#fb923c','Strenuous':'#f43f5e','Black':'#e2e8f0','Double Black':'#f43f5e','Expert':'#f43f5e' };
+    body.innerHTML = `<p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">${items.length} ${meta.label} near ${p.place}</p>` +
+      items.map(item => {
+        const chips = meta.fields.filter(f => f !== 'highlights' && item[f]);
+        const highlight = item.highlights || item.description || '';
+        return `<div style="background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:6px;">${item.name || item[meta.itemKey] || ''}</div>
+          ${chips.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">${chips.map(f => {
+            const val = item[f];
+            const col = diffColors[val] || 'var(--teal)';
+            const isTeal = !diffColors[val];
+            return `<span style="font-size:0.75rem;font-weight:600;color:${col};background:${isTeal?'rgba(45,212,191,0.1)':'rgba(255,255,255,0.06)'};border-radius:4px;padding:2px 8px;">${val}</span>`;
+          }).join('')}</div>` : ''}
+          ${highlight ? `<div style="font-size:0.82rem;color:var(--soft);line-height:1.6;">${highlight}</div>` : ''}
+        </div>`;
+      }).join('');
     document.getElementById('exp-modal-done').style.display = 'block';
   } catch(e) { _setErrEl(body, 'Error: ' + e.message); }
 }

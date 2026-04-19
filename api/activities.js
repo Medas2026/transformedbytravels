@@ -89,7 +89,201 @@ Return ONLY a JSON array. No explanation before or after. Example format:
 If ${loc} has no notable fishing, return an empty array [].`;
   }
 
-  // Generic fallback for future types
+  if (type === 'sailing') {
+    return `You are a sailing expert. List the top 5-7 sailing experiences, anchorages, or charter options near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Anchorage, Route, or Charter Name",
+    "type": "Day Sail / Bareboat Charter / Crewed Charter / Anchorage / Regatta",
+    "conditions": "Brief description of wind/water conditions and best season",
+    "highlights": "One sentence about what makes this special."
+  }
+]
+
+If ${loc} has no notable sailing, return an empty array [].`;
+  }
+
+  if (type === 'kayaking') {
+    return `You are a kayaking and paddling expert. List the top 5-7 kayaking spots or tours near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Location or Tour Name",
+    "type": "Sea Kayaking / River / Lake / Whitewater / Tour",
+    "difficulty": "Beginner / Intermediate / Advanced",
+    "highlights": "One sentence about what makes this spot special."
+  }
+]
+
+Difficulty must be one of: Beginner, Intermediate, Advanced.
+If ${loc} has no notable kayaking, return an empty array [].`;
+  }
+
+  if (type === 'mountain-biking') {
+    return `You are a mountain biking expert. List the top 5-7 mountain biking trails or areas near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Trail or Area Name",
+    "difficulty": "Green / Blue / Black / Double Black",
+    "terrain": "Brief description of terrain type",
+    "highlights": "One sentence about what makes this trail special."
+  }
+]
+
+Difficulty must be one of: Green, Blue, Black, Double Black.
+If ${loc} has no notable mountain biking, return an empty array [].`;
+  }
+
+  if (type === 'wildlife') {
+    return `You are a wildlife viewing expert. List the top 5-7 wildlife viewing spots or experiences near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Location or Tour Name",
+    "species": "Key wildlife species that can be seen",
+    "best_season": "Best time of year to visit",
+    "highlights": "One sentence about what makes this spot special."
+  }
+]
+
+If ${loc} has no notable wildlife viewing, return an empty array [].`;
+  }
+
+  if (type === 'photography') {
+    return `You are a travel photography expert. List the top 5-7 photography spots near ${loc} — landscapes, architecture, street scenes, or natural features.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Location Name",
+    "type": "Landscape / Architecture / Street / Wildlife / Seascape / Aerial",
+    "best_time": "Golden hour / Blue hour / Midday / Night / Sunrise / Seasonal",
+    "highlights": "One sentence about what makes this a great photography spot."
+  }
+]
+
+If ${loc} has no notable photography spots, return an empty array [].`;
+  }
+
+  if (type === 'mountaineering') {
+    return `You are a mountaineering and rock climbing expert. List the top 5-7 climbing or mountaineering routes and areas near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Route or Area Name",
+    "type": "Rock Climbing / Alpine / Summit / Via Ferrata / Bouldering",
+    "difficulty": "Grade or general level (e.g. Beginner, Intermediate, Expert, 5.8, Grade II)",
+    "highlights": "One sentence about what makes this route or area special."
+  }
+]
+
+If ${loc} has no notable mountaineering or climbing, return an empty array [].`;
+  }
+
+  if (type === 'history-art') {
+    return `You are a cultural travel expert. List the top 5-7 history and art sites, museums, or cultural experiences near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Site or Museum Name",
+    "type": "Museum / Historic Site / Gallery / Monument / Cultural Quarter",
+    "era": "Historical period or art movement associated with this place",
+    "highlights": "One sentence about what makes this site significant."
+  }
+]
+
+If ${loc} has no notable history or art sites, return an empty array [].`;
+  }
+
+  if (type === 'archaeology') {
+    return `You are an archaeology and ancient history expert. List the top 5-7 archaeological sites or ancient ruins near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Site Name",
+    "civilization": "Culture or civilization associated with this site",
+    "era": "Approximate historical period",
+    "highlights": "One sentence about what makes this site remarkable."
+  }
+]
+
+If ${loc} has no notable archaeological sites, return an empty array [].`;
+  }
+
+  if (type === 'culinary') {
+    return `You are a culinary travel expert. List the top 5-7 culinary experiences — food tours, cooking classes, markets, or iconic restaurants — near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Experience or Venue Name",
+    "type": "Food Tour / Cooking Class / Market / Restaurant / Street Food",
+    "specialty": "Signature dish, cuisine style, or culinary focus",
+    "highlights": "One sentence about what makes this experience special."
+  }
+]
+
+If ${loc} has no notable culinary experiences, return an empty array [].`;
+  }
+
+  if (type === 'wine') {
+    return `You are a wine and viticulture travel expert. List the top 5-7 wine experiences — wineries, wine regions, tastings, or wine tours — near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Winery, Region, or Tour Name",
+    "type": "Winery Visit / Wine Tour / Tasting Room / Wine Trail / Cellar Door",
+    "varietals": "Key grape varieties or wine styles produced here",
+    "highlights": "One sentence about what makes this experience special."
+  }
+]
+
+If ${loc} has no notable wine experiences, return an empty array [].`;
+  }
+
+  if (type === 'pilgrimage') {
+    return `You are a spiritual travel expert. List the top 5-7 pilgrimage sites, sacred sites, or spiritual journeys near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Site or Route Name",
+    "tradition": "Religious or spiritual tradition associated with this site",
+    "type": "Shrine / Temple / Cathedral / Sacred Mountain / Pilgrimage Route",
+    "highlights": "One sentence about the spiritual or cultural significance."
+  }
+]
+
+If ${loc} has no notable pilgrimage or sacred sites, return an empty array [].`;
+  }
+
+  if (type === 'volunteerism') {
+    return `You are a volunteer travel expert. List the top 5-7 volunteer travel opportunities or organizations working near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Organization or Program Name",
+    "focus": "Conservation / Education / Community Development / Wildlife / Disaster Relief",
+    "duration": "Typical commitment (e.g. 1 week, 2 weeks, flexible)",
+    "highlights": "One sentence about the impact and experience of volunteering here."
+  }
+]
+
+If ${loc} has no notable volunteer travel opportunities, return an empty array [].`;
+  }
+
+  // Generic fallback
   return `You are a local activities expert. List the top 5-7 ${type} spots or experiences near ${loc}.
 
 Return ONLY a JSON array with objects containing: name, type, highlights.
