@@ -1750,14 +1750,6 @@
 
       <!-- Trip Dreaming Page -->
       <div class="page" id="page-dreaming">
-        <div class="arch-banner" id="dreaming-arch-banner" style="display:none;position:sticky;top:56px;z-index:80;">
-          <img class="arch-banner-icon" id="dreaming-arch-banner-icon" src="" alt="" />
-          <div>
-            <div class="arch-banner-name" id="dreaming-arch-banner-name"></div>
-            <div class="arch-banner-tag"  id="dreaming-arch-banner-tag"></div>
-            <div class="arch-banner-desc" id="dreaming-arch-banner-desc"></div>
-          </div>
-        </div>
         <div id="dreaming-loading" style="padding:40px;text-align:center;color:var(--muted);">Loading…</div>
         <div id="dreaming-not-assessed" style="display:none;padding:40px;text-align:center;">
           <p style="color:var(--soft);margin-bottom:16px;">Complete the Travel for Growth Assessment to discover your ideal destinations.</p>
@@ -9114,11 +9106,6 @@ async function loadDreamingPage() {
     const _tripsDescEl = document.getElementById('trips-desc');
     if (_tripsDescEl && arch && arch.trips) _tripsDescEl.textContent = arch.trips;
 
-    document.getElementById('dreaming-arch-banner-icon').src          = arch.iconImg || '';
-    document.getElementById('dreaming-arch-banner-name').textContent  = arch.name || '';
-    document.getElementById('dreaming-arch-banner-tag').textContent   = arch.tag  || '';
-    document.getElementById('dreaming-arch-banner-desc').textContent  = arch.desc || '';
-    document.getElementById('dreaming-arch-banner').style.display     = 'flex';
 
     // ── Shared destination description helper ────────────────────
     window._destAutoDesc = function(dest) {
