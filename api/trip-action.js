@@ -531,6 +531,7 @@ module.exports = function handler(req, res) {
     const startDate       = f['Start Date']        || today;
     const endDate         = f['End Date']          || '';
     const coTravelerEmail = (f['Co-Traveler Email'] || '').trim();
+    const tripPhotoUrl    = f['Trip Photo URL'] || '';
 
     const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
     airtableRequest('GET', TRAVEL_TABLE, filter, null, (err2, travelerData) => {
@@ -570,7 +571,8 @@ module.exports = function handler(req, res) {
           const html = emailHTML(subject, `Bon Voyage, ${name}!`,
             `<p>Your trip to <strong>${tripName}</strong> is now underway. Your daily journal support has started — look for your first reflection prompt.</p>
              ${details}${summaryHtml}
-             <p>Safe travels — we hope this journey transforms you!</p>`);
+             <p>Safe travels — we hope this journey transforms you!</p>`,
+            null, null, tripPhotoUrl);
           sendEmail(email, name, subject, html, () => {
             if (coTravelerEmail) sendEmail(coTravelerEmail, name, subject, html, () => {});
             res.status(200).json({ success: true, action, tripName });
