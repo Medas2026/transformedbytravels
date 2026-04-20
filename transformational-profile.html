@@ -379,8 +379,10 @@
       </div>
 
       <div class="options-grid" id="options-grid"></div>
-      <div style="text-align:center;margin-top:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;">
         <button id="q-back-btn" onclick="goBackQuestion()" style="display:none;background:none;border:none;color:#64748b;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">← Back</button>
+        <div style="flex:1;"></div>
+        <button onclick="doLater()" style="background:none;border:none;color:#64748b;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;text-decoration:underline;">Do Later</button>
       </div>
     </div>
 
@@ -404,6 +406,7 @@
       <div style="display:flex;align-items:center;gap:16px;margin-top:20px;">
         <button onclick="goBackAdditional()" style="background:none;border:none;color:#64748b;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">← Back</button>
         <button class="btn btn-primary" id="add-next-btn" onclick="nextAdditional()">Next →</button>
+        <button onclick="doLater()" style="background:none;border:none;color:#64748b;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;text-decoration:underline;margin-left:auto;">Do Later</button>
       </div>
       <p id="add-error" style="color:#f43f5e;font-size:0.85rem;margin-top:10px;display:none;">Please make a selection to continue.</p>
     </div>
@@ -994,6 +997,10 @@ async function proceedToAssessment() {
 
 function goToDestinations() {
   window.location.href = 'trip-planner.html?email=' + encodeURIComponent(userEmail);
+}
+
+function doLater() {
+  window.location.href = '/portal.html';
 }
 
 function renderQuestion() {
