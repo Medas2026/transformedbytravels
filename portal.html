@@ -408,6 +408,7 @@
               <div class="profile-field"><span class="field-label">Address</span><span class="field-value" id="pf-address">—</span></div>
               <div class="profile-field"><span class="field-label">City</span><span class="field-value" id="pf-city">—</span></div>
               <div class="profile-field"><span class="field-label">State / Province</span><span class="field-value" id="pf-state">—</span></div>
+              <div class="profile-field"><span class="field-label">ZIP / Postal Code</span><span class="field-value" id="pf-zip">—</span></div>
               <div class="profile-field"><span class="field-label">Home Airport</span><span class="field-value" id="pf-airport">—</span></div>
               <div class="profile-field"><span class="field-label">Home Timezone</span><span class="field-value" id="pf-timezone">—</span></div>
               <div class="profile-field"><span class="field-label">Distance Units</span><span class="field-value" id="pf-units">Miles</span></div>
@@ -440,6 +441,10 @@
                     <div class="field-label" style="margin-bottom:6px;">State / Province</div>
                     <input id="edit-state" type="text" style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;" />
                   </div>
+                </div>
+                <div>
+                  <div class="field-label" style="margin-bottom:6px;">ZIP / Postal Code</div>
+                  <input id="edit-zip" type="text" style="width:160px;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;" />
                 </div>
                 <div>
                   <div class="field-label" style="margin-bottom:6px;">Home Airport Code</div>
@@ -2249,6 +2254,7 @@ async function loadProfile(email) {
       document.getElementById('pf-address').textContent    = f['Address'] || '—';
       document.getElementById('pf-city').textContent       = f['City']    || '—';
       document.getElementById('pf-state').textContent      = f['State']   || '—';
+      document.getElementById('pf-zip').textContent        = f['ZIP Code']|| '—';
       document.getElementById('pf-airport').textContent    = f['Home Airport']   || '—';
       document.getElementById('pf-timezone').textContent  = f['Home Timezone']  || '—';
       document.getElementById('pf-units').textContent     = f['Distance Units'] || 'Miles';
@@ -3493,6 +3499,7 @@ function toggleEditProfile() {
     document.getElementById('edit-address').value  = document.getElementById('pf-address').textContent.replace('—','');
     document.getElementById('edit-city').value     = document.getElementById('pf-city').textContent.replace('—','');
     document.getElementById('edit-state').value    = document.getElementById('pf-state').textContent.replace('—','');
+    document.getElementById('edit-zip').value      = document.getElementById('pf-zip').textContent.replace('—','');
     document.getElementById('edit-airport').value  = document.getElementById('pf-airport').textContent.replace('—','');
     document.getElementById('edit-timezone').value = document.getElementById('pf-timezone').textContent.replace('—','');
     document.getElementById('edit-units').value    = document.getElementById('pf-units').textContent.replace('—','') || 'Miles';
@@ -3524,6 +3531,7 @@ async function saveProfile() {
         address:      document.getElementById('edit-address').value,
         city:         document.getElementById('edit-city').value,
         state:        document.getElementById('edit-state').value,
+        zip:          document.getElementById('edit-zip').value,
         homeAirport:  document.getElementById('edit-airport').value.toUpperCase(),
         homeTimezone:  document.getElementById('edit-timezone').value,
         distanceUnits: document.getElementById('edit-units').value
@@ -3536,6 +3544,7 @@ async function saveProfile() {
       document.getElementById('pf-address').textContent  = document.getElementById('edit-address').value || '—';
       document.getElementById('pf-city').textContent     = document.getElementById('edit-city').value || '—';
       document.getElementById('pf-state').textContent    = document.getElementById('edit-state').value || '—';
+      document.getElementById('pf-zip').textContent      = document.getElementById('edit-zip').value || '—';
       document.getElementById('pf-airport').textContent  = document.getElementById('edit-airport').value.toUpperCase() || '—';
       document.getElementById('pf-timezone').textContent = document.getElementById('edit-timezone').value || '—';
       document.getElementById('pf-units').textContent    = document.getElementById('edit-units').value || 'Miles';
