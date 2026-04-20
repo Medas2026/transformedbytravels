@@ -83,7 +83,10 @@ async function sendResendEmail(to, subject, html) {
     headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
     body
   });
-  return resp.json();
+  const result = await resp.json();
+  if (!resp.ok) console.error('[sendResendEmail] failed:', resp.status, JSON.stringify(result));
+  else console.log('[sendResendEmail] sent to:', to, 'id:', result.id);
+  return result;
 }
 
 function airtableRequest(method, path, body, callback) {
@@ -367,12 +370,13 @@ module.exports = function handler(req, res) {
                 photoUrl);
               await sendResendEmail(email, subject, html);
               if (coEmail && coEmail !== email.toLowerCase().trim()) {
-                const joinUrl = `${PORTAL_URL}/portal.html?jointrip=${encodeURIComponent(id)}`;
+                const exists = await coTravelerCopyExists(tripName, coEmail);
+                if (!exists) await createCoTravelerTrip(f, id, coEmail);
                 const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
                   `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
                    ${details}${summaryHtml}
                    <p>Get ready for an incredible journey!</p>`,
-                  photoUrl, joinUrl, 'View My Trip →');
+                  photoUrl);
                 await sendResendEmail(coEmail, subject, coHtml);
               }
             }
@@ -430,11 +434,11 @@ module.exports = function handler(req, res) {
           const tParsed  = JSON.parse(tData);
           const tRecord  = (tParsed.records || [])[0];
           const remaining = tRecord ? Number(tRecord.fields['Trips Remaining'] || 0) : 0;
-          if (tRecord && remaining <= 0 && !b.history) {
+          if (tRecord && remaining <= 0 && !b.history && !b.coTravelerCopy) {
             return res.status(403).json({ error: 'No trips remaining on your plan. Please upgrade to add more trips.' });
           }
-          // Decrement Trips Remaining (not for history/taken trips)
-          if (tRecord && !b.history) {
+          // Decrement Trips Remaining (not for history/taken trips or co-traveler copies)
+          if (tRecord && !b.history && !b.coTravelerCopy) {
             const https3 = require('https');
             const decBody = JSON.stringify({ fields: { 'Trips Remaining': Math.max(0, remaining - 1) } });
             const decOpts = {
@@ -455,24 +459,33 @@ module.exports = function handler(req, res) {
           fields['Create Date']    = today;
           fields['Last Modified']  = today;
           fields['Status of Trip'] = b['Status of Trip'] || 'Research';
-          airtableRequest('POST', '', { fields }, (err, data) => {
+          airtableRequest('POST', '', { fields }, async (err, data) => {
             if (err) return res.status(500).json({ error: err.message });
             if (data.error) return res.status(500).json({ error: data.error.message || JSON.stringify(data.error) });
-            const createdStatus = fields['Status of Trip'];
+
+            const tripId    = data.id;
+            const coEmail   = (fields['Co-Traveler Email'] || b.coTravelerEmail || '').toLowerCase().trim();
+
+            // Always create co-traveler copy if email is present (any trip status)
+            if (!b.skipEmail && coEmail && coEmail !== email) {
+              console.log('[POST] creating co-traveler copy for:', coEmail);
+              await createCoTravelerTrip(fields, tripId, coEmail);
+            }
+
             if (b.skipEmail) {
               return res.status(200).json({ success: true, record: data });
             }
+
+            const createdStatus = fields['Status of Trip'];
             if (createdStatus === 'Committed') {
               (async () => {
                 try {
-                  const tripId      = data.id;
                   const destination = fields['Destination'] || b.destination || '';
                   const country     = fields['Country']     || b.country     || '';
                   const startDate   = fields['Start Date']  || b.startDate   || '';
                   const endDate     = fields['End Date']    || b.endDate     || '';
                   const tripName    = fields['Trip Name']   || b.tripName    || destination;
                   const photoUrl    = fields['Trip Photo URL'] || b.tripPhotoUrl || '';
-                  const coEmail     = (fields['Co-Traveler Email'] || b.coTravelerEmail || '').toLowerCase().trim();
 
                   const places  = await fetchTripPlaces(tripId);
                   const summary = await generateTripSummary(destination, country, places, startDate, endDate);
@@ -492,14 +505,12 @@ module.exports = function handler(req, res) {
                     photoUrl);
                   await sendResendEmail(email, subject, html);
 
-                  // Also notify co-traveler if linked
                   if (coEmail && coEmail !== email) {
-                    const joinUrl = `${PORTAL_URL}/portal.html?jointrip=${encodeURIComponent(tripId)}`;
                     const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
                       `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
                        ${details}${summaryHtml}
                        <p>Get ready for an incredible journey!</p>`,
-                      photoUrl, joinUrl, 'View My Trip →');
+                      photoUrl);
                     await sendResendEmail(coEmail, subject, coHtml);
                   }
                 } catch(e) {
@@ -527,6 +538,49 @@ module.exports = function handler(req, res) {
 
   res.status(405).json({ error: 'Method not allowed' });
 };
+
+// Copy a trip record to a co-traveler's account
+function createCoTravelerTrip(sourceFields, sourceTripId, coEmail) {
+  return new Promise((resolve) => {
+    const today = new Date().toISOString().split('T')[0];
+    const copyFields = {
+      'Traveler Email':       coEmail,
+      'Trip Name':            sourceFields['Trip Name']            || '',
+      'Destination':          sourceFields['Destination']          || '',
+      'Country':              sourceFields['Country']              || '',
+      'Continent':            sourceFields['Continent']            || '',
+      'Start Date':           sourceFields['Start Date']           || '',
+      'End Date':             sourceFields['End Date']             || '',
+      'Destination Airport':  sourceFields['Destination Airport']  || '',
+      'Notes':                sourceFields['Notes']                || '',
+      'Trip Photo URL':       sourceFields['Trip Photo URL']       || '',
+      'Trip Passions':        sourceFields['Trip Passions']        || '',
+      'Status of Trip':       sourceFields['Status of Trip']       || 'Committed',
+      'Create Date':          today,
+      'Last Modified':        today
+    };
+    for (let i = 1; i <= 7; i++) {
+      if (sourceFields[`Place ${i}`]) copyFields[`Place ${i}`] = sourceFields[`Place ${i}`];
+      if (sourceFields[`Day ${i}`])   copyFields[`Day ${i}`]   = sourceFields[`Day ${i}`];
+    }
+    airtableRequest('POST', '', { fields: copyFields }, (err, data) => {
+      if (err) console.error('[createCoTravelerTrip] error:', err.message);
+      else if (data.error) console.error('[createCoTravelerTrip] Airtable error:', JSON.stringify(data.error));
+      else console.log('[createCoTravelerTrip] created for:', coEmail, 'id:', data.id);
+      resolve();
+    });
+  });
+}
+
+function coTravelerCopyExists(tripName, coEmail) {
+  return new Promise((resolve) => {
+    const filter = `?filterByFormula=${encodeURIComponent(`AND({Trip Name}="${tripName}",{Traveler Email}="${coEmail}")`)}`;
+    airtableRequest('GET', filter, null, (err, data) => {
+      if (err) { resolve(false); return; }
+      resolve(!!(data.records && data.records.length > 0));
+    });
+  });
+}
 
 function buildFields(b) {
   const fields = {};
@@ -563,6 +617,5 @@ function buildFields(b) {
   if (b.tripRating !== undefined && b.tripRating !== '') fields['Trip Rating'] = b.tripRating;
   if (b.tripPhotoUrl !== undefined && b.tripPhotoUrl !== '') fields['Trip Photo URL'] = b.tripPhotoUrl;
   if (b.tripPassions !== undefined) fields['Trip Passions'] = b.tripPassions;
-  if (b['Source Trip ID'] !== undefined) fields['Source Trip ID'] = b['Source Trip ID'];
   return fields;
 }

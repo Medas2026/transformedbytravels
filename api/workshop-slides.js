@@ -57,13 +57,15 @@ module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // PATCH — save Last Slide progress
+  // PATCH — save Last Slide progress and/or Summary
   if (req.method === 'PATCH') {
-    const b          = req.body || {};
+    const b           = req.body || {};
     const regRecordId = (b.regRecordId || '').trim();
-    const lastSlide   = Number(b.lastSlide) || 0;
     if (!regRecordId) return res.status(400).json({ error: 'regRecordId required' });
-    airtablePatch(REG_TABLE, regRecordId, { 'Last Slide': lastSlide }, (err) => {
+    const fields = {};
+    if (b.lastSlide !== undefined) fields['Last Slide'] = Number(b.lastSlide) || 0;
+    if (b.summary   !== undefined) fields['Summary']    = b.summary;
+    airtablePatch(REG_TABLE, regRecordId, fields, (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.status(200).json({ success: true });
     });

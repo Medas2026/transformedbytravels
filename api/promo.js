@@ -1,4 +1,5 @@
-const https = require('https');
+const https            = require('https');
+const { sendTemplateEmail } = require('./template-email');
 
 const BASE_ID = 'appdlxcWb45dIqNK2';
 const TABLE   = 'Traveler';
@@ -96,10 +97,14 @@ module.exports = async function handler(req, res) {
       'Subscription Active':   true,
       'Subscription End Date': endDateStr,
       'Package Status':        'Monthly',
+      'Subscription Plan':     'Premium',
       'DNA Guides Remaining':  5,
       'Trips Remaining':       1,
       'Acquisition Promo':     code.trim().toUpperCase()
     });
+
+    const name = f['Traveler Name'] || email;
+    await sendTemplateEmail('WELCOME_SUB', email, { name }).catch(e => console.error('WELCOME_SUB email failed:', e.message));
 
     return res.status(200).json({ success: true, endDate: endDateStr });
   } catch(e) {

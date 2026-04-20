@@ -1,0 +1,136 @@
+TRANSFORMED BY TRAVELS — PORTAL WALKTHROUGH SCRIPT
+====================================================
+
+
+[INTRO — landing on the portal]
+
+"Welcome to the Transformed by Travels travel planner. This is your personal hub for travel planning and support. (slide)
+
+It is all built around your travel personality, trip history, and your travel passions. It helps you find destinations that line up with who you are.
+
+Let me walk you through everything available to you here. (slide)
+
+First, just a couple of terms:
+
+A destination is the entry point to your trip. It is where you tell people that you are going when they ask about your upcoming trip.
+
+A place is one location within a trip. A trip may be in one place or it may have a dozen. Each place likely has its own lodging and activities. We help you find lodging, hikes, dives, events, and tours for each place that you plan to visit.
+
+A DNA Guide describes a Place and how it aligns with you and your travel partner. (slide)
+
+So let's get started."
+
+
+[PROFILE — top bar icon]
+
+"At any time you can access your Profile by clicking the person icon in the top right corner of the screen.
+
+Your profile shows your name, contact information, home airport, and time zone — details that the app uses to personalize your experience throughout. Below that you'll see your subscription plan, how many trips you have remaining, and your DNA Guide balance.
+
+If you ever need to cancel your subscription, there's a button at the bottom of this section — it cancels at the end of your billing period so you never lose access you've already paid for.
+
+Further down you'll see your Traveler DNA — your archetype, your passions, your life stage, and your dimension scores from the assessment. We'll come back to those in a moment."
+
+
+[TAKE ASSESSMENT]
+
+"We want every customer to start their journey with our Travel for Growth Assessment. It will help you, your travel partner, and your travel planner pick destinations and activities for you. Click Take Assessment in the menu to get started.
+
+This is a 40-item personality instrument designed specifically for travelers. It measures five dimensions of how you engage with travel — from relaxation and recharge all the way to deep transformation. It also captures your travel passions, your life stage, and your travel style.
+
+The whole thing takes about ten minutes, and everything that follows in the portal is built on what you discover here."
+
+
+[MY REPORT]
+
+"Once you've completed the assessment, your full report is waiting under My Report.
+
+At the top you'll find your Traveler Archetype — a profile that captures your unique approach to travel. Below that are your five dimension scores, visualized so you can see exactly where you land on each spectrum.
+
+You can retake the assessment, but no more than once every three months. It's up to you — but if you've had a major change in lifestyle, retake it. We'll show you a before and after."
+
+
+[TRIP DREAMING]
+
+"Trip Dreaming is where exploration begins. Based on your archetype and passions, the portal surfaces destinations worth considering — organized by continent and passion focus. It's a starting point for your next adventure when you're not sure where to go, or when you want to discover places you might never have found on your own."
+
+
+[DESTINATION DNA GUIDE]
+
+"The Destination DNA Guide is one of the most powerful features in the portal. Click DNA Guide in the menu.
+
+Enter a destination, select your passion focus, and the app generates a personalized travel guide built specifically for your traveler DNA. It's not a Wikipedia summary — it's a curated guide that speaks to your archetype, your interests, and how you experience travel.
+
+Each guide includes places to visit, cultural context, and experiences aligned to your passions. You can generate multiple guides. When you move forward to trip planning, you can connect a Guide to a Place within a trip."
+
+
+[PRE-TRIP WORKSHOP]
+
+"For subscribers, the Pre-Trip Workshop is available before any planned trip. This guided experience helps you set intentions, clarify what you're hoping to gain, and prepare mentally and emotionally for what's ahead.
+
+Travel that transforms you doesn't happen by accident — it happens when you show up ready. The workshop is designed to help you do exactly that."
+
+
+[TRIP PLANNING]
+
+"Once you have a destination in mind, Trip Planning is where it all comes together. Click Trip Planning in the menu.
+
+Hit New Trip to create a planned trip. Select your continent, country, and destination from the dropdown — or enter one manually if it's not on the list. Add your travel dates, your destination airport code, and the portal will show you how many days until departure right on the trip card.
+
+You can also search Google Flights directly from here — click the Search Google Flights button and a modal opens pre-filled with your home airport, destination airport, and dates. Adjust anything you need and it opens Google Flights with your search ready to go.
+
+Each trip has a status — Research, Planned, Committed, Active, or Completed. When you move a trip to Committed, your travel partner automatically receives a notification email.
+
+You can also tag up to three Trip Passions per trip — the specific focus areas that matter most for that journey. These feed directly into your Travel Story dashboard over time.
+
+If you've taken trips in the past, use the Taken Trip button to log them. They'll appear in a separate section below your planned trips, and every one you add enriches your travel history analysis."
+
+
+[JOURNAL — during your trip]
+
+"During your trip, the daily journal sends you an SMS reminder each day to capture a reflection. You set the time, you enter your phone number, and every morning or evening — whichever you prefer — you get a nudge to pause and write something down.
+
+Those reflections are saved to your trip and become the raw material for the Integration Workshop when you return."
+
+
+[YOUR TRAVEL STORY]
+
+"Your Travel Story is your long-term travel dashboard. Over time, as you log trips and add history, this page builds a rich picture of your life as a traveler.
+
+You'll see your total trips, countries visited, continents explored, and total days abroad. A year-by-year timeline shows every trip with its rating. Your ratings breakdown shows which trips hit the mark and whether longer trips tend to rate higher for you.
+
+The Trip Passions grid shows all sixteen passion categories — the ones you've used are highlighted, and any that appear in your top-rated trips get a star marker. Over time this tells you a lot about what actually makes travel meaningful for you.
+
+And at the bottom, What's Ahead compares your upcoming planned trips to your historical patterns — flagging whether you're trying something new or returning to familiar territory."
+
+
+[INTEGRATION WORKSHOP]
+
+"When your trip is marked Completed, the Integration Workshop unlocks. This is where the real transformation happens.
+
+The workshop guides you through a structured reflection — connecting what you experienced to who you are and who you want to become. It generates a personal integration report that captures your insights and growth in a format you can return to long after the trip is over."
+
+
+[TRAVEL PARTNERS]
+
+"If you travel with a partner — a spouse, a friend, a colleague — the Travel Partners section lets you connect your profiles. Send them an invite link, they take the assessment, and you'll receive a compatibility report showing where your travel styles align and where they differ.
+
+Understanding those differences before you leave is one of the most practical things you can do for a great trip."
+
+
+[SUBSCRIBE]
+
+"The core assessment and report are available to everyone. To unlock Trip Planning, DNA Guides, the Pre-Trip and Integration Workshops, and the journal — you'll need a subscription.
+
+Plans start at twenty-nine dollars a year. Click Subscribe in the menu to see all the options."
+
+
+[OUTRO]
+
+"That's the full Transformed by Travels portal. Every feature is designed around a single idea — that travel is one of the most powerful tools for personal growth available to us, and that a little intention and reflection can turn a good trip into a life-changing one.
+
+Welcome aboard. Let's see where the journey takes you."
+
+
+====================================================
+Estimated narration time: 8-10 minutes at a natural pace.

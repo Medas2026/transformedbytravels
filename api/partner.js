@@ -142,6 +142,61 @@ function sendInviteEmail(toEmail, fromName, acceptUrl) {
   });
 }
 
+// ── Claude partner bullets ────────────────────────────────────────────────────
+
+function buildPartnerBullets(travelerA, travelerB) {
+  const nameA = (travelerA['Traveler Name'] || 'Traveler A').split(' ')[0];
+  const nameB = (travelerB['Traveler Name'] || 'Traveler B').split(' ')[0];
+
+  const prompt = `You are a travel psychology expert. Based on the profiles below, write 4 to 5 bullet points that capture how ${nameA} and ${nameB} relate to travel together as partners. Focus on their complementary strengths, shared values, where they'll naturally align, and what makes their travel partnership special. Be warm, specific, and personal — use their first names.
+
+${nameA}:
+- Archetype: ${travelerA['Archetype'] || 'Unknown'}
+- Passions: ${travelerA['Passions'] || 'Not specified'}
+- Dimension scores (out of 7): Curiosity ${travelerA['DS-1 Curiosity'] || 0}, Adventure ${travelerA['DS-2 Adventure'] || 0}, Reflection ${travelerA['DS-3 Reflection'] || 0}, Connection ${travelerA['DS-4 Connection'] || 0}, Travel Purpose ${travelerA['DS-5 Intention'] || 0}
+
+${nameB}:
+- Archetype: ${travelerB['Archetype'] || 'Unknown'}
+- Passions: ${travelerB['Passions'] || 'Not specified'}
+- Dimension scores (out of 7): Curiosity ${travelerB['DS-1 Curiosity'] || 0}, Adventure ${travelerB['DS-2 Adventure'] || 0}, Reflection ${travelerB['DS-3 Reflection'] || 0}, Connection ${travelerB['DS-4 Connection'] || 0}, Travel Purpose ${travelerB['DS-5 Intention'] || 0}
+
+Output only the bullet points, one per line, each starting with a bullet character •. Keep each bullet to 10 words or fewer. No headers, no intro sentence, no trailing text.`;
+
+  const body = JSON.stringify({
+    model:      'claude-sonnet-4-6',
+    max_tokens: 600,
+    messages:   [{ role: 'user', content: prompt }]
+  });
+
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.anthropic.com',
+      path:     '/v1/messages',
+      method:   'POST',
+      headers: {
+        'x-api-key':         process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Type':      'application/json',
+        'Content-Length':    Buffer.byteLength(body)
+      }
+    };
+    const req = https.request(options, (res) => {
+      let d = '';
+      res.on('data', c => { d += c; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(d);
+          const text = (parsed.content && parsed.content[0] && parsed.content[0].text) || '';
+          resolve(text);
+        } catch(e) { reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 // ── Claude compatibility report ───────────────────────────────────────────────
 
 function buildCompatibilityReport(travelerA, travelerB) {
@@ -307,6 +362,25 @@ module.exports = async function handler(req, res) {
     }
 
     return res.status(200).json({ success: true, partnerName: f['Traveler Name'] || '' });
+  }
+
+  // ── GET: partner bullets ─────────────────────────────────────────────────
+  if (req.method === 'GET' && req.query.action === 'bullets') {
+    const email = (req.query.email || '').toLowerCase().trim();
+    if (!email) return res.status(400).json({ error: 'email required' });
+
+    const traveler = await getByEmail(email);
+    if (!traveler) return res.status(404).json({ error: 'Traveler not found' });
+
+    const f = traveler.fields;
+    if (f['Partner Status'] !== 'Linked') return res.status(400).json({ error: 'No linked partner' });
+
+    const partnerEmail = (f['Travel Partner Email'] || '').toLowerCase();
+    const partner = await getByEmail(partnerEmail);
+    if (!partner) return res.status(404).json({ error: 'Partner account not found' });
+
+    const text = await buildPartnerBullets(f, partner.fields);
+    return res.status(200).json({ bullets: text });
   }
 
   // ── GET: compatibility report ────────────────────────────────────────────
