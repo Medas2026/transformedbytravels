@@ -52,10 +52,12 @@ function buildTripDetailsBlock(destination, country, startDate, endDate, places)
   </div>`;
 }
 
-function buildEmailHTML(title, heading, body, photoUrl) {
+function buildEmailHTML(title, heading, body, photoUrl, btnUrl, btnLabel) {
   const photoHtml = photoUrl
     ? `<tr><td style="padding:0;"><img src="${photoUrl}" alt="${heading}" style="width:100%;max-height:220px;object-fit:cover;display:block;" /></td></tr>`
     : '';
+  const portalLink = btnUrl || `${PORTAL_URL}/portal.html`;
+  const portalLabel = btnLabel || 'Go to My Portal';
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
@@ -66,7 +68,7 @@ ${photoHtml}
 <div style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;">${body}</div>
 </td></tr>
 <tr><td style="padding:0 40px 40px;text-align:center;">
-<a href="${PORTAL_URL}/portal.html" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Go to My Portal</a>
+<a href="${portalLink}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">${portalLabel}</a>
 </td></tr>
 <tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
 <p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
@@ -286,8 +288,16 @@ module.exports = function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // GET — all trips for a traveler
+  // GET — single trip by id, or all trips for a traveler
   if (req.method === 'GET') {
+    const singleId = (req.query && req.query.id) || '';
+    if (singleId) {
+      airtableRequest('GET', `/${singleId}`, null, (err, data) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(200).json({ record: data });
+      });
+      return;
+    }
     const email = ((req.query && req.query.email) || '').toLowerCase().trim();
     if (!email) return res.status(400).json({ error: 'Email required' });
     const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
@@ -357,11 +367,12 @@ module.exports = function handler(req, res) {
                 photoUrl);
               await sendResendEmail(email, subject, html);
               if (coEmail && coEmail !== email.toLowerCase().trim()) {
+                const joinUrl = `${PORTAL_URL}/portal.html?jointrip=${encodeURIComponent(id)}`;
                 const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
                   `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
                    ${details}${summaryHtml}
                    <p>Get ready for an incredible journey!</p>`,
-                  photoUrl);
+                  photoUrl, joinUrl, 'View My Trip →');
                 await sendResendEmail(coEmail, subject, coHtml);
               }
             }
@@ -448,6 +459,9 @@ module.exports = function handler(req, res) {
             if (err) return res.status(500).json({ error: err.message });
             if (data.error) return res.status(500).json({ error: data.error.message || JSON.stringify(data.error) });
             const createdStatus = fields['Status of Trip'];
+            if (b.skipEmail) {
+              return res.status(200).json({ success: true, record: data });
+            }
             if (createdStatus === 'Committed') {
               (async () => {
                 try {
@@ -480,11 +494,12 @@ module.exports = function handler(req, res) {
 
                   // Also notify co-traveler if linked
                   if (coEmail && coEmail !== email) {
+                    const joinUrl = `${PORTAL_URL}/portal.html?jointrip=${encodeURIComponent(tripId)}`;
                     const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
                       `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
                        ${details}${summaryHtml}
                        <p>Get ready for an incredible journey!</p>`,
-                      photoUrl);
+                      photoUrl, joinUrl, 'View My Trip →');
                     await sendResendEmail(coEmail, subject, coHtml);
                   }
                 } catch(e) {
@@ -548,5 +563,6 @@ function buildFields(b) {
   if (b.tripRating !== undefined && b.tripRating !== '') fields['Trip Rating'] = b.tripRating;
   if (b.tripPhotoUrl !== undefined && b.tripPhotoUrl !== '') fields['Trip Photo URL'] = b.tripPhotoUrl;
   if (b.tripPassions !== undefined) fields['Trip Passions'] = b.tripPassions;
+  if (b['Source Trip ID'] !== undefined) fields['Source Trip ID'] = b['Source Trip ID'];
   return fields;
 }

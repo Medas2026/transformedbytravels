@@ -2171,6 +2171,10 @@ async function initAuth0() {
 
   const isAuthenticated = await auth0Client.isAuthenticated();
 
+  // Capture jointrip param before any redirect
+  const _joinTripParam = new URLSearchParams(window.location.search).get('jointrip');
+  if (_joinTripParam) sessionStorage.setItem('pendingJoinTrip', _joinTripParam);
+
   if (!isAuthenticated) {
     const _pendingPage = new URLSearchParams(window.location.search).get('page');
     if (_pendingPage) sessionStorage.setItem('pendingDeepPage', _pendingPage);
@@ -2202,6 +2206,7 @@ async function initAuth0() {
   checkSubscriptionReturn();
   checkAdminAccess(user.email);
   checkPlannerAccess(user.email);
+  joinCoTripIfPending();
 
   // Deep-link: ?page=store (or any valid page name), also restored from sessionStorage after Auth0 redirect
   const _deepPage = new URLSearchParams(window.location.search).get('page') || sessionStorage.getItem('pendingDeepPage');
@@ -3527,6 +3532,54 @@ async function saveProfile() {
 }
 
 // ── Premium billing toggle ────────────────────────────────────────────────────
+// ── Join Co-Trip ─────────────────────────────────────────────────────────────
+async function joinCoTripIfPending() {
+  const sourceTripId = sessionStorage.getItem('pendingJoinTrip');
+  if (!sourceTripId || !userEmail) return;
+  // Only proceed if subscribed
+  if (!isSubscribed()) return;
+  sessionStorage.removeItem('pendingJoinTrip');
+  try {
+    // Fetch the source trip record
+    const resp = await fetch('/api/trips?email=' + encodeURIComponent(userEmail) + '&sourceTripId=' + encodeURIComponent(sourceTripId));
+    const data = await resp.json();
+    // Check if this trip is already in their account
+    const existing = (data.records || []).find(r => r.fields['Source Trip ID'] === sourceTripId);
+    if (existing) { tripsLoaded = false; showPage('planning'); return; }
+
+    // Fetch source trip details directly
+    const srcResp = await fetch('/api/trips?id=' + encodeURIComponent(sourceTripId));
+    const srcData = await srcResp.json();
+    const src = srcData.record && srcData.record.fields;
+    if (!src) return;
+
+    // Create a copy in the co-traveler's account
+    await fetch('/api/trips', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email:        userEmail,
+        name:         src['Traveler Name'] || '',
+        tripName:     src['Trip Name']     || '',
+        destination:  src['Destination']   || '',
+        country:      src['Country']       || '',
+        continent:    src['Continent']     || '',
+        startDate:    src['Start Date']    || '',
+        endDate:      src['End Date']      || '',
+        airportCode:  src['Destination Airport'] || '',
+        notes:        src['Notes']         || '',
+        tripPhotoUrl: src['Trip Photo URL']|| '',
+        tripPassions: src['Trip Passions'] || '',
+        'Status of Trip': src['Status of Trip'] || 'Committed',
+        'Source Trip ID': sourceTripId,
+        skipEmail: true
+      })
+    });
+    tripsLoaded = false;
+    showPage('planning');
+  } catch(e) { /* non-fatal */ }
+}
+
 // ── Promo Code ───────────────────────────────────────────────────────────────
 async function applyPromoCode() {
   const code = (document.getElementById('promo-code-input').value || '').trim();
@@ -3545,10 +3598,11 @@ async function applyPromoCode() {
     if (data.success) {
       msg.style.color = '#86efac';
       msg.textContent = '✓ Promo applied! Your free subscription is now active.';
-      // Reload profile to reflect new subscription status
+      // Reload profile to reflect new subscription status, then handle any pending co-trip
       setTimeout(async () => {
         await loadProfile(userEmail);
-        showPage('my-trips');
+        await joinCoTripIfPending();
+        showPage('planning');
       }, 1500);
     } else {
       msg.style.color = '#f43f5e';
