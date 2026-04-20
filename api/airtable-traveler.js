@@ -194,6 +194,8 @@ function buildFields(b, isNew) {
     if (b.name              !== undefined) fields['Traveler Name']            = b.name;
     if (b.phone             !== undefined) fields['Phone Number']             = b.phone;
     if (b.address           !== undefined) fields['Address']                  = b.address;
+    if (b.city              !== undefined) fields['City']                     = b.city;
+    if (b.state             !== undefined) fields['State']                    = b.state;
     if (b.homeAirport       !== undefined) fields['Home Airport']             = b.homeAirport;
     if (b.travelStyle       !== undefined) fields['Travel Style']             = b.travelStyle;
     if (b.homeTimezone      !== undefined) fields['Home Timezone']            = b.homeTimezone;
