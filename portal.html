@@ -4819,12 +4819,7 @@ function renderTravelInsights(records) {
     </div>`;
 
   // ── Passions breakdown ─────────────────────────────────────────
-  const ALL_PASSIONS = [
-    'Scuba Diving','Mountain Climbing/Mountaineering','Day Hiking','Photography',
-    'Sailing','Canoeing/Kayaking','Mountain Biking','Wildlife Tracking',
-    'Sports Fishing','History and Art Tracker','Archaeology and Science',
-    'Birding','Culinary Travel','Wine Tasting','Pilgrimage','Volunteerism'
-  ];
+  const ALL_PASSIONS = PASSIONS;
   const passionCounts = {}, passionTopRated = {};
   records.forEach(r => {
     const f = r.fields;
@@ -4870,7 +4865,7 @@ function renderTravelInsights(records) {
           <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.06em;">Trip Passions</div>
           <div style="font-family:'Open Sans',sans-serif;font-size:0.72rem;color:var(--muted);">★ = appears in top-rated trips</div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">${chips}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:320px;overflow-y:auto;padding-right:2px;">${chips}</div>
       </div>`;
     document.getElementById('insights-passions').style.display = 'block';
   }
@@ -8689,19 +8684,100 @@ const REPORT_ARCHETYPES = {
 };
 
 const REPORT_PASSION_LABELS = {
-  "Scuba Diving":"Diver","Mountain Climbing/Mountaineering":"Mountaineer","Day Hiking":"Hiker",
-  "Photography":"Photographer","Sailing":"Sailor","Canoeing/Kayaking":"Paddler",
-  "Mountain Biking":"Mountain Biker","Wildlife Tracking":"Wildlife Tracker","Sports Fishing":"Angler",
-  "History and Art Tracker":"History & Art Tracker","Archaeology and Science":"Archaeologist",
-  "Birding":"Birder","Culinary Travel":"Culinary Traveler","Wine Tasting":"Wine Enthusiast",
-  "Pilgrimage":"Pilgrim","Volunteerism":"Volunteer"
+  // Environments
+  "Open Spaces":"Open Spaces Explorer",
+  "Rainforests & Jungles":"Jungle Explorer",
+  "Urban Places":"Urban Explorer",
+  "Mountains & High Places":"Mountain Lover",
+  "Oceans & Coastlines":"Coastal Wanderer",
+  // Adventure & Outdoors
+  "Day Hiking & Trekking":"Hiker",
+  "Mountain Climbing":"Mountaineer",
+  "Cycling & Mountain Biking":"Cyclist",
+  "SCUBA & Marine Exploration":"Diver",
+  "Sailing & Boating":"Sailor",
+  "Canoeing, Kayaking & Whitewater":"Paddler",
+  "Skiing & Snow Sports":"Snow Adventurer",
+  "Rock Climbing":"Rock Climber",
+  // Sport & Recreation
+  "Golf":"Golfer",
+  "Tennis":"Tennis Player",
+  "Fishing":"Angler",
+  // Wildlife & Nature
+  "Wildlife & Safari":"Safari Enthusiast",
+  "Birding":"Birder",
+  "National Parks":"Park Explorer",
+  // Culture & History
+  "Ancient History & Archaeology":"Archaeologist",
+  "Art & Architecture":"Art Lover",
+  "Local Traditions & Village Life":"Culture Seeker",
+  "Religious & Sacred Sites":"Sacred Traveler",
+  "Literary & Book Travel":"Literary Traveler",
+  "Music & Performing Arts":"Music Traveler",
+  // Food & Drink
+  "Culinary Travel & Street Food":"Culinary Traveler",
+  "Wine & Vineyards":"Wine Enthusiast",
+  "Craft Beer & Distilleries":"Craft Drinks Explorer",
+  "Coffee Culture":"Coffee Enthusiast",
+  // Wellbeing & Slow Travel
+  "Wellness & Spa":"Wellness Seeker",
+  "Yoga & Meditation":"Mindful Traveler",
+  "Gardens & Landscapes":"Garden Explorer",
+  "Photography":"Photographer",
+  // People & Purpose
+  "Voluntourism & Service":"Volunteer",
+  "Pilgrimage":"Pilgrim",
+  "Cultural Immersion":"Cultural Immersionist",
+  // Travel with Pets
+  "Pet-Friendly Travel":"Pet Traveler"
 };
 const REPORT_PASSION_ICONS = {
-  "Scuba Diving":"🤿","Mountain Climbing/Mountaineering":"⛰️","Day Hiking":"🥾",
-  "Photography":"📷","Sailing":"⛵","Canoeing/Kayaking":"🛶","Mountain Biking":"🚵",
-  "Wildlife Tracking":"🦁","Sports Fishing":"🎣","History and Art Tracker":"🏛️",
-  "Archaeology and Science":"🔍","Birding":"🦅","Culinary Travel":"🍽️","Wine Tasting":"🍷",
-  "Pilgrimage":"🕌","Volunteerism":"🤝"
+  // Environments
+  "Open Spaces":"🌾",
+  "Rainforests & Jungles":"🌿",
+  "Urban Places":"🏙️",
+  "Mountains & High Places":"⛰️",
+  "Oceans & Coastlines":"🌊",
+  // Adventure & Outdoors
+  "Day Hiking & Trekking":"🥾",
+  "Mountain Climbing":"🧗",
+  "Cycling & Mountain Biking":"🚵",
+  "SCUBA & Marine Exploration":"🤿",
+  "Sailing & Boating":"⛵",
+  "Canoeing, Kayaking & Whitewater":"🛶",
+  "Skiing & Snow Sports":"⛷️",
+  "Rock Climbing":"🪨",
+  // Sport & Recreation
+  "Golf":"⛳",
+  "Tennis":"🎾",
+  "Fishing":"🎣",
+  // Wildlife & Nature
+  "Wildlife & Safari":"🦁",
+  "Birding":"🦅",
+  "National Parks":"🏕️",
+  // Culture & History
+  "Ancient History & Archaeology":"🏛️",
+  "Art & Architecture":"🎨",
+  "Local Traditions & Village Life":"🏘️",
+  "Religious & Sacred Sites":"🕌",
+  "Literary & Book Travel":"📚",
+  "Music & Performing Arts":"🎭",
+  // Food & Drink
+  "Culinary Travel & Street Food":"🍽️",
+  "Wine & Vineyards":"🍷",
+  "Craft Beer & Distilleries":"🍺",
+  "Coffee Culture":"☕",
+  // Wellbeing & Slow Travel
+  "Wellness & Spa":"🧖",
+  "Yoga & Meditation":"🧘",
+  "Gardens & Landscapes":"🌸",
+  "Photography":"📷",
+  // People & Purpose
+  "Voluntourism & Service":"🤝",
+  "Pilgrimage":"🚶",
+  "Cultural Immersion":"🌍",
+  // Travel with Pets
+  "Pet-Friendly Travel":"🐾"
 };
 const REPORT_LIFE_STAGE_TO_AGE_BAND = {
   'Student / Under 25':'Student','Early Adult (25 to 40)':'Early Adult',
@@ -8942,7 +9018,7 @@ async function _rptBuildDestinations(raw, arch) {
     return;
   }
   const scored = DESTINATIONS.map(d => {
-    const obj={name:d[0],country:d[1],continent:d[2],arch1:d[4],arch2:d[5],passion:d[6],Cur:d[7],Adv:d[8],Con:d[9],Int:d[10],Ref:d[11]};
+    const obj={name:d[0],country:d[1],continent:d[2],arch1:d[4],arch2:d[5],passions:Array.isArray(d[6])?d[6]:[d[6]].filter(Boolean),passion:(Array.isArray(d[6])?d[6][0]:d[6])||'',unesco:d[14]||0,Cur:d[7],Adv:d[8],Con:d[9],Int:d[10],Ref:d[11]};
     return {...obj, matchPct:scoreDestForUser(obj, raw)};
   });
   for (let i=scored.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[scored[i],scored[j]]=[scored[j],scored[i]];}
@@ -9270,7 +9346,7 @@ async function loadDreamingPage() {
         const continent = (document.getElementById('surprise-continent') || {}).value || '';
         const scored = DESTINATIONS
           .filter(d => d[1] !== 'United States' && (!continent || d[2] === continent))
-          .map(d => ({ name:d[0], country:d[1], arch1:d[4], passion:d[6], Cur:d[7], Adv:d[8], Con:d[9], Int:d[10], Ref:d[11], pct:_surpriseScore({Cur:d[7],Adv:d[8],Con:d[9],Int:d[10],Ref:d[11]}, window._surpriseRaw) }))
+          .map(d => ({ name:d[0], country:d[1], arch1:d[4], passions:Array.isArray(d[6])?d[6]:[d[6]].filter(Boolean), passion:(Array.isArray(d[6])?d[6][0]:d[6])||'', Cur:d[7], Adv:d[8], Con:d[9], Int:d[10], Ref:d[11], pct:_surpriseScore({Cur:d[7],Adv:d[8],Con:d[9],Int:d[10],Ref:d[11]}, window._surpriseRaw) }))
           .sort((a,b) => b.pct - a.pct);
         const pool = scored.slice(5, Math.min(15, scored.length));
         const finalPool = pool.length ? pool : scored.slice(0, Math.min(5, scored.length));

@@ -235,7 +235,7 @@
           if (hintEl) hintEl.textContent = row[3] ? '— auto-filled' : '— please enter';
         }
         // Pre-fill passion only if user hasn't picked one yet
-        if (passionEl && !passionEl.value) passionEl.value = row[6] || '';
+        if (passionEl && !passionEl.value) passionEl.value = Array.isArray(row[6]) ? row[6][0] || '' : row[6] || '';
       }
     } else if (dest === '__other__') {
       if (airportEl) {
