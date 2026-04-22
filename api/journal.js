@@ -546,7 +546,8 @@ module.exports = async function handler(req, res) {
               const tomorrowSms = weather
                 ? `\nTomorrow: ${weather.emoji} ${weather.maxTemp}°/${weather.minTemp}°F · ${lunar.emoji} ${lunar.name}`
                 : `\nTomorrow: ${lunar.emoji} ${lunar.name}`;
-              smsBody = `${dayLabel} — ${currentPlace}\nHi ${name.split(' ')[0]}, time to capture your travel reflection!${tomorrowSms}\n${link}`;
+              const tipSms = tipText ? `\n\n💡 ${tipText}` : '';
+              smsBody = `${dayLabel} — ${currentPlace}\nHi ${name.split(' ')[0]}, time to capture your travel reflection!${tomorrowSms}${tipSms}\n${link}`;
             }
             await new Promise(resolve => sendSMS(phone, smsBody, (e) => {
               if (e) console.error('[send-daily] SMS error for', email, e.message);
