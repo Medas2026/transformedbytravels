@@ -75,6 +75,46 @@ ${photoHtml}
 </td></tr></table></td></tr></table></body></html>`;
 }
 
+async function getDailyTip(archetype, tipNum, location, country) {
+  try {
+    if (!archetype || !tipNum) return null;
+    const apiKey = process.env.AIRTABLE_API_KEY;
+    const filter = encodeURIComponent(`AND({Tip Number}=${tipNum},{Archetype}="${archetype}")`);
+    const url = `https://api.airtable.com/v0/${BASE_ID}/Daily%20Tips?filterByFormula=${filter}&maxRecords=1`;
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + apiKey } });
+    const data = await resp.json();
+    const record = (data.records || [])[0];
+    if (!record) return null;
+    const baseText = record.fields['Tip Text'] || '';
+    if (!baseText || !location) return baseText || null;
+
+    const loc = [location, country].filter(Boolean).join(', ');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    try {
+      const geoResp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 200,
+          messages: [{ role: 'user', content: `The traveler will be in ${loc}. Lightly adapt this travel tip to feel specific to that location — a local reference, a cultural nuance, or a place-appropriate example. Keep the same tone, length, and core message. Return only the adapted tip text, no preamble.\n\nBase tip: ${baseText}` }]
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+      const geoData = await geoResp.json();
+      return (geoData.content && geoData.content[0] && geoData.content[0].text) || baseText;
+    } catch(e) {
+      clearTimeout(timer);
+      return baseText;
+    }
+  } catch(e) {
+    console.error('[getDailyTip]', e.message);
+    return null;
+  }
+}
+
 async function sendResendEmail(to, subject, html) {
   const apiKey = process.env.RESEND_API_KEY;
   const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to, subject, html });
@@ -362,10 +402,31 @@ module.exports = function handler(req, res) {
                     return line.trim() ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#0f172a;line-height:1.75;margin:0 0 18px;">${line.trim()}</p>` : '';
                   }).join('')
                 : '';
+
+              // Fetch traveler archetype for daily tip
+              let archetype = '';
+              try {
+                const travResp = await fetch(`https://api.airtable.com/v0/${BASE_ID}/Traveler?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`, {
+                  headers: { 'Authorization': 'Bearer ' + process.env.AIRTABLE_API_KEY }
+                });
+                const travData = await travResp.json();
+                archetype = ((travData.records || [])[0] || {}).fields?.['Archetype'] || '';
+              } catch(e) { console.error('[Committed tip] traveler fetch error:', e.message); }
+
+              // Tip #1, location = first place or destination
+              const tipLocation = places.length ? places[0] : (destination || '');
+              const tipText = await getDailyTip(archetype, 1, tipLocation, country);
+              const tipHtml = tipText
+                ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:18px 20px;margin:16px 0;">
+                     <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">A Thought for Your Journey</div>
+                     <p style="font-family:Georgia,serif;font-size:14px;color:#0f172a;line-height:1.75;margin:0;">${tipText}</p>
+                   </div>`
+                : '';
+
               const subject = `Your trip to ${tripName} is confirmed!`;
               const html = buildEmailHTML(subject, `You're committed, traveler!`,
                 `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
-                 ${details}${summaryHtml}
+                 ${details}${summaryHtml}${tipHtml}
                  <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`,
                 photoUrl);
               await sendResendEmail(email, subject, html);

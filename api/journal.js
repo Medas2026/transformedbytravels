@@ -210,6 +210,46 @@ function sendMonthlyEmail(to, subject, html) {
   return sendEmail(to, subject, html);
 }
 
+async function getDailyTip(archetype, tipNum, location, country) {
+  try {
+    if (!archetype || !tipNum) return null;
+    const apiKey = process.env.AIRTABLE_API_KEY;
+    const filter = encodeURIComponent(`AND({Tip Number}=${tipNum},{Archetype}="${archetype}")`);
+    const url = `https://api.airtable.com/v0/${BASE_ID}/Daily%20Tips?filterByFormula=${filter}&maxRecords=1`;
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + apiKey } });
+    const data = await resp.json();
+    const record = (data.records || [])[0];
+    if (!record) return null;
+    const baseText = record.fields['Tip Text'] || '';
+    if (!baseText || !location) return baseText || null;
+
+    const loc = [location, country].filter(Boolean).join(', ');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    try {
+      const geoResp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 200,
+          messages: [{ role: 'user', content: `The traveler will be in ${loc} tomorrow. Lightly adapt this travel tip to feel specific to that location — a local reference, a cultural nuance, or a place-appropriate example. Keep the same tone, length, and core message. Return only the adapted tip text, no preamble.\n\nBase tip: ${baseText}` }]
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+      const geoData = await geoResp.json();
+      return (geoData.content && geoData.content[0] && geoData.content[0].text) || baseText;
+    } catch(e) {
+      clearTimeout(timer);
+      return baseText;
+    }
+  } catch(e) {
+    console.error('[getDailyTip]', e.message);
+    return null;
+  }
+}
+
 async function getClaudeReflection(reflection, barriers, memory, tripName, dayNumber, archetype, hopes) {
   const day    = ordinal(dayNumber);
   const dest   = tripName || 'your destination';
@@ -421,8 +461,9 @@ module.exports = async function handler(req, res) {
           // Traveler info
           const travData = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${email}")`));
           const travRec  = (travData.records || [])[0];
-          const name     = travRec ? (travRec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
-          const phone    = travRec ? (travRec.fields['Phone Number'] || '') : '';
+          const name      = travRec ? (travRec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
+          const phone     = travRec ? (travRec.fields['Phone Number'] || '') : '';
+          const archetype = travRec ? (travRec.fields['Archetype'] || '') : '';
 
           // Day number
           let dayNum = null;
@@ -438,13 +479,23 @@ module.exports = async function handler(req, res) {
             if (current) currentPlace = current.name;
           }
 
+          // Tomorrow's place (day+1 in places array, fallback to destination)
+          const tomorrowDayNum = dayNum ? dayNum + 1 : null;
+          let tomorrowPlace = destination || tripName;
+          if (tomorrowDayNum && places.length) {
+            const nextPlace = places.slice().sort((a, b) => a.day - b.day).filter(p => p.day <= tomorrowDayNum).pop();
+            if (nextPlace) tomorrowPlace = nextPlace.name;
+          }
+
           // Tomorrow's weather + lunar
           const tomorrowDate = new Date(localDate + 'T12:00:00');
           tomorrowDate.setDate(tomorrowDate.getDate() + 1);
           const weatherPlace = currentPlace !== tripName ? currentPlace : (destination || tripName);
-          const [weather, lunar] = await Promise.all([
+          const tipNum = dayNum ? ((dayNum - 1) % 19) + 1 : 1;
+          const [weather, lunar, tipText] = await Promise.all([
             getWeatherForecast(weatherPlace, country),
-            Promise.resolve(getLunarPhase(tomorrowDate))
+            Promise.resolve(getLunarPhase(tomorrowDate)),
+            getDailyTip(archetype, tipNum, tomorrowPlace, country)
           ]);
 
           const isLastDay  = endDate && localDate >= endDate;
@@ -475,6 +526,14 @@ module.exports = async function handler(req, res) {
     <table cellpadding="0" cellspacing="0" style="width:100%;"><tr>${weatherHtml}${lunarHtml}</tr></table>
   </div>
 </td></tr>`;
+
+          const tipBlockHtml = tipText ? `
+<tr><td style="padding:0 40px 28px;">
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:18px 20px;">
+    <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">A Thought for Tomorrow</div>
+    <p style="font-family:Georgia,serif;font-size:14px;color:#0f172a;line-height:1.75;margin:0;">${tipText}</p>
+  </div>
+</td></tr>` : '';
 
           const finishLink = `${PORTAL_URL}/portal.html`;
 
@@ -531,7 +590,7 @@ ${tripPhotoHtml}
 <tr><td style="padding:0 40px 28px;text-align:center;">
 <a href="${link}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Write Today's Journal →</a>
 </td></tr>
-${tomorrowBlockHtml}
+${tipBlockHtml}${tomorrowBlockHtml}
 <tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
 <p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
 </td></tr></table></td></tr></table></body></html>`;
