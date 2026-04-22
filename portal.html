@@ -2043,8 +2043,15 @@
         <textarea class="trip-textarea" id="pm-notes" style="min-height:70px;" placeholder="What you want to do or see here…"></textarea>
       </div>
       <div class="pm-field">
-        <div class="trip-field-label">Place Passions <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(select up to 4)</span></div>
-        <div id="pm-passions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;max-height:180px;overflow-y:auto;padding-right:4px;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div class="trip-field-label" style="margin-bottom:0;">Place Passions <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(select up to 4)</span></div>
+          <span id="pm-passions-scroll-hint" style="font-size:0.72rem;color:var(--muted);">scroll for more ↕</span>
+        </div>
+        <div style="position:relative;">
+          <div id="pm-passions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;max-height:180px;overflow-y:auto;padding-right:4px;" onscroll="_pmPassionsScroll(this)"></div>
+          <div id="pm-passions-fade-top" style="display:none;position:absolute;top:0;left:0;right:0;height:28px;background:linear-gradient(to bottom,var(--s1),transparent);pointer-events:none;border-radius:4px 4px 0 0;"></div>
+          <div id="pm-passions-fade-bot" style="position:absolute;bottom:0;left:0;right:0;height:28px;background:linear-gradient(to top,var(--s1),transparent);pointer-events:none;border-radius:0 0 4px 4px;"></div>
+        </div>
       </div>
       <div class="pm-field">
         <div class="pm-label">Stayed at URL (optional)</div>
@@ -4424,6 +4431,12 @@ window._pmSetPassions = function(str) {
     cb.disabled = false;
   });
   _pmPassionChange();
+};
+
+window._pmPassionsScroll = function(el) {
+  document.getElementById('pm-passions-fade-top').style.display = el.scrollTop > 4 ? 'block' : 'none';
+  document.getElementById('pm-passions-fade-bot').style.display = el.scrollTop + el.clientHeight < el.scrollHeight - 4 ? 'block' : 'none';
+  document.getElementById('pm-passions-scroll-hint').style.display = 'none';
 };
 
 window._pmClearPassions = function() {
