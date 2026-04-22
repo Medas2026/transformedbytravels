@@ -2043,6 +2043,10 @@
         <textarea class="trip-textarea" id="pm-notes" style="min-height:70px;" placeholder="What you want to do or see here…"></textarea>
       </div>
       <div class="pm-field">
+        <div class="trip-field-label">Place Passions <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(select up to 4)</span></div>
+        <div id="pm-passions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;max-height:180px;overflow-y:auto;padding-right:4px;"></div>
+      </div>
+      <div class="pm-field">
         <div class="pm-label">Stayed at URL (optional)</div>
         <input class="trip-input" id="pm-stayed-url" type="url" placeholder="https://…" />
       </div>
@@ -4377,6 +4381,57 @@ window._tdClearPassions = function() {
   });
 };
 
+// ── Place Passions (Place Modal) ────────────────────────────────────────────
+(function() {
+  const grid = document.getElementById('pm-passions-grid');
+  if (!grid) return;
+  grid.innerHTML = PASSIONS.map(p =>
+    `<label id="pm-passion-label-${CSS.escape(p)}" style="display:flex;align-items:center;gap:6px;padding:5px 9px;background:var(--s2);border:1.5px solid rgba(255,255,255,0.08);border-radius:7px;cursor:pointer;font-family:'Open Sans',sans-serif;font-size:0.78rem;color:var(--soft);transition:border-color 0.15s,color 0.15s;">
+      <input type="checkbox" value="${p}" onchange="_pmPassionChange()" style="accent-color:var(--teal);width:13px;height:13px;flex-shrink:0;" />
+      ${p}
+    </label>`
+  ).join('');
+})();
+
+window._pmPassionChange = function() {
+  const checked = Array.from(document.querySelectorAll('#pm-passions-grid input[type=checkbox]:checked'));
+  const all     = Array.from(document.querySelectorAll('#pm-passions-grid input[type=checkbox]'));
+  const limit   = checked.length >= 4;
+  all.forEach(cb => {
+    const label = cb.closest('label');
+    if (cb.checked) {
+      label.style.borderColor = 'var(--teal)';
+      label.style.color = 'var(--text)';
+      cb.disabled = false;
+    } else {
+      label.style.borderColor = limit ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.08)';
+      label.style.color = limit ? 'var(--muted)' : 'var(--soft)';
+      cb.disabled = limit;
+    }
+  });
+};
+
+window._pmGetPassions = function() {
+  return Array.from(document.querySelectorAll('#pm-passions-grid input[type=checkbox]:checked')).map(cb => cb.value);
+};
+
+window._pmSetPassions = function(str) {
+  const vals = (str || '').split(',').map(s => s.trim()).filter(Boolean);
+  document.querySelectorAll('#pm-passions-grid input[type=checkbox]').forEach(cb => {
+    cb.checked = vals.includes(cb.value);
+    cb.disabled = false;
+  });
+  _pmPassionChange();
+};
+
+window._pmClearPassions = function() {
+  document.querySelectorAll('#pm-passions-grid input[type=checkbox]').forEach(cb => {
+    cb.checked = false; cb.disabled = false;
+    const label = cb.closest('label');
+    if (label) { label.style.borderColor = 'rgba(255,255,255,0.08)'; label.style.color = 'var(--soft)'; }
+  });
+};
+
 // Stash ?dest=&country= for DNA pre-fill before initAuth0 cleans the URL
 (function() {
   const p = new URLSearchParams(window.location.search);
@@ -5686,6 +5741,7 @@ function openPlaceModal(idx) {
   const p = idx === -1 ? {} : (sourceArr[idx] || {});
   document.getElementById('pm-name').value            = p.place         || '';
   document.getElementById('pm-notes').value           = p.notes         || '';
+  _pmSetPassions(p.placePassions || '');
   document.getElementById('pm-stayed-url').value      = p.stayedAtUrl   || '';
   document.getElementById('pm-place-photo-url').value = p.placePhotoUrl || '';
   _pmShowPlacePhotoPreview(p.placePhotoUrl || '');
@@ -6051,6 +6107,7 @@ function savePlaceModal() {
   const country = document.getElementById('pm-country').value;
   const day     = document.getElementById('pm-day').value || '';
   const notes         = document.getElementById('pm-notes').value.trim();
+  const placePassions = _pmGetPassions().join(', ');
   const stayedAtUrl   = document.getElementById('pm-stayed-url').value.trim();
   const placePhotoUrl = document.getElementById('pm-place-photo-url').value.trim();
   const rating        = parseInt(document.getElementById('pm-rating').value, 10) || 0;
@@ -6079,7 +6136,7 @@ function savePlaceModal() {
       renderDnaPlaceCards();
     }
     // Persist immediately
-    const body = { dnaGuideId: _currentDnaGuideId, travelerId: portalRecordId, place: name, day: entry.day, country: country, notes: notes, photosUrl: entry.photosUrl, stayedAtUrl: stayedAtUrl, placePhotoUrl: placePhotoUrl || '', rating: rating };
+    const body = { dnaGuideId: _currentDnaGuideId, travelerId: portalRecordId, place: name, day: entry.day, country: country, notes: notes, placePassions: placePassions, photosUrl: entry.photosUrl, stayedAtUrl: stayedAtUrl, placePhotoUrl: placePhotoUrl || '', rating: rating };
     if (entry._recId) {
       fetch('/api/trip-places?id=' + entry._recId, { method: 'DELETE' }).catch(() => {});
     }
@@ -6095,6 +6152,7 @@ function savePlaceModal() {
     day:           day ? parseInt(day, 10) : null,
     country:       country || '',
     notes:         notes,
+    placePassions: placePassions,
     dnaGuideId:    _pmConnectedGuideId || '',
     photosUrl:     _pmPhotosUrl || '',
     stayedAtUrl:   stayedAtUrl || '',
@@ -6113,15 +6171,16 @@ function savePlaceModal() {
 
 function renderPlaceRows(records) {
   _places = records.map(r => ({
-    place:       r.fields['Place']        || '',
-    day:         r.fields['Day']          || null,
-    country:     r.fields['Country']      || '',
-    notes:       r.fields['Notes']        || '',
-    dnaGuideId:  r.fields['DNA Guide ID'] || '',
-    photosUrl:     r.fields['Photos URL']      || '',
-    stayedAtUrl:   r.fields['Stayed at URL']   || '',
-    placePhotoUrl: r.fields['Place Photo URL'] || '',
-    rating:        r.fields['Rating']          || 0,
+    place:         r.fields['Place']          || '',
+    day:           r.fields['Day']            || null,
+    country:       r.fields['Country']        || '',
+    notes:         r.fields['Notes']          || '',
+    placePassions: r.fields['Place Passions'] || '',
+    dnaGuideId:    r.fields['DNA Guide ID']   || '',
+    photosUrl:     r.fields['Photos URL']     || '',
+    stayedAtUrl:   r.fields['Stayed at URL']  || '',
+    placePhotoUrl: r.fields['Place Photo URL']|| '',
+    rating:        r.fields['Rating']         || 0,
     _recId:        r.id
   }));
 
@@ -6178,7 +6237,7 @@ async function saveTripPlaces(tripId) {
   const errors = [];
   await Promise.all(toSave.map(async p => {
     const tripName = document.getElementById('td-name').value || document.getElementById('trip-detail-title').textContent || '';
-    const body = { tripId, tripName, travelerId: portalRecordId, place: p.place, day: p.day, country: p.country, notes: p.notes || '', dnaGuideId: p.dnaGuideId || '', photosUrl: p.photosUrl || '', stayedAtUrl: p.stayedAtUrl || '', placePhotoUrl: p.placePhotoUrl || '', rating: p.rating || 0 };
+    const body = { tripId, tripName, travelerId: portalRecordId, place: p.place, day: p.day, country: p.country, notes: p.notes || '', placePassions: p.placePassions || '', dnaGuideId: p.dnaGuideId || '', photosUrl: p.photosUrl || '', stayedAtUrl: p.stayedAtUrl || '', placePhotoUrl: p.placePhotoUrl || '', rating: p.rating || 0 };
     try {
       const r = await fetch('/api/trip-places', {
         method:  'POST',
