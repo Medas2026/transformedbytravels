@@ -914,8 +914,15 @@
               <input id="td-cotraveler" type="email" class="trip-input" placeholder="partner@email.com" />
             </div>
             <div class="trip-field-group">
-              <div class="trip-field-label">Trip Passions <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(select up to 3)</span></div>
-              <div id="td-passions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div class="trip-field-label" style="margin-bottom:0;">Trip Passions <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(select up to 3)</span></div>
+                <span id="td-passions-scroll-hint" style="font-size:0.72rem;color:var(--muted);">scroll for more ↕</span>
+              </div>
+              <div style="position:relative;">
+                <div id="td-passions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:180px;overflow-y:auto;padding-right:4px;" onscroll="_tdPassionsScroll(this)"></div>
+                <div id="td-passions-fade-top" style="display:none;position:absolute;top:0;left:0;right:0;height:28px;background:linear-gradient(to bottom,var(--s1),transparent);pointer-events:none;border-radius:4px 4px 0 0;"></div>
+                <div id="td-passions-fade-bot" style="position:absolute;bottom:0;left:0;right:0;height:28px;background:linear-gradient(to top,var(--s1),transparent);pointer-events:none;border-radius:0 0 4px 4px;"></div>
+              </div>
             </div>
             <div class="trip-field-group" id="td-rating-group" style="display:none;">
               <div class="trip-field-label">Trip Rating</div>
@@ -4388,6 +4395,15 @@ window._tdClearPassions = function() {
     const label = cb.closest('label');
     if (label) { label.style.borderColor = 'rgba(255,255,255,0.08)'; label.style.color = 'var(--soft)'; }
   });
+};
+
+window._tdPassionsScroll = function(el) {
+  const top = document.getElementById('td-passions-fade-top');
+  const bot = document.getElementById('td-passions-fade-bot');
+  const hint = document.getElementById('td-passions-scroll-hint');
+  if (top) top.style.display = el.scrollTop > 4 ? 'block' : 'none';
+  if (bot) bot.style.display = (el.scrollTop + el.clientHeight < el.scrollHeight - 4) ? 'block' : 'none';
+  if (hint && el.scrollTop > 4) hint.style.display = 'none';
 };
 
 // ── Place Passions (Place Modal) ────────────────────────────────────────────
