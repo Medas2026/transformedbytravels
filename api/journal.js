@@ -539,7 +539,8 @@ module.exports = async function handler(req, res) {
 
           const finishLink = `${PORTAL_URL}/portal.html`;
 
-          let smsSent = false; // reserved for future SMS-only logic
+          let smsSent = false;
+          console.log(`[send-daily] SMS check for ${email}: phone=${phone ? 'yes('+phone.slice(0,4)+'***)' : 'none'} tipText=${tipText ? 'yes' : 'none'} archetype=${archetype||'none'}`);
           if (phone) {
             let smsBody;
             if (isLastDay) {
@@ -551,11 +552,14 @@ module.exports = async function handler(req, res) {
               const tipSms = tipText ? `\n\n💡 ${tipText}` : '';
               smsBody = `${dayLabel} — ${currentPlace}\nHi ${name.split(' ')[0]}, time to capture your travel reflection!${tomorrowSms}${tipSms}\n${link}`;
             }
+            console.log(`[send-daily] sending SMS to ${phone.slice(0,4)}*** for ${email}`);
             await new Promise(resolve => sendSMS(phone, smsBody, (e) => {
-              if (e) console.error('[send-daily] SMS error for', email, e.message);
-              else smsSent = true;
+              if (e) console.error('[send-daily] SMS error for', email, ':', e.message);
+              else { smsSent = true; console.log(`[send-daily] SMS sent OK for ${email}`); }
               resolve();
             }));
+          } else {
+            console.log(`[send-daily] no phone for ${email} — SMS skipped`);
           }
           const tripPhotoHtml = tripPhotoUrl
             ? `<tr><td style="padding:0;"><img src="${tripPhotoUrl}" alt="${tripName}" style="width:100%;max-height:220px;object-fit:cover;display:block;" /></td></tr>`
