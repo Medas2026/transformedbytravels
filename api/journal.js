@@ -544,13 +544,13 @@ module.exports = async function handler(req, res) {
           if (phone) {
             let smsBody;
             if (isLastDay) {
-              smsBody = `Last Day — ${currentPlace}\nHi ${name.split(' ')[0]}, today's your last day! Take a moment to journal and finish your trip.\n${finishLink}`;
+              smsBody = `Last Day — ${currentPlace}\nHi ${name.split(' ')[0]}, today's your last day! Take a moment to journal and finish your trip.\n${finishLink}\nReply STOP to opt out.`;
             } else {
               const tomorrowSms = weather
                 ? `\nTomorrow: ${weather.emoji} ${weather.maxTemp}°/${weather.minTemp}°F · ${lunar.emoji} ${lunar.name}`
                 : `\nTomorrow: ${lunar.emoji} ${lunar.name}`;
               const tipSms = tipText ? `\n\n💡 ${tipText}` : '';
-              smsBody = `${dayLabel} — ${currentPlace}\nHi ${name.split(' ')[0]}, time to capture your travel reflection!${tomorrowSms}${tipSms}\n${link}`;
+              smsBody = `${dayLabel} — ${currentPlace}\nHi ${name.split(' ')[0]}, time to capture your travel reflection!${tomorrowSms}${tipSms}\n${link}\nReply STOP to opt out.`;
             }
             console.log(`[send-daily] sending SMS to ${phone.slice(0,4)}*** for ${email}`);
             await new Promise(resolve => sendSMS(phone, smsBody, (e) => {
