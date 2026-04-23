@@ -213,8 +213,10 @@ function sendMonthlyEmail(to, subject, html) {
 async function getDailyTip(archetype, tipNum, location, country) {
   try {
     if (!archetype || !tipNum) return null;
+    // Daily Tips table uses short names without "The " prefix
+    const archShort = archetype.replace(/^The\s+/i, '');
     const apiKey = process.env.AIRTABLE_API_KEY;
-    const filter = encodeURIComponent(`AND({Tip Number}=${tipNum},{Archetype}="${archetype}")`);
+    const filter = encodeURIComponent(`AND({Tip Number}=${tipNum},{Archetype}="${archShort}")`);
     const url = `https://api.airtable.com/v0/${BASE_ID}/Daily%20Tips?filterByFormula=${filter}&maxRecords=1`;
     const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + apiKey } });
     const data = await resp.json();
