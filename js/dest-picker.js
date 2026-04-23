@@ -56,10 +56,16 @@
   ]);
 
   const PASSION_LIST = [
-    'Scuba Diving', 'Mountain Climbing/Mountaineering', 'Day Hiking', 'Photography',
-    'Sailing', 'Canoeing/Kayaking', 'Mountain Biking', 'Wildlife Tracking',
-    'Sports Fishing', 'History and Art Tracker', 'Archaeology and Science',
-    'Birding', 'Culinary Travel', 'Wine Tasting', 'Pilgrimage', 'Volunteerism'
+    'Open Spaces','Rainforests & Jungles','Urban Places','Mountains & High Places','Oceans & Coastlines',
+    'Day Hiking & Trekking','Mountain Climbing','Cycling & Mountain Biking','SCUBA & Marine Exploration',
+    'Sailing & Boating','Canoeing, Kayaking & Whitewater','Skiing & Snow Sports','Rock Climbing',
+    'Golf','Tennis','Fishing',
+    'Wildlife & Safari','Birding','National Parks',
+    'Ancient History & Archaeology','Art & Architecture','Local Traditions & Village Life',
+    'Religious & Sacred Sites','Literary & Book Travel','Music & Performing Arts',
+    'Culinary Travel & Street Food','Wine & Vineyards','Craft Beer & Distilleries','Coffee Culture',
+    'Wellness & Spa','Yoga & Meditation','Gardens & Landscapes','Photography',
+    'Voluntourism & Service','Pilgrimage','Cultural Immersion','Pet-Friendly Travel',
   ];
 
   // ── initDestPicker ─────────────────────────────────────────

@@ -8927,55 +8927,71 @@ async function _rptBuildTravelStyle(addAnswers) {
 
 async function _rptBuildPassionDests(addAnswers) {
   const passions = (addAnswers['A1'] || []).filter(p => REPORT_PASSION_LABELS[p]);
-  if (!passions.length) return;
+  if (!passions.length || typeof DESTINATIONS === 'undefined') return;
   const section = document.getElementById('passion-dests-section');
   const container = document.getElementById('passion-dests-container');
   if (!section || !container) return;
   section.style.display = 'block';
-  container.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;padding:8px 0;">Loading…</p>';
-  try {
-    if (!window._passionDestsCache) {
-      window._passionDestsCache = await fetch('/api/passion-dests').then(r => r.json());
-    }
-    const rows = window._passionDestsCache;
-    container.innerHTML = '';
-    passions.forEach(passion => {
-      const label = REPORT_PASSION_LABELS[passion];
-      const dests = rows.filter(r => r.passion && r.passion.toLowerCase().trim()===passion.toLowerCase().trim());
-      if (!dests.length) return;
-      const group = document.createElement('div');
-      group.className = 'passion-group';
-      const title = document.createElement('div');
-      title.className = 'passion-group-title';
-      title.textContent = (REPORT_PASSION_ICONS[passion]||'✦') + ' ' + label;
-      const grid = document.createElement('div');
-      grid.className = 'passion-dest-grid';
-      dests.forEach(d => {
-        const card = document.createElement('div');
-        card.className = 'passion-dest-card';
-        const name = document.createElement('div');
-        name.className = 'passion-dest-name';
-        name.style.color = 'var(--teal)';
-        name.textContent = d.destination;
-        const desc = document.createElement('div');
-        desc.className = 'passion-dest-desc';
-        desc.textContent = d.description || '';
-        // DNA Guide button — look up country from DESTINATIONS array
-        const destMatch = typeof DESTINATIONS !== 'undefined' ? DESTINATIONS.find(x => x[0] === d.destination) : null;
-        const country = d.country || (destMatch ? destMatch[1] : '');
-        const dnaBtn = document.createElement('a');
-        dnaBtn.href = 'javascript:void(0)';
-        dnaBtn.style.cssText = 'display:inline-block;margin-top:8px;font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;';
-        dnaBtn.textContent = '✦ DNA Guide';
-        dnaBtn.onclick = () => { sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: d.destination, country })); showPage('dna'); };
-        card.appendChild(name); card.appendChild(desc); card.appendChild(dnaBtn);
-        grid.appendChild(card);
-      });
-      group.appendChild(title); group.appendChild(grid);
-      container.appendChild(group);
+  container.innerHTML = '';
+
+  // Get traveler's dimension scores for ranking
+  const raw = window._rptRawScores || {};
+  function scoreDestForUser(d) {
+    if (!raw.Curiosity) return 50;
+    const uNorm = { Cur:(raw.Curiosity/7)*10, Adv:(raw.Adventure/7)*10, Con:(raw.Connection/7)*10, Int:(raw['Travel Purpose']/7)*10, Ref:(raw.Reflection/7)*10 };
+    let total = 0;
+    ['Cur','Adv','Con','Int','Ref'].forEach(k => { total += 1 - Math.abs(uNorm[k] - d[k]) / 10; });
+    return Math.round((total/5)*100);
+  }
+
+  passions.forEach(passion => {
+    const label = REPORT_PASSION_LABELS[passion];
+    // Filter destinations that have this passion in their array
+    const matches = DESTINATIONS
+      .filter(d => Array.isArray(d[6]) ? d[6].includes(passion) : d[6] === passion)
+      .map(d => ({
+        name: d[0], country: d[1], continent: d[2],
+        Cur:d[7], Adv:d[8], Con:d[9], Int:d[10], Ref:d[11],
+        unesco: d[14] || 0
+      }))
+      .map(d => ({ ...d, score: scoreDestForUser(d) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+
+    if (!matches.length) return;
+
+    const group = document.createElement('div');
+    group.className = 'passion-group';
+    const title = document.createElement('div');
+    title.className = 'passion-group-title';
+    title.textContent = (REPORT_PASSION_ICONS[passion]||'✦') + ' ' + label;
+    const grid = document.createElement('div');
+    grid.className = 'passion-dest-grid';
+
+    matches.forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'passion-dest-card';
+      const name = document.createElement('div');
+      name.className = 'passion-dest-name';
+      name.style.color = 'var(--teal)';
+      name.textContent = d.name + (d.unesco ? ' 🏛' : '');
+      const sub = document.createElement('div');
+      sub.style.cssText = 'font-size:0.72rem;color:var(--muted);margin-bottom:4px;';
+      sub.textContent = d.country + ' · ' + d.score + '% match';
+      const dnaBtn = document.createElement('a');
+      dnaBtn.href = 'javascript:void(0)';
+      dnaBtn.style.cssText = 'display:inline-block;margin-top:6px;font-size:0.75rem;color:var(--teal);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:3px 10px;text-decoration:none;white-space:nowrap;';
+      dnaBtn.textContent = '✦ DNA Guide';
+      dnaBtn.onclick = () => { sessionStorage.setItem('dnaPreFill', JSON.stringify({ dest: d.name, country: d.country })); showPage('dna'); };
+      card.appendChild(name); card.appendChild(sub); card.appendChild(dnaBtn);
+      grid.appendChild(card);
     });
-  } catch(e) {
-    container.innerHTML = '<p style="color:var(--soft);">Could not load passion destinations.</p>';
+    group.appendChild(title); group.appendChild(grid);
+    container.appendChild(group);
+  });
+
+  if (!container.children.length) {
+    container.innerHTML = '<p style="color:var(--soft);font-size:0.9rem;">No destinations found for your passions.</p>';
   }
 }
 
@@ -9006,11 +9022,19 @@ async function _rptBuildItemHighlights(f) {
 }
 
 async function _rptBuildDestinations(raw, arch) {
+  window._rptRawScores = raw; // share with _rptBuildPassionDests
+  const _travelerPassions = window._rptTravelerPassions || [];
   function scoreDestForUser(dest, r) {
     const uNorm={ Cur:(r.Curiosity/7)*10, Adv:(r.Adventure/7)*10, Con:(r.Connection/7)*10, Int:(r['Travel Purpose']/7)*10, Ref:(r.Reflection/7)*10 };
     let total=0;
     ['Cur','Adv','Con','Int','Ref'].forEach(k=>{ total+=1-Math.abs(uNorm[k]-dest[k])/10; });
-    return Math.round((total/5)*100);
+    let base = Math.round((total/5)*100);
+    // Passion overlap boost: +3 per matching passion (max +9)
+    if (_travelerPassions.length && dest.passions && dest.passions.length) {
+      const overlap = dest.passions.filter(p => _travelerPassions.includes(p)).length;
+      base = Math.min(100, base + overlap * 3);
+    }
+    return base;
   }
   if (typeof DESTINATIONS === 'undefined') {
     document.getElementById('dest-global').innerHTML = '<p style="color:var(--muted);font-size:0.88rem;">Destination data unavailable.</p>';
@@ -9120,6 +9144,7 @@ function loadReportPage() {
     A5: f['Hopes to Experience'] ? f['Hopes to Experience'].split(', ').map(s=>s.trim()).filter(Boolean) : [],
     A6: f['Travel Style'] || null
   };
+  window._rptTravelerPassions = addAnswers.A1;
 
   // Header
   document.getElementById('results-name-title').textContent = `${userName}'s Travel for Growth Assessment`;
