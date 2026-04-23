@@ -850,8 +850,9 @@
           <div id="trip-pinned-content" style="display:none;margin-top:12px;font-size:0.85rem;color:var(--soft);line-height:1.8;border-top:1px solid rgba(45,212,191,0.2);padding-top:12px;"></div>
 
           <!-- Trip Photo Banner (shown when trip has a photo) -->
-          <div id="td-photo-banner" style="display:none;margin-bottom:16px;">
+          <div id="td-photo-banner" style="display:none;margin-bottom:16px;position:relative;">
             <img id="td-photo-banner-img" src="" alt="Trip photo" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;" />
+            <button onclick="clearTripPhoto()" style="position:absolute;top:10px;right:10px;background:rgba(15,23,42,0.75);border:none;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;border-radius:6px;padding:5px 10px;cursor:pointer;">✕ Remove</button>
           </div>
 
           <div class="profile-section">
@@ -940,16 +941,9 @@
               <textarea id="td-notes" class="trip-textarea" placeholder="Ideas, wishes, things to research…"></textarea>
             </div>
             <div class="trip-field-group">
-              <div class="trip-field-label">Trip Photo <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(optional · horizontal recommended)</span></div>
-              <div id="td-photo-preview" style="display:none;position:relative;margin-bottom:8px;">
-                <img id="td-photo-img" src="" alt="Trip photo" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;border:1px solid var(--bd);" />
-                <button onclick="clearTripPhoto()" style="position:absolute;top:8px;right:8px;background:rgba(15,23,42,0.75);border:none;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;border-radius:6px;padding:5px 10px;cursor:pointer;">✕ Remove</button>
-              </div>
-              <div id="td-photo-dropzone" style="display:flex;align-items:center;gap:12px;">
-                <input type="file" id="td-photo-file" accept="image/*" onchange="uploadTripPhoto(this)" style="display:none;" />
-                <button onclick="document.getElementById('td-photo-file').click()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:7px 16px;cursor:pointer;">+ Upload Photo</button>
-                <span id="td-photo-status" style="font-size:0.8rem;color:var(--soft);"></span>
-              </div>
+              <input type="file" id="td-photo-file" accept="image/*" onchange="uploadTripPhoto(this)" style="display:none;" />
+              <button id="td-photo-btn" onclick="document.getElementById('td-photo-file').click()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:7px 16px;cursor:pointer;">📷 Add Trip Photo</button>
+              <span id="td-photo-status" style="font-size:0.8rem;color:var(--soft);margin-left:10px;"></span>
             </div>
             <input type="hidden" id="td-photo-url" value="" />
             <input type="hidden" id="td-history" value="false" />
@@ -5124,16 +5118,12 @@ function openTrip(record) {
   const _photoUrl = f['Trip Photo URL'] || '';
   document.getElementById('td-photo-url').value = _photoUrl;
   if (_photoUrl) {
-    document.getElementById('td-photo-img').src = _photoUrl;
-    document.getElementById('td-photo-preview').style.display = 'block';
-    document.getElementById('td-photo-dropzone').style.display = 'none';
     document.getElementById('td-photo-banner-img').src = _photoUrl;
     document.getElementById('td-photo-banner').style.display = 'block';
+    document.getElementById('td-photo-btn').textContent = '📷 Change Photo';
   } else {
-    document.getElementById('td-photo-img').src = '';
-    document.getElementById('td-photo-preview').style.display = 'none';
-    document.getElementById('td-photo-dropzone').style.display = 'flex';
     document.getElementById('td-photo-banner').style.display = 'none';
+    document.getElementById('td-photo-btn').textContent = '📷 Add Trip Photo';
   }
   const mapSection = document.getElementById('trip-map-section');
   if (mapSection) mapSection.style.display = 'none';
@@ -6468,10 +6458,8 @@ function launchFlightsSearch() {
 
 function _clearTripPhotoField() {
   document.getElementById('td-photo-url').value = '';
-  document.getElementById('td-photo-img').src = '';
-  document.getElementById('td-photo-preview').style.display = 'none';
-  document.getElementById('td-photo-dropzone').style.display = 'flex';
   document.getElementById('td-photo-banner').style.display = 'none';
+  document.getElementById('td-photo-btn').textContent = '📷 Add Trip Photo';
   document.getElementById('td-photo-status').textContent = '';
 }
 
@@ -6586,11 +6574,9 @@ async function uploadTripPhoto(input) {
     const data = await resp.json();
     if (data.secure_url) {
       document.getElementById('td-photo-url').value = data.secure_url;
-      document.getElementById('td-photo-img').src = data.secure_url;
-      document.getElementById('td-photo-preview').style.display = 'block';
-      document.getElementById('td-photo-dropzone').style.display = 'none';
       document.getElementById('td-photo-banner-img').src = data.secure_url;
       document.getElementById('td-photo-banner').style.display = 'block';
+      document.getElementById('td-photo-btn').textContent = '📷 Change Photo';
       status.textContent = '';
     } else {
       status.textContent = 'Upload failed. Please try again.';
