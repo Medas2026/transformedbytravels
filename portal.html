@@ -1529,7 +1529,7 @@
 
             <!-- Intro Article -->
             <div style="margin-bottom:28px;">
-              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1rem;color:var(--teal);margin-bottom:6px;">About This Passion</div>
+              <div id="passionhub-section-heading" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1rem;color:var(--teal);margin-bottom:6px;">About This Passion</div>
               <div id="passionhub-article-title" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.2rem;color:#fff;margin-bottom:12px;line-height:1.3;"></div>
               <div style="max-width:680px;">
                 <div id="passionhub-article" style="color:var(--text);font-size:0.9rem;line-height:1.7;white-space:pre-wrap;"></div>
@@ -9513,6 +9513,7 @@ async function loadPassionHubContent(vals) {
   const featWrap  = document.getElementById('passionhub-featured-wrap');
   heroImg.style.display  = 'none';
   featWrap.style.display = 'none';
+  document.getElementById('passionhub-section-heading').textContent = destination ? `Things You Might Enjoy in a Trip to ${destination}` : 'About This Passion';
   document.getElementById('passionhub-article-title').textContent = '';
   document.getElementById('passionhub-article').textContent = '';
 
