@@ -377,6 +377,9 @@
       <div class="menu-item" onclick="showPage('support')" data-page="support" style="margin-top:auto;" data-tooltip="Report a problem or ask for help.">
         <i class="ph ph-warning-circle menu-icon"></i> Report an Issue
       </div>
+      <div class="menu-item" id="passionhub-menu-item" onclick="showPage('passionhub')" data-page="passionhub" style="display:none;">
+        <i class="ph ph-compass menu-icon"></i> Passion Hub
+      </div>
       <div class="menu-item" onclick="showPage('dev')" data-page="dev" style="opacity:0.45;font-size:0.78rem;">
         <i class="ph ph-wrench menu-icon"></i> Dev Tools
       </div>
@@ -1495,6 +1498,73 @@
       </div>
 
       <!-- Dev Tools Page -->
+      <!-- ── Passion Hub ─────────────────────────────────────── -->
+      <div class="page" id="page-passionhub">
+        <div class="profile-section">
+          <div class="profile-section-title" style="color:var(--teal);">✦ Passion Hub</div>
+          <p style="color:var(--muted);font-size:0.88rem;margin:8px 0 20px;">Choose a passion to explore curated content, featured destinations, and activities wherever you travel.</p>
+
+          <!-- Passion Gallery -->
+          <div id="passionhub-gallery"></div>
+
+          <!-- Destination picker — appears after passion selected -->
+          <div id="passionhub-dest-section" style="display:none;margin-top:28px;max-width:680px;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;color:#fff;margin-bottom:12px;">
+              Where are you headed? <span id="passionhub-selected-passion" style="color:var(--teal);"></span>
+            </div>
+            <div id="passionhub-picker-wrap"></div>
+          </div>
+
+          <!-- Content -->
+          <div id="passionhub-content" style="display:none;margin-top:28px;">
+            <!-- Hero -->
+            <div style="max-width:680px;margin-bottom:24px;">
+              <div id="passionhub-hero" style="border-radius:12px;overflow:hidden;position:relative;background:var(--s2);">
+                <img id="passionhub-hero-img" src="" alt="" style="width:100%;height:260px;object-fit:cover;display:block;" />
+                <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;background:linear-gradient(transparent,rgba(0,0,0,0.75));">
+                  <div id="passionhub-hero-title" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.4rem;color:#fff;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Intro Article -->
+            <div style="margin-bottom:28px;">
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1rem;color:var(--teal);margin-bottom:6px;">About This Passion</div>
+              <div id="passionhub-article-title" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.2rem;color:#fff;margin-bottom:12px;line-height:1.3;"></div>
+              <div style="max-width:680px;">
+                <div id="passionhub-article" style="color:var(--text);font-size:0.9rem;line-height:1.7;white-space:pre-wrap;"></div>
+              </div>
+            </div>
+
+            <!-- Featured Destination -->
+            <div id="passionhub-featured-wrap" style="margin-bottom:28px;display:none;">
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1rem;color:var(--teal);margin-bottom:12px;">Featured Destination</div>
+              <div style="border-radius:12px;overflow:hidden;background:var(--s2);border:1px solid var(--bd);">
+                <img id="passionhub-featured-img" src="" alt="" style="width:100%;height:180px;object-fit:cover;display:block;" />
+                <div style="padding:16px;">
+                  <div id="passionhub-featured-dest" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--teal);margin-bottom:4px;"></div>
+                  <div id="passionhub-destination-title" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;margin-bottom:10px;line-height:1.3;"></div>
+                  <div id="passionhub-featured-article" style="color:var(--muted);font-size:0.85rem;line-height:1.6;white-space:pre-wrap;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activities Near Destination -->
+            <div id="passionhub-activities-wrap" style="display:none;">
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1rem;color:var(--teal);margin-bottom:12px;">
+                <span id="passionhub-activities-title">Activities Near Your Destination</span>
+              </div>
+              <div id="passionhub-activities-loading" style="color:var(--muted);font-size:0.85rem;">Finding activities...</div>
+              <div id="passionhub-activities-content" style="color:var(--text);font-size:0.88rem;line-height:1.7;"></div>
+            </div>
+          </div>
+
+          <div id="passionhub-no-content" style="display:none;color:var(--muted);font-size:0.88rem;margin-top:20px;">
+            No content available for this passion yet — coming soon.
+          </div>
+        </div>
+      </div>
+
       <div class="page" id="page-dev">
         <div class="profile-section">
           <div class="profile-section-title" style="color:#f59e0b;">🔧 Dev Tools</div>
@@ -3082,7 +3152,12 @@ async function plannerDeletePlace(placeRecId, tripId) {
 // ═══════════════════════════════════════════════
 function checkAdminAccess(email) {
   fetch('/api/airtable-traveler?action=admin-list&email=' + encodeURIComponent(email))
-    .then(r => { if (r.ok) document.getElementById('admin-menu-item').style.display = 'flex'; })
+    .then(r => {
+      if (r.ok) {
+        document.getElementById('admin-menu-item').style.display = 'flex';
+        document.getElementById('passionhub-menu-item').style.display = 'flex';
+      }
+    })
     .catch(() => {});
 }
 
@@ -3760,6 +3835,7 @@ function showPage(name) {
   if (name === 'support')      prefillSupportForm();
   if (name === 'report')       loadReportPage();
   if (name === 'dreaming')     loadDreamingPage();
+  if (name === 'passionhub')   initPassionHub();
 }
 
 async function logout() {
@@ -9073,7 +9149,7 @@ async function _rptBuildDestinations(raw, arch) {
     const nameEl = document.createElement('div');
     nameEl.className = 'passion-dest-name';
     nameEl.style.color = 'var(--teal)';
-    nameEl.textContent = d.name;
+    nameEl.textContent = d.name + (d.unesco ? ' 🏛' : '');
     const sub = document.createElement('div');
     sub.style.cssText = 'color:var(--muted);font-size:0.78rem;margin-bottom:4px;';
     sub.textContent = country === 'United States' ? `${d.matchPct}% match` : `${country}, ${d.matchPct}% match`;
@@ -9206,6 +9282,265 @@ function loadReportPage() {
 }
 
 let _dreamingPageLoaded = false;
+
+// ═══════════════════════════════════════════════
+// PASSION HUB
+// ═══════════════════════════════════════════════
+
+const PASSION_HUB_GROUPS = [
+  { label: 'Landscapes & Environments', passions: ['Open Spaces','Rainforests & Jungles','Urban Places','Mountains & High Places','Oceans & Coastlines'] },
+  { label: 'Adventure & Active',        passions: ['Day Hiking & Trekking','Mountain Climbing','Cycling & Mountain Biking','SCUBA & Marine Exploration','Sailing & Boating','Canoeing, Kayaking & Whitewater','Skiing & Snow Sports','Rock Climbing','Golf','Tennis','Fishing'] },
+  { label: 'Nature & Wildlife',         passions: ['Wildlife & Safari','Birding','National Parks'] },
+  { label: 'Culture & History',         passions: ['Ancient History & Archaeology','Art & Architecture','Local Traditions & Village Life','Religious & Sacred Sites','Literary & Book Travel','Music & Performing Arts'] },
+  { label: 'Food & Drink',              passions: ['Culinary Travel & Street Food','Wine & Vineyards','Craft Beer & Distilleries','Coffee Culture'] },
+  { label: 'Wellness & Reflection',     passions: ['Wellness & Spa','Yoga & Meditation','Gardens & Landscapes','Photography'] },
+  { label: 'Purpose & Connection',      passions: ['Voluntourism & Service','Pilgrimage','Cultural Immersion','Pet-Friendly Travel'] },
+];
+
+// Passions with live content
+const PASSION_HUB_LIVE = new Set(['Photography','Coffee Culture']);
+
+// Unsplash keyword map for card backgrounds
+const PASSION_UNSPLASH = {
+  'Open Spaces':                    'open+landscape',
+  'Rainforests & Jungles':          'rainforest+jungle',
+  'Urban Places':                   'city+urban',
+  'Mountains & High Places':        'mountain+peak',
+  'Oceans & Coastlines':            'ocean+coastline',
+  'Day Hiking & Trekking':          'hiking+trail',
+  'Mountain Climbing':              'mountain+climbing',
+  'Cycling & Mountain Biking':      'mountain+biking',
+  'SCUBA & Marine Exploration':     'scuba+diving',
+  'Sailing & Boating':              'sailing+boat',
+  'Canoeing, Kayaking & Whitewater':'kayaking+river',
+  'Skiing & Snow Sports':           'skiing+snow',
+  'Rock Climbing':                  'rock+climbing',
+  'Golf':                           'golf+course',
+  'Tennis':                         'tennis',
+  'Fishing':                        'fly+fishing',
+  'Wildlife & Safari':              'safari+wildlife',
+  'Birding':                        'bird+wildlife',
+  'National Parks':                 'national+park',
+  'Ancient History & Archaeology':  'ancient+ruins',
+  'Art & Architecture':             'architecture+art',
+  'Local Traditions & Village Life':'village+culture',
+  'Religious & Sacred Sites':       'temple+sacred',
+  'Literary & Book Travel':         'library+books',
+  'Music & Performing Arts':        'music+concert',
+  'Culinary Travel & Street Food':  'street+food',
+  'Wine & Vineyards':               'vineyard+wine',
+  'Craft Beer & Distilleries':      'craft+beer',
+  'Coffee Culture':                 'coffee+cafe',
+  'Wellness & Spa':                 'spa+wellness',
+  'Yoga & Meditation':              'yoga+meditation',
+  'Gardens & Landscapes':           'garden+landscape',
+  'Photography':                    'camera+photography',
+  'Voluntourism & Service':         'volunteer+community',
+  'Pilgrimage':                     'pilgrimage+spiritual',
+  'Cultural Immersion':             'culture+travel',
+  'Pet-Friendly Travel':            'dog+travel',
+};
+
+let _passionHubInited = false;
+let _passionHubSelectedPassion = '';
+
+function initPassionHub() {
+  if (!_passionHubInited) {
+    _passionHubInited = true;
+    _buildPassionGallery();
+    initDestPicker({
+      containerId: 'passionhub-picker-wrap',
+      idPrefix:    'phb',
+      showPassion: false,
+      showAirport: false,
+      onDestChange: function(vals) {
+        if (vals.destination) loadPassionHubContent({ ...vals, passion: _passionHubSelectedPassion });
+      }
+    });
+  }
+}
+
+function _buildPassionGallery() {
+  const gallery = document.getElementById('passionhub-gallery');
+  if (!gallery) return;
+  gallery.innerHTML = '';
+
+  PASSION_HUB_GROUPS.forEach(group => {
+    const groupEl = document.createElement('div');
+    groupEl.style.cssText = 'margin-bottom:24px;';
+
+    const labelEl = document.createElement('div');
+    labelEl.style.cssText = 'font-family:"Montserrat",sans-serif;font-weight:800;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--teal);margin-bottom:10px;border-bottom:1px solid rgba(45,212,191,0.25);padding-bottom:6px;';
+    labelEl.textContent = group.label;
+    groupEl.appendChild(labelEl);
+
+    const rowEl = document.createElement('div');
+    rowEl.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;';
+    rowEl.style.maxWidth = 'calc(6 * 130px + 5 * 10px)';
+
+    group.passions.forEach(passion => {
+      const isLive = PASSION_HUB_LIVE.has(passion);
+      const icon   = REPORT_PASSION_ICONS[passion] || '✦';
+
+      const card = document.createElement('div');
+      card.style.cssText = `
+        height:110px;border-radius:12px;overflow:hidden;
+        position:relative;cursor:pointer;
+        background:${isLive ? 'linear-gradient(135deg,#0f2a2a 0%,#0d2035 100%)' : 'var(--s2)'};
+        border:2px solid ${isLive ? 'rgba(45,212,191,0.45)' : 'rgba(255,255,255,0.1)'};
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+        transition:transform 0.15s,border-color 0.15s;padding:10px;box-sizing:border-box;
+      `;
+      card.onmouseenter = () => {
+        card.style.transform = 'scale(1.04)';
+        card.style.borderColor = isLive ? 'rgba(45,212,191,0.8)' : 'rgba(255,255,255,0.25)';
+      };
+      card.onmouseleave = () => {
+        card.style.transform = 'scale(1)';
+        card.style.borderColor = isLive ? 'rgba(45,212,191,0.45)' : 'rgba(255,255,255,0.1)';
+      };
+      card.onclick = () => _selectPassion(passion);
+
+      card.innerHTML = `
+        <div style="font-size:2rem;line-height:1;">${icon}</div>
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.68rem;
+                    color:${isLive ? '#fff' : 'rgba(255,255,255,0.55)'};
+                    text-align:center;line-height:1.3;">${passion}</div>
+        ${isLive ? '<div style="font-size:0.58rem;color:var(--teal);letter-spacing:0.05em;">✦ Full Story</div>' : ''}
+      `;
+
+      rowEl.appendChild(card);
+    });
+
+    groupEl.appendChild(rowEl);
+    gallery.appendChild(groupEl);
+  });
+}
+
+function _selectPassion(passion) {
+  _passionHubSelectedPassion = passion;
+  document.getElementById('passionhub-selected-passion').textContent = passion;
+  document.getElementById('passionhub-dest-section').style.display = 'block';
+  document.getElementById('passionhub-content').style.display = 'none';
+  document.getElementById('passionhub-no-content').style.display = 'none';
+  document.getElementById('passionhub-dest-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Load article if live content exists, otherwise just show destination picker
+  if (PASSION_HUB_LIVE.has(passion)) {
+    loadPassionHubContent({ destination: '', country: '', passion });
+  }
+}
+
+async function loadPassionHubContent(vals) {
+  const { destination, country, passion } = vals;
+  const archetype = (portalProfile && portalProfile['Archetype']) || '';
+
+  document.getElementById('passionhub-content').style.display    = 'none';
+  document.getElementById('passionhub-no-content').style.display = 'none';
+  document.getElementById('passionhub-activities-wrap').style.display = 'none';
+
+  if (!passion) return;
+
+  // Fetch passion content from Airtable via API
+  try {
+    const res = await fetch(`/api/passion-content?passion=${encodeURIComponent(passion)}&archetype=${encodeURIComponent(archetype)}`);
+    const data = await res.json();
+
+    if (!data || !data.introArticle) {
+      document.getElementById('passionhub-no-content').style.display = 'block';
+      return;
+    }
+
+    // Hero
+    const heroImg = document.getElementById('passionhub-hero-img');
+    if (data.heroImageUrl) { heroImg.src = data.heroImageUrl; heroImg.style.display = 'block'; }
+    else heroImg.style.display = 'none';
+    document.getElementById('passionhub-hero-title').textContent = passion;
+
+    // Intro article
+    document.getElementById('passionhub-article-title').textContent = data.articleTitle || '';
+    document.getElementById('passionhub-article').textContent = data.introArticle;
+
+    // Featured destination
+    const featWrap = document.getElementById('passionhub-featured-wrap');
+    if (data.featuredDestination && data.featuredArticle) {
+      document.getElementById('passionhub-featured-dest').textContent = data.featuredDestination;
+      document.getElementById('passionhub-destination-title').textContent = data.destinationTitle || '';
+      document.getElementById('passionhub-featured-article').textContent = data.featuredArticle;
+      const featImg = document.getElementById('passionhub-featured-img');
+      if (data.featuredImageUrl) { featImg.src = data.featuredImageUrl; featImg.style.display = 'block'; }
+      else featImg.style.display = 'none';
+      featWrap.style.display = 'block';
+    } else {
+      featWrap.style.display = 'none';
+    }
+
+    // Activities near destination
+    if (destination) {
+      const PASSION_TYPE_MAP = {
+        'Photography':                    'photography',
+        'Coffee Culture':                 'coffee',
+        'Fishing':                        'fishing',
+        'SCUBA & Marine Exploration':     'diving',
+        'Sailing & Boating':              'sailing',
+        'Canoeing, Kayaking & Whitewater':'kayaking',
+        'Cycling & Mountain Biking':      'mountain-biking',
+        'Wildlife & Safari':              'wildlife',
+        'Rock Climbing':                  'mountaineering',
+        'Mountain Climbing':              'mountaineering',
+        'Ancient History & Archaeology':  'archaeology',
+        'Art & Architecture':             'history-art',
+        'Culinary Travel & Street Food':  'culinary',
+        'Wine & Vineyards':               'wine',
+        'Pilgrimage':                     'pilgrimage',
+        'Voluntourism & Service':         'volunteerism',
+      };
+      const actType = PASSION_TYPE_MAP[passion] || passion.toLowerCase().replace(/\s+/g, '-');
+
+      const actWrap    = document.getElementById('passionhub-activities-wrap');
+      const actLoading = document.getElementById('passionhub-activities-loading');
+      const actContent = document.getElementById('passionhub-activities-content');
+      document.getElementById('passionhub-activities-title').textContent = `${passion} Near ${destination}`;
+      actWrap.style.display    = 'block';
+      actLoading.style.display = 'block';
+      actContent.innerHTML     = '';
+
+      fetch('/api/activities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ place: destination, country, type: actType })
+      })
+        .then(r => r.json())
+        .then(d => {
+          actLoading.style.display = 'none';
+          const items = d.items || [];
+          if (!items.length) {
+            actContent.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No activities found near this destination.</p>';
+            return;
+          }
+          actContent.innerHTML = items.map(item => `
+            <div style="margin-bottom:16px;padding:14px;background:var(--s2);border-radius:10px;border:1px solid var(--bd);">
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:4px;">${item.name || ''}</div>
+              ${item.type       ? `<div style="font-size:0.78rem;color:var(--teal);margin-bottom:4px;">${item.type}</div>` : ''}
+              ${item.specialty  ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">${item.specialty}</div>` : ''}
+              ${item.depth      ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Depth: ${item.depth} · ${item.difficulty || ''}</div>` : ''}
+              ${item.species    ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Species: ${item.species}</div>` : ''}
+              ${item.best_time  ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Best time: ${item.best_time}</div>` : ''}
+              ${item.era        ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">${item.era}</div>` : ''}
+              ${item.highlights ? `<div style="font-size:0.82rem;color:var(--text);line-height:1.5;">${item.highlights}</div>` : ''}
+            </div>`).join('');
+        })
+        .catch(() => {
+          actLoading.style.display = 'none';
+          actContent.innerHTML = '<p style="color:var(--muted);">Could not load activities.</p>';
+        });
+    }
+
+    document.getElementById('passionhub-content').style.display = 'block';
+
+  } catch(e) {
+    document.getElementById('passionhub-no-content').style.display = 'block';
+  }
+}
 
 async function loadDreamingPage() {
   if (_dreamingPageLoaded) return;
