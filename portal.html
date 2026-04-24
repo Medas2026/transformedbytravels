@@ -378,7 +378,7 @@
         <i class="ph ph-warning-circle menu-icon"></i> Report an Issue
       </div>
       <div class="menu-item" id="passionhub-menu-item" onclick="showPage('passionhub')" data-page="passionhub" style="display:none;">
-        <i class="ph ph-compass menu-icon"></i> Passion Hub
+        <i class="ph ph-compass menu-icon"></i> Explore Your Passions
       </div>
       <div class="menu-item" onclick="showPage('dev')" data-page="dev" style="opacity:0.45;font-size:0.78rem;">
         <i class="ph ph-wrench menu-icon"></i> Dev Tools
@@ -1502,11 +1502,12 @@
       <!-- ── Passion Hub ─────────────────────────────────────── -->
       <div class="page" id="page-passionhub">
         <div class="profile-section">
-          <div class="profile-section-title" style="color:var(--teal);">✦ Passion Hub</div>
-          <p style="color:var(--muted);font-size:0.88rem;margin:8px 0 20px;">Choose a destination and a passion to explore curated content, featured destinations, and activities wherever you travel.</p>
+          <div class="profile-section-title" style="color:var(--teal);">✦ Explore Your Passions on Your Next Trip</div>
+          <div id="passionhub-dest-label" style="display:none;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;color:#fff;margin:8px 0 20px;">Destination: <span id="passionhub-dest-name" style="color:var(--teal);"></span></div>
+          <p id="passionhub-intro-text" style="color:var(--muted);font-size:0.88rem;margin:8px 0 20px;">Select a passion to explore activities and curated content for your destination.</p>
 
-          <!-- Destination picker — always visible at top -->
-          <div id="passionhub-dest-section" style="margin-bottom:28px;max-width:680px;">
+          <!-- Destination picker — hidden when arriving from DNA Guide -->
+          <div id="passionhub-dest-section" style="display:none;margin-bottom:28px;max-width:680px;">
             <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;color:#fff;margin-bottom:12px;">
               Where are you headed?
             </div>
@@ -1562,6 +1563,11 @@
 
           <div id="passionhub-no-content" style="display:none;color:var(--muted);font-size:0.88rem;margin-top:20px;">
             No content available for this passion yet — coming soon.
+          </div>
+
+          <!-- Return to DNA Guide -->
+          <div id="passionhub-return-bar" style="display:none;margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.07);">
+            <button onclick="showPage('dna')" style="background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.4);border-radius:8px;padding:10px 22px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">← Return to DNA Guide</button>
           </div>
         </div>
       </div>
@@ -9382,15 +9388,23 @@ function _phbResetCards() {
 function navigateToDNAPassionHub() {
   const vals = dpGetValues('dna');
   showPage('passionhub'); // calls initPassionHub(), inits 'phb' picker
-  if (vals.destination) {
+
+  // Show destination as label, hide picker and generic intro
+  const dest = vals.destination || '';
+  document.getElementById('passionhub-dest-section').style.display = 'none';
+  document.getElementById('passionhub-intro-text').style.display   = 'none';
+  if (dest) {
+    document.getElementById('passionhub-dest-name').textContent    = dest;
+    document.getElementById('passionhub-dest-label').style.display = 'block';
+  }
+  document.getElementById('passionhub-return-bar').style.display = 'block';
+
+  if (dest) {
     dpSetValues('phb', vals);
-    _phbCurrentVals = { destination: vals.destination, country: vals.country || '' };
+    _phbCurrentVals = { destination: dest, country: vals.country || '' };
   }
   if (vals.passion) {
     _selectPassion(vals.passion);
-    // Scroll to top of passion hub so tile highlight is visible
-    const gallery = document.getElementById('passionhub-gallery');
-    if (gallery) gallery.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 
