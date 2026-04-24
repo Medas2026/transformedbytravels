@@ -55,18 +55,16 @@
     'Malaysia','Russia','China'
   ]);
 
-  const PASSION_LIST = [
-    'Open Spaces','Rainforests & Jungles','Urban Places','Mountains & High Places','Oceans & Coastlines',
-    'Day Hiking & Trekking','Mountain Climbing','Cycling & Mountain Biking','SCUBA & Marine Exploration',
-    'Sailing & Boating','Canoeing, Kayaking & Whitewater','Skiing & Snow Sports','Rock Climbing',
-    'Golf','Tennis','Fishing',
-    'Wildlife & Safari','Birding','National Parks',
-    'Ancient History & Archaeology','Art & Architecture','Local Traditions & Village Life',
-    'Religious & Sacred Sites','Literary & Book Travel','Music & Performing Arts',
-    'Culinary Travel & Street Food','Wine & Vineyards','Craft Beer & Distilleries','Coffee Culture',
-    'Wellness & Spa','Yoga & Meditation','Gardens & Landscapes','Photography',
-    'Voluntourism & Service','Pilgrimage','Cultural Immersion','Pet-Friendly Travel',
+  const PASSION_GROUPS = [
+    { label: 'Landscapes & Environments', passions: ['Open Spaces','Rainforests & Jungles','Urban Places','Mountains & High Places','Oceans & Coastlines'] },
+    { label: 'Adventure & Active',        passions: ['Day Hiking & Trekking','Mountain Climbing','Cycling & Mountain Biking','SCUBA & Marine Exploration','Sailing & Boating','Canoeing, Kayaking & Whitewater','Skiing & Snow Sports','Rock Climbing','Golf','Tennis','Fishing'] },
+    { label: 'Nature & Wildlife',         passions: ['Wildlife & Safari','Birding','National Parks'] },
+    { label: 'Culture & History',         passions: ['Ancient History & Archaeology','Art & Architecture','Local Traditions & Village Life','Religious & Sacred Sites','Literary & Book Travel','Music & Performing Arts'] },
+    { label: 'Food & Drink',              passions: ['Culinary Travel & Street Food','Wine & Vineyards','Craft Beer & Distilleries','Coffee Culture'] },
+    { label: 'Wellness & Reflection',     passions: ['Wellness & Spa','Yoga & Meditation','Gardens & Landscapes','Photography'] },
+    { label: 'Purpose & Connection',      passions: ['Voluntourism & Service','Pilgrimage','Cultural Immersion','Pet-Friendly Travel'] },
   ];
+  const PASSION_LIST = PASSION_GROUPS.flatMap(g => g.passions);
 
   // ── initDestPicker ─────────────────────────────────────────
   // options:
@@ -108,7 +106,9 @@
         <div class="dp-label">Passion Focus</div>
         <select id="${p}-passion" class="dp-select" onchange="_dpFireCb('${p}')">
           <option value="">— Any / Auto-select —</option>
-          ${PASSION_LIST.map(v => `<option value="${v}">${v}</option>`).join('\n          ')}
+          ${PASSION_GROUPS.map(g =>
+            `<optgroup label="${g.label}">${g.passions.map(v => `<option value="${v}">${v}</option>`).join('')}</optgroup>`
+          ).join('\n          ')}
         </select>
       </div>` : '';
 
@@ -203,7 +203,8 @@
     const dests = DESTINATIONS.filter(r => r[2] === continent && r[1] === country);
     dests.forEach(r => {
       const o = document.createElement('option');
-      o.value = o.textContent = r[0];
+      o.value = r[0];
+      o.textContent = r[0] + (r[14] ? ' 🏛' : '');
       destSel.appendChild(o);
     });
 
