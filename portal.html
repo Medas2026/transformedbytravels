@@ -1565,6 +1565,16 @@
         </div>
       </div>
 
+      <!-- Activity Detail Modal -->
+      <div id="activity-detail-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeActivityDetail()">
+        <div style="background:var(--s1);border:1px solid var(--bd);border-radius:16px;max-width:520px;width:100%;padding:28px;position:relative;box-shadow:0 24px 64px rgba(0,0,0,0.5);">
+          <button onclick="closeActivityDetail()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>
+          <div id="activity-detail-type" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--teal);margin-bottom:8px;"></div>
+          <div id="activity-detail-name" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.15rem;color:#fff;margin-bottom:16px;line-height:1.3;padding-right:24px;"></div>
+          <div id="activity-detail-body" style="color:var(--text);font-size:0.9rem;line-height:1.75;"></div>
+        </div>
+      </div>
+
       <div class="page" id="page-dev">
         <div class="profile-section">
           <div class="profile-section-title" style="color:#f59e0b;">🔧 Dev Tools</div>
@@ -9550,22 +9560,44 @@ async function loadPassionHubContent(vals) {
         actContent.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No activities found near this destination.</p>';
         return;
       }
-      actContent.innerHTML = items.map(item => `
-        <div style="margin-bottom:16px;padding:14px;background:var(--s2);border-radius:10px;border:1px solid var(--bd);">
-          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:4px;">${item.name || ''}</div>
-          ${item.type       ? `<div style="font-size:0.78rem;color:var(--teal);margin-bottom:4px;">${item.type}</div>` : ''}
-          ${item.specialty  ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">${item.specialty}</div>` : ''}
-          ${item.depth      ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Depth: ${item.depth} · ${item.difficulty || ''}</div>` : ''}
-          ${item.species    ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Species: ${item.species}</div>` : ''}
-          ${item.best_time  ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Best time: ${item.best_time}</div>` : ''}
-          ${item.era        ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">${item.era}</div>` : ''}
-          ${item.highlights ? `<div style="font-size:0.82rem;color:var(--text);line-height:1.5;">${item.highlights}</div>` : ''}
+      // Store items on the element so the modal can retrieve detail by index
+      actContent._items = items;
+      actContent.innerHTML = items.map((item, i) => `
+        <div style="margin-bottom:16px;padding:14px;background:var(--s2);border-radius:10px;border:1px solid var(--bd);display:flex;align-items:flex-start;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:4px;">${item.name || ''}</div>
+            ${item.type       ? `<div style="font-size:0.78rem;color:var(--teal);margin-bottom:4px;">${item.type}</div>` : ''}
+            ${item.specialty  ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">${item.specialty}</div>` : ''}
+            ${item.depth      ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Depth: ${item.depth} · ${item.difficulty || ''}</div>` : ''}
+            ${item.species    ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Species: ${item.species}</div>` : ''}
+            ${item.best_time  ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Best time: ${item.best_time}</div>` : ''}
+            ${item.era        ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">${item.era}</div>` : ''}
+            ${item.highlights ? `<div style="font-size:0.82rem;color:var(--text);line-height:1.5;">${item.highlights}</div>` : ''}
+          </div>
+          ${item.detail ? `<button onclick="openActivityDetail(${i})" style="flex-shrink:0;background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.35);color:var(--teal);border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.15s;" onmouseenter="this.style.background='rgba(45,212,191,0.22)'" onmouseleave="this.style.background='rgba(45,212,191,0.12)'">More ›</button>` : ''}
         </div>`).join('');
     })
     .catch(() => {
       actLoading.style.display = 'none';
       actContent.innerHTML = '<p style="color:var(--muted);">Could not load activities.</p>';
     });
+}
+
+function openActivityDetail(index) {
+  const actContent = document.getElementById('passionhub-activities-content');
+  const items = actContent._items || [];
+  const item  = items[index];
+  if (!item) return;
+  const typeLabel = [item.type, item.specialty, item.civilization, item.tradition, item.focus].filter(Boolean).join(' · ');
+  document.getElementById('activity-detail-type').textContent = typeLabel;
+  document.getElementById('activity-detail-name').textContent = item.name || '';
+  document.getElementById('activity-detail-body').textContent = item.detail || '';
+  const modal = document.getElementById('activity-detail-modal');
+  modal.style.display = 'flex';
+}
+
+function closeActivityDetail() {
+  document.getElementById('activity-detail-modal').style.display = 'none';
 }
 
 async function loadDreamingPage() {

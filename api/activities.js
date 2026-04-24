@@ -65,7 +65,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "depth": "5-25m",
     "difficulty": "Beginner",
     "type": "Reef / Wall / Wreck / Muck",
-    "highlights": "One sentence about what makes this site special."
+    "highlights": "One sentence about what makes this site special.",
+    "detail": "2-3 sentences covering what divers will see, practical tips (best season, visibility, currents), and why it stands out."
   }
 ]
 
@@ -82,7 +83,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Spot or Experience Name",
     "type": "Fly Fishing / Deep Sea / Shore / Lake / River",
     "species": "Main fish species targeted",
-    "highlights": "One sentence about what makes this spot or experience special."
+    "highlights": "One sentence about what makes this spot or experience special.",
+    "detail": "2-3 sentences covering target species, best techniques or seasons, and practical tips for visiting."
   }
 ]
 
@@ -98,7 +100,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Anchorage, Route, or Charter Name",
     "type": "Day Sail / Bareboat Charter / Crewed Charter / Anchorage / Regatta",
     "conditions": "Brief description of wind/water conditions and best season",
-    "highlights": "One sentence about what makes this special."
+    "highlights": "One sentence about what makes this special.",
+    "detail": "2-3 sentences covering the sailing experience, wind and weather conditions, and tips for chartering or visiting."
   }
 ]
 
@@ -114,7 +117,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Location or Tour Name",
     "type": "Sea Kayaking / River / Lake / Whitewater / Tour",
     "difficulty": "Beginner / Intermediate / Advanced",
-    "highlights": "One sentence about what makes this spot special."
+    "highlights": "One sentence about what makes this spot special.",
+    "detail": "2-3 sentences covering the paddling experience, water conditions, wildlife or scenery, and practical tips."
   }
 ]
 
@@ -131,7 +135,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Trail or Area Name",
     "difficulty": "Green / Blue / Black / Double Black",
     "terrain": "Brief description of terrain type",
-    "highlights": "One sentence about what makes this trail special."
+    "highlights": "One sentence about what makes this trail special.",
+    "detail": "2-3 sentences covering terrain features, trail flow, technical challenges, and best time to ride."
   }
 ]
 
@@ -148,7 +153,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Location or Tour Name",
     "species": "Key wildlife species that can be seen",
     "best_season": "Best time of year to visit",
-    "highlights": "One sentence about what makes this spot special."
+    "highlights": "One sentence about what makes this spot special.",
+    "detail": "2-3 sentences covering the wildlife experience, best viewing conditions, guided tour options, and practical tips."
   }
 ]
 
@@ -164,7 +170,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Location Name",
     "type": "Landscape / Architecture / Street / Wildlife / Seascape / Aerial",
     "best_time": "Golden hour / Blue hour / Midday / Night / Sunrise / Seasonal",
-    "highlights": "One sentence about what makes this a great photography spot."
+    "highlights": "One sentence about what makes this a great photography spot.",
+    "detail": "2-3 sentences covering the best angles, light conditions, equipment tips, and what subjects to look for."
   }
 ]
 
@@ -180,7 +187,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Route or Area Name",
     "type": "Rock Climbing / Alpine / Summit / Via Ferrata / Bouldering",
     "difficulty": "Grade or general level (e.g. Beginner, Intermediate, Expert, 5.8, Grade II)",
-    "highlights": "One sentence about what makes this route or area special."
+    "highlights": "One sentence about what makes this route or area special.",
+    "detail": "2-3 sentences covering the climbing experience, approach logistics, gear requirements, and best season."
   }
 ]
 
@@ -196,7 +204,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Site or Museum Name",
     "type": "Museum / Historic Site / Gallery / Monument / Cultural Quarter",
     "era": "Historical period or art movement associated with this place",
-    "highlights": "One sentence about what makes this site significant."
+    "highlights": "One sentence about what makes this site significant.",
+    "detail": "2-3 sentences covering the history or artwork, what visitors should not miss, and practical visiting tips."
   }
 ]
 
@@ -212,11 +221,29 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Site Name",
     "civilization": "Culture or civilization associated with this site",
     "era": "Approximate historical period",
-    "highlights": "One sentence about what makes this site remarkable."
+    "highlights": "One sentence about what makes this site remarkable.",
+    "detail": "2-3 sentences covering what has been excavated, the significance to its civilization, and visitor access or guided tour options."
   }
 ]
 
 If ${loc} has no notable archaeological sites, return an empty array [].`;
+  }
+
+  if (type === 'coffee') {
+    return `You are a specialty coffee travel expert. List the top 5-7 specialty coffee shops, roasters, or coffee experiences near ${loc}.
+
+Return ONLY a JSON array. No explanation before or after. Example format:
+[
+  {
+    "name": "Cafe or Roaster Name",
+    "type": "Specialty Cafe / Roastery / Coffee Bar / Traditional Coffeehouse",
+    "specialty": "What they're known for — origin focus, brewing method, or signature drink",
+    "highlights": "One sentence about what makes this a must-visit for coffee lovers.",
+    "detail": "2-3 sentences covering the coffee sourcing, brewing philosophy, atmosphere, and what to order."
+  }
+]
+
+If ${loc} has no notable specialty coffee, return an empty array [].`;
   }
 
   if (type === 'culinary') {
@@ -228,7 +255,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Experience or Venue Name",
     "type": "Food Tour / Cooking Class / Market / Restaurant / Street Food",
     "specialty": "Signature dish, cuisine style, or culinary focus",
-    "highlights": "One sentence about what makes this experience special."
+    "highlights": "One sentence about what makes this experience special.",
+    "detail": "2-3 sentences covering the flavours, the chef or guide, what participants take away, and booking tips."
   }
 ]
 
@@ -244,7 +272,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Winery, Region, or Tour Name",
     "type": "Winery Visit / Wine Tour / Tasting Room / Wine Trail / Cellar Door",
     "varietals": "Key grape varieties or wine styles produced here",
-    "highlights": "One sentence about what makes this experience special."
+    "highlights": "One sentence about what makes this experience special.",
+    "detail": "2-3 sentences covering the grape varieties, tasting experience, cellar or vineyard setting, and visit logistics."
   }
 ]
 
@@ -260,7 +289,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Site or Route Name",
     "tradition": "Religious or spiritual tradition associated with this site",
     "type": "Shrine / Temple / Cathedral / Sacred Mountain / Pilgrimage Route",
-    "highlights": "One sentence about the spiritual or cultural significance."
+    "highlights": "One sentence about the spiritual or cultural significance.",
+    "detail": "2-3 sentences covering the religious tradition, the journey or ritual involved, and practical tips for respectful visiting."
   }
 ]
 
@@ -276,7 +306,8 @@ Return ONLY a JSON array. No explanation before or after. Example format:
     "name": "Organization or Program Name",
     "focus": "Conservation / Education / Community Development / Wildlife / Disaster Relief",
     "duration": "Typical commitment (e.g. 1 week, 2 weeks, flexible)",
-    "highlights": "One sentence about the impact and experience of volunteering here."
+    "highlights": "One sentence about the impact and experience of volunteering here.",
+    "detail": "2-3 sentences covering the volunteer work involved, who it's suited for, typical commitment, and how to apply or book."
   }
 ]
 
@@ -286,7 +317,7 @@ If ${loc} has no notable volunteer travel opportunities, return an empty array [
   // Generic fallback
   return `You are a local activities expert. List the top 5-7 ${type} spots or experiences near ${loc}.
 
-Return ONLY a JSON array with objects containing: name, type, highlights.
+Return ONLY a JSON array with objects containing: name, type, highlights (one sentence), detail (2-3 sentence paragraph with practical tips).
 If none exist, return [].`;
 }
 
