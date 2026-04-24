@@ -1107,6 +1107,7 @@
             <!-- Save & Return -->
             <div style="margin-top:24px;border-top:1px solid rgba(255,255,255,0.07);padding-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
               <div style="flex:1;font-family:'Open Sans',sans-serif;font-size:0.82rem;color:#2dd4bf;"><span style="font-size:1rem;">✓</span> Guide saved to your history</div>
+              <button onclick="navigateToDNAPassionHub()" style="background:linear-gradient(135deg,rgba(45,212,191,0.18),rgba(45,212,191,0.08));border:1px solid rgba(45,212,191,0.5);border-radius:8px;padding:10px 20px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">✦ Explore Your Passions</button>
               <button id="dna-back-to-trip-btn" onclick="dnaBackToTrip()" style="display:none;background:#2dd4bf;border:none;border-radius:8px;padding:10px 20px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">← Back to Trip</button>
               <button onclick="dnaBackToProfile()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 20px;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">↩ Back to Profile</button>
               <button onclick="dnaReturnToTop()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 20px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">+ New Guide</button>
@@ -7083,7 +7084,6 @@ async function generateDestDNA(pickerCtx) {
           // Auto-create a place matching the destination
           const autoPlace = { place: destination, country: country || '', notes: '', photosUrl: '', stayedAtUrl: '', rating: 0, _recId: '' };
           _dnaPlaces.push(autoPlace);
-          document.getElementById('dna-places-section').style.display = 'block';
           renderDnaPlaceCards();
           fetch('/api/trip-places', { method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ dnaGuideId: saved.id, travelerId: portalRecordId, place: destination, country: country || '', notes: '', rating: 0 })
@@ -9377,6 +9377,21 @@ function _phbResetCards() {
     c.style.borderColor = live ? 'rgba(45,212,191,0.45)' : 'rgba(255,255,255,0.1)';
     c.style.boxShadow   = '';
   });
+}
+
+function navigateToDNAPassionHub() {
+  const vals = dpGetValues('dna');
+  showPage('passionhub'); // calls initPassionHub(), inits 'phb' picker
+  if (vals.destination) {
+    dpSetValues('phb', vals);
+    _phbCurrentVals = { destination: vals.destination, country: vals.country || '' };
+  }
+  if (vals.passion) {
+    _selectPassion(vals.passion);
+    // Scroll to top of passion hub so tile highlight is visible
+    const gallery = document.getElementById('passionhub-gallery');
+    if (gallery) gallery.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function initPassionHub() {
