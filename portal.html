@@ -9345,6 +9345,30 @@ let _passionHubInited = false;
 let _passionHubSelectedPassion = '';
 let _phbCurrentVals = null;
 
+function _phbHighlightCard(passion) {
+  document.querySelectorAll('#passionhub-gallery [data-passion]').forEach(c => {
+    const live = PASSION_HUB_LIVE.has(c.dataset.passion);
+    c.style.background   = live ? 'linear-gradient(135deg,#0f2a2a 0%,#0d2035 100%)' : 'var(--s2)';
+    c.style.borderColor  = live ? 'rgba(45,212,191,0.45)' : 'rgba(255,255,255,0.1)';
+    c.style.boxShadow    = '';
+  });
+  const sel = document.querySelector(`#passionhub-gallery [data-passion="${passion.replace(/"/g, '\\"')}"]`);
+  if (sel) {
+    sel.style.background  = 'rgba(45,212,191,0.18)';
+    sel.style.borderColor = 'var(--teal)';
+    sel.style.boxShadow   = '0 0 0 2px rgba(45,212,191,0.25)';
+  }
+}
+
+function _phbResetCards() {
+  document.querySelectorAll('#passionhub-gallery [data-passion]').forEach(c => {
+    const live = PASSION_HUB_LIVE.has(c.dataset.passion);
+    c.style.background  = live ? 'linear-gradient(135deg,#0f2a2a 0%,#0d2035 100%)' : 'var(--s2)';
+    c.style.borderColor = live ? 'rgba(45,212,191,0.45)' : 'rgba(255,255,255,0.1)';
+    c.style.boxShadow   = '';
+  });
+}
+
 function initPassionHub() {
   if (!_passionHubInited) {
     _passionHubInited = true;
@@ -9359,6 +9383,13 @@ function initPassionHub() {
         if (vals.destination && _passionHubSelectedPassion) loadPassionHubContent({ ...vals, passion: _passionHubSelectedPassion });
       }
     });
+    // Reset card highlight once results scroll into view
+    const contentEl = document.getElementById('passionhub-content');
+    if (contentEl && window.IntersectionObserver) {
+      new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) _phbResetCards();
+      }, { threshold: 0.2 }).observe(contentEl);
+    }
   }
 }
 
@@ -9385,13 +9416,14 @@ function _buildPassionGallery() {
       const icon   = REPORT_PASSION_ICONS[passion] || '✦';
 
       const card = document.createElement('div');
+      card.dataset.passion = passion;
       card.style.cssText = `
         height:110px;border-radius:12px;overflow:hidden;
         position:relative;cursor:pointer;
         background:${isLive ? 'linear-gradient(135deg,#0f2a2a 0%,#0d2035 100%)' : 'var(--s2)'};
         border:2px solid ${isLive ? 'rgba(45,212,191,0.45)' : 'rgba(255,255,255,0.1)'};
         display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-        transition:transform 0.15s,border-color 0.15s;padding:10px;box-sizing:border-box;
+        transition:transform 0.15s,border-color 0.15s,background 0.15s;padding:10px;box-sizing:border-box;
       `;
       card.onmouseenter = () => {
         card.style.transform = 'scale(1.04)';
@@ -9421,6 +9453,7 @@ function _buildPassionGallery() {
 
 function _selectPassion(passion) {
   _passionHubSelectedPassion = passion;
+  _phbHighlightCard(passion);
   document.getElementById('passionhub-content').style.display = 'none';
   document.getElementById('passionhub-no-content').style.display = 'none';
   // If a destination is already selected, load content immediately
