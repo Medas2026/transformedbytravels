@@ -1502,18 +1502,18 @@
       <div class="page" id="page-passionhub">
         <div class="profile-section">
           <div class="profile-section-title" style="color:var(--teal);">✦ Passion Hub</div>
-          <p style="color:var(--muted);font-size:0.88rem;margin:8px 0 20px;">Choose a passion to explore curated content, featured destinations, and activities wherever you travel.</p>
+          <p style="color:var(--muted);font-size:0.88rem;margin:8px 0 20px;">Choose a destination and a passion to explore curated content, featured destinations, and activities wherever you travel.</p>
 
-          <!-- Passion Gallery -->
-          <div id="passionhub-gallery"></div>
-
-          <!-- Destination picker — appears after passion selected -->
-          <div id="passionhub-dest-section" style="display:none;margin-top:28px;max-width:680px;">
+          <!-- Destination picker — always visible at top -->
+          <div id="passionhub-dest-section" style="margin-bottom:28px;max-width:680px;">
             <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;color:#fff;margin-bottom:12px;">
-              Where are you headed? <span id="passionhub-selected-passion" style="color:var(--teal);"></span>
+              Where are you headed?
             </div>
             <div id="passionhub-picker-wrap"></div>
           </div>
+
+          <!-- Passion Gallery -->
+          <div id="passionhub-gallery"></div>
 
           <!-- Content -->
           <div id="passionhub-content" style="display:none;margin-top:28px;">
@@ -9343,6 +9343,7 @@ const PASSION_UNSPLASH = {
 
 let _passionHubInited = false;
 let _passionHubSelectedPassion = '';
+let _phbCurrentVals = null;
 
 function initPassionHub() {
   if (!_passionHubInited) {
@@ -9354,7 +9355,8 @@ function initPassionHub() {
       showPassion: false,
       showAirport: false,
       onDestChange: function(vals) {
-        if (vals.destination) loadPassionHubContent({ ...vals, passion: _passionHubSelectedPassion });
+        _phbCurrentVals = vals;
+        if (vals.destination && _passionHubSelectedPassion) loadPassionHubContent({ ...vals, passion: _passionHubSelectedPassion });
       }
     });
   }
@@ -9419,13 +9421,13 @@ function _buildPassionGallery() {
 
 function _selectPassion(passion) {
   _passionHubSelectedPassion = passion;
-  document.getElementById('passionhub-selected-passion').textContent = passion;
-  document.getElementById('passionhub-dest-section').style.display = 'block';
   document.getElementById('passionhub-content').style.display = 'none';
   document.getElementById('passionhub-no-content').style.display = 'none';
-  document.getElementById('passionhub-dest-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  // Load article if live content exists, otherwise just show destination picker
-  if (PASSION_HUB_LIVE.has(passion)) {
+  // If a destination is already selected, load content immediately
+  const destVals = _phbCurrentVals;
+  if (destVals && destVals.destination) {
+    loadPassionHubContent({ ...destVals, passion });
+  } else if (PASSION_HUB_LIVE.has(passion)) {
     loadPassionHubContent({ destination: '', country: '', passion });
   }
 }
