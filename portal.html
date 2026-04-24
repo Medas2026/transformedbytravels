@@ -414,6 +414,7 @@
                 </div>
                 <input type="file" id="profile-photo-file" accept="image/*" onchange="uploadProfilePhoto(this)" style="display:none;" />
                 <button onclick="document.getElementById('profile-photo-file').click()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;border-radius:6px;padding:5px 12px;cursor:pointer;" id="profile-photo-btn">+ Add Photo</button>
+                <button onclick="document.getElementById('profile-photo-file').click()" title="Change photo" id="profile-photo-edit-btn" style="display:none;background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:2px 6px;">✏️</button>
                 <span id="profile-photo-status" style="font-size:0.75rem;color:var(--muted);"></span>
               </div>
               <!-- Archetype icon -->
@@ -2413,7 +2414,8 @@ async function loadProfile(email) {
         document.getElementById('profile-user-photo').src = _profilePhotoUrl;
         document.getElementById('profile-user-photo').style.display = 'block';
         document.getElementById('profile-user-photo-placeholder').style.display = 'none';
-        document.getElementById('profile-photo-btn').textContent = '📷 Change Photo';
+        document.getElementById('profile-photo-btn').style.display = 'none';
+        document.getElementById('profile-photo-edit-btn').style.display = 'inline-block';
       }
       if (f['TGI'] !== undefined && f['TGI'] !== null && f['TGI'] !== '') {
         document.getElementById('pf-tgi').textContent = f['TGI'];
@@ -6610,7 +6612,8 @@ async function uploadProfilePhoto(input) {
       document.getElementById('profile-user-photo').src = data.secure_url;
       document.getElementById('profile-user-photo').style.display = 'block';
       document.getElementById('profile-user-photo-placeholder').style.display = 'none';
-      document.getElementById('profile-photo-btn').textContent = '📷 Change Photo';
+      document.getElementById('profile-photo-btn').style.display = 'none';
+      document.getElementById('profile-photo-edit-btn').style.display = 'inline-block';
       status.textContent = '✓ Saved';
       setTimeout(() => status.textContent = '', 2000);
       // Save to Airtable
