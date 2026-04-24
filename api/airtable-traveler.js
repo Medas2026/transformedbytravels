@@ -201,6 +201,7 @@ function buildFields(b, isNew) {
     if (b.travelStyle       !== undefined) fields['Travel Style']             = b.travelStyle;
     if (b.homeTimezone      !== undefined) fields['Home Timezone']            = b.homeTimezone;
     if (b.distanceUnits     !== undefined) fields['Distance Units']           = b.distanceUnits;
+    if (b.profilePhotoUrl   !== undefined) fields['Profile Photo URL']        = b.profilePhotoUrl;
     if (b.preTripWorkshopDate     !== undefined) fields['Pre-Trip Workshop Date']     = b.preTripWorkshopDate;
     if (b.integrationWorkshopDate !== undefined) fields['Integration Workshop Date'] = b.integrationWorkshopDate;
     return fields;
