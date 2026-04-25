@@ -6979,10 +6979,13 @@ function _locPickerHtml(idx, field) {
           ${destOpts}
         </select>
         <div style="font-size:0.75rem;color:var(--muted);margin-bottom:4px;">Not on the list? Type manually:</div>
-        <input id="loc-manual-${idx}-${field}" type="text" placeholder="Enter place name…"
-          onkeydown="if(event.key==='Enter'){_locManualApply(${idx},'${field}');}"
-          onblur="_locManualApply(${idx},'${field}')"
-          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 8px;color:var(--text);font-size:0.83rem;box-sizing:border-box;">
+        <div style="display:flex;gap:6px;">
+          <input id="loc-manual-${idx}-${field}" type="text" placeholder="Enter place name…"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();_locManualApply(${idx},'${field}');}"
+            style="flex:1;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 8px;color:var(--text);font-size:0.83rem;min-width:0;">
+          <button onclick="_locManualApply(${idx},'${field}')"
+            style="background:rgba(45,212,191,0.15);border:1px solid rgba(45,212,191,0.4);border-radius:6px;color:var(--teal);font-size:0.85rem;padding:0 10px;cursor:pointer;white-space:nowrap;font-weight:700;">✓</button>
+        </div>
       </div>
     </div>`;
 }
@@ -7018,9 +7021,11 @@ function _locDestChange(idx, field) {
 function _locManualApply(idx, field) {
   const manual  = document.getElementById(`loc-manual-${idx}-${field}`);
   const country = document.getElementById(`loc-country-${idx}-${field}`);
-  if (!manual || !manual.value.trim()) return;
+  if (!manual) return;
   const dest = manual.value.trim();
-  const ctry = country ? country.value : '';
+  if (!dest) return;
+  const ctry = (country && country.value) ? country.value : '';
+  manual.value = '';
   _locApply(idx, field, dest, ctry);
 }
 
