@@ -7404,6 +7404,37 @@ function _slotFieldsHtml(n, slot) {
       <button onclick="_smOpenFlights(${n})" style="width:100%;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">✈ Search Google Flights</button>
     </div>`;
   }
+  if (type === 'event') {
+    const savedDate = (slot && slot.eventDate) || '';
+    const savedVenue = (slot && slot.venue) || '';
+    const savedUrl = (slot && slot.url) || '';
+    const savedName = (slot && slot.name) || '';
+    const preSelected = savedName ? `<div style="font-size:0.82rem;color:var(--teal);padding:4px 0;">✓ ${savedName}${savedVenue ? ' · ' + savedVenue : ''} — click Find Events to change</div>` : '';
+    return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">From date</div>
+        <input id="sm-s${n}-ev-start" type="date" value="${savedDate}"
+          style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;box-sizing:border-box;">
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">To date</div>
+        <input id="sm-s${n}-ev-end" type="date" value="${savedDate}"
+          style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;box-sizing:border-box;">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:6px;margin-bottom:8px;">
+      <select id="sm-s${n}-ev-radius" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;">
+        <option value="10">10 mi radius</option>
+        <option value="25">25 mi radius</option>
+        <option value="50" selected>50 mi radius</option>
+        <option value="100">100 mi radius</option>
+      </select>
+      <button onclick="_smLoadEvents(${n})" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:7px;padding:7px 14px;cursor:pointer;white-space:nowrap;">Find Events</button>
+    </div>
+    <div id="sm-s${n}-ev-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Searching events…</div>
+    <div id="sm-s${n}-ev-list" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;">${preSelected}</div>`;
+  }
   if (type === 'passion') {
     const selected = (slot && slot.passion) || '';
     const PASSION_GROUPS = [
@@ -7549,6 +7580,92 @@ function _smActivitySelect(n, btn) {
   if (list) list.innerHTML = `<div style="font-size:0.82rem;color:var(--teal);padding:4px 0;">✓ ${name} — click a passion above to change</div>`;
 }
 
+async function _smLoadEvents(n) {
+  const dayFields = _scheduleRecords[_dayModalIdx]?.fields || {};
+  const city      = dayFields['Ending Location']  || dayFields['Starting Location']  || '';
+  const country   = dayFields['Ending Country']   || dayFields['Starting Country']   || '';
+  const start     = document.getElementById('sm-s' + n + '-ev-start')?.value || '';
+  const end       = document.getElementById('sm-s' + n + '-ev-end')?.value   || '';
+  const radius    = document.getElementById('sm-s' + n + '-ev-radius')?.value || '50';
+  const loading   = document.getElementById('sm-s' + n + '-ev-loading');
+  const list      = document.getElementById('sm-s' + n + '-ev-list');
+  if (!start || !end) { if (list) list.innerHTML = '<div style="font-size:0.85rem;color:#fbbf24;">Please select a date range first.</div>'; return; }
+  if (!city)          { if (list) list.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);">Set a day location first.</div>'; return; }
+  if (loading) loading.style.display = 'block';
+  if (list)    list.innerHTML = '';
+  try {
+    const params = new URLSearchParams({ city, country, startDate: start, endDate: end, radius });
+    const resp   = await fetch('/api/events?' + params.toString());
+    const data   = await resp.json();
+    if (loading) loading.style.display = 'none';
+    const events = data.events || [];
+    if (!events.length) {
+      if (list) list.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);">No events found near ' + city + ' for those dates.</div>';
+      return;
+    }
+    const catColors = {
+      'Music':          { bg:'rgba(139,92,246,0.2)', color:'#a78bfa', bd:'rgba(139,92,246,0.3)' },
+      'Sports':         { bg:'rgba(251,146,60,0.2)', color:'#fb923c', bd:'rgba(251,146,60,0.3)' },
+      'Arts & Theatre': { bg:'rgba(45,212,191,0.2)', color:'#2dd4bf', bd:'rgba(45,212,191,0.3)' },
+      'Family':         { bg:'rgba(251,191,36,0.2)', color:'#fbbf24', bd:'rgba(251,191,36,0.3)' },
+      'Film':           { bg:'rgba(99,102,241,0.2)', color:'#a5b4fc', bd:'rgba(99,102,241,0.3)' }
+    };
+    const def = { bg:'rgba(100,116,139,0.2)', color:'#94a3b8', bd:'rgba(100,116,139,0.3)' };
+    if (list) {
+      list.innerHTML = events.map(e => {
+        const c     = catColors[e.category] || def;
+        const dt    = e.date ? formatEventDate(e.date, e.time) : '';
+        const venue = [e.venue, e.city].filter(Boolean).join(', ');
+        return `<button
+          data-name="${(e.name||'').replace(/"/g,'&quot;')}"
+          data-date="${e.date||''}"
+          data-time="${e.time||''}"
+          data-venue="${(venue).replace(/"/g,'&quot;')}"
+          data-category="${(e.category||'').replace(/"/g,'&quot;')}"
+          data-url="${(e.url||'').replace(/"/g,'&quot;')}"
+          style="text-align:left;background:var(--s1);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;cursor:pointer;color:var(--text);width:100%;display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:#fff;text-align:left;flex:1;">${e.name||''}</div>
+            ${e.category ? `<span style="font-size:0.68rem;font-weight:700;font-family:'Montserrat',sans-serif;background:${c.bg};color:${c.color};border:1px solid ${c.bd};border-radius:10px;padding:2px 8px;white-space:nowrap;flex-shrink:0;">${e.category}</span>` : ''}
+          </div>
+          ${dt    ? `<div style="font-size:0.78rem;color:var(--teal);font-weight:600;">${dt}</div>` : ''}
+          ${venue ? `<div style="font-size:0.75rem;color:var(--muted);">${venue}</div>` : ''}
+        </button>`;
+      }).join('');
+      list.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => _smEventSelect(n, btn));
+      });
+    }
+  } catch(e) {
+    if (loading) loading.style.display = 'none';
+    if (list) list.innerHTML = '<div style="font-size:0.82rem;color:#f43f5e;">Error loading events.</div>';
+  }
+}
+
+function _smEventSelect(n, btn) {
+  const name     = btn.dataset.name     || '';
+  const date     = btn.dataset.date     || '';
+  const time     = btn.dataset.time     || '';
+  const venue    = btn.dataset.venue    || '';
+  const category = btn.dataset.category || '';
+  const url      = btn.dataset.url      || '';
+
+  _smSelectedActivity[n] = { name, date, time, venue, category, url, isEvent: true };
+
+  const nameEl = document.getElementById('sm-s' + n + '-name');
+  if (nameEl) {
+    nameEl.value = name;
+    nameEl.dataset.userEdited = 'true';
+    nameEl.style.borderColor = 'var(--teal)';
+    nameEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => { nameEl.style.borderColor = 'rgba(255,255,255,0.1)'; }, 1500);
+  }
+
+  const list = document.getElementById('sm-s' + n + '-ev-list');
+  const dt   = date ? formatEventDate(date, time) : '';
+  if (list) list.innerHTML = `<div style="font-size:0.82rem;color:var(--teal);padding:4px 0;">✓ ${name}${dt ? ' · ' + dt : ''}${venue ? ' · ' + venue : ''} — click Find Events to change</div>`;
+}
+
 function _smAutoName(n) {
   const nameEl = document.getElementById(`sm-s${n}-name`);
   if (!nameEl || nameEl.dataset.userEdited === 'true') return;
@@ -7575,6 +7692,7 @@ function _slotCardHtml(n, slot) {
           <option value="freeform"${type==='freeform'?' selected':''}>Free Form</option>
           <option value="transfer"${type==='transfer'?' selected':''}>Transfer</option>
           <option value="passion"${type==='passion'?' selected':''}>Passion Activity</option>
+          <option value="event"${type==='event'?' selected':''}>Event</option>
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:${hasContent ? '10px' : '0'};">
@@ -7613,6 +7731,13 @@ function smTypeChange(n) {
     if (type === 'passion' && nameEl && !nameEl.value.trim()) {
       nameEl.value = 'Passion Activity';
       nameEl.dataset.userEdited = 'false';
+    }
+    if (type === 'event') {
+      const dayDate = (_scheduleRecords[_dayModalIdx]?.fields || {})['Date'] || '';
+      const startEl = document.getElementById('sm-s' + n + '-ev-start');
+      const endEl   = document.getElementById('sm-s' + n + '-ev-end');
+      if (startEl && !startEl.value && dayDate) startEl.value = dayDate;
+      if (endEl   && !endEl.value   && dayDate) endEl.value   = dayDate;
     }
     if (type === 'transfer') {
       const dayFields = _scheduleRecords[_dayModalIdx] && _scheduleRecords[_dayModalIdx].fields;
@@ -7696,6 +7821,13 @@ async function saveDayModal() {
       const sel = _smSelectedActivity[n] || {};
       slot.passion     = sel.passion     || '';
       slot.description = sel.description || '';
+    } else if (type === 'event') {
+      const sel = _smSelectedActivity[n] || {};
+      slot.eventDate = sel.date     || '';
+      slot.eventTime = sel.time     || '';
+      slot.venue     = sel.venue    || '';
+      slot.category  = sel.category || '';
+      slot.url       = sel.url      || '';
     } else if (type === 'transfer') {
       slot.from     = (document.getElementById(`sm-s${n}-from`)?.value     || '').trim();
       slot.to       = (document.getElementById(`sm-s${n}-to`)?.value       || '').trim();
