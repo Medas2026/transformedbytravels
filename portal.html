@@ -6958,7 +6958,7 @@ function _locPickerHtml(idx, field) {
 
   return `
     <div style="position:relative;">
-      <button onclick="_locTogglePicker(${idx},'${field}')"
+      <button id="loc-btn-${idx}-${field}" onclick="_locTogglePicker(${idx},'${field}')"
         style="width:100%;text-align:left;background:var(--s1);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:8px 10px;color:${labelColor};font-family:'Open Sans',sans-serif;font-size:0.85rem;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
         ${label}
       </button>
@@ -7042,10 +7042,10 @@ function _locApply(idx, field, dest, country) {
   if (field === 'start') r._startDirty = true;
   else                   r._endDirty   = true;
 
-  // Close picker and re-render this row's button label
+  // Close picker and update button label
   const picker = document.getElementById(`loc-picker-${idx}-${field}`);
   if (picker) picker.style.display = 'none';
-  const btn = picker && picker.previousElementSibling;
+  const btn = document.getElementById(`loc-btn-${idx}-${field}`);
   if (btn) {
     const label = _locLabel(dest, country) || (field === 'start' ? 'Set starting location' : 'Set ending location');
     btn.textContent = label;
@@ -7104,12 +7104,8 @@ function _copyLocDown(idx) {
   cur.fields['Ending Country']  = country;
   cur._endDirty = true;
   // Update this row's ending button label
-  const rows = document.querySelectorAll('#trip-schedule-list [data-idx]');
-  if (rows[idx]) {
-    const picker = rows[idx].querySelector(`#loc-picker-${idx}-end`);
-    const btn = picker && picker.previousElementSibling;
-    if (btn) { btn.textContent = _locLabel(dest, country); btn.style.color = 'var(--text)'; }
-  }
+  const endBtn = document.getElementById(`loc-btn-${idx}-end`);
+  if (endBtn) { endBtn.textContent = _locLabel(dest, country); endBtn.style.color = 'var(--text)'; }
   // Cascade ending → next day's starting
   _cascadeLocation(idx);
 }
@@ -7124,15 +7120,11 @@ function _cascadeLocation(idx) {
     next.fields['Starting Country']  = endCountry;
     next._autoCascaded = true;
     next._startDirty   = true;
-    // Update the button label in the DOM
-    const rows = document.querySelectorAll('#trip-schedule-list [data-idx]');
-    if (rows[idx + 1]) {
-      const startBtn = rows[idx + 1].querySelector(`[id="loc-picker-${idx+1}-start"]`);
-      const btn = startBtn && startBtn.previousElementSibling;
-      if (btn) {
-        btn.textContent = _locLabel(endDest, endCountry) || 'Set starting location';
-        btn.style.color = endDest ? 'var(--text)' : 'var(--muted)';
-      }
+    // Update the next row's starting button label
+    const btn = document.getElementById(`loc-btn-${idx+1}-start`);
+    if (btn) {
+      btn.textContent = _locLabel(endDest, endCountry) || 'Set starting location';
+      btn.style.color = endDest ? 'var(--text)' : 'var(--muted)';
     }
   }
 }
