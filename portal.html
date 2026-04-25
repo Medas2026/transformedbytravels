@@ -2259,6 +2259,28 @@
     </div>
   </div>
 
+  <!-- Day Schedule Modal -->
+  <div id="day-modal" style="display:none;position:fixed;inset:0;z-index:1010;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+    <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;width:100%;max-width:560px;box-shadow:0 24px 60px rgba(0,0,0,0.7);margin:auto;">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;">
+        <div>
+          <div id="day-modal-title" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;"></div>
+          <div id="day-modal-sub" style="font-size:0.78rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;margin-top:2px;"></div>
+        </div>
+        <button onclick="closeDayModal()" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;padding:4px 8px;line-height:1;">×</button>
+      </div>
+      <!-- Slots -->
+      <div id="day-modal-slots" style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;"></div>
+      <!-- Footer -->
+      <div style="display:flex;gap:10px;padding:0 24px 24px;">
+        <button onclick="closeDayModal()" style="flex:1;padding:11px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Cancel</button>
+        <button onclick="saveDayModal()" style="flex:2;padding:11px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save Day</button>
+      </div>
+      <div id="day-modal-status" style="display:none;text-align:center;font-size:0.85rem;padding:0 24px 16px;"></div>
+    </div>
+  </div>
+
   <!-- Trip Saved modal -->
   <div id="trip-saved-modal" style="display:none;position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;">
     <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;padding:32px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
@@ -7074,9 +7096,10 @@ function renderScheduleList() {
     }
     return `
       <div style="display:grid;grid-template-columns:90px 1fr 1fr auto;gap:8px;align-items:start;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;" data-idx="${i}" data-id="${r.id}">
-        <div style="padding-top:6px;">
+        <div style="padding-top:6px;cursor:pointer;" onclick="openDayModal(${i})" title="Edit day schedule">
           <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);">Day ${f['Day Number'] || i+1}</div>
           <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${dateLabel}</div>
+          <div style="font-size:0.68rem;color:rgba(45,212,191,0.6);margin-top:3px;">✏ schedule</div>
         </div>
         ${_locPickerHtml(i, 'start')}
         ${_locPickerHtml(i, 'end')}
@@ -7333,6 +7356,184 @@ async function saveTripSchedule() {
     setTimeout(() => { status.style.display = 'none'; }, 2000);
   }
   btn.disabled = false;
+}
+
+// ── Day Schedule Modal ──────────────────────────────────────────────────────
+const _TIMES = [
+  'Night','6:00 AM','7:00 AM','8:00 AM','9:00 AM','10:00 AM','11:00 AM',
+  '12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM',
+  '6:00 PM','7:00 PM','8:00 PM','9:00 PM','Late Night'
+];
+
+const _SLOT_LABELS = ['Morning','Lunch','Afternoon','Evening'];
+
+let _dayModalIdx = null;
+let _dayModalSlots = [null, null, null, null]; // parsed slot objects
+
+function _timeOpts(selected) {
+  return _TIMES.map(t => `<option value="${t}"${t === selected ? ' selected' : ''}>${t}</option>`).join('');
+}
+
+function _slotFieldsHtml(n, slot) {
+  const type = (slot && slot.type) || '';
+  if (type === 'freeform') return `
+    <input id="sm-s${n}-title" type="text" placeholder="Title (e.g. Shoebill Stork Excursion)"
+      value="${((slot && slot.title) || '').replace(/"/g,'&quot;')}"
+      style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;margin-bottom:6px;box-sizing:border-box;">
+    <textarea id="sm-s${n}-desc" placeholder="Description (optional)" rows="2"
+      style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;resize:vertical;box-sizing:border-box;">${(slot && slot.description) || ''}</textarea>`;
+  if (type === 'transfer') return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <input id="sm-s${n}-from" type="text" placeholder="From"
+        value="${((slot && slot.from) || '').replace(/"/g,'&quot;')}"
+        style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+      <input id="sm-s${n}-to" type="text" placeholder="To"
+        value="${((slot && slot.to) || '').replace(/"/g,'&quot;')}"
+        style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+      <select id="sm-s${n}-mode" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+        ${['Road','Air','Boat','Rail'].map(m=>`<option value="${m}"${(slot&&slot.mode)===m?' selected':''}>${m}</option>`).join('')}
+      </select>
+      <input id="sm-s${n}-duration" type="text" placeholder="Duration (e.g. 3 hrs)"
+        value="${((slot && slot.duration) || '').replace(/"/g,'&quot;')}"
+        style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+    </div>`;
+  return ''; // empty
+}
+
+function _slotCardHtml(n, slot) {
+  const type      = (slot && slot.type) || '';
+  const startTime = (slot && slot.startTime) || '';
+  const endTime   = (slot && slot.endTime)   || '';
+  const label     = _SLOT_LABELS[n - 1] || ('Slot ' + n);
+  const hasContent = type && type !== '';
+  return `
+    <div style="background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;color:var(--teal);">${label}</div>
+        <select id="sm-s${n}-type" onchange="smTypeChange(${n})"
+          style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 8px;color:var(--text);font-size:0.82rem;">
+          <option value="">— Empty —</option>
+          <option value="freeform"${type==='freeform'?' selected':''}>Free Form</option>
+          <option value="transfer"${type==='transfer'?' selected':''}>Transfer</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:${hasContent ? '10px' : '0'};">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">Start</div>
+          <select id="sm-s${n}-start" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;">
+            <option value="">—</option>
+            ${_timeOpts(startTime)}
+          </select>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">End</div>
+          <select id="sm-s${n}-end" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;">
+            <option value="">—</option>
+            ${_timeOpts(endTime)}
+          </select>
+        </div>
+      </div>
+      <div id="sm-s${n}-fields">${_slotFieldsHtml(n, slot)}</div>
+    </div>`;
+}
+
+function smTypeChange(n) {
+  const type = document.getElementById(`sm-s${n}-type`).value;
+  const flds = document.getElementById(`sm-s${n}-fields`);
+  const pseudo = { type, startTime: document.getElementById(`sm-s${n}-start`).value, endTime: document.getElementById(`sm-s${n}-end`).value };
+  flds.innerHTML = _slotFieldsHtml(n, pseudo);
+  // Show/hide time margin
+  const timeRow = flds.closest('[style*="border-radius:12px"]').querySelector('[style*="grid-template-columns:1fr 1fr"]');
+  if (timeRow) timeRow.style.marginBottom = type ? '10px' : '0';
+}
+
+function openDayModal(idx) {
+  _dayModalIdx = idx;
+  const r = _scheduleRecords[idx];
+  const f = r.fields;
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const raw = f['Date'] || '';
+  let dateLabel = '';
+  if (raw) {
+    const d = new Date(raw + 'T00:00:00Z');
+    dateLabel = DAYS[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
+  }
+  document.getElementById('day-modal-title').textContent = 'Day ' + (f['Day Number'] || idx + 1);
+  document.getElementById('day-modal-sub').textContent   = dateLabel;
+  document.getElementById('day-modal-status').style.display = 'none';
+
+  // Parse existing slot JSON
+  _dayModalSlots = [1,2,3,4].map(n => {
+    const raw = f['Slot ' + n];
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch(e) { return null; }
+  });
+
+  // Render slot cards
+  document.getElementById('day-modal-slots').innerHTML =
+    [1,2,3,4].map(n => _slotCardHtml(n, _dayModalSlots[n-1])).join('');
+
+  document.getElementById('day-modal').style.display = 'flex';
+}
+
+function closeDayModal() {
+  document.getElementById('day-modal').style.display = 'none';
+  _dayModalIdx = null;
+}
+
+async function saveDayModal() {
+  const status = document.getElementById('day-modal-status');
+  status.style.display = 'block';
+  status.style.color   = 'var(--teal)';
+  status.textContent   = 'Saving…';
+
+  const r = _scheduleRecords[_dayModalIdx];
+  const fields = { id: r.id };
+
+  for (let n = 1; n <= 4; n++) {
+    const type = document.getElementById(`sm-s${n}-type`).value;
+    if (!type) { fields['Slot ' + n] = ''; continue; }
+    const slot = {
+      type,
+      startTime: document.getElementById(`sm-s${n}-start`).value,
+      endTime:   document.getElementById(`sm-s${n}-end`).value
+    };
+    if (type === 'freeform') {
+      slot.title       = (document.getElementById(`sm-s${n}-title`)?.value || '').trim();
+      slot.description = (document.getElementById(`sm-s${n}-desc`)?.value  || '').trim();
+    } else if (type === 'transfer') {
+      slot.from     = (document.getElementById(`sm-s${n}-from`)?.value     || '').trim();
+      slot.to       = (document.getElementById(`sm-s${n}-to`)?.value       || '').trim();
+      slot.mode     = (document.getElementById(`sm-s${n}-mode`)?.value     || 'Road');
+      slot.duration = (document.getElementById(`sm-s${n}-duration`)?.value || '').trim();
+    }
+    fields['Slot ' + n] = JSON.stringify(slot);
+  }
+
+  try {
+    const resp = await fetch('/api/trip-days', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fields)
+    });
+    const data = await resp.json();
+    if (data.success) {
+      // Update local record
+      for (let n = 1; n <= 4; n++) r.fields['Slot ' + n] = fields['Slot ' + n];
+      status.style.color = 'var(--teal)';
+      status.textContent = 'Saved!';
+      setTimeout(closeDayModal, 800);
+    } else {
+      status.style.color = '#f43f5e';
+      status.textContent = 'Error: ' + (data.error || 'Could not save');
+    }
+  } catch(e) {
+    status.style.color = '#f43f5e';
+    status.textContent = 'Error: ' + e.message;
+  }
 }
 
 let _scheduleMap = null;
