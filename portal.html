@@ -2249,6 +2249,21 @@
     </div>
   </div>
 
+  <!-- Create Itinerary prompt modal (new trips with dates) -->
+  <div id="create-itinerary-modal" style="display:none;position:fixed;inset:0;z-index:1002;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;padding:32px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+      <div style="font-size:2rem;margin-bottom:14px;">📅</div>
+      <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.05rem;color:#fff;margin-bottom:10px;">Trip Saved!</div>
+      <p style="color:#94a3b8;font-size:0.88rem;line-height:1.65;margin:0 0 8px;">Would you like to create a day-by-day itinerary for this trip?</p>
+      <p id="create-itinerary-days" style="color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;margin:0 0 24px;"></p>
+      <div id="create-itinerary-status" style="display:none;font-size:0.85rem;margin-bottom:14px;"></div>
+      <div id="create-itinerary-btns" style="display:flex;gap:10px;">
+        <button onclick="skipItineraryCreate()" style="flex:1;padding:12px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Not Now</button>
+        <button onclick="doCreateItinerary()" style="flex:1;padding:12px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Yes, Create</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast notification -->
   <div id="toast-notify" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:1100;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px 20px;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.5);white-space:nowrap;"></div>
 
@@ -6820,7 +6835,19 @@ async function saveTrip() {
       currentTripStatus = payload['Status of Trip'] || currentTripStatus;
       msg.style.display = 'none';
       renderTripMap();
-      document.getElementById('trip-saved-modal').style.display = 'flex';
+      // For new trips with dates, offer itinerary creation
+      const isNew = !payload.id || (payload.id === currentTripId && data.record);
+      if (isNew && payload.startDate && payload.endDate && !_isHistoryTrip) {
+        const start = new Date(payload.startDate + 'T00:00:00Z');
+        const end   = new Date(payload.endDate   + 'T00:00:00Z');
+        const days  = Math.round((end - start) / 86400000) + 1;
+        document.getElementById('create-itinerary-days').textContent = days + ' day' + (days !== 1 ? 's' : '') + ' · ' + payload.startDate + ' – ' + payload.endDate;
+        document.getElementById('create-itinerary-status').style.display = 'none';
+        document.getElementById('create-itinerary-btns').style.display = 'flex';
+        document.getElementById('create-itinerary-modal').style.display = 'flex';
+      } else {
+        document.getElementById('trip-saved-modal').style.display = 'flex';
+      }
     } else {
       msg.style.color = '#f43f5e';
       msg.textContent = 'Error: ' + (data.error || 'Could not save');
@@ -6829,6 +6856,59 @@ async function saveTrip() {
     console.error('[saveTrip] exception:', err);
     msg.style.color = '#f43f5e';
     msg.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+  }
+}
+
+// ═══════════════════════════════════════════════
+// ITINERARY CREATION (Trip Days)
+// ═══════════════════════════════════════════════
+function skipItineraryCreate() {
+  document.getElementById('create-itinerary-modal').style.display = 'none';
+  document.getElementById('trip-saved-modal').style.display = 'flex';
+}
+
+async function doCreateItinerary() {
+  const status = document.getElementById('create-itinerary-status');
+  const btns   = document.getElementById('create-itinerary-btns');
+  status.style.display = 'block';
+  status.style.color   = 'var(--teal)';
+  status.textContent   = 'Creating itinerary days…';
+  btns.style.display   = 'none';
+
+  const payload = document.getElementById('td-start').value && document.getElementById('td-end').value
+    ? { tripId: currentTripId, startDate: document.getElementById('td-start').value, endDate: document.getElementById('td-end').value }
+    : null;
+
+  if (!payload) {
+    status.style.color = '#f43f5e';
+    status.textContent = 'Missing trip dates.';
+    btns.style.display = 'flex';
+    return;
+  }
+
+  try {
+    const resp = await fetch('/api/trip-days', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    if (data.success) {
+      status.style.color = 'var(--teal)';
+      status.textContent = data.count + ' day' + (data.count !== 1 ? 's' : '') + ' created!';
+      setTimeout(() => {
+        document.getElementById('create-itinerary-modal').style.display = 'none';
+        document.getElementById('trip-saved-modal').style.display = 'flex';
+      }, 1200);
+    } else {
+      status.style.color = '#f43f5e';
+      status.textContent = 'Error: ' + (data.error || 'Could not create days');
+      btns.style.display = 'flex';
+    }
+  } catch(e) {
+    status.style.color = '#f43f5e';
+    status.textContent = 'Error: ' + e.message;
+    btns.style.display = 'flex';
   }
 }
 
