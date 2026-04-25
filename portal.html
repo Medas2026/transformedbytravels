@@ -945,10 +945,6 @@
               </select>
             </div>
             <div class="trip-field-group">
-              <div class="trip-field-label">Co-Traveler Email <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(optional)</span></div>
-              <input id="td-cotraveler" type="email" class="trip-input" placeholder="partner@email.com" />
-            </div>
-            <div class="trip-field-group">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div class="trip-field-label" style="margin-bottom:0;">Trip Passions <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(select up to 3)</span></div>
                 <span id="td-passions-scroll-hint" style="font-size:0.72rem;color:var(--muted);">scroll for more ↕</span>
@@ -5386,7 +5382,6 @@ function openTrip(record) {
   currentTripStatus = f['Status of Trip'] || 'Research';
   document.getElementById('td-status').value      = f['Status of Trip'] || 'Research';
   document.getElementById('td-notes').value       = f['Notes']        || '';
-  document.getElementById('td-cotraveler').value  = f['Co-Traveler Email'] || '';
   document.getElementById('td-rating').value      = f['Trip Rating'] || '';
   document.getElementById('td-history').value = f['History'] ? 'true' : 'false';
   _tdSetPassions(f['Trip Passions'] || '');
@@ -6572,7 +6567,7 @@ function showNewTripForm() {
   document.getElementById('cancel-trip-btn').style.display = 'none';
   document.getElementById('trip-members-section').style.display = 'none';
   document.getElementById('trip-detail-title').textContent = 'New Trip';
-  ['td-name','td-start','td-end','td-cotraveler','td-notes','td-status','td-airport'].forEach(id => {
+  ['td-name','td-start','td-end','td-notes','td-status','td-airport'].forEach(id => {
     document.getElementById(id).value = '';
   });
   _clearTripPhotoField();
@@ -6598,7 +6593,7 @@ function showNewHistoryTripForm() {
   _pendingDnaGuideId = null;
   document.getElementById('cancel-trip-btn').style.display = 'none';
   document.getElementById('trip-detail-title').textContent = 'Taken Trip';
-  ['td-name','td-start','td-end','td-cotraveler','td-notes','td-airport'].forEach(id => {
+  ['td-name','td-start','td-end','td-notes','td-airport'].forEach(id => {
     document.getElementById(id).value = '';
   });
   _clearTripPhotoField();
@@ -7105,7 +7100,6 @@ async function saveTrip() {
     airportCode: airport,
     notes:       document.getElementById('td-notes').value,
     'Status of Trip': _isHistoryTrip ? 'Completed' : (document.getElementById('td-status').value || 'Research'),
-    coTravelerEmail: (document.getElementById('td-cotraveler') || {}).value || '',
     dnaGuideId:  _pendingDnaGuideId || undefined,
     history:     _isHistoryTrip || document.getElementById('td-history').value === 'true',
     tripRating:  document.getElementById('td-rating').value || '',
