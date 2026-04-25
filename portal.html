@@ -2792,8 +2792,10 @@ async function buildItinerary() {
   const btn   = document.getElementById('build-itinerary-btn');
   panel.style.display = 'block';
   panel.innerHTML = `<p style="color:var(--soft);font-size:0.88rem;font-style:italic;">Building your itinerary — this may take 20–30 seconds…</p>`;
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = 'Building…';
+  const pdfRow = document.getElementById('itinerary-pdf-row');
+  if (pdfRow) pdfRow.remove();
 
   try {
     const resp = await fetch('/api/itinerary', {
@@ -2806,74 +2808,56 @@ async function buildItinerary() {
 
     const fmtDate = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
     const summaryDates = [fmtDate(data.startDate), fmtDate(data.endDate)].filter(Boolean).join(' – ');
+    const nights = (data.days && data.days.length) ? data.days.length - 1 : 0;
 
-    // Header
+    // ── Header ──
     let html = `
-      <div style="margin-bottom:20px;">
-        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.2rem;color:#fff;margin-bottom:4px;">${data.destination || data.tripName}</div>
-        ${summaryDates ? `<div style="font-size:0.85rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;">${summaryDates}</div>` : ''}
+      <div style="margin-bottom:24px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.3rem;color:#fff;margin-bottom:4px;">${data.destination || data.tripName}</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+          ${summaryDates ? `<div style="font-size:0.85rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;">${summaryDates}</div>` : ''}
+          ${nights ? `<div style="font-size:0.82rem;color:var(--muted);font-family:'Montserrat',sans-serif;">${nights} night${nights !== 1 ? 's' : ''}</div>` : ''}
+        </div>
       </div>`;
 
-    // Places table
-    if (data.places && data.places.length) {
+    // ── Trip Summary ──
+    if (data.tripSummary) {
+      const paras = data.tripSummary.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
       html += `
-        <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:0.88rem;">
-          <thead>
-            <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-              <th style="text-align:left;padding:7px 10px 7px 0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Place</th>
-              <th style="text-align:left;padding:7px 0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Dates</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.places.map(p => `
-              <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                <td style="padding:9px 10px 9px 0;color:var(--text);font-weight:600;">${p.name}</td>
-                <td style="padding:9px 0;color:var(--soft);">${p.dateRange || '—'}</td>
-              </tr>`).join('')}
-          </tbody>
-        </table>`;
-    }
-
-    // Itinerary map placeholder
-    html += `<div id="itinerary-map" style="width:100%;height:280px;border-radius:12px;border:1px solid var(--bd);margin-bottom:24px;background:var(--s2);"></div>`;
-
-    // Destination overview
-    if (data.destOverview) {
-      html += `
-        <div style="background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%);border:1px solid rgba(45,212,191,0.25);border-radius:12px;padding:22px 20px;margin-bottom:20px;">
-          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--teal);margin-bottom:12px;">Destination Overview</div>
-          <div style="color:var(--soft);font-size:0.9rem;line-height:1.8;">${data.destOverview.replace(/\n\n/g,'</p><p style="margin-top:12px;">').replace(/\n/g,'<br>')}</div>
+        <div style="background:linear-gradient(135deg,rgba(45,212,191,0.07) 0%,rgba(45,212,191,0.02) 100%);border:1px solid rgba(45,212,191,0.25);border-radius:12px;padding:22px 20px;margin-bottom:24px;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--teal);margin-bottom:14px;">Trip Overview</div>
+          ${paras.map((p, i) => `<p style="color:var(--soft);font-size:0.9rem;line-height:1.8;${i > 0 ? 'margin-top:12px;' : ''}">${p}</p>`).join('')}
         </div>`;
     }
 
-    // Per-place stay summaries + hotel info
-    if (data.places && data.places.length) {
-      data.places.forEach(p => {
-        const summary     = data.placeSummaries && data.placeSummaries[p.name];
-        const hotelBlurb  = data.hotelSummaries  && data.hotelSummaries[p.name];
-        if (!summary && !hotelBlurb) return;
+    // ── Day Cards ──
+    if (data.days && data.days.length) {
+      html += `<div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:14px;">Day by Day</div>`;
+      data.days.forEach(d => {
+        const narrative = data.daySummaries && data.daySummaries[d.dayNum];
+        const loc = d.startLoc && d.endLoc && d.startLoc !== d.endLoc
+          ? d.startLoc + ' → ' + d.endLoc
+          : (d.startLoc || d.endLoc || '');
         html += `
-          <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:18px;margin-bottom:12px;">
-            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:8px;">${p.name}${p.dateRange ? `<span style="font-weight:400;color:var(--muted);font-size:0.78rem;margin-left:10px;">${p.dateRange}</span>` : ''}</div>
-            ${summary ? `<div style="color:var(--soft);font-size:0.87rem;line-height:1.75;margin-bottom:${hotelBlurb ? '14px' : '0'};">${summary.replace(/\n/g,'<br>')}</div>` : ''}
-            ${hotelBlurb ? `
-              <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">
-                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#fbbf24;margin-bottom:6px;">🏨 Where You'll Stay</div>
-                <div style="color:var(--soft);font-size:0.87rem;line-height:1.75;margin-bottom:8px;">${hotelBlurb.replace(/\n/g,'<br>')}</div>
-                <a href="${p.stayedAtUrl}" target="_blank" rel="noopener" style="font-size:0.8rem;color:var(--teal);word-break:break-all;">${p.stayedAtUrl}</a>
+          <div style="background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:18px 20px;margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:${loc || d.lodging || d.slotLabels.length || narrative ? '12px' : '0'};">
+              <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;color:#fff;">Day ${d.dayNum}</div>
+              ${d.dateLabel ? `<div style="font-size:0.78rem;color:var(--muted);font-family:'Montserrat',sans-serif;white-space:nowrap;">${d.dateLabel}</div>` : ''}
+            </div>
+            ${loc ? `<div style="font-size:0.82rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;margin-bottom:8px;">📍 ${loc}</div>` : ''}
+            ${d.lodging ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:8px;">🏨 ${d.lodging}</div>` : ''}
+            ${d.slotLabels.length ? `
+              <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:${narrative ? '12px' : '0'};">
+                ${d.slotLabels.map(s => `<div style="font-size:0.83rem;color:var(--soft);padding-left:10px;border-left:2px solid rgba(45,212,191,0.3);">• ${s}</div>`).join('')}
               </div>` : ''}
+            ${narrative ? `<div style="font-size:0.87rem;color:var(--soft);line-height:1.75;font-style:italic;border-top:1px solid rgba(255,255,255,0.06);padding-top:10px;">${narrative}</div>` : ''}
           </div>`;
       });
     }
 
-    // Store data on panel for PDF use
     panel.dataset.itinerary = JSON.stringify(data);
     panel.innerHTML = html;
 
-    // Render itinerary map (after innerHTML so the div exists)
-    renderItineraryMap();
-
-    // PDF button
     panel.insertAdjacentHTML('afterend', `
       <div id="itinerary-pdf-row" style="margin-top:12px;text-align:right;">
         <button onclick="printItinerary()" style="background:none;border:1px solid rgba(255,255,255,0.2);color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;border-radius:6px;padding:7px 16px;cursor:pointer;">⬇ Save as PDF</button>
@@ -2972,53 +2956,42 @@ function printItinerary() {
 
   const fmtDate = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
   const summaryDates = [fmtDate(data.startDate), fmtDate(data.endDate)].filter(Boolean).join(' – ');
-  const escape = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const nights = (data.days && data.days.length) ? data.days.length - 1 : 0;
+  const escape = s => (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   let body = `
     <div class="header">
       <div class="dest">${escape(data.destination || data.tripName)}</div>
-      ${summaryDates ? `<div class="dates">${escape(summaryDates)}</div>` : ''}
+      <div class="meta">${[summaryDates, nights ? nights + ' nights' : ''].filter(Boolean).join(' · ')}</div>
     </div>`;
 
-  if (data.places && data.places.length) {
-    body += `<table><thead><tr><th>Place</th><th>Dates</th></tr></thead><tbody>`;
-    data.places.forEach(p => {
-      body += `<tr><td><strong>${escape(p.name)}</strong></td><td>${escape(p.dateRange || '—')}</td></tr>`;
-    });
-    body += `</tbody></table>`;
-  }
-
-  // Static map image (Mapbox Static Images API)
-  if (_tripMapCoords && _tripMapCoords.length && window._mapboxToken) {
-    const pins = _tripMapCoords.map((c, i) => {
-      if (c.isDestination) return `pin-l+f59e0b(${c.lng.toFixed(4)},${c.lat.toFixed(4)})`;
-      return `pin-s+2dd4bf(${c.lng.toFixed(4)},${c.lat.toFixed(4)})`;
-    }).join(',');
-    const staticMapUrl = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pins}/auto/700x280@2x?padding=60&access_token=${window._mapboxToken}`;
-    body += `<img src="${staticMapUrl}" style="width:100%;border-radius:8px;margin-bottom:24px;display:block;" alt="Trip Map" />`;
-  }
-
-  if (data.destOverview) {
+  if (data.tripSummary) {
+    const paras = data.tripSummary.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
     body += `<div class="section">
-      <div class="section-label">Destination Overview</div>
-      <div class="section-body">${data.destOverview.replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')}</div>
+      <div class="section-label">Trip Overview</div>
+      <div class="section-body">${paras.map(p => `<p>${escape(p)}</p>`).join('')}</div>
     </div>`;
   }
 
-  if (data.places && data.places.length) {
-    data.places.forEach(p => {
-      const summary    = data.placeSummaries && data.placeSummaries[p.name];
-      const hotelBlurb = data.hotelSummaries  && data.hotelSummaries[p.name];
-      if (!summary && !hotelBlurb) return;
-      body += `<div class="place-block">
-        <div class="place-name">${escape(p.name)}${p.dateRange ? `<span class="place-dates">${escape(p.dateRange)}</span>` : ''}</div>
-        ${summary ? `<p>${summary.replace(/\n/g,'<br>')}</p>` : ''}
-        ${hotelBlurb ? `
-          <div class="hotel-section">
-            <div class="hotel-label">🏨 Where You'll Stay</div>
-            <p>${hotelBlurb.replace(/\n/g,'<br>')}</p>
-            <a href="${p.stayedAtUrl}" class="hotel-url">${escape(p.stayedAtUrl)}</a>
-          </div>` : ''}
+  if (data.days && data.days.length) {
+    body += `<div class="days-label">Day by Day</div>`;
+    data.days.forEach(d => {
+      const narrative = data.daySummaries && data.daySummaries[d.dayNum];
+      const loc = d.startLoc && d.endLoc && d.startLoc !== d.endLoc
+        ? escape(d.startLoc) + ' → ' + escape(d.endLoc)
+        : escape(d.startLoc || d.endLoc || '');
+      body += `<div class="day-block">
+        <div class="day-header">
+          <span class="day-num">Day ${d.dayNum}</span>
+          ${d.dateLabel ? `<span class="day-date">${escape(d.dateLabel)}</span>` : ''}
+        </div>
+        ${loc ? `<div class="day-loc">📍 ${loc}</div>` : ''}
+        ${d.lodging ? `<div class="day-lodging">🏨 ${escape(d.lodging)}</div>` : ''}
+        ${d.slotLabels && d.slotLabels.length ? `
+          <ul class="slot-list">
+            ${d.slotLabels.map(s => `<li>${escape(s)}</li>`).join('')}
+          </ul>` : ''}
+        ${narrative ? `<div class="day-narrative">${escape(narrative)}</div>` : ''}
       </div>`;
     });
   }
@@ -3029,32 +3002,28 @@ function printItinerary() {
 <head>
   <meta charset="UTF-8">
   <title>${escape(data.tripName || data.destination)} — Itinerary</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Open Sans', sans-serif; font-size: 11pt; color: #1a1a2e; background: #fff; padding: 40px 48px; max-width: 760px; margin: 0 auto; }
-    .header { margin-bottom: 28px; border-bottom: 2px solid #2a9d8f; padding-bottom: 16px; }
+    .header { margin-bottom: 28px; border-bottom: 3px solid #2a9d8f; padding-bottom: 16px; }
     .dest { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 22pt; color: #1a1a2e; margin-bottom: 4px; }
-    .dates { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 11pt; color: #2a9d8f; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 10pt; }
-    thead tr { border-bottom: 2px solid #1a1a2e; }
-    th { text-align: left; padding: 6px 12px 6px 0; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: #555; }
-    td { padding: 8px 12px 8px 0; border-bottom: 1px solid #e5e7eb; color: #1a1a2e; }
-    .section { background: #f0faf9; border-left: 4px solid #2a9d8f; border-radius: 4px; padding: 18px 20px; margin-bottom: 24px; }
+    .meta { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 11pt; color: #2a9d8f; }
+    .section { background: #f0faf9; border-left: 4px solid #2a9d8f; border-radius: 4px; padding: 18px 20px; margin-bottom: 28px; }
     .section-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.1em; color: #2a9d8f; margin-bottom: 10px; }
-    .section-body p { color: #333; line-height: 1.7; margin-top: 10px; }
+    .section-body p { color: #333; line-height: 1.75; margin-top: 10px; }
     .section-body p:first-child { margin-top: 0; }
-    .place-block { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 18px; margin-bottom: 14px; }
-    .place-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 12pt; color: #1a1a2e; margin-bottom: 8px; }
-    .place-dates { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 9pt; color: #888; margin-left: 10px; }
-    .place-block p { color: #333; line-height: 1.7; font-size: 10pt; }
-    .hotel-section { border-top: 1px solid #e5e7eb; margin-top: 12px; padding-top: 12px; }
-    .hotel-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: #b45309; margin-bottom: 6px; }
-    .hotel-url { font-size: 9pt; color: #2a9d8f; word-break: break-all; display: block; margin-top: 6px; }
-    @media print {
-      body { padding: 20px 28px; }
-      .place-block { page-break-inside: avoid; }
-    }
+    .days-label { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 14px; }
+    .day-block { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 18px; margin-bottom: 12px; page-break-inside: avoid; }
+    .day-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .day-num { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 12pt; color: #1a1a2e; }
+    .day-date { font-family: 'Montserrat', sans-serif; font-size: 9pt; color: #888; }
+    .day-loc { font-size: 9pt; color: #2a9d8f; font-weight: 600; margin-bottom: 5px; }
+    .day-lodging { font-size: 9pt; color: #b45309; margin-bottom: 8px; }
+    .slot-list { list-style: none; margin-bottom: 10px; padding: 0; }
+    .slot-list li { font-size: 10pt; color: #333; padding: 3px 0 3px 14px; border-left: 2px solid #2a9d8f; margin-bottom: 3px; }
+    .day-narrative { font-style: italic; font-size: 10pt; color: #555; line-height: 1.7; border-top: 1px solid #f0f0f0; padding-top: 10px; margin-top: 4px; }
+    @media print { body { padding: 20px 28px; } }
   </style>
 </head>
 <body>${body}</body>

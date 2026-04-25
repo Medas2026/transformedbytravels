@@ -27,16 +27,17 @@ async function callClaude(prompt) {
   return data.content[0]?.text || '';
 }
 
-function dayToDate(startDate, day) {
-  if (!startDate || !day) return null;
-  const d = new Date(startDate + 'T12:00:00');
-  d.setDate(d.getDate() + (day - 1));
-  return d;
-}
-
-function formatDate(d) {
-  if (!d) return '';
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+function slotLabel(slot) {
+  if (!slot || !slot.type || slot.type === '— Empty —') return null;
+  const t = slot.time ? slot.time + ': ' : '';
+  switch (slot.type) {
+    case 'activity':   return t + (slot.name || 'Activity') + (slot.passion ? ' (' + slot.passion + ')' : '');
+    case 'restaurant': return t + 'Dining at ' + (slot.restaurant || slot.name || 'Restaurant') + (slot.cuisine ? ' — ' + slot.cuisine : '');
+    case 'transfer':   return 'Transfer: ' + (slot.from || '') + ' → ' + (slot.to || '') + (slot.mode ? ' by ' + slot.mode : '');
+    case 'event':      return t + 'Event: ' + (slot.eventName || slot.name || 'Event') + (slot.venue ? ' at ' + slot.venue : '');
+    case 'gyg':        return t + 'Experience: ' + (slot.name || 'GetYourGuide booking');
+    default:           return t + (slot.name || slot.type);
+  }
 }
 
 module.exports = async function handler(req, res) {
@@ -50,113 +51,116 @@ module.exports = async function handler(req, res) {
   const email  = ((req.body?.email)  || '').toLowerCase().trim();
   if (!tripId) return res.status(400).json({ error: 'tripId required' });
 
-  const [tripData, placesData, travelerData] = await Promise.all([
+  const [tripData, daysData, lodgingData, travelerData] = await Promise.all([
     airtableFetch('Trips', `/${tripId}`),
-    airtableFetch('Trip Places',
+    airtableFetch('Trip Days',
       '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`) +
-      '&sort[0][field]=Day&sort[0][direction]=asc'),
+      '&sort[0][field]=Day%20Number&sort[0][direction]=asc'),
+    airtableFetch('Lodging',
+      '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`)),
     email
       ? airtableFetch('Traveler', `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`)
       : Promise.resolve({ records: [] })
   ]);
 
   const trip     = tripData.fields || {};
-  const places   = (placesData.records || []).map(r => r.fields);
+  const days     = (daysData.records || []).map(r => ({ _id: r.id, ...r.fields }));
+  const lodgingById = {};
+  (lodgingData.records || []).forEach(r => { lodgingById[r.id] = r.fields; });
   const traveler = (travelerData.records || [])[0]?.fields || {};
 
-  const tripName  = trip['Trip Name']   || trip['Destination'] || 'this trip';
+  const tripName  = trip['Trip Name'] || trip['Destination'] || 'this trip';
   const dest      = [trip['Destination'], trip['Country']].filter(Boolean).join(', ');
-  const startDate = trip['Start Date']  || '';
-  const endDate   = trip['End Date']    || '';
+  const startDate = trip['Start Date'] || '';
+  const endDate   = trip['End Date']   || '';
   const archetype = traveler['Archetype'] || '';
+  const passions  = trip['Trip Passions'] || '';
 
-  // Build place date ranges
-  const placeRows = places.map((p, i) => {
-    const arrDay  = p['Day'] || null;
-    const nextDay = (places[i + 1] && places[i + 1]['Day']) || null;
-    const arrDate = dayToDate(startDate, arrDay);
-    const depDate = nextDay
-      ? dayToDate(startDate, nextDay - 1)
-      : (endDate ? new Date(endDate + 'T12:00:00') : null);
+  const WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Build structured day objects
+  const structuredDays = days.map(d => {
+    const dateRaw = d['Date'] || '';
+    let dateLabel = '';
+    if (dateRaw) {
+      const dt = new Date(dateRaw + 'T00:00:00Z');
+      dateLabel = WEEKDAYS[dt.getUTCDay()] + ', ' + MONTHS[dt.getUTCMonth()] + ' ' + dt.getUTCDate();
+    }
+    const lodgingId   = d['Lodging ID'] || '';
+    const lodgingRec  = lodgingId && lodgingById[lodgingId] ? lodgingById[lodgingId] : null;
+    const slots = [1, 2, 3, 4].map(n => {
+      const raw = d['Slot ' + n];
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch(e) { return null; }
+    }).filter(Boolean);
+
     return {
-      name:        p['Place']          || '(unnamed)',
-      country:     p['Country']        || '',
-      notes:       p['Notes']          || '',
-      stayedAtUrl: p['Stayed at URL']  || '',
-      arrDate:  formatDate(arrDate),
-      depDate:  formatDate(depDate),
-      dateRange: arrDate
-        ? (depDate && formatDate(depDate) !== formatDate(arrDate)
-          ? `${formatDate(arrDate)} – ${formatDate(depDate)}`
-          : formatDate(arrDate))
-        : ''
+      dayNum:    d['Day Number'] || 0,
+      date:      dateRaw,
+      dateLabel,
+      startLoc:  d['Starting Location'] || '',
+      endLoc:    d['Ending Location']   || '',
+      lodging:   lodgingRec ? (lodgingRec['Name'] || '') : '',
+      slotLabels: slots.map(slotLabel).filter(Boolean)
     };
   });
 
-  const placeListForPrompt = placeRows.map((p, i) => {
-    let line = `${i + 1}. ${p.name}${p.country ? ', ' + p.country : ''}${p.dateRange ? ' (' + p.dateRange + ')' : ''}`;
-    if (p.notes) line += `\n   Notes: ${p.notes}`;
-    if (p.stayedAtUrl) line += `\n   Accommodation URL: ${p.stayedAtUrl}`;
-    return line;
-  }).join('\n');
+  // Format days for the prompt
+  const dayScheduleText = structuredDays.map(d => {
+    const loc = d.startLoc && d.endLoc && d.startLoc !== d.endLoc
+      ? `${d.startLoc} → ${d.endLoc}`
+      : (d.startLoc || d.endLoc || '');
+    const lines = [`Day ${d.dayNum}${d.dateLabel ? ' — ' + d.dateLabel : ''}${loc ? ' (' + loc + ')' : ''}`];
+    if (d.lodging) lines.push(`  Staying at: ${d.lodging}`);
+    if (d.slotLabels.length) {
+      d.slotLabels.forEach(s => lines.push(`  • ${s}`));
+    } else {
+      lines.push(`  (free day / no activities planned)`);
+    }
+    return lines.join('\n');
+  }).join('\n\n');
 
-  const hotelPlaces = placeRows.filter(p => p.stayedAtUrl);
-  const hotelSection = hotelPlaces.length ? `
-
-## HOTEL SUMMARIES
-For each place below that has an accommodation URL, write a short "Where You'll Stay" paragraph (2–3 sentences). You cannot visit the URL — instead write about what kind of stay experience suits this destination for a transformational traveler: the setting, what proximity to key experiences means, and what to savour about having a home base there.
-
-${hotelPlaces.map(p => `### ${p.name}\n(URL: ${p.stayedAtUrl})`).join('\n\n')}` : '';
-
-  const prompt = `You are a transformational travel expert for Transformed by Travels, helping travelers plan meaningful journeys.
+  const prompt = `You are a transformational travel expert for Transformed by Travels.
 
 TRIP: ${tripName}
 DESTINATION: ${dest}
-DATES: ${startDate ? startDate + ' to ' + endDate : 'dates not set'}
+DATES: ${startDate ? startDate + ' to ' + endDate : 'not set'}
 TRAVELER ARCHETYPE: ${archetype || 'not specified'}
+TRIP PASSIONS: ${passions || 'not specified'}
 
-PLACES TO VISIT:
-${placeListForPrompt || '(no places added yet)'}
+DAILY SCHEDULE:
+${dayScheduleText || '(no schedule planned yet)'}
 
-Write a travel itinerary overview with the following parts:
+Please write the following:
 
-## DESTINATION OVERVIEW
-Write 2–3 paragraphs about ${dest} from a transformational travel perspective. Cover what makes this destination uniquely powerful for personal growth, cultural depth, and meaningful experience. Tailor the tone to a ${archetype || 'growth-minded'} traveler.
+## TRIP SUMMARY
+Write 2–3 paragraphs giving an overview of this trip from a transformational travel perspective. Cover the destination, the overall journey arc, and what makes this trip meaningful. Tailor the tone to a ${archetype || 'growth-minded'} traveler. Write in second person ("you").
 
-## PLACE SUMMARIES
-For each place listed above, write a short "Stay Summary" (2–4 sentences). Focus on what this specific place offers the traveler — the experiences, atmosphere, and transformation potential. Be vivid and specific, not generic.
+## DAY SUMMARIES
+For each day in the schedule above, write 1–2 vivid sentences that capture the spirit and experience of that day — what it will feel like, not just what will happen. Format exactly like this (use the exact Day numbers from the schedule):
 
-Format each place summary exactly like this:
-### [Place Name]
-[2–4 sentence summary]
-${hotelSection}
+### Day 1
+[1–2 sentence narrative]
 
-Write in second person ("you"). Be specific and evocative, not a Wikipedia summary.`;
+### Day 2
+[1–2 sentence narrative]
+
+Continue for all ${structuredDays.length} days. Be specific and evocative.`;
 
   try {
     const raw = await callClaude(prompt);
 
-    // Parse destination overview
-    const destMatch = raw.match(/##\s*DESTINATION OVERVIEW\s*([\s\S]*?)(?=##\s*PLACE SUMMARIES|$)/i);
-    const destOverview = destMatch ? destMatch[1].trim() : '';
+    // Parse trip summary
+    const summaryMatch = raw.match(/##\s*TRIP SUMMARY\s*([\s\S]*?)(?=##\s*DAY SUMMARIES|$)/i);
+    const tripSummary  = summaryMatch ? summaryMatch[1].trim() : '';
 
-    // Parse place summaries
-    const placeSummaries = {};
-    const placeSectionMatch = raw.match(/##\s*PLACE SUMMARIES\s*([\s\S]*?)(?=##\s*HOTEL SUMMARIES|$)/i);
-    if (placeSectionMatch) {
-      const placeBlocks = placeSectionMatch[1].matchAll(/###\s*(.+?)\n([\s\S]*?)(?=###|$)/g);
-      for (const match of placeBlocks) {
-        placeSummaries[match[1].trim()] = match[2].trim();
-      }
-    }
-
-    // Parse hotel summaries
-    const hotelSummaries = {};
-    const hotelSectionMatch = raw.match(/##\s*HOTEL SUMMARIES\s*([\s\S]*?)$/i);
-    if (hotelSectionMatch) {
-      const hotelBlocks = hotelSectionMatch[1].matchAll(/###\s*(.+?)\n([\s\S]*?)(?=###|$)/g);
-      for (const match of hotelBlocks) {
-        hotelSummaries[match[1].trim()] = match[2].trim();
+    // Parse day summaries
+    const daySummaries = {};
+    const daySectionMatch = raw.match(/##\s*DAY SUMMARIES\s*([\s\S]*?)$/i);
+    if (daySectionMatch) {
+      for (const m of daySectionMatch[1].matchAll(/###\s*Day\s*(\d+)\s*\n([\s\S]*?)(?=###\s*Day\s*\d|$)/gi)) {
+        daySummaries[parseInt(m[1])] = m[2].trim();
       }
     }
 
@@ -165,10 +169,11 @@ Write in second person ("you"). Be specific and evocative, not a Wikipedia summa
       destination: dest,
       startDate,
       endDate,
-      places:         placeRows,
-      destOverview,
-      placeSummaries,
-      hotelSummaries
+      archetype,
+      passions,
+      tripSummary,
+      days: structuredDays,
+      daySummaries
     });
   } catch(e) {
     return res.status(500).json({ error: e.message });
