@@ -2253,6 +2253,87 @@
   </div>
 
   <!-- Day Schedule Modal -->
+  <!-- Lodging Modal -->
+  <div id="lodging-modal" style="display:none;position:fixed;inset:0;z-index:1010;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+    <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,0.7);margin:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;" id="lodging-modal-title">Lodging</div>
+        <button onclick="closeLodgingModal()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <div style="padding:16px 24px;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Property Name</div>
+            <input id="lm-name" type="text" placeholder="e.g. Amuka Safari Lodge"
+              style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Type</div>
+            <select id="lm-type" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;">
+              <option value="">— Select —</option>
+              <option value="Hotel">Hotel</option>
+              <option value="Lodge">Lodge</option>
+              <option value="AirBnb">AirBnb</option>
+              <option value="VRBO">VRBO</option>
+              <option value="Glamping">Glamping</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Location</div>
+          <input id="lm-location" type="text" placeholder="City / region / park"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Check-in Date</div>
+            <input id="lm-checkin" type="date"
+              style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Check-out Date</div>
+            <input id="lm-checkout" type="date"
+              style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Description</div>
+          <textarea id="lm-description" rows="3" placeholder="Notes about the property…"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.85rem;resize:vertical;box-sizing:border-box;"></textarea>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Amenities</div>
+          <input id="lm-amenities" type="text" placeholder="Pool, Wi-Fi, restaurant…"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Confirmation #</div>
+            <input id="lm-confirmation" type="text" placeholder="Booking reference"
+              style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Reservation URL</div>
+            <input id="lm-url" type="url" placeholder="https://…"
+              style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Image URL</div>
+          <input id="lm-image" type="url" placeholder="https://… (property photo)"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+        </div>
+        <div id="lodging-modal-status" style="display:none;font-size:0.85rem;text-align:center;"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:4px;">
+          <button id="lm-delete-btn" onclick="deleteLodging()" style="display:none;background:none;border:1px solid rgba(239,68,68,0.4);color:#f87171;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:10px 18px;cursor:pointer;">Delete</button>
+          <button onclick="closeLodgingModal()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:10px 18px;cursor:pointer;">Cancel</button>
+          <button onclick="saveLodging()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.85rem;border:none;border-radius:8px;padding:10px 24px;cursor:pointer;">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="day-modal" style="display:none;position:fixed;inset:0;z-index:1010;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
     <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;width:100%;max-width:560px;box-shadow:0 24px 60px rgba(0,0,0,0.7);margin:auto;">
       <!-- Header -->
@@ -6925,6 +7006,10 @@ async function saveTrip() {
 // TRIP SCHEDULE — day-by-day locations view
 // ═══════════════════════════════════════════════
 let _scheduleRecords = [];
+let _lodgingRecords  = [];  // all lodging for the current trip
+let _lodgingMap      = {};  // lodgingId → name (for badges)
+let _lodgingModalIdx = null; // day index that opened the lodging modal
+let _lodgingEditId   = null; // record id being edited (null = new)
 let _scheduleCountries = []; // sorted unique country list from DESTINATIONS
 
 function _scheduleGetCountries() {
@@ -6950,9 +7035,16 @@ async function openTripSchedule() {
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   try {
-    const resp = await fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId));
-    const data = await resp.json();
-    _scheduleRecords = data.records || [];
+    const [daysResp, lodgingResp] = await Promise.all([
+      fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId)),
+      fetch('/api/lodging?tripId='   + encodeURIComponent(currentTripId))
+    ]);
+    const daysData    = await daysResp.json();
+    const lodgingData = await lodgingResp.json();
+    _scheduleRecords = daysData.records || [];
+    _lodgingRecords  = lodgingData.records || [];
+    _lodgingMap      = {};
+    _lodgingRecords.forEach(r => { _lodgingMap[r.id] = r.fields['Name'] || 'Lodging'; });
     if (!_scheduleRecords.length) {
       list.innerHTML = '<div style="color:var(--soft);font-size:0.88rem;">No itinerary days found. Save the trip with dates and create days first.</div>';
       return;
@@ -7130,7 +7222,11 @@ function renderScheduleList() {
           <button onclick="scheduleDeleteDay(${i})" title="Delete this day" style="${btnBase}"
             onmouseover="this.style.borderColor='rgba(239,68,68,0.5)';this.style.color='#ef4444'"
             onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">× Delete</button>
+          <button onclick="openLodgingModal(${i})" title="Add or edit lodging" style="${btnBase}"
+            onmouseover="this.style.borderColor='rgba(45,212,191,0.5)';this.style.color='var(--teal)'"
+            onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">🏨 Lodging</button>
         </div>
+        ${f['Lodging ID'] ? `<div id="lod-badge-${i}" style="margin-top:8px;font-size:0.75rem;color:var(--teal);background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.2);border-radius:6px;padding:4px 10px;display:inline-block;cursor:pointer;" onclick="openLodgingModal(${i})">🏨 ${_lodgingMap[f['Lodging ID']] || 'Lodging set'}</div>` : ''}
       </div>`;
   }).join('');
 
@@ -7736,6 +7832,116 @@ function _smEventSelect(n, btn) {
         <div style="font-size:0.82rem;color:var(--teal);flex:1;min-width:0;">✓ ${name}${dt ? ' · ' + dt : ''}${venue ? '<br><span style="font-size:0.75rem;color:var(--muted);">' + venue + '</span>' : ''}</div>
         <button onclick="_smReopenEventPicker(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;flex-shrink:0;">Change</button>
       </div>`;
+  }
+}
+
+// ── Lodging ──────────────────────────────────────────────────────────────────
+
+function openLodgingModal(idx) {
+  _lodgingModalIdx = idx;
+  const dayFields  = _scheduleRecords[idx]?.fields || {};
+  const lodgingId  = dayFields['Lodging ID'] || '';
+  const existing   = lodgingId ? _lodgingRecords.find(r => r.id === lodgingId) : null;
+
+  _lodgingEditId = existing ? existing.id : null;
+
+  document.getElementById('lodging-modal-title').textContent = existing ? 'Edit Lodging' : 'Add Lodging';
+  document.getElementById('lm-delete-btn').style.display     = existing ? 'block' : 'none';
+
+  const f = existing ? existing.fields : {};
+  document.getElementById('lm-name').value         = f['Name']            || '';
+  document.getElementById('lm-type').value         = f['Type']            || '';
+  document.getElementById('lm-location').value     = f['Location']        || '';
+  document.getElementById('lm-checkin').value      = f['Check-in Date']   || dayFields['Date'] || '';
+  document.getElementById('lm-checkout').value     = f['Check-out Date']  || '';
+  document.getElementById('lm-description').value  = f['Description']     || '';
+  document.getElementById('lm-amenities').value    = f['Amenities']       || '';
+  document.getElementById('lm-confirmation').value = f['Confirmation #']  || '';
+  document.getElementById('lm-url').value          = f['Reservation URL'] || '';
+  document.getElementById('lm-image').value        = f['Image URL']       || '';
+
+  const status = document.getElementById('lodging-modal-status');
+  status.style.display = 'none';
+  document.getElementById('lodging-modal').style.display = 'flex';
+}
+
+function closeLodgingModal() {
+  document.getElementById('lodging-modal').style.display = 'none';
+  _lodgingModalIdx = null;
+  _lodgingEditId   = null;
+}
+
+async function saveLodging() {
+  const status = document.getElementById('lodging-modal-status');
+  status.style.display = 'block';
+  status.style.color   = 'var(--teal)';
+  status.textContent   = 'Saving…';
+
+  const payload = {
+    tripId:          currentTripId,
+    name:            document.getElementById('lm-name').value.trim(),
+    type:            document.getElementById('lm-type').value,
+    location:        document.getElementById('lm-location').value.trim(),
+    checkIn:         document.getElementById('lm-checkin').value,
+    checkOut:        document.getElementById('lm-checkout').value,
+    description:     document.getElementById('lm-description').value.trim(),
+    amenities:       document.getElementById('lm-amenities').value.trim(),
+    confirmationNum: document.getElementById('lm-confirmation').value.trim(),
+    reservationUrl:  document.getElementById('lm-url').value.trim(),
+    imageUrl:        document.getElementById('lm-image').value.trim()
+  };
+
+  if (!payload.name) { status.style.color = '#f43f5e'; status.textContent = 'Property name is required.'; return; }
+
+  try {
+    let resp, data;
+    if (_lodgingEditId) {
+      resp = await fetch('/api/lodging', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: _lodgingEditId, ...payload }) });
+    } else {
+      resp = await fetch('/api/lodging', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    }
+    data = await resp.json();
+    if (!data.success) { status.style.color = '#f43f5e'; status.textContent = 'Error: ' + (data.error || 'Could not save'); return; }
+
+    // Refresh lodging list and rebuild map
+    const lr = await fetch('/api/lodging?tripId=' + encodeURIComponent(currentTripId));
+    const ld = await lr.json();
+    _lodgingRecords = ld.records || [];
+    _lodgingMap = {};
+    _lodgingRecords.forEach(r => { _lodgingMap[r.id] = r.fields['Name'] || 'Lodging'; });
+
+    // Refresh day records so Lodging ID fields are up to date
+    const dr = await fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId));
+    const dd = await dr.json();
+    _scheduleRecords = dd.records || [];
+
+    status.textContent = 'Saved!';
+    setTimeout(() => { closeLodgingModal(); renderScheduleList(); }, 600);
+  } catch(e) {
+    status.style.color = '#f43f5e';
+    status.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function deleteLodging() {
+  if (!_lodgingEditId) return;
+  const status = document.getElementById('lodging-modal-status');
+  status.style.display = 'block';
+  status.style.color   = '#f43f5e';
+  status.textContent   = 'Deleting…';
+  try {
+    const resp = await fetch('/api/lodging?id=' + encodeURIComponent(_lodgingEditId) + '&tripId=' + encodeURIComponent(currentTripId), { method: 'DELETE' });
+    const data = await resp.json();
+    if (!data.success) { status.textContent = 'Error: ' + (data.error || 'Could not delete'); return; }
+    _lodgingRecords = _lodgingRecords.filter(r => r.id !== _lodgingEditId);
+    delete _lodgingMap[_lodgingEditId];
+    const dr = await fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId));
+    const dd = await dr.json();
+    _scheduleRecords = dd.records || [];
+    closeLodgingModal();
+    renderScheduleList();
+  } catch(e) {
+    status.textContent = 'Error: ' + e.message;
   }
 }
 
