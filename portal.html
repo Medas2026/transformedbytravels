@@ -8137,7 +8137,10 @@ function _slotCardHtml(n, slot) {
       <input id="sm-s${n}-name" type="text" placeholder="Activity name (e.g. Shoebill Stork Excursion)"
         value="${((slot && slot.name) || '').replace(/"/g,'&quot;')}"
         oninput="this.dataset.userEdited='true'"
-        style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;margin-bottom:${type ? '8px' : '0'};box-sizing:border-box;">
+        style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;margin-bottom:8px;box-sizing:border-box;">
+      <input id="sm-s${n}-loc" type="text" placeholder="Location (e.g. Yellowstone National Park)"
+        value="${((slot && slot.location) || '').replace(/"/g,'&quot;')}"
+        style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;margin-bottom:${type && type !== 'transfer' ? '8px' : '0'};box-sizing:border-box;display:${type === 'transfer' ? 'none' : 'block'};">
       <div id="sm-s${n}-fields">${_slotFieldsHtml(n, slot)}</div>
     </div>`;
 }
@@ -8148,8 +8151,13 @@ function smTypeChange(n) {
   const nameEl  = document.getElementById(`sm-s${n}-name`);
   const pseudo  = { type, startTime: document.getElementById(`sm-s${n}-start`).value, endTime: document.getElementById(`sm-s${n}-end`).value };
   flds.innerHTML = _slotFieldsHtml(n, pseudo);
+  const locEl = document.getElementById(`sm-s${n}-loc`);
+  if (locEl) {
+    locEl.style.display      = type === 'transfer' ? 'none' : 'block';
+    locEl.style.marginBottom = (type && type !== 'transfer') ? '8px' : '0';
+  }
   if (nameEl) {
-    nameEl.style.marginBottom = type ? '8px' : '0';
+    nameEl.style.marginBottom = '8px';
     // Auto-seed transfer fields from day's locations
     if (type === 'passion' && nameEl && !nameEl.value.trim()) {
       nameEl.value = 'Passion Activity';
@@ -8262,6 +8270,9 @@ async function saveDayModal(andNext = false) {
       slot.to       = (document.getElementById(`sm-s${n}-to`)?.value       || '').trim();
       slot.mode     = (document.getElementById(`sm-s${n}-mode`)?.value     || 'Road');
       slot.duration = (document.getElementById(`sm-s${n}-duration`)?.value || '').trim();
+    }
+    if (type && type !== 'transfer') {
+      slot.location = (document.getElementById(`sm-s${n}-loc`)?.value || '').trim();
     }
     fields['Slot ' + n] = JSON.stringify(slot);
   }

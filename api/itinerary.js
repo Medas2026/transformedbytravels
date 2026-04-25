@@ -29,14 +29,16 @@ async function callClaude(prompt) {
 
 function slotLabel(slot) {
   if (!slot || !slot.type || slot.type === '— Empty —') return null;
-  const t = slot.time ? slot.time + ': ' : '';
+  const t   = slot.time ? slot.time + ': ' : '';
+  const loc = slot.location ? ' at ' + slot.location : '';
   switch (slot.type) {
-    case 'activity':   return t + (slot.name || 'Activity') + (slot.passion ? ' (' + slot.passion + ')' : '');
-    case 'restaurant': return t + 'Dining at ' + (slot.restaurant || slot.name || 'Restaurant') + (slot.cuisine ? ' — ' + slot.cuisine : '');
+    case 'activity':   return t + (slot.name || 'Activity') + (slot.passion ? ' (' + slot.passion + ')' : '') + loc;
+    case 'restaurant': return t + 'Dining at ' + (slot.restaurant || slot.name || 'Restaurant') + (slot.cuisine ? ' — ' + slot.cuisine : '') + loc;
     case 'transfer':   return 'Transfer: ' + (slot.from || '') + ' → ' + (slot.to || '') + (slot.mode ? ' by ' + slot.mode : '');
-    case 'event':      return t + 'Event: ' + (slot.eventName || slot.name || 'Event') + (slot.venue ? ' at ' + slot.venue : '');
-    case 'gyg':        return t + 'Experience: ' + (slot.name || 'GetYourGuide booking');
-    default:           return t + (slot.name || slot.type);
+    case 'event':      return t + 'Event: ' + (slot.eventName || slot.name || 'Event') + (slot.venue ? ' at ' + slot.venue : '') + loc;
+    case 'gyg':        return t + 'Experience: ' + (slot.name || 'GetYourGuide booking') + loc;
+    case 'freeform':   return t + (slot.description || slot.name || 'Note') + loc;
+    default:           return t + (slot.name || slot.type) + loc;
   }
 }
 
