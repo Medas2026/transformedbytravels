@@ -7460,10 +7460,18 @@ function smTypeChange(n) {
   flds.innerHTML = _slotFieldsHtml(n, pseudo);
   if (nameEl) {
     nameEl.style.marginBottom = type ? '8px' : '0';
-    // Auto-seed name for transfer if user hasn't typed anything
-    if (type === 'transfer' && !nameEl.value.trim()) {
-      nameEl.value = 'Transfer';
-      nameEl.dataset.userEdited = 'false';
+    // Auto-seed transfer fields from day's locations
+    if (type === 'transfer') {
+      const dayFields = _scheduleRecords[_dayModalIdx] && _scheduleRecords[_dayModalIdx].fields;
+      const fromEl = document.getElementById(`sm-s${n}-from`);
+      const toEl   = document.getElementById(`sm-s${n}-to`);
+      if (fromEl && !fromEl.value.trim() && dayFields && dayFields['Starting Location']) {
+        fromEl.value = dayFields['Starting Location'];
+      }
+      if (toEl && !toEl.value.trim() && dayFields && dayFields['Ending Location']) {
+        toEl.value = dayFields['Ending Location'];
+      }
+      _smAutoName(n);
     }
   }
 }
