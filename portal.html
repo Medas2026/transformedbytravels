@@ -5333,6 +5333,9 @@ function openTrip(record) {
   currentTripId          = record.id;
   currentTripDestination = record.fields['Destination'] || '';
   currentTripCountry     = record.fields['Country']     || '';
+  _scheduleRecords = [];
+  _lodgingRecords  = [];
+  _lodgingMap      = {};
   const f = record.fields;
   document.getElementById('trip-detail-title').textContent = f['Trip Name'] || 'Trip Details';
   document.getElementById('td-name').value        = f['Trip Name']    || '';
@@ -6531,7 +6534,10 @@ function showNewTripForm() {
     alert('You have no trips remaining on your current plan. Please upgrade to add more trips.');
     return;
   }
-  currentTripId = null;
+  currentTripId    = null;
+  _scheduleRecords = [];
+  _lodgingRecords  = [];
+  _lodgingMap      = {};
   _pendingDnaGuideId = null;
   document.getElementById('cancel-trip-btn').style.display = 'none';
   document.getElementById('trip-members-section').style.display = 'none';
@@ -7115,7 +7121,7 @@ async function saveTrip() {
       msg.style.display = 'none';
       renderTripMap();
       // For new trips with dates, offer itinerary creation
-      const isNew = !payload.id || (payload.id === currentTripId && data.record);
+      const isNew = !payload.id;
       if (isNew && payload.startDate && payload.endDate && !_isHistoryTrip) {
         const start = new Date(payload.startDate + 'T00:00:00Z');
         const end   = new Date(payload.endDate   + 'T00:00:00Z');
