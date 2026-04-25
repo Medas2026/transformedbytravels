@@ -7039,13 +7039,20 @@ function renderScheduleList() {
       dateLabel = DAYS[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
     }
     return `
-      <div style="display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:start;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;" data-idx="${i}" data-id="${r.id}">
+      <div style="display:grid;grid-template-columns:90px 1fr 1fr 28px;gap:8px;align-items:start;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;" data-idx="${i}" data-id="${r.id}">
         <div style="padding-top:6px;">
           <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);">Day ${f['Day Number'] || i+1}</div>
           <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${dateLabel}</div>
         </div>
         ${_locPickerHtml(i, 'start')}
         ${_locPickerHtml(i, 'end')}
+        <div style="padding-top:4px;">
+          ${i < _scheduleRecords.length - 1 ? `
+          <button onclick="_copyLocDown(${i})" title="Copy ending location to next day"
+            style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:var(--muted);font-size:0.9rem;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"
+            onmouseover="this.style.borderColor='rgba(45,212,191,0.5)';this.style.color='var(--teal)'"
+            onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">↓</button>` : ''}
+        </div>
       </div>`;
   }).join('');
 
@@ -7055,6 +7062,33 @@ function renderScheduleList() {
       document.querySelectorAll('[id^="loc-picker-"]').forEach(el => el.style.display = 'none');
     }
   }, { once: false, capture: true });
+}
+
+function _copyLocDown(idx) {
+  const cur  = _scheduleRecords[idx];
+  const next = _scheduleRecords[idx + 1];
+  if (!next) return;
+  const dest    = cur.fields['Ending Location'] || '';
+  const country = cur.fields['Ending Country']  || '';
+  if (!dest) return;
+  // Copy ending location to next day's starting AND ending
+  next.fields['Starting Location'] = dest;
+  next.fields['Starting Country']  = country;
+  next.fields['Ending Location']   = dest;
+  next.fields['Ending Country']    = country;
+  next._startDirty   = true;
+  next._endDirty     = true;
+  next._autoCascaded = true;
+  // Refresh the next row's button labels
+  const rows = document.querySelectorAll('#trip-schedule-list [data-idx]');
+  if (rows[idx + 1]) {
+    const label = _locLabel(dest, country);
+    ['start','end'].forEach(field => {
+      const picker = rows[idx + 1].querySelector(`#loc-picker-${idx+1}-${field}`);
+      const btn = picker && picker.previousElementSibling;
+      if (btn) { btn.textContent = label; btn.style.color = 'var(--text)'; }
+    });
+  }
 }
 
 function _cascadeLocation(idx) {
