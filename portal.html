@@ -896,6 +896,23 @@
                 <input id="td-end" type="date" class="trip-input" onchange="updateDuration()" />
               </div>
             </div>
+            <!-- Trip Members -->
+            <div id="trip-members-section" style="display:none;margin:16px 0;background:rgba(45,212,191,0.05);border:1px solid rgba(45,212,191,0.2);border-radius:12px;padding:16px 18px;">
+              <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal);margin-bottom:12px;">Trip Members</div>
+              <div id="trip-members-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input id="tm-email" type="email" placeholder="Invite by email" style="flex:1;min-width:160px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 12px;color:var(--text);font-size:0.85rem;">
+                <select id="tm-role" style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+                  <option value="Partner">Partner</option>
+                  <option value="Trip Planner">Trip Planner</option>
+                  <option value="Family">Family</option>
+                  <option value="Guest">Guest</option>
+                </select>
+                <button onclick="inviteTripMember()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:7px;padding:8px 16px;cursor:pointer;white-space:nowrap;">+ Invite</button>
+              </div>
+              <div id="tm-msg" style="display:none;font-size:0.8rem;margin-top:8px;"></div>
+            </div>
+
             <div style="margin-bottom:16px;"></div>
             <div class="trip-field-group">
               <div class="trip-field-label">Destination Airport Code</div>
@@ -972,22 +989,6 @@
               </div>
             </div>
 
-            <!-- Trip Members -->
-            <div class="trip-field-group" id="trip-members-section" style="display:none;">
-              <div class="trip-field-label">Trip Members</div>
-              <div id="trip-members-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                <input id="tm-email" type="email" placeholder="Email address" style="flex:1;min-width:160px;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 12px;color:var(--text);font-size:0.85rem;">
-                <select id="tm-role" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
-                  <option value="Partner">Partner</option>
-                  <option value="Trip Planner">Trip Planner</option>
-                  <option value="Family">Family</option>
-                  <option value="Guest">Guest</option>
-                </select>
-                <button onclick="inviteTripMember()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:7px;padding:8px 16px;cursor:pointer;white-space:nowrap;">+ Invite</button>
-              </div>
-              <div id="tm-msg" style="display:none;font-size:0.8rem;margin-top:6px;"></div>
-            </div>
 
             <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
             <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
@@ -6569,6 +6570,7 @@ function showNewTripForm() {
   currentTripId = null;
   _pendingDnaGuideId = null;
   document.getElementById('cancel-trip-btn').style.display = 'none';
+  document.getElementById('trip-members-section').style.display = 'none';
   document.getElementById('trip-detail-title').textContent = 'New Trip';
   ['td-name','td-start','td-end','td-cotraveler','td-notes','td-status','td-airport'].forEach(id => {
     document.getElementById(id).value = '';
