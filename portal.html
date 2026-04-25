@@ -6551,6 +6551,9 @@ function showNewTripForm() {
   _tdClearPassions();
   document.getElementById('trip-dest-picker').style.display = 'block';
   document.getElementById('trip-dest-readonly').style.display = 'none';
+  document.getElementById('trip-schedule-btn').style.display = 'none';
+  document.getElementById('trip-schedule-section').style.display = 'none';
+  document.getElementById('itinerary-section').style.display = 'none';
   document.getElementById('trip-list-section').style.display = 'none';
   document.getElementById('trip-detail').style.display = 'block';
 }
@@ -6585,6 +6588,9 @@ function showNewHistoryTripForm() {
   // Show planning page content without changing the active menu highlight
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-planning').classList.add('active');
+  document.getElementById('trip-schedule-btn').style.display = 'none';
+  document.getElementById('trip-schedule-section').style.display = 'none';
+  document.getElementById('itinerary-section').style.display = 'none';
   document.getElementById('trip-list-section').style.display = 'none';
   document.getElementById('trip-detail').style.display = 'block';
 }
@@ -7156,6 +7162,7 @@ function _scheduleDestsForCountry(country) {
 }
 
 async function openTripSchedule() {
+  if (!currentTripId) return;
   const section = document.getElementById('trip-schedule-section');
   const list    = document.getElementById('trip-schedule-list');
   const status  = document.getElementById('trip-schedule-status');
