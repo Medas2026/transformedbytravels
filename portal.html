@@ -7402,6 +7402,9 @@ function _slotFieldsHtml(n, slot) {
     </div>
     <div id="sm-s${n}-flights-btn" style="${mode === 'Air' ? '' : 'display:none;'}">
       <button onclick="_smOpenFlights(${n})" style="width:100%;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">✈ Search Google Flights</button>
+    </div>
+    <div id="sm-s${n}-maps-btn" style="${mode === 'Road' ? '' : 'display:none;'}">
+      <button onclick="_smOpenMaps(${n})" style="width:100%;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">🗺 Google Maps Directions</button>
     </div>`;
   }
   if (type === 'gyg') {
@@ -7472,9 +7475,22 @@ function _slotFieldsHtml(n, slot) {
 }
 
 function _smToggleFlightsBtn(n) {
-  const mode = document.getElementById(`sm-s${n}-mode`)?.value;
-  const btn  = document.getElementById(`sm-s${n}-flights-btn`);
-  if (btn) btn.style.display = mode === 'Air' ? 'block' : 'none';
+  const mode     = document.getElementById(`sm-s${n}-mode`)?.value;
+  const flightsEl = document.getElementById(`sm-s${n}-flights-btn`);
+  const mapsEl    = document.getElementById(`sm-s${n}-maps-btn`);
+  if (flightsEl) flightsEl.style.display = mode === 'Air'  ? 'block' : 'none';
+  if (mapsEl)    mapsEl.style.display    = mode === 'Road' ? 'block' : 'none';
+}
+
+function _smOpenMaps(n) {
+  const from = (document.getElementById(`sm-s${n}-from`)?.value || '').trim();
+  const to   = (document.getElementById(`sm-s${n}-to`)?.value   || '').trim();
+  if (!from && !to) return;
+  const url = 'https://www.google.com/maps/dir/?api=1' +
+    (from ? '&origin='      + encodeURIComponent(from) : '') +
+    (to   ? '&destination=' + encodeURIComponent(to)   : '') +
+    '&travelmode=driving';
+  window.open(url, '_blank', 'noopener');
 }
 
 function _smOpenFlights(n) {
