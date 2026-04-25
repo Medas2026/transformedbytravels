@@ -967,17 +967,9 @@
             <div class="trip-field-group">
               <div class="trip-field-label">Places to Visit</div>
               <div id="places-container" style="display:flex;flex-direction:column;gap:8px;"></div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+              <div style="margin-top:10px;">
                 <button onclick="openPlaceModal(-1)" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:6px 14px;cursor:pointer;">+ Add Place</button>
-                <button onclick="renderTripMap()" style="background:none;border:none;color:var(--teal);font-size:0.82rem;font-family:'Open Sans',sans-serif;cursor:pointer;padding:4px 0;opacity:0.8;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">↻ Refresh Map</button>
               </div>
-            </div>
-
-            <!-- Places Map -->
-            <div id="trip-map-section" style="display:none;margin-bottom:16px;">
-              <div class="trip-field-label" style="margin-bottom:8px;">Places on Map</div>
-              <div id="trip-map" style="width:100%;height:336px;border-radius:12px;border:1px solid var(--bd);"></div>
-              <div id="trip-map-status" style="font-size:0.78rem;color:var(--muted);margin-top:6px;"></div>
             </div>
 
             <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
@@ -998,7 +990,8 @@
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
                 <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;color:#fff;">Day-by-Day Locations</div>
                 <div style="display:flex;gap:8px;">
-                  <button onclick="renderScheduleMap()" id="schedule-map-btn" style="background:none;border:1px solid rgba(45,212,191,0.5);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🗺 Route Map</button>
+                  <button onclick="renderScheduleMap(false)" id="schedule-map-btn" style="background:none;border:1px solid rgba(45,212,191,0.5);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🗺 Route Map</button>
+                  <button onclick="renderScheduleMap(true)" style="background:none;border:1px solid rgba(100,116,139,0.5);color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🏠 Include Home</button>
                   <button onclick="saveTripSchedule()" id="save-schedule-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:8px;padding:8px 20px;cursor:pointer;">Save Locations</button>
                 </div>
               </div>
@@ -7926,7 +7919,7 @@ async function saveDayModal() {
 
 let _scheduleMap = null;
 
-async function renderScheduleMap() {
+async function renderScheduleMap(includeHome) {
   const wrap   = document.getElementById('schedule-map-wrap');
   const mapEl  = document.getElementById('schedule-map');
   const status = document.getElementById('schedule-map-status');
@@ -7945,8 +7938,15 @@ async function renderScheduleMap() {
       [f['Starting Location'], f['Starting Country']],
       [f['Ending Location'],   f['Ending Country']]
     ]) {
-      if (!loc || loc === 'Home') continue;
-      const key = loc + '|' + (ctry || '');
+      if (!loc) continue;
+      if (loc === 'Home' && !includeHome) continue;
+      // Resolve 'Home' to traveler's city/state for geocoding
+      const resolvedLoc = (loc === 'Home' && includeHome && portalProfile)
+        ? [[portalProfile['City'], portalProfile['State']].filter(Boolean).join(', ') || 'Home', 'Home']
+        : [loc, loc];
+      const displayLoc = resolvedLoc[0];
+      const geocodeLoc = resolvedLoc[0];
+      const key = displayLoc + '|' + (ctry || '');
       if (seen.has(key)) continue;
       seen.add(key);
       // Look up coords in DESTINATIONS array
@@ -7955,7 +7955,7 @@ async function renderScheduleMap() {
         const match = DESTINATIONS.find(d => d[0] === loc && (!ctry || d[1] === ctry));
         if (match) { lat = match[12]; lng = match[13]; }
       }
-      points.push({ label: loc, dest: loc, country: ctry || '', lat, lng, dayNum });
+      points.push({ label: displayLoc, dest: geocodeLoc, country: ctry || '', lat, lng, dayNum });
     }
   }
 
@@ -11209,33 +11209,14 @@ let _itineraryMap   = null;
 
 
 async function renderTripMap() {
+  // Geocodes places and caches coords for the itinerary map — no visible map rendered here
   const destination = currentTripDestination;
   const country     = currentTripCountry;
   const places      = _places.map(p => p.place).filter(p => p && p.toLowerCase() !== 'home base');
-
-  const section = document.getElementById('trip-map-section');
-  if (!destination && !places.length) { if (section) section.style.display = 'none'; return; }
-
-  section.style.display = 'block';
-  const statusEl = document.getElementById('trip-map-status');
-  statusEl.textContent = 'Locating places…';
-
-  if (!window._mapboxToken) {
-    try {
-      const r = await fetch('/api/mapbox-token');
-      const d = await r.json();
-      window._mapboxToken = d.token || '';
-    } catch(e) { statusEl.textContent = 'Map unavailable.'; return; }
-  }
-
-  mapboxgl.accessToken = window._mapboxToken;
-
-  // Build geocode list: destination first (if set), then places
   const geocodeList = [];
   if (destination) geocodeList.push(destination);
   places.forEach(p => { if (p !== destination) geocodeList.push(p); });
-
-  let coords = [];
+  if (!geocodeList.length) return;
   try {
     const resp = await fetch('/api/geocode-places', {
       method:  'POST',
@@ -11243,72 +11224,8 @@ async function renderTripMap() {
       body:    JSON.stringify({ places: geocodeList, destination, country })
     });
     const data = await resp.json();
-    console.log('[map] geocode-places response:', JSON.stringify(data.coords));
-    coords = (data.coords || []).map((c, i) => ({ ...c, label: geocodeList[i] || c.name, isDestination: i === 0 && !!destination }));
-    _tripMapCoords = coords;  // cache for itinerary map
-  } catch(e) {
-    statusEl.textContent = 'Could not locate places.';
-    return;
-  }
-
-  const placesFound = coords.filter(c => !c.isDestination).length;
-  statusEl.textContent = placesFound < places.length ? `${placesFound} of ${places.length} places located.` : '';
-
-  if (!coords.length) return;
-
-  // Init map or clear markers
-  if (_tripMap) {
-    _tripMarkers.forEach(m => m.remove());
-    _tripMarkers = [];
-  } else {
-    _tripMap = new mapboxgl.Map({
-      container:  'trip-map',
-      style:      'mapbox://styles/mapbox/outdoors-v12',
-      scrollZoom: false
-    });
-    _tripMap.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
-  }
-
-  // Add markers and fit bounds
-  const bounds = new mapboxgl.LngLatBounds();
-  let placeNum = 0;
-  coords.forEach(c => {
-    const el = document.createElement('div');
-    el.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;';
-    if (c.isDestination) {
-      el.innerHTML = `
-        <div style="width:32px;height:32px;background:#f59e0b;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,0.4);">✈️</div>
-        <div style="margin-top:3px;background:rgba(245,158,11,0.9);color:#0f172a;font-family:sans-serif;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(0,0,0,0.3);">${c.label}</div>`;
-    } else {
-      placeNum++;
-      el.innerHTML = `
-        <div style="width:28px;height:28px;background:#2dd4bf;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:12px;font-weight:700;color:#0f172a;box-shadow:0 2px 6px rgba(0,0,0,0.35);">${placeNum}</div>
-        <div style="margin-top:3px;background:rgba(15,23,42,0.82);color:#fff;font-family:sans-serif;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(0,0,0,0.3);">${c.label}</div>`;
-    }
-
-    const marker = new mapboxgl.Marker({ element: el, anchor: 'top' })
-      .setLngLat([c.lng, c.lat])
-      .addTo(_tripMap);
-
-    _tripMarkers.push(marker);
-    bounds.extend([c.lng, c.lat]);
-  });
-
-  _tripMap.once('load', () => {
-    if (coords.length === 1) {
-      _tripMap.flyTo({ center: [coords[0].lng, coords[0].lat], zoom: 8 });
-    } else {
-      _tripMap.fitBounds(bounds, { padding: 60, maxZoom: 12 });
-    }
-  });
-
-  if (_tripMap.loaded()) {
-    if (coords.length === 1) {
-      _tripMap.flyTo({ center: [coords[0].lng, coords[0].lat], zoom: 8 });
-    } else {
-      _tripMap.fitBounds(bounds, { padding: 60, maxZoom: 12 });
-    }
-  }
+    _tripMapCoords = (data.coords || []).map((c, i) => ({ ...c, label: geocodeList[i] || c.name, isDestination: i === 0 && !!destination }));
+  } catch(e) { /* silent */ }
 }
 
 // ── Cancel Subscription ──────────────────────────────────────────────────────
