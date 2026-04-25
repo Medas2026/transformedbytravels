@@ -7486,9 +7486,16 @@ function _smOpenMaps(n) {
   const from = (document.getElementById(`sm-s${n}-from`)?.value || '').trim();
   const to   = (document.getElementById(`sm-s${n}-to`)?.value   || '').trim();
   if (!from && !to) return;
+  const resolveHome = loc => {
+    if (loc.toLowerCase() !== 'home' || !portalProfile) return loc;
+    const city  = (portalProfile['City']     || '').trim();
+    const state = (portalProfile['State']    || '').trim();
+    const zip   = (portalProfile['ZIP Code'] || '').trim();
+    return [city, state, zip].filter(Boolean).join(', ') || loc;
+  };
   const url = 'https://www.google.com/maps/dir/?api=1' +
-    (from ? '&origin='      + encodeURIComponent(from) : '') +
-    (to   ? '&destination=' + encodeURIComponent(to)   : '') +
+    (from ? '&origin='      + encodeURIComponent(resolveHome(from)) : '') +
+    (to   ? '&destination=' + encodeURIComponent(resolveHome(to))   : '') +
     '&travelmode=driving';
   window.open(url, '_blank', 'noopener');
 }
