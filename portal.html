@@ -984,12 +984,23 @@
             <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
               <button onclick="saveTrip()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">Save Trip</button>
               <button onclick="buildItinerary()" id="build-itinerary-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">✦ Build Itinerary</button>
+              <button onclick="openTripSchedule()" id="trip-schedule-btn" style="display:none;background:none;border:1px solid rgba(45,212,191,0.5);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 28px;cursor:pointer;">📅 Trip Schedule</button>
               <button onclick="closeTripDetail()" style="background:none;border:1px solid #475569;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 20px;cursor:pointer;">Cancel</button>
             </div>
 
             <!-- Build Itinerary -->
             <div id="itinerary-section" style="margin-top:28px;border-top:1px solid var(--bd);padding-top:24px;">
               <div id="itinerary-panel" style="display:none;"></div>
+            </div>
+
+            <!-- Trip Schedule (Day-by-Day Locations) -->
+            <div id="trip-schedule-section" style="display:none;margin-top:28px;border-top:1px solid var(--bd);padding-top:24px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;color:#fff;">Day-by-Day Locations</div>
+                <button onclick="saveTripSchedule()" id="save-schedule-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:8px;padding:8px 20px;cursor:pointer;">Save Locations</button>
+              </div>
+              <div id="trip-schedule-status" style="display:none;font-size:0.85rem;margin-bottom:12px;"></div>
+              <div id="trip-schedule-list" style="display:flex;flex-direction:column;gap:8px;"></div>
             </div>
 
             <!-- Integration Report — shown for Completed trips -->
@@ -5267,6 +5278,18 @@ function openTrip(record) {
   loadTripDNAGuides(f['Destination'] || '', f['Country'] || '', f['DNA Guide ID'] || null);
   // Pre-load DNA records for place modal guide picker
   if (!_pmDNARecords) fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail)).then(r=>r.json()).then(d=>{ _pmDNARecords = d.records||[]; }).catch(()=>{});
+  // Show Trip Schedule button if days exist
+  document.getElementById('trip-schedule-section').style.display = 'none';
+  document.getElementById('trip-schedule-btn').style.display = 'none';
+  if (f['Start Date'] && f['End Date']) {
+    fetch('/api/trip-days?tripId=' + encodeURIComponent(record.id))
+      .then(r => r.json())
+      .then(d => {
+        if (d.records && d.records.length) {
+          document.getElementById('trip-schedule-btn').style.display = 'inline-block';
+        }
+      }).catch(() => {});
+  }
   if (!_isHistoryTrip && f['Status of Trip'] === 'Completed') {
     loadIntegrationReport(record.id, f['Integration Report'] || '');
   } else {
@@ -6860,6 +6883,129 @@ async function saveTrip() {
 }
 
 // ═══════════════════════════════════════════════
+// TRIP SCHEDULE — day-by-day locations view
+// ═══════════════════════════════════════════════
+let _scheduleRecords = [];
+
+async function openTripSchedule() {
+  const section = document.getElementById('trip-schedule-section');
+  const list    = document.getElementById('trip-schedule-list');
+  const status  = document.getElementById('trip-schedule-status');
+  section.style.display = 'block';
+  list.innerHTML = '<div style="color:var(--soft);font-size:0.88rem;">Loading days…</div>';
+  status.style.display = 'none';
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const resp = await fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId));
+    const data = await resp.json();
+    _scheduleRecords = data.records || [];
+    if (!_scheduleRecords.length) {
+      list.innerHTML = '<div style="color:var(--soft);font-size:0.88rem;">No itinerary days found. Save the trip with dates and create days first.</div>';
+      return;
+    }
+    renderScheduleList();
+  } catch(e) {
+    list.innerHTML = '<div style="color:#f43f5e;font-size:0.88rem;">Error loading days: ' + e.message + '</div>';
+  }
+}
+
+function renderScheduleList() {
+  const list = document.getElementById('trip-schedule-list');
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  list.innerHTML = _scheduleRecords.map((r, i) => {
+    const f   = r.fields;
+    const raw = f['Date'] || '';
+    let dateLabel = '';
+    if (raw) {
+      const d = new Date(raw + 'T00:00:00Z');
+      dateLabel = DAYS[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
+    }
+    const startLoc = (f['Starting Location'] || '').replace(/"/g,'&quot;');
+    const endLoc   = (f['Ending Location']   || '').replace(/"/g,'&quot;');
+
+    return `
+      <div style="display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;" data-idx="${i}" data-id="${r.id}">
+        <div>
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);">Day ${f['Day Number'] || i+1}</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${dateLabel}</div>
+        </div>
+        <input type="text" placeholder="Starting location"
+          value="${startLoc}"
+          onchange="_scheduleRecords[${i}]._startDirty=true;_scheduleRecords[${i}].fields['Starting Location']=this.value;"
+          style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.85rem;outline:none;width:100%;">
+        <input type="text" placeholder="Ending location"
+          value="${endLoc}"
+          onchange="_scheduleRecords[${i}]._endDirty=true;_scheduleRecords[${i}].fields['Ending Location']=this.value;_cascadeLocation(${i});"
+          style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.85rem;outline:none;width:100%;">
+      </div>`;
+  }).join('');
+}
+
+function _cascadeLocation(idx) {
+  const next = _scheduleRecords[idx + 1];
+  if (!next) return;
+  const endVal = _scheduleRecords[idx].fields['Ending Location'] || '';
+  // Only auto-fill if next starting location is empty or was previously auto-filled
+  if (!next.fields['Starting Location'] || next._autoCascaded) {
+    next.fields['Starting Location'] = endVal;
+    next._autoCascaded = true;
+    next._startDirty = true;
+    // Update the input in the DOM
+    const rows = document.querySelectorAll('#trip-schedule-list [data-idx]');
+    if (rows[idx + 1]) {
+      const startInput = rows[idx + 1].querySelectorAll('input')[0];
+      if (startInput) startInput.value = endVal;
+    }
+  }
+}
+
+async function saveTripSchedule() {
+  const status = document.getElementById('trip-schedule-status');
+  const btn    = document.getElementById('save-schedule-btn');
+  status.style.display = 'block';
+  status.style.color   = 'var(--teal)';
+  status.textContent   = 'Saving…';
+  btn.disabled = true;
+
+  const dirty = _scheduleRecords.filter(r => r._startDirty || r._endDirty);
+  if (!dirty.length) {
+    status.textContent = 'No changes to save.';
+    btn.disabled = false;
+    return;
+  }
+
+  let errors = 0;
+  for (const r of dirty) {
+    try {
+      const fields = {};
+      if (r._startDirty) fields['Starting Location'] = r.fields['Starting Location'] || '';
+      if (r._endDirty)   fields['Ending Location']   = r.fields['Ending Location']   || '';
+      const resp = await fetch('/api/trip-days', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: r.id, ...fields })
+      });
+      const d = await resp.json();
+      if (!d.success) errors++;
+      else { r._startDirty = false; r._endDirty = false; r._autoCascaded = false; }
+    } catch(e) { errors++; }
+  }
+
+  if (errors) {
+    status.style.color = '#f43f5e';
+    status.textContent = errors + ' day(s) failed to save.';
+  } else {
+    status.style.color = 'var(--teal)';
+    status.textContent = 'Locations saved!';
+    setTimeout(() => { status.style.display = 'none'; }, 2000);
+  }
+  btn.disabled = false;
+}
+
+// ═══════════════════════════════════════════════
 // ITINERARY CREATION (Trip Days)
 // ═══════════════════════════════════════════════
 function skipItineraryCreate() {
@@ -6896,6 +7042,7 @@ async function doCreateItinerary() {
     if (data.success) {
       status.style.color = 'var(--teal)';
       status.textContent = data.count + ' day' + (data.count !== 1 ? 's' : '') + ' created!';
+      document.getElementById('trip-schedule-btn').style.display = 'inline-block';
       setTimeout(() => {
         document.getElementById('create-itinerary-modal').style.display = 'none';
         document.getElementById('trip-saved-modal').style.display = 'flex';
