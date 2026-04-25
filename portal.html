@@ -7453,10 +7453,31 @@ function _smOpenFlights(n) {
   document.getElementById('flights-modal').style.display = 'flex';
 }
 
+const _SM_PASSION_TYPE_MAP = {
+  'Photography':                    'photography',
+  'Coffee Culture':                 'coffee',
+  'Fishing':                        'fishing',
+  'SCUBA & Marine Exploration':     'diving',
+  'Sailing & Boating':              'sailing',
+  'Canoeing, Kayaking & Whitewater':'kayaking',
+  'Cycling & Mountain Biking':      'mountain-biking',
+  'Wildlife & Safari':              'wildlife',
+  'Birding':                        'birding',
+  'Rock Climbing':                  'mountaineering',
+  'Mountain Climbing':              'mountaineering',
+  'Ancient History & Archaeology':  'archaeology',
+  'Art & Architecture':             'history-art',
+  'Culinary Travel & Street Food':  'culinary',
+  'Wine & Vineyards':               'wine',
+  'Pilgrimage':                     'pilgrimage',
+  'Voluntourism & Service':         'volunteerism',
+};
+
 async function _smPassionPick(n, passion) {
   const dayFields  = _scheduleRecords[_dayModalIdx]?.fields || {};
   const place      = dayFields['Ending Location'] || dayFields['Starting Location'] || currentTripDestination || '';
   const country    = dayFields['Ending Country']  || dayFields['Starting Country']  || currentTripCountry    || '';
+  const actType    = _SM_PASSION_TYPE_MAP[passion] || passion.toLowerCase().replace(/[\s&,]+/g, '-');
   const loading    = document.getElementById(`sm-s${n}-act-loading`);
   const list       = document.getElementById(`sm-s${n}-act-list`);
   const nameEl     = document.getElementById(`sm-s${n}-name`);
@@ -7476,7 +7497,7 @@ async function _smPassionPick(n, passion) {
   try {
     const resp = await fetch('/api/activities', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ place, country, type: passion })
+      body: JSON.stringify({ place, country, type: actType })
     });
     const data = await resp.json();
     loading.style.display = 'none';
