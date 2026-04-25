@@ -7509,14 +7509,14 @@ async function _smPassionPick(n, passion) {
       return;
     }
     list.innerHTML = acts.map((a, i) => {
-      const desc = (a.highlights || a.description || '').slice(0, 100);
-      const safeName = (a.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      const safeDesc = (a.detail || a.highlights || a.description || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      return `
-      <button onclick="_smActivitySelect(${n},'${safeName}','${safeDesc}','${passion.replace(/'/g,"\\'")}',this)"
+      const snippet = (a.highlights || a.description || '').slice(0, 100);
+      return `<button onclick="_smActivitySelect(${n},this)"
+        data-name="${(a.name||'').replace(/"/g,'&quot;')}"
+        data-desc="${(a.detail||a.highlights||a.description||'').replace(/"/g,'&quot;')}"
+        data-passion="${passion.replace(/"/g,'&quot;')}"
         style="text-align:left;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text);width:100%;">
-        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${a.name || ''}</div>
-        ${desc ? `<div style="font-size:0.82rem;color:var(--muted);margin-top:3px;line-height:1.5;">${desc}…</div>` : ''}
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${a.name||''}</div>
+        ${snippet ? `<div style="font-size:0.82rem;color:var(--muted);margin-top:3px;line-height:1.5;">${snippet}…</div>` : ''}
       </button>`;
     }).join('');
   } catch(e) {
@@ -7525,14 +7525,16 @@ async function _smPassionPick(n, passion) {
   }
 }
 
-function _smActivitySelect(n, name, description, passion, btn) {
-  const nameEl = document.getElementById(`sm-s${n}-name`);
+function _smActivitySelect(n, btn) {
+  const name        = btn.dataset.name    || '';
+  const description = btn.dataset.desc    || '';
+  const passion     = btn.dataset.passion || '';
+  const nameEl    = document.getElementById(`sm-s${n}-name`);
   if (nameEl) { nameEl.value = name; nameEl.dataset.userEdited = 'true'; }
-  // Store on slot element for save
-  const fieldsEl = document.getElementById(`sm-s${n}-fields`);
+  const fieldsEl  = document.getElementById(`sm-s${n}-fields`);
   if (fieldsEl) { fieldsEl.dataset.passion = passion; fieldsEl.dataset.desc = description; }
-  // Highlight selected activity
-  btn.closest('[id$="-act-list"]')?.querySelectorAll('button').forEach(b => {
+  // Highlight selected, reset others
+  btn.closest(`#sm-s${n}-act-list`)?.querySelectorAll('button').forEach(b => {
     b.style.background  = 'rgba(255,255,255,0.05)';
     b.style.borderColor = 'rgba(255,255,255,0.1)';
   });
