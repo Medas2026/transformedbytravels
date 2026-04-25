@@ -6935,7 +6935,7 @@ async function openTripSchedule() {
 function _locLabel(destName, country) {
   if (!destName) return '';
   if (destName === 'Home') return '🏠 Home';
-  return country ? destName + ', ' + country : destName;
+  return destName;
 }
 
 function _locPickerHtml(idx, field) {
@@ -7095,30 +7095,23 @@ function renderScheduleList() {
 }
 
 function _copyLocDown(idx) {
-  const cur  = _scheduleRecords[idx];
-  const next = _scheduleRecords[idx + 1];
-  if (!next) return;
-  const dest    = cur.fields['Ending Location'] || '';
-  const country = cur.fields['Ending Country']  || '';
+  const cur = _scheduleRecords[idx];
+  const dest    = cur.fields['Starting Location'] || '';
+  const country = cur.fields['Starting Country']  || '';
   if (!dest) return;
-  // Copy ending location to next day's starting AND ending
-  next.fields['Starting Location'] = dest;
-  next.fields['Starting Country']  = country;
-  next.fields['Ending Location']   = dest;
-  next.fields['Ending Country']    = country;
-  next._startDirty   = true;
-  next._endDirty     = true;
-  next._autoCascaded = true;
-  // Refresh the next row's button labels
+  // Copy starting → ending of this day
+  cur.fields['Ending Location'] = dest;
+  cur.fields['Ending Country']  = country;
+  cur._endDirty = true;
+  // Update this row's ending button label
   const rows = document.querySelectorAll('#trip-schedule-list [data-idx]');
-  if (rows[idx + 1]) {
-    const label = _locLabel(dest, country);
-    ['start','end'].forEach(field => {
-      const picker = rows[idx + 1].querySelector(`#loc-picker-${idx+1}-${field}`);
-      const btn = picker && picker.previousElementSibling;
-      if (btn) { btn.textContent = label; btn.style.color = 'var(--text)'; }
-    });
+  if (rows[idx]) {
+    const picker = rows[idx].querySelector(`#loc-picker-${idx}-end`);
+    const btn = picker && picker.previousElementSibling;
+    if (btn) { btn.textContent = _locLabel(dest, country); btn.style.color = 'var(--text)'; }
   }
+  // Cascade ending → next day's starting
+  _cascadeLocation(idx);
 }
 
 function _cascadeLocation(idx) {
