@@ -2364,9 +2364,10 @@
       <!-- Slots -->
       <div id="day-modal-slots" style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;"></div>
       <!-- Footer -->
-      <div style="display:flex;gap:10px;padding:0 24px 24px;">
-        <button onclick="closeDayModal()" style="flex:1;padding:11px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Cancel</button>
-        <button onclick="saveDayModal()" style="flex:2;padding:11px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save Day</button>
+      <div style="display:flex;gap:10px;padding:0 24px 24px;flex-wrap:wrap;">
+        <button onclick="closeDayModal()" style="flex:1;min-width:80px;padding:11px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Cancel</button>
+        <button onclick="saveDayModal(false)" style="flex:2;min-width:100px;padding:11px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save Day</button>
+        <button id="day-modal-next-btn" onclick="saveDayModal(true)" style="flex:2;min-width:100px;padding:11px;background:#1e3a5f;border:1px solid rgba(45,212,191,0.4);border-radius:10px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save & Next Day →</button>
       </div>
       <div id="day-modal-status" style="display:none;text-align:center;font-size:0.85rem;padding:0 24px 16px;"></div>
     </div>
@@ -8234,6 +8235,9 @@ function openDayModal(idx) {
     [1,2,3,4].map(n => _slotCardHtml(n, _dayModalSlots[n-1])).join('');
 
   document.getElementById('day-modal').style.display = 'flex';
+  // Hide Next Day button on last day
+  const nextBtn = document.getElementById('day-modal-next-btn');
+  if (nextBtn) nextBtn.style.display = (idx + 1 < _scheduleRecords.length) ? '' : 'none';
 }
 
 function closeDayModal() {
@@ -8241,7 +8245,7 @@ function closeDayModal() {
   _dayModalIdx = null;
 }
 
-async function saveDayModal() {
+async function saveDayModal(andNext = false) {
   const status = document.getElementById('day-modal-status');
   status.style.display = 'block';
   status.style.color   = 'var(--teal)';
@@ -8296,7 +8300,12 @@ async function saveDayModal() {
       for (let n = 1; n <= 4; n++) r.fields['Slot ' + n] = fields['Slot ' + n];
       status.style.color = 'var(--teal)';
       status.textContent = 'Saved!';
-      setTimeout(closeDayModal, 800);
+      const nextIdx = _dayModalIdx + 1;
+      if (andNext && nextIdx < _scheduleRecords.length) {
+        setTimeout(() => openDayModal(nextIdx), 500);
+      } else {
+        setTimeout(closeDayModal, 800);
+      }
     } else {
       status.style.color = '#f43f5e';
       status.textContent = 'Error: ' + (data.error || 'Could not save');
