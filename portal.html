@@ -7379,7 +7379,9 @@ function _slotFieldsHtml(n, slot) {
   if (type === 'freeform') return `
     <textarea id="sm-s${n}-desc" placeholder="Description (optional)" rows="2"
       style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;resize:vertical;box-sizing:border-box;">${(slot && slot.description) || ''}</textarea>`;
-  if (type === 'transfer') return `
+  if (type === 'transfer') {
+    const mode = (slot && slot.mode) || 'Road';
+    return `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
       <input id="sm-s${n}-from" type="text" placeholder="From"
         value="${((slot && slot.from) || '').replace(/"/g,'&quot;')}"
@@ -7390,15 +7392,121 @@ function _slotFieldsHtml(n, slot) {
         oninput="_smAutoName(${n})"
         style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-      <select id="sm-s${n}-mode" onchange="_smAutoName(${n})" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
-        ${['Road','Air','Boat','Rail'].map(m=>`<option value="${m}"${(slot&&slot.mode)===m?' selected':''}>${m}</option>`).join('')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <select id="sm-s${n}-mode" onchange="_smAutoName(${n});_smToggleFlightsBtn(${n})" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+        ${['Road','Air','Boat','Rail'].map(m=>`<option value="${m}"${mode===m?' selected':''}>${m}</option>`).join('')}
       </select>
       <input id="sm-s${n}-duration" type="text" placeholder="Duration (e.g. 3 hrs)"
         value="${((slot && slot.duration) || '').replace(/"/g,'&quot;')}"
         style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+    </div>
+    <div id="sm-s${n}-flights-btn" style="${mode === 'Air' ? '' : 'display:none;'}">
+      <button onclick="_smOpenFlights(${n})" style="width:100%;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">✈ Search Google Flights</button>
     </div>`;
+  }
+  if (type === 'passion') {
+    const selected = (slot && slot.passion) || '';
+    const PASSION_GROUPS = [
+      { label: 'Nature & Wildlife',    passions: ['Wildlife & Safari','Birding','National Parks'] },
+      { label: 'Adventure & Active',   passions: ['Day Hiking & Trekking','Mountain Climbing','Cycling & Mountain Biking','SCUBA & Marine Exploration','Sailing & Boating','Fishing'] },
+      { label: 'Culture & History',    passions: ['Ancient History & Archaeology','Art & Architecture','Local Traditions & Village Life','Religious & Sacred Sites','Music & Performing Arts'] },
+      { label: 'Food & Drink',         passions: ['Culinary Travel & Street Food','Wine & Vineyards','Coffee Culture'] },
+      { label: 'Landscapes',           passions: ['Open Spaces','Rainforests & Jungles','Mountains & High Places','Oceans & Coastlines'] },
+      { label: 'Wellness & Purpose',   passions: ['Wellness & Spa','Photography','Voluntourism & Service','Cultural Immersion'] },
+    ];
+    const pillsHtml = PASSION_GROUPS.map(g => `
+      <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin:6px 0 3px;">${g.label}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        ${g.passions.map(p => `<button onclick="_smPassionPick(${n},'${p.replace(/'/g,"\\'")}')"
+          style="background:${p===selected?'rgba(45,212,191,0.25)':'rgba(255,255,255,0.06)'};border:1px solid ${p===selected?'rgba(45,212,191,0.6)':'rgba(255,255,255,0.12)'};border-radius:20px;color:${p===selected?'var(--teal)':'var(--soft)'};font-size:0.75rem;padding:4px 10px;cursor:pointer;white-space:nowrap;">
+          ${p}</button>`).join('')}
+      </div>`).join('');
+    return `
+    <div style="margin-bottom:8px;">${pillsHtml}</div>
+    <div id="sm-s${n}-act-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Loading activities…</div>
+    <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;"></div>`;
+  }
   return '';
+}
+
+function _smToggleFlightsBtn(n) {
+  const mode = document.getElementById(`sm-s${n}-mode`)?.value;
+  const btn  = document.getElementById(`sm-s${n}-flights-btn`);
+  if (btn) btn.style.display = mode === 'Air' ? 'block' : 'none';
+}
+
+function _smOpenFlights(n) {
+  const dayFields = _scheduleRecords[_dayModalIdx]?.fields || {};
+  const date      = dayFields['Date'] || '';
+  // Look up airport codes from DESTINATIONS for starting/ending locations
+  const getAirport = (loc, country) => {
+    if (!loc || !country || typeof DESTINATIONS === 'undefined') return '';
+    const match = DESTINATIONS.find(d => d[0] === loc && d[1] === country);
+    return match ? match[3] : '';
+  };
+  const originCode = getAirport(dayFields['Starting Location'], dayFields['Starting Country']);
+  const destCode   = getAirport(dayFields['Ending Location'],   dayFields['Ending Country']);
+  document.getElementById('gf-origin').value  = originCode;
+  document.getElementById('gf-dest').value    = destCode;
+  document.getElementById('gf-depart').value  = date;
+  document.getElementById('gf-return').value  = '';
+  document.getElementById('flights-modal').style.display = 'flex';
+}
+
+async function _smPassionPick(n, passion) {
+  const dayFields  = _scheduleRecords[_dayModalIdx]?.fields || {};
+  const place      = dayFields['Ending Location'] || dayFields['Starting Location'] || currentTripDestination || '';
+  const country    = dayFields['Ending Country']  || dayFields['Starting Country']  || currentTripCountry    || '';
+  const loading    = document.getElementById(`sm-s${n}-act-loading`);
+  const list       = document.getElementById(`sm-s${n}-act-list`);
+  const nameEl     = document.getElementById(`sm-s${n}-name`);
+
+  // Highlight selected passion pill
+  document.querySelectorAll(`#sm-s${n}-fields button`).forEach(b => {
+    const match = b.textContent.trim() === passion;
+    b.style.background   = match ? 'rgba(45,212,191,0.25)' : 'rgba(255,255,255,0.06)';
+    b.style.borderColor  = match ? 'rgba(45,212,191,0.6)'  : 'rgba(255,255,255,0.12)';
+    b.style.color        = match ? 'var(--teal)'           : 'var(--soft)';
+  });
+
+  if (!place) { list.innerHTML = '<div style="font-size:0.82rem;color:var(--muted);">Set a day location first to get activity suggestions.</div>'; return; }
+
+  loading.style.display = 'block';
+  list.innerHTML = '';
+  try {
+    const resp = await fetch('/api/activities', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ place, country, type: passion })
+    });
+    const data = await resp.json();
+    loading.style.display = 'none';
+    const acts = data.activities || [];
+    if (!acts.length) { list.innerHTML = '<div style="font-size:0.82rem;color:var(--muted);">No activities found.</div>'; return; }
+    list.innerHTML = acts.map((a, i) => `
+      <button onclick="_smActivitySelect(${n},'${(a.name||'').replace(/'/g,"\\'")}','${(a.description||'').replace(/'/g,"\\'")}','${passion.replace(/'/g,"\\'")}',this)"
+        style="text-align:left;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text);">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;color:#fff;">${a.name || ''}</div>
+        ${a.description ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;line-height:1.5;">${a.description.slice(0,100)}…</div>` : ''}
+      </button>`).join('');
+  } catch(e) {
+    loading.style.display = 'none';
+    list.innerHTML = '<div style="font-size:0.82rem;color:#f43f5e;">Error loading activities.</div>';
+  }
+}
+
+function _smActivitySelect(n, name, description, passion, btn) {
+  const nameEl = document.getElementById(`sm-s${n}-name`);
+  if (nameEl) { nameEl.value = name; nameEl.dataset.userEdited = 'true'; }
+  // Store on slot element for save
+  const fieldsEl = document.getElementById(`sm-s${n}-fields`);
+  if (fieldsEl) { fieldsEl.dataset.passion = passion; fieldsEl.dataset.desc = description; }
+  // Highlight selected activity
+  btn.closest('[id$="-act-list"]')?.querySelectorAll('button').forEach(b => {
+    b.style.background  = 'rgba(255,255,255,0.05)';
+    b.style.borderColor = 'rgba(255,255,255,0.1)';
+  });
+  btn.style.background  = 'rgba(45,212,191,0.15)';
+  btn.style.borderColor = 'rgba(45,212,191,0.5)';
 }
 
 function _smAutoName(n) {
@@ -7426,6 +7534,7 @@ function _slotCardHtml(n, slot) {
           <option value="">— Empty —</option>
           <option value="freeform"${type==='freeform'?' selected':''}>Free Form</option>
           <option value="transfer"${type==='transfer'?' selected':''}>Transfer</option>
+          <option value="passion"${type==='passion'?' selected':''}>Passion Activity</option>
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:${hasContent ? '10px' : '0'};">
@@ -7461,6 +7570,10 @@ function smTypeChange(n) {
   if (nameEl) {
     nameEl.style.marginBottom = type ? '8px' : '0';
     // Auto-seed transfer fields from day's locations
+    if (type === 'passion' && nameEl && !nameEl.value.trim()) {
+      nameEl.value = 'Passion Activity';
+      nameEl.dataset.userEdited = 'false';
+    }
     if (type === 'transfer') {
       const dayFields = _scheduleRecords[_dayModalIdx] && _scheduleRecords[_dayModalIdx].fields;
       const fromEl = document.getElementById(`sm-s${n}-from`);
@@ -7531,6 +7644,10 @@ async function saveDayModal() {
     };
     if (type === 'freeform') {
       slot.description = (document.getElementById(`sm-s${n}-desc`)?.value || '').trim();
+    } else if (type === 'passion') {
+      const flds = document.getElementById(`sm-s${n}-fields`);
+      slot.passion     = flds?.dataset.passion     || '';
+      slot.description = flds?.dataset.desc        || '';
     } else if (type === 'transfer') {
       slot.from     = (document.getElementById(`sm-s${n}-from`)?.value     || '').trim();
       slot.to       = (document.getElementById(`sm-s${n}-to`)?.value       || '').trim();
