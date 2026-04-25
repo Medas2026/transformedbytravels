@@ -6886,6 +6886,20 @@ async function saveTrip() {
 // TRIP SCHEDULE — day-by-day locations view
 // ═══════════════════════════════════════════════
 let _scheduleRecords = [];
+let _scheduleCountries = []; // sorted unique country list from DESTINATIONS
+
+function _scheduleGetCountries() {
+  if (_scheduleCountries.length) return _scheduleCountries;
+  if (typeof DESTINATIONS === 'undefined') return [];
+  const set = new Set(DESTINATIONS.map(r => r[1]));
+  _scheduleCountries = [...set].sort();
+  return _scheduleCountries;
+}
+
+function _scheduleDestsForCountry(country) {
+  if (typeof DESTINATIONS === 'undefined') return [];
+  return DESTINATIONS.filter(r => r[1] === country).map(r => r[0]).sort();
+}
 
 async function openTripSchedule() {
   const section = document.getElementById('trip-schedule-section');
@@ -6910,9 +6924,110 @@ async function openTripSchedule() {
   }
 }
 
+function _locLabel(destName, country) {
+  if (!destName) return '';
+  if (destName === 'Home') return '🏠 Home';
+  return country ? destName + ', ' + country : destName;
+}
+
+function _locPickerHtml(idx, field) {
+  // field: 'start' or 'end'
+  const r   = _scheduleRecords[idx];
+  const f   = r.fields;
+  const locField     = field === 'start' ? 'Starting Location' : 'Ending Location';
+  const countryField = field === 'start' ? 'Starting Country'  : 'Ending Country';
+  const curDest    = f[locField]     || '';
+  const curCountry = f[countryField] || '';
+  const label = _locLabel(curDest, curCountry) || (field === 'start' ? 'Set starting location' : 'Set ending location');
+  const labelColor = curDest ? 'var(--text)' : 'var(--muted)';
+  const countries = _scheduleGetCountries();
+  const countryOpts = countries.map(c =>
+    `<option value="${c.replace(/"/g,'&quot;')}"${c===curCountry?' selected':''}>${c}</option>`
+  ).join('');
+  const destOpts = curCountry ? _scheduleDestsForCountry(curCountry).map(d =>
+    `<option value="${d.replace(/"/g,'&quot;')}"${d===curDest?' selected':''}>${d}</option>`
+  ).join('') : '';
+
+  return `
+    <div style="position:relative;">
+      <button onclick="_locTogglePicker(${idx},'${field}')"
+        style="width:100%;text-align:left;background:var(--s1);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:8px 10px;color:${labelColor};font-family:'Open Sans',sans-serif;font-size:0.85rem;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        ${label}
+      </button>
+      <div id="loc-picker-${idx}-${field}" style="display:none;position:absolute;z-index:200;top:calc(100% + 4px);left:0;right:0;background:#0f172a;border:1px solid rgba(45,212,191,0.35);border-radius:10px;padding:12px;box-shadow:0 8px 32px rgba(0,0,0,0.6);min-width:220px;">
+        <button onclick="_locSetHome(${idx},'${field}')"
+          style="width:100%;text-align:left;background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:6px;padding:7px 12px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;margin-bottom:10px;">
+          🏠 Home Base
+        </button>
+        <select id="loc-country-${idx}-${field}" onchange="_locCountryChange(${idx},'${field}')"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 8px;color:var(--text);font-size:0.83rem;margin-bottom:6px;">
+          <option value="">— select country —</option>
+          ${countryOpts}
+        </select>
+        <select id="loc-dest-${idx}-${field}" onchange="_locDestChange(${idx},'${field}')"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 8px;color:var(--text);font-size:0.83rem;"
+          ${curCountry ? '' : 'disabled'}>
+          <option value="">— select destination —</option>
+          ${destOpts}
+        </select>
+      </div>
+    </div>`;
+}
+
+function _locTogglePicker(idx, field) {
+  // Close any open pickers first
+  document.querySelectorAll('[id^="loc-picker-"]').forEach(el => {
+    if (el.id !== `loc-picker-${idx}-${field}`) el.style.display = 'none';
+  });
+  const el = document.getElementById(`loc-picker-${idx}-${field}`);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function _locCountryChange(idx, field) {
+  const country  = document.getElementById(`loc-country-${idx}-${field}`).value;
+  const destSel  = document.getElementById(`loc-dest-${idx}-${field}`);
+  const dests    = _scheduleDestsForCountry(country);
+  destSel.innerHTML = '<option value="">— select destination —</option>' +
+    dests.map(d => `<option value="${d.replace(/"/g,'&quot;')}">${d}</option>`).join('');
+  destSel.disabled = !country;
+}
+
+function _locDestChange(idx, field) {
+  const dest    = document.getElementById(`loc-dest-${idx}-${field}`).value;
+  const country = document.getElementById(`loc-country-${idx}-${field}`).value;
+  if (!dest) return;
+  _locApply(idx, field, dest, country);
+}
+
+function _locSetHome(idx, field) {
+  _locApply(idx, field, 'Home', '');
+}
+
+function _locApply(idx, field, dest, country) {
+  const r          = _scheduleRecords[idx];
+  const locField     = field === 'start' ? 'Starting Location' : 'Ending Location';
+  const countryField = field === 'start' ? 'Starting Country'  : 'Ending Country';
+  r.fields[locField]     = dest;
+  r.fields[countryField] = country;
+  if (field === 'start') r._startDirty = true;
+  else                   r._endDirty   = true;
+
+  // Close picker and re-render this row's button label
+  const picker = document.getElementById(`loc-picker-${idx}-${field}`);
+  if (picker) picker.style.display = 'none';
+  const btn = picker && picker.previousElementSibling;
+  if (btn) {
+    const label = _locLabel(dest, country) || (field === 'start' ? 'Set starting location' : 'Set ending location');
+    btn.textContent = label;
+    btn.style.color = dest ? 'var(--text)' : 'var(--muted)';
+  }
+
+  if (field === 'end') _cascadeLocation(idx);
+}
+
 function renderScheduleList() {
   const list = document.getElementById('trip-schedule-list');
-  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   list.innerHTML = _scheduleRecords.map((r, i) => {
@@ -6923,41 +7038,44 @@ function renderScheduleList() {
       const d = new Date(raw + 'T00:00:00Z');
       dateLabel = DAYS[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
     }
-    const startLoc = (f['Starting Location'] || '').replace(/"/g,'&quot;');
-    const endLoc   = (f['Ending Location']   || '').replace(/"/g,'&quot;');
-
     return `
-      <div style="display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;" data-idx="${i}" data-id="${r.id}">
-        <div>
+      <div style="display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:start;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;" data-idx="${i}" data-id="${r.id}">
+        <div style="padding-top:6px;">
           <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);">Day ${f['Day Number'] || i+1}</div>
           <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${dateLabel}</div>
         </div>
-        <input type="text" placeholder="Starting location"
-          value="${startLoc}"
-          onchange="_scheduleRecords[${i}]._startDirty=true;_scheduleRecords[${i}].fields['Starting Location']=this.value;"
-          style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.85rem;outline:none;width:100%;">
-        <input type="text" placeholder="Ending location"
-          value="${endLoc}"
-          onchange="_scheduleRecords[${i}]._endDirty=true;_scheduleRecords[${i}].fields['Ending Location']=this.value;_cascadeLocation(${i});"
-          style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.85rem;outline:none;width:100%;">
+        ${_locPickerHtml(i, 'start')}
+        ${_locPickerHtml(i, 'end')}
       </div>`;
   }).join('');
+
+  // Close pickers when clicking outside
+  document.addEventListener('click', function _closeLocPickers(e) {
+    if (!e.target.closest('[id^="loc-picker-"]') && !e.target.closest('button[onclick*="_locTogglePicker"]')) {
+      document.querySelectorAll('[id^="loc-picker-"]').forEach(el => el.style.display = 'none');
+    }
+  }, { once: false, capture: true });
 }
 
 function _cascadeLocation(idx) {
   const next = _scheduleRecords[idx + 1];
   if (!next) return;
-  const endVal = _scheduleRecords[idx].fields['Ending Location'] || '';
-  // Only auto-fill if next starting location is empty or was previously auto-filled
+  const endDest    = _scheduleRecords[idx].fields['Ending Location'] || '';
+  const endCountry = _scheduleRecords[idx].fields['Ending Country']  || '';
   if (!next.fields['Starting Location'] || next._autoCascaded) {
-    next.fields['Starting Location'] = endVal;
+    next.fields['Starting Location'] = endDest;
+    next.fields['Starting Country']  = endCountry;
     next._autoCascaded = true;
-    next._startDirty = true;
-    // Update the input in the DOM
+    next._startDirty   = true;
+    // Update the button label in the DOM
     const rows = document.querySelectorAll('#trip-schedule-list [data-idx]');
     if (rows[idx + 1]) {
-      const startInput = rows[idx + 1].querySelectorAll('input')[0];
-      if (startInput) startInput.value = endVal;
+      const startBtn = rows[idx + 1].querySelector(`[id="loc-picker-${idx+1}-start"]`);
+      const btn = startBtn && startBtn.previousElementSibling;
+      if (btn) {
+        btn.textContent = _locLabel(endDest, endCountry) || 'Set starting location';
+        btn.style.color = endDest ? 'var(--text)' : 'var(--muted)';
+      }
     }
   }
 }
@@ -6981,8 +7099,14 @@ async function saveTripSchedule() {
   for (const r of dirty) {
     try {
       const fields = {};
-      if (r._startDirty) fields['Starting Location'] = r.fields['Starting Location'] || '';
-      if (r._endDirty)   fields['Ending Location']   = r.fields['Ending Location']   || '';
+      if (r._startDirty) {
+        fields['Starting Location'] = r.fields['Starting Location'] || '';
+        fields['Starting Country']  = r.fields['Starting Country']  || '';
+      }
+      if (r._endDirty) {
+        fields['Ending Location'] = r.fields['Ending Location'] || '';
+        fields['Ending Country']  = r.fields['Ending Country']  || '';
+      }
       const resp = await fetch('/api/trip-days', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
