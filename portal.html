@@ -997,9 +997,17 @@
             <div id="trip-schedule-section" style="display:none;margin-top:28px;border-top:1px solid var(--bd);padding-top:24px;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
                 <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;color:#fff;">Day-by-Day Locations</div>
-                <button onclick="saveTripSchedule()" id="save-schedule-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:8px;padding:8px 20px;cursor:pointer;">Save Locations</button>
+                <div style="display:flex;gap:8px;">
+                  <button onclick="renderScheduleMap()" id="schedule-map-btn" style="background:none;border:1px solid rgba(45,212,191,0.5);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🗺 Route Map</button>
+                  <button onclick="saveTripSchedule()" id="save-schedule-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:8px;padding:8px 20px;cursor:pointer;">Save Locations</button>
+                </div>
               </div>
               <div id="trip-schedule-status" style="display:none;font-size:0.85rem;margin-bottom:12px;"></div>
+              <!-- Route map -->
+              <div id="schedule-map-wrap" style="display:none;margin-bottom:20px;">
+                <div id="schedule-map" style="width:100%;height:320px;border-radius:12px;border:1px solid var(--bd);"></div>
+                <div id="schedule-map-status" style="font-size:0.78rem;color:var(--muted);margin-top:6px;"></div>
+              </div>
               <div id="trip-schedule-list" style="display:flex;flex-direction:column;gap:8px;"></div>
             </div>
 
@@ -6965,11 +6973,16 @@ function _locPickerHtml(idx, field) {
           ${countryOpts}
         </select>
         <select id="loc-dest-${idx}-${field}" onchange="_locDestChange(${idx},'${field}')"
-          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 8px;color:var(--text);font-size:0.83rem;"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 8px;color:var(--text);font-size:0.83rem;margin-bottom:6px;"
           ${curCountry ? '' : 'disabled'}>
           <option value="">— select destination —</option>
           ${destOpts}
         </select>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:4px;">Not on the list? Type manually:</div>
+        <input id="loc-manual-${idx}-${field}" type="text" placeholder="Enter place name…"
+          onkeydown="if(event.key==='Enter'){_locManualApply(${idx},'${field}');}"
+          onblur="_locManualApply(${idx},'${field}')"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 8px;color:var(--text);font-size:0.83rem;box-sizing:border-box;">
       </div>
     </div>`;
 }
@@ -6996,7 +7009,19 @@ function _locDestChange(idx, field) {
   const dest    = document.getElementById(`loc-dest-${idx}-${field}`).value;
   const country = document.getElementById(`loc-country-${idx}-${field}`).value;
   if (!dest) return;
+  // Clear manual input when a list dest is chosen
+  const manual = document.getElementById(`loc-manual-${idx}-${field}`);
+  if (manual) manual.value = '';
   _locApply(idx, field, dest, country);
+}
+
+function _locManualApply(idx, field) {
+  const manual  = document.getElementById(`loc-manual-${idx}-${field}`);
+  const country = document.getElementById(`loc-country-${idx}-${field}`);
+  if (!manual || !manual.value.trim()) return;
+  const dest = manual.value.trim();
+  const ctry = country ? country.value : '';
+  _locApply(idx, field, dest, ctry);
 }
 
 function _locSetHome(idx, field) {
@@ -7161,6 +7186,121 @@ async function saveTripSchedule() {
     setTimeout(() => { status.style.display = 'none'; }, 2000);
   }
   btn.disabled = false;
+}
+
+let _scheduleMap = null;
+
+async function renderScheduleMap() {
+  const wrap   = document.getElementById('schedule-map-wrap');
+  const mapEl  = document.getElementById('schedule-map');
+  const status = document.getElementById('schedule-map-status');
+  wrap.style.display = 'block';
+  status.textContent = '';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Build ordered list of unique locations from the day records
+  const seen   = new Set();
+  const points = []; // { label, dest, country, lat, lng, dayNum }
+
+  for (const r of _scheduleRecords) {
+    const f = r.fields;
+    const dayNum = f['Day Number'] || '';
+    for (const [loc, ctry] of [
+      [f['Starting Location'], f['Starting Country']],
+      [f['Ending Location'],   f['Ending Country']]
+    ]) {
+      if (!loc || loc === 'Home') continue;
+      const key = loc + '|' + (ctry || '');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      // Look up coords in DESTINATIONS array
+      let lat = null, lng = null;
+      if (typeof DESTINATIONS !== 'undefined') {
+        const match = DESTINATIONS.find(d => d[0] === loc && (!ctry || d[1] === ctry));
+        if (match) { lat = match[12]; lng = match[13]; }
+      }
+      points.push({ label: loc, dest: loc, country: ctry || '', lat, lng, dayNum });
+    }
+  }
+
+  // For any points without coords, geocode via API
+  const needsGeocode = points.filter(p => p.lat == null);
+  if (needsGeocode.length) {
+    status.textContent = 'Geocoding locations…';
+    try {
+      const resp = await fetch('/api/geocode-places', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ places: needsGeocode.map(p => p.dest), destination: '', country: '' })
+      });
+      const data = await resp.json();
+      (data.coords || []).forEach((c, i) => {
+        if (c && c.lat != null) {
+          needsGeocode[i].lat = c.lat;
+          needsGeocode[i].lng = c.lng;
+        }
+      });
+    } catch(e) { /* skip */ }
+    status.textContent = '';
+  }
+
+  const validPoints = points.filter(p => p.lat != null && p.lng != null);
+  if (!validPoints.length) {
+    status.textContent = 'No mappable locations found. Set destinations using the country/destination pickers.';
+    return;
+  }
+
+  // Get Mapbox token
+  if (!window._mapboxToken) {
+    try {
+      const r = await fetch('/api/mapbox-token');
+      const d = await r.json();
+      window._mapboxToken = d.token || '';
+    } catch(e) { status.textContent = 'Could not load map.'; return; }
+  }
+
+  if (_scheduleMap) { _scheduleMap.remove(); _scheduleMap = null; }
+
+  mapboxgl.accessToken = window._mapboxToken;
+  _scheduleMap = new mapboxgl.Map({
+    container: 'schedule-map',
+    style: 'mapbox://styles/mapbox/outdoors-v12',
+    scrollZoom: false
+  });
+  _scheduleMap.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+
+  const bounds = new mapboxgl.LngLatBounds();
+
+  // Add numbered markers
+  validPoints.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;';
+    el.innerHTML = `
+      <div style="width:28px;height:28px;background:#2dd4bf;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:12px;font-weight:700;color:#0f172a;box-shadow:0 2px 6px rgba(0,0,0,0.35);">${i+1}</div>
+      <div style="margin-top:3px;background:rgba(15,23,42,0.85);color:#fff;font-family:sans-serif;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(0,0,0,0.3);">${p.label}</div>`;
+    new mapboxgl.Marker({ element: el, anchor: 'top' }).setLngLat([p.lng, p.lat]).addTo(_scheduleMap);
+    bounds.extend([p.lng, p.lat]);
+  });
+
+  // Draw route line
+  _scheduleMap.once('load', () => {
+    const coords = validPoints.map(p => [p.lng, p.lat]);
+    _scheduleMap.addSource('schedule-route', {
+      type: 'geojson',
+      data: { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } }
+    });
+    _scheduleMap.addLayer({
+      id: 'schedule-route-line',
+      type: 'line',
+      source: 'schedule-route',
+      paint: { 'line-color': '#2dd4bf', 'line-width': 2.5, 'line-dasharray': [2, 2] }
+    });
+    if (validPoints.length === 1) {
+      _scheduleMap.flyTo({ center: [validPoints[0].lng, validPoints[0].lat], zoom: 7 });
+    } else {
+      _scheduleMap.fitBounds(bounds, { padding: 60, maxZoom: 10 });
+    }
+  });
 }
 
 // ═══════════════════════════════════════════════
