@@ -94,7 +94,7 @@ module.exports = async function handler(req, res) {
 
     try {
       const created = await batchCreate(records);
-      return res.status(200).json({ success: true, count: created.length });
+      return res.status(200).json({ success: true, count: created.length, records: created });
     } catch(e) {
       console.error('[trip-days] create error:', e.message);
       return res.status(500).json({ error: e.message });
@@ -109,6 +109,19 @@ module.exports = async function handler(req, res) {
       const r = await airtableRequest('PATCH', `/${id}`, { fields });
       if (r.body.error) return res.status(500).json({ error: r.body.error });
       return res.status(200).json({ success: true, record: r.body });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // DELETE — remove a single day record
+  if (req.method === 'DELETE') {
+    const id = (req.query.id || '').trim();
+    if (!id) return res.status(400).json({ error: 'id required' });
+    try {
+      const r = await airtableRequest('DELETE', `/${id}`, null);
+      if (r.body.error) return res.status(500).json({ error: r.body.error });
+      return res.status(200).json({ success: true });
     } catch(e) {
       return res.status(500).json({ error: e.message });
     }

@@ -1009,6 +1009,10 @@
                 <div id="schedule-map-status" style="font-size:0.78rem;color:var(--muted);margin-top:6px;"></div>
               </div>
               <div id="trip-schedule-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+              <div style="margin-top:12px;">
+                <button onclick="scheduleAddDay()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 18px;cursor:pointer;">+ Add Day at End</button>
+              </div>
+              <div id="schedule-day-warning" style="display:none;margin-top:10px;font-size:0.83rem;color:#f59e0b;"></div>
             </div>
 
             <!-- Integration Report — shown for Completed trips -->
@@ -7069,19 +7073,27 @@ function renderScheduleList() {
       dateLabel = DAYS[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
     }
     return `
-      <div style="display:grid;grid-template-columns:90px 1fr 1fr 28px;gap:8px;align-items:start;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;" data-idx="${i}" data-id="${r.id}">
+      <div style="display:grid;grid-template-columns:90px 1fr 1fr auto;gap:8px;align-items:start;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;" data-idx="${i}" data-id="${r.id}">
         <div style="padding-top:6px;">
           <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--teal);">Day ${f['Day Number'] || i+1}</div>
           <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${dateLabel}</div>
         </div>
         ${_locPickerHtml(i, 'start')}
         ${_locPickerHtml(i, 'end')}
-        <div style="padding-top:4px;">
+        <div style="display:flex;flex-direction:column;gap:4px;padding-top:4px;">
           ${i < _scheduleRecords.length - 1 ? `
-          <button onclick="_copyLocDown(${i})" title="Copy ending location to next day"
+          <button onclick="_copyLocDown(${i})" title="Copy start→end, cascade to next day"
             style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:var(--muted);font-size:0.9rem;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"
             onmouseover="this.style.borderColor='rgba(45,212,191,0.5)';this.style.color='var(--teal)'"
             onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">↓</button>` : ''}
+          <button onclick="scheduleInsertAfter(${i})" title="Insert day after this one"
+            style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:var(--muted);font-size:0.85rem;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"
+            onmouseover="this.style.borderColor='rgba(45,212,191,0.5)';this.style.color='var(--teal)'"
+            onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">+</button>
+          <button onclick="scheduleDeleteDay(${i})" title="Delete this day"
+            style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:var(--muted);font-size:0.85rem;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"
+            onmouseover="this.style.borderColor='rgba(239,68,68,0.5)';this.style.color='#ef4444'"
+            onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">×</button>
         </div>
       </div>`;
   }).join('');
@@ -7115,6 +7127,133 @@ function _copyLocDown(idx) {
     next._autoCascaded = true;
     const nextBtn = document.getElementById(`loc-btn-${idx + 1}-start`);
     if (nextBtn) { nextBtn.textContent = _locLabel(dest, country); nextBtn.style.color = 'var(--text)'; }
+  }
+}
+
+function _scheduleTripDays() {
+  return Math.round((new Date(currentTripEnd + 'T00:00:00Z') - new Date(currentTripStart + 'T00:00:00Z')) / 86400000) + 1;
+}
+
+function _scheduleWarn() {
+  const warn = document.getElementById('schedule-day-warning');
+  if (!warn) return;
+  if (currentTripStart && currentTripEnd && _scheduleRecords.length > _scheduleTripDays()) {
+    warn.style.display = 'block';
+    warn.textContent = 'Day count (' + _scheduleRecords.length + ') exceeds the trip date range (' + _scheduleTripDays() + ' days). Dates shown beyond the end date are estimates.';
+  } else {
+    warn.style.display = 'none';
+  }
+}
+
+function _scheduleNewRecord(dayNum, date, tripId) {
+  return { id: null, _new: true, _startDirty: false, _endDirty: false, fields: { 'Trip ID': tripId, 'Day Number': dayNum, 'Date': date, 'Starting Location': '', 'Starting Country': '', 'Ending Location': '', 'Ending Country': '' } };
+}
+
+function _scheduleDateForDay(dayNum) {
+  if (!currentTripStart) return '';
+  const d = new Date(currentTripStart + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + dayNum - 1);
+  return d.toISOString().split('T')[0];
+}
+
+async function scheduleInsertAfter(idx) {
+  const tripId  = currentTripId;
+  const newDay  = (idx + 1) + 1; // insert as day idx+2 (1-based after idx+1)
+  const newDate = _scheduleDateForDay(newDay);
+
+  // Insert into local array
+  const newRec = _scheduleNewRecord(newDay, newDate, tripId);
+  _scheduleRecords.splice(idx + 1, 0, newRec);
+
+  // Renumber all records after insert point
+  for (let i = idx + 2; i < _scheduleRecords.length; i++) {
+    _scheduleRecords[i].fields['Day Number'] = i + 1;
+    _scheduleRecords[i].fields['Date'] = _scheduleDateForDay(i + 1);
+    _scheduleRecords[i]._renumberDirty = true;
+  }
+
+  renderScheduleList();
+  _scheduleWarn();
+
+  // Save new record to Airtable
+  try {
+    const resp = await fetch('/api/trip-days', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tripId, startDate: newDate, endDate: newDate })
+    });
+    const data = await resp.json();
+    if (data.success && data.records && data.records[0]) {
+      _scheduleRecords[idx + 1].id = data.records[0].id;
+      _scheduleRecords[idx + 1]._new = false;
+    }
+  } catch(e) { /* will retry on save */ }
+
+  // Patch renumbered records
+  await _saveRenumbered();
+}
+
+async function scheduleDeleteDay(idx) {
+  if (_scheduleRecords.length <= 1) return;
+  const rec = _scheduleRecords[idx];
+
+  // Remove from local array
+  _scheduleRecords.splice(idx, 1);
+
+  // Renumber remaining records
+  for (let i = idx; i < _scheduleRecords.length; i++) {
+    _scheduleRecords[i].fields['Day Number'] = i + 1;
+    _scheduleRecords[i].fields['Date'] = _scheduleDateForDay(i + 1);
+    _scheduleRecords[i]._renumberDirty = true;
+  }
+
+  renderScheduleList();
+  _scheduleWarn();
+
+  // Delete from Airtable
+  if (rec.id) {
+    try {
+      await fetch('/api/trip-days?id=' + encodeURIComponent(rec.id), { method: 'DELETE' });
+    } catch(e) { /* non-critical */ }
+  }
+
+  await _saveRenumbered();
+}
+
+async function scheduleAddDay() {
+  const tripId = currentTripId;
+  const newDayNum = _scheduleRecords.length + 1;
+  const newDate   = _scheduleDateForDay(newDayNum);
+  const newRec    = _scheduleNewRecord(newDayNum, newDate, tripId);
+  _scheduleRecords.push(newRec);
+  renderScheduleList();
+  _scheduleWarn();
+
+  try {
+    const resp = await fetch('/api/trip-days', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tripId, startDate: newDate, endDate: newDate })
+    });
+    const data = await resp.json();
+    if (data.success && data.records && data.records[0]) {
+      _scheduleRecords[_scheduleRecords.length - 1].id = data.records[0].id;
+      _scheduleRecords[_scheduleRecords.length - 1]._new = false;
+    }
+  } catch(e) { /* non-critical */ }
+}
+
+async function _saveRenumbered() {
+  const dirty = _scheduleRecords.filter(r => r._renumberDirty && r.id);
+  for (const r of dirty) {
+    try {
+      await fetch('/api/trip-days', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: r.id, 'Day Number': r.fields['Day Number'], 'Date': r.fields['Date'] })
+      });
+      r._renumberDirty = false;
+    } catch(e) { /* non-critical */ }
   }
 }
 
