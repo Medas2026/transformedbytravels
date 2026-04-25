@@ -6835,6 +6835,18 @@ async function saveTrip() {
       msg.textContent = 'Trip duration cannot exceed 30 nights. Please split into two trips.';
       return;
     }
+    // Block save if schedule has more days than the new date range
+    if (_scheduleRecords && _scheduleRecords.length > 0) {
+      const newDayCount = nights + 1;
+      const excess = _scheduleRecords.length - newDayCount;
+      if (excess > 0) {
+        msg.style.color = '#f43f5e';
+        msg.innerHTML = `Your schedule has ${_scheduleRecords.length} days but this trip is now ${newDayCount} days. `
+          + `Please delete ${excess} day${excess > 1 ? 's' : ''} from the schedule first. `
+          + `<span onclick="openTripSchedule()" style="text-decoration:underline;cursor:pointer;color:var(--teal);">Open Schedule →</span>`;
+        return;
+      }
+    }
   }
 
   const payload = {
