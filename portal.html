@@ -7546,12 +7546,7 @@ function _smActivitySelect(n, btn) {
   }
 
   const list = document.getElementById('sm-s' + n + '-act-list');
-  if (list) list.querySelectorAll('button').forEach(b => {
-    b.style.background  = 'rgba(255,255,255,0.05)';
-    b.style.borderColor = 'rgba(255,255,255,0.1)';
-  });
-  btn.style.background  = 'rgba(45,212,191,0.15)';
-  btn.style.borderColor = 'rgba(45,212,191,0.5)';
+  if (list) list.innerHTML = `<div style="font-size:0.82rem;color:var(--teal);padding:4px 0;">✓ ${name} — click a passion above to change</div>`;
 }
 
 function _smAutoName(n) {
