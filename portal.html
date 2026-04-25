@@ -7501,14 +7501,19 @@ async function _smPassionPick(n, passion) {
     });
     const data = await resp.json();
     loading.style.display = 'none';
-    const acts = data.activities || [];
+    const acts = data.items || data.activities || [];
     if (!acts.length) { list.innerHTML = '<div style="font-size:0.82rem;color:var(--muted);">No activities found.</div>'; return; }
-    list.innerHTML = acts.map((a, i) => `
-      <button onclick="_smActivitySelect(${n},'${(a.name||'').replace(/'/g,"\\'")}','${(a.description||'').replace(/'/g,"\\'")}','${passion.replace(/'/g,"\\'")}',this)"
-        style="text-align:left;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text);">
+    list.innerHTML = acts.map((a, i) => {
+      const desc = (a.highlights || a.description || '').slice(0, 100);
+      const safeName = (a.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const safeDesc = (a.detail || a.highlights || a.description || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `
+      <button onclick="_smActivitySelect(${n},'${safeName}','${safeDesc}','${passion.replace(/'/g,"\\'")}',this)"
+        style="text-align:left;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text);width:100%;">
         <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;color:#fff;">${a.name || ''}</div>
-        ${a.description ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;line-height:1.5;">${a.description.slice(0,100)}…</div>` : ''}
-      </button>`).join('');
+        ${desc ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;line-height:1.5;">${desc}…</div>` : ''}
+      </button>`;
+    }).join('');
   } catch(e) {
     loading.style.display = 'none';
     list.innerHTML = '<div style="font-size:0.82rem;color:#f43f5e;">Error loading activities.</div>';
@@ -7623,7 +7628,12 @@ function openDayModal(idx) {
     dateLabel = DAYS[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
   }
   document.getElementById('day-modal-title').textContent = 'Day ' + (f['Day Number'] || idx + 1);
-  document.getElementById('day-modal-sub').textContent   = dateLabel;
+  const startLoc = f['Starting Location'] || '';
+  const endLoc   = f['Ending Location']   || '';
+  let locLabel = '';
+  if (startLoc && endLoc && startLoc !== endLoc) locLabel = startLoc + ' → ' + endLoc;
+  else if (startLoc || endLoc) locLabel = startLoc || endLoc;
+  document.getElementById('day-modal-sub').textContent = [dateLabel, locLabel].filter(Boolean).join(' · ');
   document.getElementById('day-modal-status').style.display = 'none';
 
   // Parse existing slot JSON
