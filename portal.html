@@ -7106,8 +7106,16 @@ function _copyLocDown(idx) {
   // Update this row's ending button label
   const endBtn = document.getElementById(`loc-btn-${idx}-end`);
   if (endBtn) { endBtn.textContent = _locLabel(dest, country); endBtn.style.color = 'var(--text)'; }
-  // Cascade ending → next day's starting
-  _cascadeLocation(idx);
+  // Force next day's starting location (↓ is explicit — always override)
+  const next = _scheduleRecords[idx + 1];
+  if (next) {
+    next.fields['Starting Location'] = dest;
+    next.fields['Starting Country']  = country;
+    next._startDirty   = true;
+    next._autoCascaded = true;
+    const nextBtn = document.getElementById(`loc-btn-${idx + 1}-start`);
+    if (nextBtn) { nextBtn.textContent = _locLabel(dest, country); nextBtn.style.color = 'var(--text)'; }
+  }
 }
 
 function _cascadeLocation(idx) {
