@@ -7418,7 +7418,7 @@ function _slotFieldsHtml(n, slot) {
       <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin:6px 0 3px;">${g.label}</div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
         ${g.passions.map(p => `<button onclick="_smPassionPick(${n},'${p.replace(/'/g,"\\'")}')"
-          style="background:${p===selected?'rgba(45,212,191,0.25)':'rgba(255,255,255,0.06)'};border:1px solid ${p===selected?'rgba(45,212,191,0.6)':'rgba(255,255,255,0.12)'};border-radius:20px;color:${p===selected?'var(--teal)':'var(--soft)'};font-size:0.75rem;padding:4px 10px;cursor:pointer;white-space:nowrap;">
+          style="background:${p===selected?'rgba(45,212,191,0.25)':'rgba(255,255,255,0.06)'};border:1px solid ${p===selected?'rgba(45,212,191,0.6)':'rgba(255,255,255,0.12)'};border-radius:20px;color:${p===selected?'var(--teal)':'var(--soft)'};font-size:0.83rem;padding:5px 12px;cursor:pointer;white-space:nowrap;">
           ${p}</button>`).join('')}
       </div>`).join('');
     return `
@@ -7490,19 +7490,24 @@ async function _smPassionPick(n, passion) {
     b.style.color        = match ? 'var(--teal)'           : 'var(--soft)';
   });
 
-  if (!place) { list.innerHTML = '<div style="font-size:0.82rem;color:var(--muted);">Set a day location first to get activity suggestions.</div>'; return; }
+  if (!place) { list.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);">Set a day location first to get activity suggestions.</div>'; return; }
 
   loading.style.display = 'block';
   list.innerHTML = '';
+  console.log('[passion slot] fetching', { place, country, actType });
   try {
     const resp = await fetch('/api/activities', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ place, country, type: actType })
     });
     const data = await resp.json();
+    console.log('[passion slot] response', data);
     loading.style.display = 'none';
     const acts = data.items || data.activities || [];
-    if (!acts.length) { list.innerHTML = '<div style="font-size:0.82rem;color:var(--muted);">No activities found.</div>'; return; }
+    if (!acts.length) {
+      list.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);">No activities found for ' + passion + ' near ' + place + '.</div>';
+      return;
+    }
     list.innerHTML = acts.map((a, i) => {
       const desc = (a.highlights || a.description || '').slice(0, 100);
       const safeName = (a.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -7510,8 +7515,8 @@ async function _smPassionPick(n, passion) {
       return `
       <button onclick="_smActivitySelect(${n},'${safeName}','${safeDesc}','${passion.replace(/'/g,"\\'")}',this)"
         style="text-align:left;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text);width:100%;">
-        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;color:#fff;">${a.name || ''}</div>
-        ${desc ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;line-height:1.5;">${desc}…</div>` : ''}
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${a.name || ''}</div>
+        ${desc ? `<div style="font-size:0.82rem;color:var(--muted);margin-top:3px;line-height:1.5;">${desc}…</div>` : ''}
       </button>`;
     }).join('');
   } catch(e) {
