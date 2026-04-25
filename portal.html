@@ -7377,29 +7377,38 @@ function _timeOpts(selected) {
 function _slotFieldsHtml(n, slot) {
   const type = (slot && slot.type) || '';
   if (type === 'freeform') return `
-    <input id="sm-s${n}-title" type="text" placeholder="Title (e.g. Shoebill Stork Excursion)"
-      value="${((slot && slot.title) || '').replace(/"/g,'&quot;')}"
-      style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;margin-bottom:6px;box-sizing:border-box;">
     <textarea id="sm-s${n}-desc" placeholder="Description (optional)" rows="2"
       style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;resize:vertical;box-sizing:border-box;">${(slot && slot.description) || ''}</textarea>`;
   if (type === 'transfer') return `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
       <input id="sm-s${n}-from" type="text" placeholder="From"
         value="${((slot && slot.from) || '').replace(/"/g,'&quot;')}"
+        oninput="_smAutoName(${n})"
         style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
       <input id="sm-s${n}-to" type="text" placeholder="To"
         value="${((slot && slot.to) || '').replace(/"/g,'&quot;')}"
+        oninput="_smAutoName(${n})"
         style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-      <select id="sm-s${n}-mode" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+      <select id="sm-s${n}-mode" onchange="_smAutoName(${n})" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
         ${['Road','Air','Boat','Rail'].map(m=>`<option value="${m}"${(slot&&slot.mode)===m?' selected':''}>${m}</option>`).join('')}
       </select>
       <input id="sm-s${n}-duration" type="text" placeholder="Duration (e.g. 3 hrs)"
         value="${((slot && slot.duration) || '').replace(/"/g,'&quot;')}"
         style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
     </div>`;
-  return ''; // empty
+  return '';
+}
+
+function _smAutoName(n) {
+  const nameEl = document.getElementById(`sm-s${n}-name`);
+  if (!nameEl || nameEl.dataset.userEdited === 'true') return;
+  const from = (document.getElementById(`sm-s${n}-from`)?.value || '').trim();
+  const to   = (document.getElementById(`sm-s${n}-to`)?.value   || '').trim();
+  const mode = (document.getElementById(`sm-s${n}-mode`)?.value || 'Road');
+  const parts = [from, to].filter(Boolean);
+  nameEl.value = mode + ' Transfer' + (parts.length === 2 ? ': ' + parts[0] + ' → ' + parts[1] : parts.length === 1 ? ': ' + parts[0] : '');
 }
 
 function _slotCardHtml(n, slot) {
@@ -7435,18 +7444,28 @@ function _slotCardHtml(n, slot) {
           </select>
         </div>
       </div>
+      <input id="sm-s${n}-name" type="text" placeholder="Activity name (e.g. Shoebill Stork Excursion)"
+        value="${((slot && slot.name) || '').replace(/"/g,'&quot;')}"
+        oninput="this.dataset.userEdited='true'"
+        style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;margin-bottom:${type ? '8px' : '0'};box-sizing:border-box;">
       <div id="sm-s${n}-fields">${_slotFieldsHtml(n, slot)}</div>
     </div>`;
 }
 
 function smTypeChange(n) {
-  const type = document.getElementById(`sm-s${n}-type`).value;
-  const flds = document.getElementById(`sm-s${n}-fields`);
-  const pseudo = { type, startTime: document.getElementById(`sm-s${n}-start`).value, endTime: document.getElementById(`sm-s${n}-end`).value };
+  const type    = document.getElementById(`sm-s${n}-type`).value;
+  const flds    = document.getElementById(`sm-s${n}-fields`);
+  const nameEl  = document.getElementById(`sm-s${n}-name`);
+  const pseudo  = { type, startTime: document.getElementById(`sm-s${n}-start`).value, endTime: document.getElementById(`sm-s${n}-end`).value };
   flds.innerHTML = _slotFieldsHtml(n, pseudo);
-  // Show/hide time margin
-  const timeRow = flds.closest('[style*="border-radius:12px"]').querySelector('[style*="grid-template-columns:1fr 1fr"]');
-  if (timeRow) timeRow.style.marginBottom = type ? '10px' : '0';
+  if (nameEl) {
+    nameEl.style.marginBottom = type ? '8px' : '0';
+    // Auto-seed name for transfer if user hasn't typed anything
+    if (type === 'transfer' && !nameEl.value.trim()) {
+      nameEl.value = 'Transfer';
+      nameEl.dataset.userEdited = 'false';
+    }
+  }
 }
 
 function openDayModal(idx) {
@@ -7499,11 +7518,11 @@ async function saveDayModal() {
     const slot = {
       type,
       startTime: document.getElementById(`sm-s${n}-start`).value,
-      endTime:   document.getElementById(`sm-s${n}-end`).value
+      endTime:   document.getElementById(`sm-s${n}-end`).value,
+      name:      (document.getElementById(`sm-s${n}-name`)?.value || '').trim()
     };
     if (type === 'freeform') {
-      slot.title       = (document.getElementById(`sm-s${n}-title`)?.value || '').trim();
-      slot.description = (document.getElementById(`sm-s${n}-desc`)?.value  || '').trim();
+      slot.description = (document.getElementById(`sm-s${n}-desc`)?.value || '').trim();
     } else if (type === 'transfer') {
       slot.from     = (document.getElementById(`sm-s${n}-from`)?.value     || '').trim();
       slot.to       = (document.getElementById(`sm-s${n}-to`)?.value       || '').trim();
