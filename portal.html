@@ -7156,7 +7156,12 @@ function _scheduleDateForDay(dayNum) {
   return d.toISOString().split('T')[0];
 }
 
-async function scheduleInsertAfter(idx) {
+function scheduleInsertAfter(idx) {
+  const dayNum = idx + 1;
+  showConfirm('📅', 'Insert Day', `Insert a new blank day after Day ${dayNum}? Subsequent days will be renumbered.`, 'Insert', 'var(--teal)', () => _doInsertAfter(idx));
+}
+
+async function _doInsertAfter(idx) {
   const tripId  = currentTripId;
   const newDay  = (idx + 1) + 1; // insert as day idx+2 (1-based after idx+1)
   const newDate = _scheduleDateForDay(newDay);
@@ -7193,7 +7198,12 @@ async function scheduleInsertAfter(idx) {
   await _saveRenumbered();
 }
 
-async function scheduleDeleteDay(idx) {
+function scheduleDeleteDay(idx) {
+  const dayNum = _scheduleRecords[idx].fields['Day Number'] || idx + 1;
+  showConfirm('🗑', 'Delete Day', `Delete Day ${dayNum}? This cannot be undone and subsequent days will be renumbered.`, 'Delete', '#f43f5e', () => _doDeleteDay(idx));
+}
+
+async function _doDeleteDay(idx) {
   if (_scheduleRecords.length <= 1) return;
   const rec = _scheduleRecords[idx];
 
