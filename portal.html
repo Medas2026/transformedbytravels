@@ -7404,6 +7404,17 @@ function _slotFieldsHtml(n, slot) {
       <button onclick="_smOpenFlights(${n})" style="width:100%;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">✈ Search Google Flights</button>
     </div>`;
   }
+  if (type === 'gyg') {
+    return `
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <input id="sm-s${n}-gyg-url" type="url" placeholder="Get Your Guide link (paste URL)"
+        value="${((slot && slot.url) || '').replace(/"/g,'&quot;')}"
+        style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+      <input id="sm-s${n}-gyg-ref" type="text" placeholder="Booking reference (optional)"
+        value="${((slot && slot.bookingRef) || '').replace(/"/g,'&quot;')}"
+        style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+    </div>`;
+  }
   if (type === 'event') {
     const savedDate = (slot && slot.eventDate) || '';
     const savedVenue = (slot && slot.venue) || '';
@@ -7719,6 +7730,7 @@ function _slotCardHtml(n, slot) {
           <option value="transfer"${type==='transfer'?' selected':''}>Transfer</option>
           <option value="passion"${type==='passion'?' selected':''}>Passion Activity</option>
           <option value="event"${type==='event'?' selected':''}>Event</option>
+          <option value="gyg"${type==='gyg'?' selected':''}>Get Your Guide</option>
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:${hasContent ? '10px' : '0'};">
@@ -7847,6 +7859,9 @@ async function saveDayModal() {
       const sel = _smSelectedActivity[n] || {};
       slot.passion     = sel.passion     || '';
       slot.description = sel.description || '';
+    } else if (type === 'gyg') {
+      slot.url        = (document.getElementById('sm-s' + n + '-gyg-url')?.value || '').trim();
+      slot.bookingRef = (document.getElementById('sm-s' + n + '-gyg-ref')?.value || '').trim();
     } else if (type === 'event') {
       const sel = _smSelectedActivity[n] || {};
       slot.eventDate = sel.date     || '';
