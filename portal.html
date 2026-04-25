@@ -7494,23 +7494,21 @@ async function _smPassionPick(n, passion) {
 
   loading.style.display = 'block';
   list.innerHTML = '';
-  console.log('[passion slot] fetching', { place, country, actType });
   try {
     const resp = await fetch('/api/activities', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ place, country, type: actType })
     });
     const data = await resp.json();
-    console.log('[passion slot] response', data);
     loading.style.display = 'none';
     const acts = data.items || data.activities || [];
     if (!acts.length) {
       list.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);">No activities found for ' + passion + ' near ' + place + '.</div>';
       return;
     }
-    list.innerHTML = acts.map((a, i) => {
+    list.innerHTML = acts.map(a => {
       const snippet = (a.highlights || a.description || '').slice(0, 100);
-      return `<button onclick="_smActivitySelect(${n},this)"
+      return `<button
         data-name="${(a.name||'').replace(/"/g,'&quot;')}"
         data-desc="${(a.detail||a.highlights||a.description||'').replace(/"/g,'&quot;')}"
         data-passion="${passion.replace(/"/g,'&quot;')}"
@@ -7519,22 +7517,36 @@ async function _smPassionPick(n, passion) {
         ${snippet ? `<div style="font-size:0.82rem;color:var(--muted);margin-top:3px;line-height:1.5;">${snippet}…</div>` : ''}
       </button>`;
     }).join('');
+    list.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => _smActivitySelect(n, btn));
+    });
   } catch(e) {
     loading.style.display = 'none';
     list.innerHTML = '<div style="font-size:0.82rem;color:#f43f5e;">Error loading activities.</div>';
   }
 }
 
+// Store selected passion activity data keyed by slot number
+const _smSelectedActivity = {};
+
 function _smActivitySelect(n, btn) {
   const name        = btn.dataset.name    || '';
   const description = btn.dataset.desc    || '';
   const passion     = btn.dataset.passion || '';
-  const nameEl    = document.getElementById(`sm-s${n}-name`);
-  if (nameEl) { nameEl.value = name; nameEl.dataset.userEdited = 'true'; }
-  const fieldsEl  = document.getElementById(`sm-s${n}-fields`);
-  if (fieldsEl) { fieldsEl.dataset.passion = passion; fieldsEl.dataset.desc = description; }
-  // Highlight selected, reset others
-  btn.closest(`#sm-s${n}-act-list`)?.querySelectorAll('button').forEach(b => {
+
+  _smSelectedActivity[n] = { name, description, passion };
+
+  const nameEl = document.getElementById('sm-s' + n + '-name');
+  if (nameEl) {
+    nameEl.value = name;
+    nameEl.dataset.userEdited = 'true';
+    nameEl.style.borderColor = 'var(--teal)';
+    nameEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => { nameEl.style.borderColor = 'rgba(255,255,255,0.1)'; }, 1500);
+  }
+
+  const list = document.getElementById('sm-s' + n + '-act-list');
+  if (list) list.querySelectorAll('button').forEach(b => {
     b.style.background  = 'rgba(255,255,255,0.05)';
     b.style.borderColor = 'rgba(255,255,255,0.1)';
   });
@@ -7643,6 +7655,9 @@ function openDayModal(idx) {
   document.getElementById('day-modal-sub').textContent = [dateLabel, locLabel].filter(Boolean).join(' · ');
   document.getElementById('day-modal-status').style.display = 'none';
 
+  // Clear prior activity selections
+  [1,2,3,4].forEach(n => { delete _smSelectedActivity[n]; });
+
   // Parse existing slot JSON
   _dayModalSlots = [1,2,3,4].map(n => {
     const raw = f['Slot ' + n];
@@ -7683,9 +7698,9 @@ async function saveDayModal() {
     if (type === 'freeform') {
       slot.description = (document.getElementById(`sm-s${n}-desc`)?.value || '').trim();
     } else if (type === 'passion') {
-      const flds = document.getElementById(`sm-s${n}-fields`);
-      slot.passion     = flds?.dataset.passion     || '';
-      slot.description = flds?.dataset.desc        || '';
+      const sel = _smSelectedActivity[n] || {};
+      slot.passion     = sel.passion     || '';
+      slot.description = sel.description || '';
     } else if (type === 'transfer') {
       slot.from     = (document.getElementById(`sm-s${n}-from`)?.value     || '').trim();
       slot.to       = (document.getElementById(`sm-s${n}-to`)?.value       || '').trim();
