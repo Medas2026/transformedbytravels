@@ -30,7 +30,8 @@
     "api/events.js":     { "maxDuration": 30 },
     "api/birding.js":    { "maxDuration": 30 },
     "api/trip-days.js":  { "maxDuration": 30 },
-    "api/lodging.js":   { "maxDuration": 30 }
+    "api/lodging.js":      { "maxDuration": 30 },
+    "api/trip-members.js": { "maxDuration": 30 }
   },
   "crons": [
     {

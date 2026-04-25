@@ -972,6 +972,23 @@
               </div>
             </div>
 
+            <!-- Trip Members -->
+            <div class="trip-field-group" id="trip-members-section" style="display:none;">
+              <div class="trip-field-label">Trip Members</div>
+              <div id="trip-members-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input id="tm-email" type="email" placeholder="Email address" style="flex:1;min-width:160px;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 12px;color:var(--text);font-size:0.85rem;">
+                <select id="tm-role" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+                  <option value="Partner">Partner</option>
+                  <option value="Trip Planner">Trip Planner</option>
+                  <option value="Family">Family</option>
+                  <option value="Guest">Guest</option>
+                </select>
+                <button onclick="inviteTripMember()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:7px;padding:8px 16px;cursor:pointer;white-space:nowrap;">+ Invite</button>
+              </div>
+              <div id="tm-msg" style="display:none;font-size:0.8rem;margin-top:6px;"></div>
+            </div>
+
             <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
             <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
               <button onclick="saveTrip()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">Save Trip</button>
@@ -2591,6 +2608,8 @@ async function loadProfile(email) {
       sessionStorage.removeItem('acceptPartnerToken');
       acceptPartnerInvite(_partnerToken);
     }
+    // Handle trip invite accept deep link
+    _handleAcceptTripInvite();
   } catch(err) {
     document.getElementById('profile-loading').textContent = 'Error loading profile: ' + err.message;
   }
@@ -4723,6 +4742,11 @@ window._pmClearPassions = function() {
   if (p.get('accept-partner')) {
     sessionStorage.setItem('acceptPartnerToken', p.get('accept-partner'));
   }
+  // Stash trip invite accept token
+  if (p.get('accept-trip')) {
+    sessionStorage.setItem('acceptTripToken', p.get('accept-trip'));
+    sessionStorage.setItem('acceptTripEmail', p.get('email') || '');
+  }
 })();
 
 // ═══════════════════════════════════════════════
@@ -5403,6 +5427,9 @@ function openTrip(record) {
   } else {
     document.getElementById('integration-report-section').style.display = 'none';
   }
+  // Trip Members
+  document.getElementById('trip-members-section').style.display = 'block';
+  loadTripMembers(record.id);
 }
 
 function _placeCountryOptions() {
@@ -6641,6 +6668,143 @@ async function _doCancelTrip() {
     }
   } catch(e) {
     msg.textContent = 'Error: ' + e.message;
+  }
+}
+
+// ── Trip Members ──────────────────────────────────
+async function loadTripMembers(tripId) {
+  const list = document.getElementById('trip-members-list');
+  const msg  = document.getElementById('tm-msg');
+  list.innerHTML = '<div style="font-size:0.8rem;color:var(--muted);">Loading members…</div>';
+  msg.style.display = 'none';
+  try {
+    const resp = await fetch('/api/trip-members?tripId=' + encodeURIComponent(tripId));
+    const data = await resp.json();
+    const records = data.records || [];
+    if (!records.length) {
+      list.innerHTML = '<div style="font-size:0.8rem;color:var(--muted);">No members yet.</div>';
+      return;
+    }
+    list.innerHTML = records.map(r => {
+      const f      = r.fields;
+      const email  = f['Email'] || '—';
+      const role   = f['Role']  || '';
+      const status = f['Status'] || 'Invited';
+      const statusColor = status === 'Accepted' ? '#4ade80' : '#94a3b8';
+      return `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 12px;">
+        <div style="flex:1;min-width:140px;font-size:0.82rem;color:var(--text);word-break:break-all;">${email}</div>
+        <select onchange="updateTripMemberRole('${r.id}', this.value)" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:4px 8px;color:var(--text);font-size:0.8rem;">
+          ${['Partner','Trip Planner','Family','Guest'].map(opt => `<option value="${opt}"${role===opt?' selected':''}>${opt}</option>`).join('')}
+        </select>
+        <div style="font-size:0.75rem;color:${statusColor};white-space:nowrap;">${status}</div>
+        <button onclick="removeTripMember('${r.id}')" style="background:none;border:1px solid rgba(244,63,94,0.4);color:#f43f5e;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;">Remove</button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="font-size:0.8rem;color:#ef4444;">Error loading members.</div>';
+  }
+}
+
+async function inviteTripMember() {
+  const email = (document.getElementById('tm-email').value || '').trim().toLowerCase();
+  const role  = document.getElementById('tm-role').value;
+  const msg   = document.getElementById('tm-msg');
+  msg.style.display = 'none';
+  if (!email || !currentTripId) return;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msg.textContent = 'Please enter a valid email address.';
+    msg.style.color = '#ef4444';
+    msg.style.display = 'block';
+    return;
+  }
+  msg.textContent = 'Sending invite…';
+  msg.style.color = 'var(--muted)';
+  msg.style.display = 'block';
+  try {
+    const tripNameEl = document.getElementById('td-name');
+    const tripName   = tripNameEl ? tripNameEl.value : '';
+    const resp = await fetch('/api/trip-members', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tripId:       currentTripId,
+        tripName:     tripName,
+        inviterEmail: userEmail,
+        inviterName:  (portalProfile && portalProfile['First Name']) ? portalProfile['First Name'] : userEmail,
+        inviteeEmail: email,
+        role
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      document.getElementById('tm-email').value = '';
+      msg.textContent = `Invitation sent to ${email}`;
+      msg.style.color = 'var(--teal)';
+      loadTripMembers(currentTripId);
+    } else {
+      msg.textContent = 'Error: ' + (data.error || 'Could not send invite.');
+      msg.style.color = '#ef4444';
+    }
+  } catch(e) {
+    msg.textContent = 'Error: ' + e.message;
+    msg.style.color = '#ef4444';
+  }
+}
+
+async function updateTripMemberRole(id, role) {
+  try {
+    await fetch('/api/trip-members', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ id, role })
+    });
+  } catch(e) {
+    console.error('[trip-members] role update error:', e.message);
+  }
+}
+
+async function removeTripMember(id) {
+  try {
+    await fetch('/api/trip-members?id=' + encodeURIComponent(id), { method: 'DELETE' });
+    loadTripMembers(currentTripId);
+  } catch(e) {
+    console.error('[trip-members] remove error:', e.message);
+  }
+}
+
+async function _handleAcceptTripInvite() {
+  const token = sessionStorage.getItem('acceptTripToken');
+  const email = sessionStorage.getItem('acceptTripEmail');
+  if (!token) return;
+  sessionStorage.removeItem('acceptTripToken');
+  sessionStorage.removeItem('acceptTripEmail');
+  const acceptEmail = (email || userEmail || '').toLowerCase();
+  try {
+    const resp = await fetch(`/api/trip-members?action=accept&token=${encodeURIComponent(token)}&email=${encodeURIComponent(acceptEmail)}`);
+    const data = await resp.json();
+    if (data.success) {
+      showConfirm('✅', 'Invitation Accepted!', 'You have been added to the trip. Opening the trip now…', 'View Trip', 'var(--teal)', async () => {
+        if (data.tripId) {
+          showPage('planning');
+          try {
+            const tr = await fetch('/api/trips?email=' + encodeURIComponent(userEmail)).then(r => r.json());
+            const rec = (tr.records || []).find(r => r.id === data.tripId);
+            if (rec) { tripsLoaded = false; loadTrips(); openTrip(rec); }
+            else { tripsLoaded = false; loadTrips(); }
+          } catch(e2) { tripsLoaded = false; loadTrips(); }
+        }
+      });
+    } else if (data.alreadyAccepted) {
+      if (data.tripId) {
+        showPage('planning');
+        tripsLoaded = false;
+        loadTrips();
+      }
+    } else {
+      showConfirm('⚠️', 'Invite Problem', data.error || 'Could not accept invitation.', 'OK', '#f59e0b', () => {});
+    }
+  } catch(e) {
+    console.error('[accept-trip]', e.message);
   }
 }
 
