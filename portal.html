@@ -2841,6 +2841,7 @@ async function buildItinerary() {
       html += `<div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:14px;">Day by Day</div>`;
       data.days.forEach(d => {
         const narrative = data.daySummaries && data.daySummaries[d.dayNum];
+        const lodgingDesc = d.lodgingName && data.lodgingDescriptions && data.lodgingDescriptions[d.lodgingName];
         const loc = d.startLoc && d.endLoc && d.startLoc !== d.endLoc
           ? d.startLoc + ' → ' + d.endLoc
           : (d.startLoc || d.endLoc || '');
@@ -2851,7 +2852,8 @@ async function buildItinerary() {
               ${d.dateLabel ? `<div style="font-size:0.78rem;color:var(--muted);font-family:'Montserrat',sans-serif;white-space:nowrap;">${d.dateLabel}</div>` : ''}
             </div>
             ${loc ? `<div style="font-size:0.82rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;margin-bottom:8px;">📍 ${loc}</div>` : ''}
-            ${d.lodging ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:8px;">🏨 ${d.lodging}</div>` : ''}
+            ${d.lodging ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:6px;">🏨 ${d.lodging}</div>` : ''}
+            ${lodgingDesc ? `<div style="font-size:0.83rem;color:var(--soft);line-height:1.7;margin-bottom:8px;font-style:italic;">${lodgingDesc}</div>` : ''}
             ${d.slotLabels.length ? `
               <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:${narrative ? '12px' : '0'};">
                 ${d.slotLabels.map(s => `<div style="font-size:0.83rem;color:var(--soft);padding-left:10px;border-left:2px solid rgba(45,212,191,0.3);">• ${s}</div>`).join('')}

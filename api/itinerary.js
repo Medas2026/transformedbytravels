@@ -99,17 +99,21 @@ module.exports = async function handler(req, res) {
     }).filter(Boolean);
 
     let lodgingParagraph = '';
-    if (lodgingRec && !seenLodgingIds.has(lodgingId)) {
-      seenLodgingIds.add(lodgingId);
+    let lodgingName = '';
+    if (lodgingRec) {
       const lf = lodgingRec;
-      const nameType = [lf['Name'], lf['Type']].filter(Boolean).join(' — ');
-      const location = lf['Location'] || '';
-      const checkIn  = lf['Check-in Date']  || '';
-      const checkOut = lf['Check-out Date'] || '';
-      const parts = [`Check in to ${nameType}${location ? ' in ' + location : ''}${checkIn && checkOut ? ' (' + checkIn + ' to ' + checkOut + ')' : ''}.`];
-      if (lf['Description']) parts.push(lf['Description']);
-      if (lf['Amenities'])   parts.push('Amenities include: ' + lf['Amenities'] + '.');
-      lodgingParagraph = parts.join(' ');
+      lodgingName = lf['Name'] || '';
+      if (!seenLodgingIds.has(lodgingId)) {
+        seenLodgingIds.add(lodgingId);
+        const nameType = [lf['Name'], lf['Type']].filter(Boolean).join(' — ');
+        const location = lf['Location'] || '';
+        const checkIn  = lf['Check-in Date']  || '';
+        const checkOut = lf['Check-out Date'] || '';
+        const parts = [`Check in to ${nameType}${location ? ' in ' + location : ''}${checkIn && checkOut ? ' (' + checkIn + ' to ' + checkOut + ')' : ''}.`];
+        if (lf['Description']) parts.push(lf['Description']);
+        if (lf['Amenities'])   parts.push('Amenities include: ' + lf['Amenities'] + '.');
+        lodgingParagraph = parts.join(' ');
+      }
     }
 
     return {
@@ -119,6 +123,7 @@ module.exports = async function handler(req, res) {
       startLoc:  d['Starting Location'] || '',
       endLoc:    d['Ending Location']   || '',
       lodging:   lodgingParagraph,
+      lodgingName,
       slotLabels: slots.map(slotLabel).filter(Boolean)
     };
   });
@@ -137,6 +142,19 @@ module.exports = async function handler(req, res) {
     }
     return lines.join('\n');
   }).join('\n\n');
+
+  // Collect unique lodging properties for description generation
+  const uniqueLodging = [];
+  const seenLodgingNames = new Set();
+  structuredDays.forEach(d => {
+    if (d.lodgingName && !seenLodgingNames.has(d.lodgingName)) {
+      seenLodgingNames.add(d.lodgingName);
+      uniqueLodging.push(d);
+    }
+  });
+  const lodgingPromptSection = uniqueLodging.length
+    ? `\n\n## LODGING DESCRIPTIONS\nFor each property below, write 2–3 sentences evoking the atmosphere, setting, and experience of staying there. Write in second person. Format exactly like this:\n\n### ${uniqueLodging.map(d => d.lodgingName).join('\n[2–3 sentences]\n\n### ')}\n[2–3 sentences]`
+    : '';
 
   const prompt = `You are a transformational travel expert for Transformed by Travels.
 
@@ -163,7 +181,7 @@ For each day in the schedule above, write 1–2 vivid sentences that capture the
 ### Day 2
 [1–2 sentence narrative]
 
-Continue for all ${structuredDays.length} days. Be specific and evocative.`;
+Continue for all ${structuredDays.length} days. Be specific and evocative.${lodgingPromptSection}`;
 
   try {
     const raw = await callClaude(prompt);
@@ -174,10 +192,19 @@ Continue for all ${structuredDays.length} days. Be specific and evocative.`;
 
     // Parse day summaries
     const daySummaries = {};
-    const daySectionMatch = raw.match(/##\s*DAY SUMMARIES\s*([\s\S]*?)$/i);
+    const daySectionMatch = raw.match(/##\s*DAY SUMMARIES\s*([\s\S]*?)(?=##\s*LODGING|$)/i);
     if (daySectionMatch) {
       for (const m of daySectionMatch[1].matchAll(/###\s*Day\s*(\d+)\s*\n([\s\S]*?)(?=###\s*Day\s*\d|$)/gi)) {
         daySummaries[parseInt(m[1])] = m[2].trim();
+      }
+    }
+
+    // Parse lodging descriptions
+    const lodgingDescriptions = {};
+    const lodgingSectionMatch = raw.match(/##\s*LODGING DESCRIPTIONS\s*([\s\S]*?)$/i);
+    if (lodgingSectionMatch) {
+      for (const m of lodgingSectionMatch[1].matchAll(/###\s*(.+?)\s*\n([\s\S]*?)(?=###|$)/gi)) {
+        lodgingDescriptions[m[1].trim()] = m[2].trim();
       }
     }
 
@@ -190,7 +217,8 @@ Continue for all ${structuredDays.length} days. Be specific and evocative.`;
       passions,
       tripSummary,
       days: structuredDays,
-      daySummaries
+      daySummaries,
+      lodgingDescriptions
     });
   } catch(e) {
     return res.status(500).json({ error: e.message });
