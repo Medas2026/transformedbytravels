@@ -6698,7 +6698,6 @@ async function loadTripReservations(tripId) {
   const list = document.getElementById('trip-reservations-list');
   list.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);">Loading…</div>';
   try {
-    const filter = '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`) + '&sort[0][field]=Key Date&sort[0][direction]=asc';
     const resp = await fetch('/api/reservations?tripId=' + encodeURIComponent(tripId));
     const data = await resp.json();
     const records = data.records || [];
@@ -6709,17 +6708,48 @@ async function loadTripReservations(tripId) {
     const typeIcon = { flight: '✈️', hotel: '🏨', car_rental: '🚗', other: '📋' };
     list.innerHTML = records.map(r => {
       const f = r.fields;
-      const icon = typeIcon[f['Type']] || '📋';
-      const type = (f['Type'] || 'other').replace('_', ' ');
-      const conf = f['Confirmation Number'] ? `<span style="font-size:0.75rem;color:var(--muted);margin-left:8px;">Conf: ${f['Confirmation Number']}</span>` : '';
-      const date = f['Key Date'] ? `<span style="font-size:0.75rem;color:var(--muted);">${f['Key Date']}</span>` : '';
-      const subj = f['Subject'] ? `<div style="font-size:0.78rem;color:var(--soft);margin-top:2px;">${f['Subject']}</div>` : '';
-      return `<div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:#fff;">${icon} ${type.charAt(0).toUpperCase()+type.slice(1)}${conf}</div>
-          ${date}
-        </div>
-        ${subj}
+      const icon  = typeIcon[f['Type']] || '📋';
+      const type  = f['Type'] || 'other';
+      const label = type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+      let p = {};
+      try { p = JSON.parse(f['Parsed Data'] || '{}'); } catch(e) {}
+
+      const rows = [];
+      if (type === 'flight') {
+        if (p.airline)        rows.push(['Airline',    p.airline]);
+        if (p.flight_number)  rows.push(['Flight',     p.flight_number]);
+        if (p.from_airport)   rows.push(['From',       p.from_airport]);
+        if (p.to_airport)     rows.push(['To',         p.to_airport]);
+        if (p.departure_date) rows.push(['Departure',  p.departure_date + (p.departure_time ? ' at ' + p.departure_time : '')]);
+        if (p.arrival_date)   rows.push(['Arrival',    p.arrival_date   + (p.arrival_time   ? ' at ' + p.arrival_time   : '')]);
+      } else if (type === 'hotel') {
+        if (p.hotel_name)     rows.push(['Property',   p.hotel_name]);
+        if (p.hotel_location) rows.push(['Location',   p.hotel_location]);
+        if (p.check_in_date)  rows.push(['Check-in',   p.check_in_date]);
+        if (p.check_out_date) rows.push(['Check-out',  p.check_out_date]);
+        if (p.room_type)      rows.push(['Room',       p.room_type]);
+      } else if (type === 'car_rental') {
+        if (p.rental_company)  rows.push(['Company',   p.rental_company]);
+        if (p.car_type)        rows.push(['Vehicle',   p.car_type]);
+        if (p.pickup_date)     rows.push(['Pickup',    p.pickup_date + (p.pickup_time ? ' at ' + p.pickup_time : '')]);
+        if (p.pickup_location) rows.push(['Location',  p.pickup_location]);
+        if (p.dropoff_date)    rows.push(['Return',    p.dropoff_date]);
+      }
+      if (p.confirmation_number) rows.push(['Conf #', p.confirmation_number]);
+
+      const detailHtml = rows.map(([lbl, val]) =>
+        `<div style="display:flex;gap:8px;font-size:0.8rem;margin-top:5px;">
+          <span style="color:var(--muted);min-width:80px;">${lbl}</span>
+          <span style="color:var(--text);">${val}</span>
+        </div>`
+      ).join('');
+
+      const summary = p.summary ? `<div style="font-size:0.78rem;color:var(--soft);margin-top:8px;font-style:italic;line-height:1.5;">${p.summary}</div>` : '';
+
+      return `<div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin-bottom:8px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${icon} ${label}</div>
+        ${detailHtml}
+        ${summary}
       </div>`;
     }).join('');
   } catch(e) {
