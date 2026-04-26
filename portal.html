@@ -8171,14 +8171,32 @@ function smTypeChange(n) {
       if (endEl   && !endEl.value   && dayDate) endEl.value   = dayDate;
     }
     if (type === 'transfer') {
-      const dayFields = _scheduleRecords[_dayModalIdx] && _scheduleRecords[_dayModalIdx].fields;
+      const dayFields = _scheduleRecords[_dayModalIdx]?.fields || {};
       const fromEl = document.getElementById(`sm-s${n}-from`);
       const toEl   = document.getElementById(`sm-s${n}-to`);
-      if (fromEl && !fromEl.value.trim() && dayFields && dayFields['Starting Location']) {
-        fromEl.value = dayFields['Starting Location'];
+      if (fromEl && !fromEl.value.trim()) {
+        // Chain from nearest preceding transfer's To, else day Starting Location
+        let chainFrom = '';
+        for (let prev = n - 1; prev >= 1; prev--) {
+          const prevType = document.getElementById(`sm-s${prev}-type`)?.value;
+          if (prevType === 'transfer') {
+            const prevTo = (document.getElementById(`sm-s${prev}-to`)?.value || '').trim();
+            if (prevTo) { chainFrom = prevTo; break; }
+          }
+        }
+        fromEl.value = chainFrom || dayFields['Starting Location'] || '';
       }
-      if (toEl && !toEl.value.trim() && dayFields && dayFields['Ending Location']) {
-        toEl.value = dayFields['Ending Location'];
+      if (toEl && !toEl.value.trim()) {
+        // Chain from nearest following transfer's From, else day Ending Location
+        let chainTo = '';
+        for (let next = n + 1; next <= 4; next++) {
+          const nextType = document.getElementById(`sm-s${next}-type`)?.value;
+          if (nextType === 'transfer') {
+            const nextFrom = (document.getElementById(`sm-s${next}-from`)?.value || '').trim();
+            if (nextFrom) { chainTo = nextFrom; break; }
+          }
+        }
+        toEl.value = chainTo || dayFields['Ending Location'] || '';
       }
       _smAutoName(n);
     }
