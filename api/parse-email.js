@@ -182,9 +182,11 @@ module.exports = async function handler(req, res) {
     const rawFrom   = payload.FromFull?.Email || payload.From || '';
     const fromEmail = (rawFrom.match(/<([^>]+)>/) ? rawFrom.match(/<([^>]+)>/)[1] : rawFrom).toLowerCase().trim();
     const subject   = payload.Subject || '';
-    const textBody  = payload.TextBody || '';
-    const htmlBody  = payload.HtmlBody || '';
-    const emailBody = (textBody || stripHtml(htmlBody)).slice(0, 8000);
+    const textBody    = payload.TextBody || '';
+    const htmlBody    = payload.HtmlBody || '';
+    const strippedHtml = stripHtml(htmlBody);
+    // Use whichever is longer — hotel emails often have minimal TextBody but rich HTML
+    const emailBody = (strippedHtml.length > textBody.length ? strippedHtml : textBody).slice(0, 8000);
 
     console.log('parse-email: from=', fromEmail, 'subject=', subject.slice(0, 80), 'bodyLen=', emailBody.length);
 
