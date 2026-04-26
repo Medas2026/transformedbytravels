@@ -66,7 +66,7 @@ async function linkLodgingToDays(tripId, lodgingId, checkIn, checkOut) {
   const days = (r.body.records || []).filter(rec => {
     const date = (rec.fields['Date'] || '').slice(0, 10);
     if (!date) return false;
-    return date >= checkIn && date <= checkOut;
+    return date >= checkIn && date < checkOut;
   });
   if (!days.length) return;
   // Batch patch up to 10 at a time
