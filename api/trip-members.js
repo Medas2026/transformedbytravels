@@ -145,7 +145,7 @@ module.exports = async function handler(req, res) {
 
   // POST — invite someone to a trip
   if (req.method === 'POST') {
-    const { tripId, tripName, inviterEmail, inviterName, inviteeEmail, role } = req.body || {};
+    const { tripId, tripName, inviterEmail, inviterName, inviteeEmail, role, skipEmail } = req.body || {};
     if (!tripId || !inviteeEmail || !role) return res.status(400).json({ error: 'tripId, inviteeEmail, and role required' });
 
     // Check not already a member
@@ -169,8 +169,10 @@ module.exports = async function handler(req, res) {
     try {
       const r = await airtableRequest('POST', MEMBERS_TABLE, '', { fields });
       if (r.body.error) return res.status(500).json({ error: r.body.error.message || JSON.stringify(r.body.error) });
-      const acceptUrl = `https://app.transformedbytravels.com/portal.html?accept-trip=${token}&email=${encodeURIComponent(inviteeEmail.toLowerCase())}`;
-      await sendEmail(inviteeEmail.toLowerCase(), inviterName || inviterEmail, tripName || 'a trip', role, acceptUrl);
+      if (!skipEmail) {
+        const acceptUrl = `https://app.transformedbytravels.com/portal.html?accept-trip=${token}&email=${encodeURIComponent(inviteeEmail.toLowerCase())}`;
+        await sendEmail(inviteeEmail.toLowerCase(), inviterName || inviterEmail, tripName || 'a trip', role, acceptUrl);
+      }
       return res.status(200).json({ success: true, record: r.body });
     } catch(e) {
       return res.status(500).json({ error: e.message });

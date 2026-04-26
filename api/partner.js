@@ -78,8 +78,11 @@ async function getByToken(token) {
 
 // ── Email ────────────────────────────────────────────────────────────────────
 
-function sendInviteEmail(toEmail, fromName, acceptUrl) {
+function sendInviteEmail(toEmail, fromName, acceptUrl, tripName) {
   return new Promise((resolve, reject) => {
+    const tripLine = tripName
+      ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 28px;">Once connected, you'll also be added as a partner to the trip <strong>${tripName}</strong>.</p>`
+      : `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 28px;">Once connected, you'll be able to see a compatibility report showing how your travel archetypes and dimensions complement each other — and get insights into how you travel best together.</p>`;
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;">
@@ -94,9 +97,7 @@ function sendInviteEmail(toEmail, fromName, acceptUrl) {
         <p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 16px;">
           <strong>${fromName}</strong> has invited you to connect as travel partners on Transformed by Travels.
         </p>
-        <p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 28px;">
-          Once connected, you'll be able to see a compatibility report showing how your travel archetypes and dimensions complement each other — and get insights into how you travel best together.
-        </p>
+        ${tripLine}
         <table cellpadding="0" cellspacing="0"><tr><td>
           <a href="${acceptUrl}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">
             Accept Invitation →
@@ -293,7 +294,7 @@ module.exports = async function handler(req, res) {
 
   // ── POST: send invite ────────────────────────────────────────────────────
   if (req.method === 'POST' && req.query.action === 'invite') {
-    const { senderEmail, partnerEmail } = b;
+    const { senderEmail, partnerEmail, tripId, tripName } = b;
     if (!senderEmail || !partnerEmail) return res.status(400).json({ error: 'senderEmail and partnerEmail required' });
 
     if (senderEmail.toLowerCase() === partnerEmail.toLowerCase())
@@ -315,8 +316,9 @@ module.exports = async function handler(req, res) {
       'Partner Token Expiry': expiry
     });
 
-    const acceptUrl = `https://app.transformedbytravels.com/portal.html?accept-partner=${token}`;
-    await sendInviteEmail(partnerEmail.toLowerCase(), senderName, acceptUrl);
+    let acceptUrl = `https://app.transformedbytravels.com/portal.html?accept-partner=${token}`;
+    if (tripId) acceptUrl += `&accept-partner-trip=${encodeURIComponent(tripId)}`;
+    await sendInviteEmail(partnerEmail.toLowerCase(), senderName, acceptUrl, tripName || null);
 
     return res.status(200).json({ success: true, status: 'Pending' });
   }

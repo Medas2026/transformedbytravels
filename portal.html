@@ -905,14 +905,16 @@
             <div id="trip-members-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <input id="tm-email" type="email" placeholder="Invite by email" style="flex:1;min-width:160px;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 12px;color:var(--text);font-size:0.85rem;">
-              <select id="tm-role" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+              <div id="tm-partner-display" style="display:none;flex:1;font-size:0.85rem;color:var(--teal);padding:8px 4px;"></div>
+              <select id="tm-role" onchange="onTmRoleChange()" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
                 <option value="Partner">Partner</option>
                 <option value="Trip Planner">Trip Planner</option>
                 <option value="Family">Family</option>
                 <option value="Guest">Guest</option>
               </select>
-              <button onclick="inviteTripMember()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:7px;padding:8px 16px;cursor:pointer;white-space:nowrap;">+ Invite</button>
+              <button id="tm-invite-btn" onclick="inviteTripMember()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:7px;padding:8px 16px;cursor:pointer;white-space:nowrap;">+ Invite</button>
             </div>
+            <div id="tm-partner-hint" style="display:none;font-size:0.78rem;color:var(--muted);margin-top:6px;line-height:1.5;"></div>
             <div id="tm-msg" style="display:none;font-size:0.8rem;margin-top:8px;"></div>
           </div>
 
@@ -3736,10 +3738,29 @@ async function acceptPartnerInvite(token) {
     });
     const data = await resp.json();
     if (data.success) {
+      // If this invite included a trip, add acceptor to that trip's members
+      const pendingTripId = sessionStorage.getItem('acceptPartnerTripId');
+      if (pendingTripId) {
+        sessionStorage.removeItem('acceptPartnerTripId');
+        try {
+          await fetch('/api/trip-members', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tripId:       pendingTripId,
+              inviteeEmail: userEmail,
+              role:         'Partner',
+              skipEmail:    true
+            })
+          });
+        } catch(e) { console.error('partner trip-member add error:', e.message); }
+      }
       showPage('profile');
-      // Reload profile to reflect linked status
       await loadProfile(userEmail);
-      showConfirm('🎉', 'Travel Partner Connected!', `You're now linked with ${data.partnerName || 'your travel partner'}. View your compatibility report in Travel Partners.`, 'View Report', 'var(--teal)', loadCompatibilityReport);
+      const msg = pendingTripId
+        ? `You're now linked with ${data.partnerName || 'your travel partner'} and added to their trip. View your compatibility report in Travel Partners.`
+        : `You're now linked with ${data.partnerName || 'your travel partner'}. View your compatibility report in Travel Partners.`;
+      showConfirm('🎉', 'Travel Partner Connected!', msg, 'View Report', 'var(--teal)', loadCompatibilityReport);
     } else {
       showConfirm('⚠️', 'Invitation Issue', data.error || 'Could not accept invitation.', 'OK', 'var(--teal)', () => {});
     }
@@ -4716,6 +4737,9 @@ window._pmClearPassions = function() {
   // Stash partner accept token
   if (p.get('accept-partner')) {
     sessionStorage.setItem('acceptPartnerToken', p.get('accept-partner'));
+    if (p.get('accept-partner-trip')) {
+      sessionStorage.setItem('acceptPartnerTripId', p.get('accept-partner-trip'));
+    }
   }
   // Stash trip invite accept token
   if (p.get('accept-trip')) {
@@ -5420,6 +5444,7 @@ function openTrip(record) {
   document.getElementById('trip-reservations-card').style.display = 'block';
   loadTripReservations(record.id);
   loadTripMembers(record.id);
+  onTmRoleChange();
   // Schedule card — show with day count
   document.getElementById('trip-schedule-card').style.display = 'block';
   document.getElementById('trip-schedule-summary').textContent = '';
@@ -6696,6 +6721,37 @@ async function _doCancelTrip() {
 }
 
 // ── Trip Members ──────────────────────────────────
+function onTmRoleChange() {
+  const role          = document.getElementById('tm-role').value;
+  const emailInput    = document.getElementById('tm-email');
+  const partnerDisplay = document.getElementById('tm-partner-display');
+  const hint          = document.getElementById('tm-partner-hint');
+  const btn           = document.getElementById('tm-invite-btn');
+  const p             = portalProfile || {};
+  const isLinked      = p['Partner Status'] === 'Linked' && p['Travel Partner Email'];
+
+  if (role === 'Partner') {
+    if (isLinked) {
+      emailInput.style.display    = 'none';
+      partnerDisplay.style.display = 'block';
+      partnerDisplay.textContent  = p['Travel Partner Email'];
+      hint.style.display          = 'none';
+      btn.textContent             = 'Add to Trip';
+    } else {
+      emailInput.style.display    = '';
+      partnerDisplay.style.display = 'none';
+      hint.style.display          = 'block';
+      hint.textContent            = 'Entering an email will send a travel partner connection invite. Once they accept, they\'ll also be added to this trip.';
+      btn.textContent             = 'Send Invite';
+    }
+  } else {
+    emailInput.style.display    = '';
+    partnerDisplay.style.display = 'none';
+    hint.style.display          = 'none';
+    btn.textContent             = '+ Invite';
+  }
+}
+
 async function loadTripReservations(tripId) {
   const list = document.getElementById('trip-reservations-list');
   list.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);">Loading…</div>';
@@ -6793,39 +6849,82 @@ async function loadTripMembers(tripId) {
 }
 
 async function inviteTripMember() {
-  const email = (document.getElementById('tm-email').value || '').trim().toLowerCase();
-  const role  = document.getElementById('tm-role').value;
-  const msg   = document.getElementById('tm-msg');
+  const role          = document.getElementById('tm-role').value;
+  const msg           = document.getElementById('tm-msg');
+  const p             = portalProfile || {};
+  const isLinkedPartner = role === 'Partner' && p['Partner Status'] === 'Linked' && p['Travel Partner Email'];
+
+  let email;
+  if (isLinkedPartner) {
+    email = p['Travel Partner Email'].toLowerCase();
+  } else {
+    email = (document.getElementById('tm-email').value || '').trim().toLowerCase();
+  }
+
   msg.style.display = 'none';
-  if (!email || !currentTripId) return;
+  if (!currentTripId) return;
+  if (!email) {
+    msg.textContent = 'Please enter an email address.';
+    msg.style.color = '#ef4444';
+    msg.style.display = 'block';
+    return;
+  }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     msg.textContent = 'Please enter a valid email address.';
     msg.style.color = '#ef4444';
     msg.style.display = 'block';
     return;
   }
-  msg.textContent = 'Sending invite…';
+
+  const isPartnerInvite = role === 'Partner' && !isLinkedPartner;
+  msg.textContent = isPartnerInvite ? 'Sending partner invitation…' : 'Sending invite…';
   msg.style.color = 'var(--muted)';
   msg.style.display = 'block';
+
   try {
-    const tripNameEl = document.getElementById('td-name');
-    const tripName   = tripNameEl ? tripNameEl.value : '';
+    const tripNameEl  = document.getElementById('td-name');
+    const tripName    = tripNameEl ? tripNameEl.value : '';
+    const inviterName = (portalProfile && portalProfile['First Name']) ? portalProfile['First Name'] : userEmail;
+
+    // No-partner path: send partner connection invite (which also mentions the trip)
+    if (isPartnerInvite) {
+      const partnerResp = await fetch('/api/partner?action=invite', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderEmail: userEmail, partnerEmail: email, tripId: currentTripId, tripName })
+      });
+      const partnerData = await partnerResp.json();
+      if (!partnerData.success) {
+        msg.textContent = 'Error: ' + (partnerData.error || 'Could not send partner invite.');
+        msg.style.color = '#ef4444';
+        return;
+      }
+    }
+
+    // Add to Trip Members (skip email for partner-invite path — partner invite email covers it)
     const resp = await fetch('/api/trip-members', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         tripId:       currentTripId,
-        tripName:     tripName,
+        tripName,
         inviterEmail: userEmail,
-        inviterName:  (portalProfile && portalProfile['First Name']) ? portalProfile['First Name'] : userEmail,
+        inviterName,
         inviteeEmail: email,
-        role
+        role,
+        skipEmail:    isPartnerInvite
       })
     });
     const data = await resp.json();
     if (data.success) {
-      document.getElementById('tm-email').value = '';
-      msg.textContent = `Invitation sent to ${email}`;
+      if (!isLinkedPartner) document.getElementById('tm-email').value = '';
+      if (isLinkedPartner) {
+        msg.textContent = `Partner added — a confirmation has been sent to ${email}.`;
+      } else if (isPartnerInvite) {
+        msg.textContent = `Partner invite sent to ${email}. They'll be added to the trip once they accept.`;
+      } else {
+        msg.textContent = `Invitation sent to ${email}.`;
+      }
       msg.style.color = 'var(--teal)';
       loadTripMembers(currentTripId);
     } else {
