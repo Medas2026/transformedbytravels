@@ -112,7 +112,7 @@ function parseClaudeJson(text) {
 // ── Confirmation email HTML ───────────────────────────────────────────────────
 
 function buildConfirmationHtml(travelerName, tripName, parsed) {
-  const typeLabel = parsed.type === 'flight' ? '✈️ Flight' : parsed.type === 'hotel' ? '🏨 Hotel' : '📋 Reservation';
+  const typeLabel = parsed.type === 'flight' ? '✈️ Flight' : parsed.type === 'hotel' ? '🏨 Hotel' : parsed.type === 'car_rental' ? '🚗 Car Rental' : '📋 Reservation';
   const detailRows = [];
 
   if (parsed.type === 'flight') {
@@ -128,6 +128,13 @@ function buildConfirmationHtml(travelerName, tripName, parsed) {
     if (parsed.check_in_date)   detailRows.push(['Check-in',   parsed.check_in_date]);
     if (parsed.check_out_date)  detailRows.push(['Check-out',  parsed.check_out_date]);
     if (parsed.room_type)       detailRows.push(['Room',       parsed.room_type]);
+  }
+  } else if (parsed.type === 'car_rental') {
+    if (parsed.rental_company) detailRows.push(['Company',    parsed.rental_company]);
+    if (parsed.car_type)       detailRows.push(['Vehicle',    parsed.car_type]);
+    if (parsed.pickup_date)    detailRows.push(['Pickup',     parsed.pickup_date + (parsed.pickup_time ? ' at ' + parsed.pickup_time : '')]);
+    if (parsed.pickup_location)detailRows.push(['Location',   parsed.pickup_location]);
+    if (parsed.dropoff_date)   detailRows.push(['Return',     parsed.dropoff_date]);
   }
   if (parsed.confirmation_number) detailRows.push(['Confirmation #', parsed.confirmation_number]);
 
@@ -221,6 +228,12 @@ Return JSON in this exact format (use null for any field you cannot determine):
   "check_in_date": "YYYY-MM-DD",
   "check_out_date": "YYYY-MM-DD",
   "room_type": "...",
+  "rental_company": "...",
+  "car_type": "...",
+  "pickup_date": "YYYY-MM-DD",
+  "pickup_time": "HH:MM",
+  "dropoff_date": "YYYY-MM-DD",
+  "pickup_location": "...",
   "summary": "One sentence summary of this reservation"
 }`;
 
@@ -235,7 +248,7 @@ Return JSON in this exact format (use null for any field you cannot determine):
     }
 
     // 3. Find the matching trip by date
-    const keyDate = parsed.departure_date || parsed.check_in_date || null;
+    const keyDate = parsed.departure_date || parsed.check_in_date || parsed.pickup_date || null;
     let tripRec = null;
     if (keyDate) {
       const tripsData = await airtableFetch('Trips',
@@ -269,12 +282,11 @@ Return JSON in this exact format (use null for any field you cannot determine):
           }
         });
       } else if (parsed.type === 'flight' && parsed.departure_date) {
-        // Find the Trip Day matching the departure date and add a freeform slot
         const daysData = await airtableFetch('Trip Days',
           `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Date}="${parsed.departure_date}")`)}`, 'GET');
         const dayRec = (daysData.records || [])[0];
         if (dayRec) {
-          const flightSlot = {
+          const slot = {
             type:        'freeform',
             time:        parsed.departure_time || '',
             description: [
@@ -283,11 +295,33 @@ Return JSON in this exact format (use null for any field you cannot determine):
               parsed.confirmation_number ? 'Conf: ' + parsed.confirmation_number : null
             ].filter(Boolean).join(' · ')
           };
-          // Put in first empty slot
           const existingSlots = [1,2,3,4].map(n => dayRec.fields['Slot ' + n]).filter(Boolean);
           const slotNum = Math.min(existingSlots.length + 1, 4);
           await airtableFetch('Trip Days', `/${dayRec.id}`, 'PATCH', {
-            fields: { ['Slot ' + slotNum]: JSON.stringify(flightSlot) }
+            fields: { ['Slot ' + slotNum]: JSON.stringify(slot) }
+          });
+        }
+      } else if (parsed.type === 'car_rental' && parsed.pickup_date) {
+        const daysData = await airtableFetch('Trip Days',
+          `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Date}="${parsed.pickup_date}")`)}`, 'GET');
+        const dayRec = (daysData.records || [])[0];
+        if (dayRec) {
+          const slot = {
+            type:        'freeform',
+            time:        parsed.pickup_time || '',
+            description: [
+              '🚗',
+              parsed.rental_company,
+              parsed.car_type,
+              parsed.pickup_location ? 'Pickup: ' + parsed.pickup_location : null,
+              parsed.dropoff_date ? 'Return: ' + parsed.dropoff_date : null,
+              parsed.confirmation_number ? 'Conf: ' + parsed.confirmation_number : null
+            ].filter(Boolean).join(' · ')
+          };
+          const existingSlots = [1,2,3,4].map(n => dayRec.fields['Slot ' + n]).filter(Boolean);
+          const slotNum = Math.min(existingSlots.length + 1, 4);
+          await airtableFetch('Trip Days', `/${dayRec.id}`, 'PATCH', {
+            fields: { ['Slot ' + slotNum]: JSON.stringify(slot) }
           });
         }
       }
@@ -299,6 +333,8 @@ Return JSON in this exact format (use null for any field you cannot determine):
       ? `✈️ Flight added to ${tripName}`
       : parsed.type === 'hotel'
       ? `🏨 ${parsed.hotel_name || 'Hotel'} added to ${tripName}`
+      : parsed.type === 'car_rental'
+      ? `🚗 ${parsed.rental_company || 'Car rental'} added to ${tripName}`
       : `Reservation added to ${tripName}`;
 
     await sendResend(fromEmail, emailSubject, html);
