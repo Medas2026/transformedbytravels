@@ -7656,7 +7656,11 @@ function _slotFieldsHtml(n, slot) {
       <button onclick="_smOpenFlights(${n})" style="width:100%;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">✈ Search Google Flights</button>
     </div>
     <div id="sm-s${n}-maps-btn" style="${mode === 'Road' ? '' : 'display:none;'}">
-      <button onclick="_smOpenMaps(${n})" style="width:100%;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">🗺 Google Maps Directions</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">
+        <button onclick="_smOpenMaps(${n})" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">🗺 Directions</button>
+        <button onclick="_smGetDriveTime(${n})" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">⏱ Drive Time</button>
+      </div>
+      <div id="sm-s${n}-drivetime-status" style="display:none;font-size:0.78rem;padding:3px 0;"></div>
     </div>`;
   }
   if (type === 'gyg') {
@@ -7750,6 +7754,58 @@ function _smOpenMaps(n) {
     (to   ? '&destination=' + encodeURIComponent(resolveHome(to))   : '') +
     '&travelmode=driving';
   window.open(url, '_blank', 'noopener');
+}
+
+async function _smGetDriveTime(n) {
+  const from      = (document.getElementById(`sm-s${n}-from`)?.value || '').trim();
+  const to        = (document.getElementById(`sm-s${n}-to`)?.value   || '').trim();
+  const statusEl  = document.getElementById(`sm-s${n}-drivetime-status`);
+  const durEl     = document.getElementById(`sm-s${n}-duration`);
+  if (!from || !to) {
+    if (statusEl) { statusEl.textContent = 'Enter From and To first.'; statusEl.style.color = '#f59e0b'; statusEl.style.display = 'block'; }
+    return;
+  }
+  if (statusEl) { statusEl.textContent = 'Calculating…'; statusEl.style.color = 'var(--muted)'; statusEl.style.display = 'block'; }
+  try {
+    if (!window._mapboxToken) {
+      const r = await fetch('/api/mapbox-token');
+      const d = await r.json();
+      window._mapboxToken = d.token || '';
+    }
+    const token = window._mapboxToken;
+    if (!token) throw new Error('Map token unavailable');
+
+    const geocode = async (place) => {
+      const r = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(place)}.json?limit=1&access_token=${token}`);
+      const d = await r.json();
+      const c = d.features?.[0]?.center;
+      if (!c) throw new Error(`Could not locate "${place}"`);
+      return c;
+    };
+
+    const [fromCoords, toCoords] = await Promise.all([geocode(from), geocode(to)]);
+    const dirResp = await fetch(
+      `https://api.mapbox.com/directions/v5/mapbox/driving/${fromCoords[0]},${fromCoords[1]};${toCoords[0]},${toCoords[1]}?access_token=${token}`
+    );
+    const dirData = await dirResp.json();
+    const route   = dirData.routes?.[0];
+    if (!route) throw new Error('No route found between these locations');
+
+    const secs  = route.duration;
+    const hrs   = Math.floor(secs / 3600);
+    const mins  = Math.round((secs % 3600) / 60);
+    const distMi = Math.round(route.distance / 1609.34);
+    const distKm = Math.round(route.distance / 1000);
+    const timeStr = hrs > 0 ? `${hrs} hr ${mins > 0 ? mins + ' min' : ''}`.trim() : `${mins} min`;
+
+    if (durEl && !durEl.value.trim()) durEl.value = timeStr;
+    if (statusEl) {
+      statusEl.textContent = `✓ ${timeStr} · ${distMi} mi (${distKm} km)`;
+      statusEl.style.color = 'var(--teal)';
+    }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = 'Error: ' + e.message; statusEl.style.color = '#ef4444'; }
+  }
 }
 
 function _smOpenFlights(n) {
