@@ -128,7 +128,6 @@ function buildConfirmationHtml(travelerName, tripName, parsed) {
     if (parsed.check_in_date)   detailRows.push(['Check-in',   parsed.check_in_date]);
     if (parsed.check_out_date)  detailRows.push(['Check-out',  parsed.check_out_date]);
     if (parsed.room_type)       detailRows.push(['Room',       parsed.room_type]);
-  }
   } else if (parsed.type === 'car_rental') {
     if (parsed.rental_company) detailRows.push(['Company',    parsed.rental_company]);
     if (parsed.car_type)       detailRows.push(['Vehicle',    parsed.car_type]);
