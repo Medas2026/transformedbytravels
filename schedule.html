@@ -143,8 +143,12 @@
     </div>
     <div id="trip-schedule-status" style="display:none;font-size:0.85rem;margin-bottom:10px;"></div>
     <div id="trip-schedule-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--bd);padding-top:16px;">
       <button onclick="scheduleAddDay()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 18px;cursor:pointer;">+ Add Day at End</button>
+      <div style="flex:1;"></div>
+      <button onclick="cancelSchedule()" style="background:none;border:1px solid #334155;border-radius:8px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;padding:8px 18px;cursor:pointer;">Cancel</button>
+      <button onclick="saveTripSchedule()" style="background:var(--teal);border:none;border-radius:8px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;padding:8px 18px;cursor:pointer;">Save</button>
+      <button id="main-next-day-btn" onclick="saveAndNextDay()" style="display:none;background:#1e3a5f;border:1px solid rgba(45,212,191,0.4);border-radius:8px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;padding:8px 18px;cursor:pointer;">Save/Next Day →</button>
     </div>
     <div id="schedule-day-warning" style="display:none;margin-top:10px;font-size:0.83rem;color:#f59e0b;"></div>
   </div>
@@ -281,6 +285,7 @@ let currentTripCountry     = '';
 
 let _scheduleRecords  = [];
 let _lodgingRecords   = [];
+let _currentNavDayIdx = -1;
 let _lodgingMap       = {};
 let _lodgingModalIdx  = null;
 let _lodgingEditId    = null;
@@ -377,6 +382,7 @@ async function loadSchedule() {
     }
     renderScheduleList();
     _scheduleWarn();
+    updateMainNavButtons();
   } catch(e) {
     document.getElementById('loading').textContent = 'Error loading schedule: ' + e.message;
   }
@@ -696,6 +702,25 @@ async function saveTripSchedule() {
   if (errors) { status.style.color = '#f43f5e'; status.textContent = errors + ' day(s) failed to save.'; }
   else { status.style.color = 'var(--teal)'; status.textContent = 'Locations saved!'; setTimeout(() => { status.style.display = 'none'; }, 2000); }
   btn.disabled = false;
+}
+
+function cancelSchedule() {
+  showConfirm('⚠️', 'Leave without saving?', 'Unsaved location changes will be lost.', 'Leave', '#f43f5e', () => {
+    window.location.href = '/portal.html';
+  });
+}
+
+function updateMainNavButtons() {
+  const btn = document.getElementById('main-next-day-btn');
+  if (!btn) return;
+  const nextIdx = _currentNavDayIdx + 1;
+  btn.style.display = (nextIdx < _scheduleRecords.length) ? '' : 'none';
+}
+
+async function saveAndNextDay() {
+  await saveTripSchedule();
+  const nextIdx = _currentNavDayIdx + 1;
+  if (nextIdx < _scheduleRecords.length) openDayModal(nextIdx);
 }
 
 // ── Route Map ────────────────────────────────────────────────────────────────
@@ -1080,6 +1105,8 @@ function _smReopenEventPicker(n) {
 
 function openDayModal(idx) {
   _dayModalIdx = idx;
+  _currentNavDayIdx = idx;
+  updateMainNavButtons();
   const r = _scheduleRecords[idx];
   const f = r.fields;
   const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
