@@ -6721,28 +6721,51 @@ async function _doCancelTrip() {
 
 // ── Trip Members ──────────────────────────────────
 function onTmRoleChange() {
-  const role          = document.getElementById('tm-role').value;
-  const emailInput    = document.getElementById('tm-email');
-  const hint          = document.getElementById('tm-partner-hint');
-  const btn           = document.getElementById('tm-invite-btn');
-  const p             = portalProfile || {};
-  const isLinked      = p['Partner Status'] === 'Linked' && p['Travel Partner Email'];
+  const role       = document.getElementById('tm-role').value;
+  const emailInput = document.getElementById('tm-email');
+  const hint       = document.getElementById('tm-partner-hint');
+  const btn        = document.getElementById('tm-invite-btn');
 
-  if (role === 'Partner') {
-    if (isLinked) {
-      emailInput.value   = p['Travel Partner Email'];
-      hint.style.display = 'none';
-      btn.textContent    = 'Add to Trip';
-    } else {
-      emailInput.value   = '';
-      hint.style.display = 'block';
-      hint.textContent   = 'Entering an email will send a travel partner connection invite. Once they accept, they\'ll also be added to this trip.';
-      btn.textContent    = 'Send Invite';
-    }
-  } else {
+  if (role !== 'Partner') {
     emailInput.value   = '';
     hint.style.display = 'none';
     btn.textContent    = '+ Invite';
+    return;
+  }
+
+  // Partner role — fetch fresh partner status in case profile cache is stale
+  const p       = portalProfile || {};
+  const cached  = p['Partner Status'] === 'Linked' && p['Travel Partner Email'];
+  if (cached) {
+    emailInput.value   = p['Travel Partner Email'];
+    hint.style.display = 'none';
+    btn.textContent    = 'Add to Trip';
+  } else {
+    // Try a live lookup
+    hint.style.display = 'block';
+    hint.textContent   = 'Checking partner status…';
+    btn.textContent    = 'Send Invite';
+    fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail))
+      .then(r => r.json())
+      .then(d => {
+        const f = d.record && d.record.fields || {};
+        if (f['Partner Status'] === 'Linked' && f['Travel Partner Email']) {
+          // Update cache and pre-fill
+          if (portalProfile) {
+            portalProfile['Partner Status']      = f['Partner Status'];
+            portalProfile['Travel Partner Email'] = f['Travel Partner Email'];
+          }
+          emailInput.value   = f['Travel Partner Email'];
+          hint.style.display = 'none';
+          btn.textContent    = 'Add to Trip';
+        } else {
+          hint.textContent = 'Entering an email will send a travel partner connection invite. Once they accept, they\'ll also be added to this trip.';
+          btn.textContent  = 'Send Invite';
+        }
+      })
+      .catch(() => {
+        hint.textContent = 'Entering an email will send a travel partner connection invite. Once they accept, they\'ll also be added to this trip.';
+      });
   }
 }
 
