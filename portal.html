@@ -7244,18 +7244,29 @@ async function uploadTripPhoto(input) {
       document.getElementById('td-photo-banner-img').src = data.secure_url;
       document.getElementById('td-photo-banner').style.display = 'block';
       document.getElementById('td-photo-btn').textContent = '📷 Change Photo';
-      status.textContent = 'Saving…';
       // Auto-save the URL immediately so it persists without requiring Save Trip
       if (currentTripId) {
+        status.textContent = 'Saving photo…';
         try {
-          await fetch('/api/trips', {
+          const saveResp = await fetch('/api/trips', {
             method:  'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: currentTripId, tripPhotoUrl: data.secure_url })
           });
-        } catch(e) { console.error('[photo save]', e.message); }
+          const saveData = await saveResp.json();
+          if (!saveResp.ok || saveData.error) {
+            status.textContent = 'Photo uploaded — click Save Trip to keep it.';
+          } else {
+            status.textContent = '✓ Photo saved';
+            setTimeout(() => { status.textContent = ''; }, 2000);
+          }
+        } catch(e) {
+          console.error('[photo save]', e.message);
+          status.textContent = 'Photo uploaded — click Save Trip to keep it.';
+        }
+      } else {
+        status.textContent = '';
       }
-      status.textContent = '';
     } else {
       status.textContent = 'Upload failed. Please try again.';
       console.error('[uploadTripPhoto] error:', data);
