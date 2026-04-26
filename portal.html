@@ -947,6 +947,12 @@
             </button>
           </div>
 
+          <!-- Reservations card -->
+          <div id="trip-reservations-card" class="profile-section" style="display:none;">
+            <div class="profile-section-title" style="margin-bottom:12px;padding-bottom:10px;">Reservations</div>
+            <div id="trip-reservations-list"><div style="color:var(--muted);font-size:0.85rem;">Loading…</div></div>
+          </div>
+
           <!-- Box 5: Trip Details -->
           <!-- Trip Status card -->
           <div id="trip-status-card" class="profile-section" style="display:none;">
@@ -5409,6 +5415,8 @@ function openTrip(record) {
   document.getElementById('trip-passions-card').style.display = 'block';
   document.getElementById('trip-members-section').style.display = 'block';
   document.getElementById('trip-flights-card').style.display = 'block';
+  document.getElementById('trip-reservations-card').style.display = 'block';
+  loadTripReservations(record.id);
   loadTripMembers(record.id);
   // Schedule card — show with day count
   document.getElementById('trip-schedule-card').style.display = 'block';
@@ -6589,6 +6597,7 @@ function showNewTripForm() {
   document.getElementById('trip-passions-card').style.display = 'block';
   document.getElementById('trip-schedule-card').style.display = 'none';
   document.getElementById('trip-flights-card').style.display = 'none';
+  document.getElementById('trip-reservations-card').style.display = 'none';
   document.getElementById('itinerary-section').style.display = 'none';
   document.getElementById('integration-report-section').style.display = 'none';
   document.getElementById('trip-list-section').style.display = 'none';
@@ -6636,6 +6645,7 @@ function closeTripDetail() {
   document.getElementById('trip-detail').style.display = 'none';
   document.getElementById('trip-status-card').style.display = 'none';
   document.getElementById('trip-passions-card').style.display = 'none';
+  document.getElementById('trip-reservations-card').style.display = 'none';
   document.getElementById('td-status-group').style.display = 'block';
   document.getElementById('td-rating-group').style.display = 'none';
   document.getElementById('td-start').min = '';
@@ -6684,6 +6694,39 @@ async function _doCancelTrip() {
 }
 
 // ── Trip Members ──────────────────────────────────
+async function loadTripReservations(tripId) {
+  const list = document.getElementById('trip-reservations-list');
+  list.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);">Loading…</div>';
+  try {
+    const filter = '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`) + '&sort[0][field]=Key Date&sort[0][direction]=asc';
+    const resp = await fetch('/api/reservations?tripId=' + encodeURIComponent(tripId));
+    const data = await resp.json();
+    const records = data.records || [];
+    if (!records.length) {
+      list.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);">No reservations yet. Forward a flight, hotel, or car rental confirmation to <strong style="color:var(--teal);">itinerary@transformedbytravels.com</strong></div>';
+      return;
+    }
+    const typeIcon = { flight: '✈️', hotel: '🏨', car_rental: '🚗', other: '📋' };
+    list.innerHTML = records.map(r => {
+      const f = r.fields;
+      const icon = typeIcon[f['Type']] || '📋';
+      const type = (f['Type'] || 'other').replace('_', ' ');
+      const conf = f['Confirmation Number'] ? `<span style="font-size:0.75rem;color:var(--muted);margin-left:8px;">Conf: ${f['Confirmation Number']}</span>` : '';
+      const date = f['Key Date'] ? `<span style="font-size:0.75rem;color:var(--muted);">${f['Key Date']}</span>` : '';
+      const subj = f['Subject'] ? `<div style="font-size:0.78rem;color:var(--soft);margin-top:2px;">${f['Subject']}</div>` : '';
+      return `<div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:#fff;">${icon} ${type.charAt(0).toUpperCase()+type.slice(1)}${conf}</div>
+          ${date}
+        </div>
+        ${subj}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="font-size:0.85rem;color:#f43f5e;">Error loading reservations.</div>';
+  }
+}
+
 async function loadTripMembers(tripId) {
   const list = document.getElementById('trip-members-list');
   const msg  = document.getElementById('tm-msg');
