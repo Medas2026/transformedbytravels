@@ -122,10 +122,10 @@
 
   <!-- Route Map card -->
   <div class="section-card" id="map-card">
-    <div class="section-title">Route Map</div>
+    <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bd);">Route Map</div>
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-      <button onclick="renderScheduleMap(false)" style="background:none;border:1px solid rgba(45,212,191,0.5);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🗺 Route Map</button>
-      <button onclick="renderScheduleMap(true)" style="background:none;border:1px solid rgba(100,116,139,0.5);color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🏠 Include Home</button>
+      <button onclick="renderScheduleMap(false)" style="background:none;border:1px solid rgba(45,212,191,0.5);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🗺 W/out Home</button>
+      <button onclick="renderScheduleMap(true)" style="background:none;border:1px solid rgba(100,116,139,0.5);color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🏠 With Home</button>
     </div>
     <div id="schedule-map-wrap" style="display:none;margin-bottom:8px;">
       <div id="schedule-map" style="width:100%;height:300px;border-radius:10px;border:1px solid var(--bd);"></div>
@@ -258,9 +258,9 @@
     </div>
     <div id="day-modal-slots" style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;"></div>
     <div style="display:flex;gap:10px;padding:0 24px 24px;flex-wrap:wrap;">
-      <button onclick="closeDayModal()" style="flex:1;min-width:80px;padding:11px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Cancel</button>
-      <button onclick="saveDayModal(false)" style="flex:2;min-width:100px;padding:11px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save Day</button>
-      <button id="day-modal-next-btn" onclick="saveDayModal(true)" style="flex:2;min-width:100px;padding:11px;background:#1e3a5f;border:1px solid rgba(45,212,191,0.4);border-radius:10px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save & Next Day →</button>
+      <button onclick="closeDayModalConfirm()" style="flex:1;min-width:80px;padding:11px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Cancel</button>
+      <button onclick="saveDayModal(false)" style="flex:2;min-width:100px;padding:11px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save</button>
+      <button id="day-modal-next-btn" onclick="saveDayModal(true)" style="flex:2;min-width:100px;padding:11px;background:#1e3a5f;border:1px solid rgba(45,212,191,0.4);border-radius:10px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save/Next Day →</button>
     </div>
     <div id="day-modal-status" style="display:none;text-align:center;font-size:0.85rem;padding:0 24px 16px;"></div>
   </div>
@@ -1105,6 +1105,10 @@ function openDayModal(idx) {
 function closeDayModal() {
   document.getElementById('day-modal').style.display='none';
   _dayModalIdx=null;
+}
+
+function closeDayModalConfirm() {
+  showConfirm('⚠️', 'Discard changes?', 'Any unsaved edits to this day will be lost.', 'Discard', '#f43f5e', () => closeDayModal());
 }
 
 async function saveDayModal(andNext=false) {
