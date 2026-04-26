@@ -905,7 +905,6 @@
             <div id="trip-members-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <input id="tm-email" type="email" placeholder="Invite by email" style="flex:1;min-width:160px;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 12px;color:var(--text);font-size:0.85rem;">
-              <div id="tm-partner-display" style="display:none;flex:1;font-size:0.85rem;color:var(--teal);padding:8px 4px;"></div>
               <select id="tm-role" onchange="onTmRoleChange()" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
                 <option value="Partner">Partner</option>
                 <option value="Trip Planner">Trip Planner</option>
@@ -6724,7 +6723,6 @@ async function _doCancelTrip() {
 function onTmRoleChange() {
   const role          = document.getElementById('tm-role').value;
   const emailInput    = document.getElementById('tm-email');
-  const partnerDisplay = document.getElementById('tm-partner-display');
   const hint          = document.getElementById('tm-partner-hint');
   const btn           = document.getElementById('tm-invite-btn');
   const p             = portalProfile || {};
@@ -6732,23 +6730,19 @@ function onTmRoleChange() {
 
   if (role === 'Partner') {
     if (isLinked) {
-      emailInput.style.display    = 'none';
-      partnerDisplay.style.display = 'block';
-      partnerDisplay.textContent  = p['Travel Partner Email'];
-      hint.style.display          = 'none';
-      btn.textContent             = 'Add to Trip';
+      emailInput.value   = p['Travel Partner Email'];
+      hint.style.display = 'none';
+      btn.textContent    = 'Add to Trip';
     } else {
-      emailInput.style.display    = '';
-      partnerDisplay.style.display = 'none';
-      hint.style.display          = 'block';
-      hint.textContent            = 'Entering an email will send a travel partner connection invite. Once they accept, they\'ll also be added to this trip.';
-      btn.textContent             = 'Send Invite';
+      emailInput.value   = '';
+      hint.style.display = 'block';
+      hint.textContent   = 'Entering an email will send a travel partner connection invite. Once they accept, they\'ll also be added to this trip.';
+      btn.textContent    = 'Send Invite';
     }
   } else {
-    emailInput.style.display    = '';
-    partnerDisplay.style.display = 'none';
-    hint.style.display          = 'none';
-    btn.textContent             = '+ Invite';
+    emailInput.value   = '';
+    hint.style.display = 'none';
+    btn.textContent    = '+ Invite';
   }
 }
 
@@ -6917,7 +6911,8 @@ async function inviteTripMember() {
     });
     const data = await resp.json();
     if (data.success) {
-      if (!isLinkedPartner) document.getElementById('tm-email').value = '';
+      document.getElementById('tm-email').value = '';
+      onTmRoleChange();
       if (isLinkedPartner) {
         msg.textContent = `Partner added — a confirmation has been sent to ${email}.`;
       } else if (isPartnerInvite) {
