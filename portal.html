@@ -872,6 +872,7 @@
             <button onclick="clearTripPhoto()" style="position:absolute;top:10px;right:10px;background:rgba(15,23,42,0.75);border:none;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;border-radius:6px;padding:5px 10px;cursor:pointer;">✕ Remove</button>
           </div>
 
+          <!-- Box 1: Trip Basics -->
           <div class="profile-section">
             <div class="trip-field-group">
               <div class="trip-field-label">Trip Name</div>
@@ -896,44 +897,58 @@
                 <input id="td-end" type="date" class="trip-input" onchange="updateDuration()" />
               </div>
             </div>
-            <!-- Trip Members -->
-            <div id="trip-members-section" style="display:none;margin:16px 0;background:rgba(45,212,191,0.05);border:1px solid rgba(45,212,191,0.2);border-radius:12px;padding:16px 18px;">
-              <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal);margin-bottom:12px;">Trip Members</div>
-              <div id="trip-members-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                <input id="tm-email" type="email" placeholder="Invite by email" style="flex:1;min-width:160px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 12px;color:var(--text);font-size:0.85rem;">
-                <select id="tm-role" style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
-                  <option value="Partner">Partner</option>
-                  <option value="Trip Planner">Trip Planner</option>
-                  <option value="Family">Family</option>
-                  <option value="Guest">Guest</option>
-                </select>
-                <button onclick="inviteTripMember()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:7px;padding:8px 16px;cursor:pointer;white-space:nowrap;">+ Invite</button>
+          </div>
+
+          <!-- Box 2: Trip Members -->
+          <div id="trip-members-section" class="profile-section" style="display:none;">
+            <div class="profile-section-title" style="margin-bottom:12px;padding-bottom:10px;">Trip Members</div>
+            <div id="trip-members-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input id="tm-email" type="email" placeholder="Invite by email" style="flex:1;min-width:160px;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 12px;color:var(--text);font-size:0.85rem;">
+              <select id="tm-role" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+                <option value="Partner">Partner</option>
+                <option value="Trip Planner">Trip Planner</option>
+                <option value="Family">Family</option>
+                <option value="Guest">Guest</option>
+              </select>
+              <button onclick="inviteTripMember()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:7px;padding:8px 16px;cursor:pointer;white-space:nowrap;">+ Invite</button>
+            </div>
+            <div id="tm-msg" style="display:none;font-size:0.8rem;margin-top:8px;"></div>
+          </div>
+
+          <!-- Box 3: Trip Schedule -->
+          <div id="trip-schedule-card" class="profile-section" style="display:none;">
+            <div class="profile-section-title" style="margin-bottom:12px;padding-bottom:10px;">Trip Schedule</div>
+            <div id="trip-schedule-summary" style="font-size:0.85rem;color:var(--soft);margin-bottom:14px;"></div>
+            <button onclick="openSchedulePage()" style="display:inline-flex;align-items:center;gap:8px;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 24px;cursor:pointer;">
+              📅 Enter / Edit Schedule →
+            </button>
+          </div>
+
+          <!-- Box 4: Flights -->
+          <div id="trip-flights-card" class="profile-section" style="display:none;">
+            <div class="profile-section-title" style="margin-bottom:12px;padding-bottom:10px;">Flight to Destination</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div class="trip-field-group" style="margin-bottom:0;">
+                <div class="trip-field-label">Departure Date</div>
+                <input id="td-depart" type="date" class="trip-input" />
               </div>
-              <div id="tm-msg" style="display:none;font-size:0.8rem;margin-top:8px;"></div>
-            </div>
-
-            <div style="margin-bottom:16px;"></div>
-            <div class="trip-field-group">
-              <div class="trip-field-label">Destination Airport Code</div>
-              <div style="display:flex;gap:10px;align-items:center;">
-                <input id="td-airport" type="text" maxlength="4" class="trip-input" placeholder="e.g. CDG" style="width:110px;text-transform:uppercase;flex-shrink:0;" oninput="this.value=this.value.toUpperCase()" />
-                <button onclick="openFlightsModal()" type="button" style="display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:7px;padding:8px 14px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='rgba(45,212,191,0.4)'">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-2-5.5-.5L10 5 1.8 3.2l-1 1L6 9l-2 2-4-1-1 1 3 3 3 3 1-1-1-4 2-2 4.2 5.2 1-1z"/></svg>
-                  Search Google Flights
-                </button>
-                <a href="https://www.iata.org/en/publications/directories/code-search/" target="_blank" style="font-size:0.78rem;color:var(--muted);white-space:nowrap;">Look up →</a>
+              <div class="trip-field-group" style="margin-bottom:0;">
+                <div class="trip-field-label">Destination Airport Code</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input id="td-airport" type="text" maxlength="4" class="trip-input" placeholder="e.g. CDG" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()" />
+                  <a href="https://www.iata.org/en/publications/directories/code-search/" target="_blank" style="font-size:0.78rem;color:var(--muted);white-space:nowrap;">Look up →</a>
+                </div>
               </div>
             </div>
+            <button onclick="openFlightsModal()" type="button" style="display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:7px;padding:8px 14px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='rgba(45,212,191,0.4)'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-2-5.5-.5L10 5 1.8 3.2l-1 1L6 9l-2 2-4-1-1 1 3 3 3 3 1-1-1-4 2-2 4.2 5.2 1-1z"/></svg>
+              Search Google Flights
+            </button>
+          </div>
 
-            <div class="trip-field-group">
-              <div class="trip-field-label">Experiences</div>
-              <button onclick="openGYGSearch()" type="button" style="display:inline-flex;align-items:center;gap:7px;background:none;border:1px solid rgba(255,140,0,0.4);color:#ff8c00;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:7px;padding:8px 14px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.borderColor='#ff8c00'" onmouseout="this.style.borderColor='rgba(255,140,0,0.4)'">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-                Find Experiences on GetYourGuide
-              </button>
-            </div>
-
+          <!-- Box 5: Trip Details -->
+          <div class="profile-section">
             <div class="trip-field-group" id="td-status-group">
               <div class="trip-field-label">Trip Status</div>
               <select id="td-status" class="trip-input" style="appearance:none;-webkit-appearance:none;cursor:pointer;">
@@ -990,7 +1005,6 @@
             <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
               <button onclick="saveTrip()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">Save Trip</button>
               <button onclick="buildItinerary()" id="build-itinerary-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">✦ Build Itinerary</button>
-              <button onclick="openTripSchedule()" id="trip-schedule-btn" style="display:none;background:none;border:1px solid rgba(45,212,191,0.5);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 28px;cursor:pointer;">📅 Trip Schedule</button>
               <button onclick="closeTripDetail()" style="background:none;border:1px solid #475569;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 20px;cursor:pointer;">Cancel</button>
             </div>
 
@@ -998,39 +1012,16 @@
             <div id="itinerary-section" style="margin-top:28px;border-top:1px solid var(--bd);padding-top:24px;">
               <div id="itinerary-panel" style="display:none;"></div>
             </div>
+          </div>
 
-            <!-- Trip Schedule (Day-by-Day Locations) -->
-            <div id="trip-schedule-section" style="display:none;margin-top:28px;border-top:1px solid var(--bd);padding-top:24px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-                <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;color:#fff;">Day-by-Day Locations</div>
-                <div style="display:flex;gap:8px;">
-                  <button onclick="renderScheduleMap(false)" id="schedule-map-btn" style="background:none;border:1px solid rgba(45,212,191,0.5);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🗺 Route Map</button>
-                  <button onclick="renderScheduleMap(true)" style="background:none;border:1px solid rgba(100,116,139,0.5);color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🏠 Include Home</button>
-                  <button onclick="saveTripSchedule()" id="save-schedule-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:8px;padding:8px 20px;cursor:pointer;">Save Locations</button>
-                </div>
-              </div>
-              <div id="trip-schedule-status" style="display:none;font-size:0.85rem;margin-bottom:12px;"></div>
-              <!-- Route map -->
-              <div id="schedule-map-wrap" style="display:none;margin-bottom:20px;">
-                <div id="schedule-map" style="width:100%;height:320px;border-radius:12px;border:1px solid var(--bd);"></div>
-                <div id="schedule-map-status" style="font-size:0.78rem;color:var(--muted);margin-top:6px;"></div>
-              </div>
-              <div id="trip-schedule-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-              <div style="margin-top:12px;">
-                <button onclick="scheduleAddDay()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 18px;cursor:pointer;">+ Add Day at End</button>
-              </div>
-              <div id="schedule-day-warning" style="display:none;margin-top:10px;font-size:0.83rem;color:#f59e0b;"></div>
+          <!-- Integration Report — shown for Completed trips -->
+          <div id="integration-report-section" style="display:none;" class="profile-section">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <i class="ph ph-sparkle" style="color:var(--teal);font-size:1rem;"></i>
+              <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Integration Report</div>
             </div>
-
-            <!-- Integration Report — shown for Completed trips -->
-            <div id="integration-report-section" style="display:none;margin-top:28px;border-top:1px solid var(--bd);padding-top:24px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                <i class="ph ph-sparkle" style="color:var(--teal);font-size:1rem;"></i>
-                <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);">Integration Report</div>
-              </div>
-              <div id="integration-report-content"></div>
-              <div id="integration-report-actions"></div>
-            </div>
+            <div id="integration-report-content"></div>
+            <div id="integration-report-actions"></div>
           </div>
 
 
@@ -5298,8 +5289,18 @@ function renderHistoryTripList(records) {
   section.style.display = 'block';
 }
 
+function openSchedulePage() {
+  if (!currentTripId) return;
+  window.location.href = '/schedule.html?trip=' + encodeURIComponent(currentTripId);
+}
+
 function updateDuration() {
   const s  = document.getElementById('td-start').value;
+  // Keep departure date in sync if it hasn't been manually set differently
+  const departEl = document.getElementById('td-depart');
+  if (departEl && s && (!departEl.value || departEl.value === document.getElementById('td-end').value)) {
+    departEl.value = s;
+  }
   const endEl = document.getElementById('td-end');
   if (s && !endEl.value) {
     const next = new Date(s + 'T12:00:00');
@@ -5363,6 +5364,7 @@ function openTrip(record) {
   document.getElementById('td-airport').value = f['Destination Airport'] || '';
   document.getElementById('td-start').value       = f['Start Date']   || '';
   document.getElementById('td-end').value         = f['End Date']     || '';
+  document.getElementById('td-depart').value      = f['Departure Date'] || f['Start Date'] || '';
   currentTripStart = f['Start Date'] || '';
   currentTripEnd   = f['End Date']   || '';
   // airport loaded via dpSetValues
@@ -5394,16 +5396,20 @@ function openTrip(record) {
   loadTripDNAGuides(f['Destination'] || '', f['Country'] || '', f['DNA Guide ID'] || null);
   // Pre-load DNA records for place modal guide picker
   if (!_pmDNARecords) fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail)).then(r=>r.json()).then(d=>{ _pmDNARecords = d.records||[]; }).catch(()=>{});
-  // Show Trip Schedule button if days exist
-  document.getElementById('trip-schedule-section').style.display = 'none';
-  document.getElementById('trip-schedule-btn').style.display = 'none';
+  // Show trip-specific boxes
+  document.getElementById('trip-members-section').style.display = 'block';
+  document.getElementById('trip-flights-card').style.display = 'block';
+  loadTripMembers(record.id);
+  // Schedule card — show with day count
+  document.getElementById('trip-schedule-card').style.display = 'block';
+  document.getElementById('trip-schedule-summary').textContent = '';
   if (f['Start Date'] && f['End Date']) {
     fetch('/api/trip-days?tripId=' + encodeURIComponent(record.id))
       .then(r => r.json())
       .then(d => {
-        if (d.records && d.records.length) {
-          document.getElementById('trip-schedule-btn').style.display = 'inline-block';
-        }
+        const n = (d.records || []).length;
+        document.getElementById('trip-schedule-summary').textContent =
+          n ? n + ' day' + (n !== 1 ? 's' : '') + ' planned' : 'No days yet — click to start planning.';
       }).catch(() => {});
   }
   if (!_isHistoryTrip && f['Status of Trip'] === 'Completed') {
@@ -5411,9 +5417,6 @@ function openTrip(record) {
   } else {
     document.getElementById('integration-report-section').style.display = 'none';
   }
-  // Trip Members
-  document.getElementById('trip-members-section').style.display = 'block';
-  loadTripMembers(record.id);
 }
 
 function _placeCountryOptions() {
@@ -6572,9 +6575,10 @@ function showNewTripForm() {
   _tdClearPassions();
   document.getElementById('trip-dest-picker').style.display = 'block';
   document.getElementById('trip-dest-readonly').style.display = 'none';
-  document.getElementById('trip-schedule-btn').style.display = 'none';
-  document.getElementById('trip-schedule-section').style.display = 'none';
+  document.getElementById('trip-schedule-card').style.display = 'none';
+  document.getElementById('trip-flights-card').style.display = 'none';
   document.getElementById('itinerary-section').style.display = 'none';
+  document.getElementById('integration-report-section').style.display = 'none';
   document.getElementById('trip-list-section').style.display = 'none';
   document.getElementById('trip-detail').style.display = 'block';
 }
@@ -6609,8 +6613,6 @@ function showNewHistoryTripForm() {
   // Show planning page content without changing the active menu highlight
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-planning').classList.add('active');
-  document.getElementById('trip-schedule-btn').style.display = 'none';
-  document.getElementById('trip-schedule-section').style.display = 'none';
   document.getElementById('itinerary-section').style.display = 'none';
   document.getElementById('trip-list-section').style.display = 'none';
   document.getElementById('trip-detail').style.display = 'block';
@@ -7082,19 +7084,20 @@ async function saveTrip() {
         msg.style.color = '#f43f5e';
         msg.innerHTML = `Your schedule has ${_scheduleRecords.length} days but this trip is now ${newDayCount} days. `
           + `Please delete ${excess} day${excess > 1 ? 's' : ''} from the schedule first. `
-          + `<span onclick="openTripSchedule()" style="text-decoration:underline;cursor:pointer;color:var(--teal);">Open Schedule →</span>`;
+          + `<span onclick="openSchedulePage()" style="text-decoration:underline;cursor:pointer;color:var(--teal);">Open Schedule →</span>`;
         return;
       }
     }
   }
 
   const payload = {
-    tripName:    document.getElementById('td-name').value,
+    tripName:      document.getElementById('td-name').value,
     ...(currentTripId ? {} : { country, destination, continent, airport, passion }),
-    startDate:   document.getElementById('td-start').value,
-    endDate:     document.getElementById('td-end').value,
-    airportCode: airport,
-    notes:       document.getElementById('td-notes').value,
+    startDate:     document.getElementById('td-start').value,
+    endDate:       document.getElementById('td-end').value,
+    departureDate: document.getElementById('td-depart').value || document.getElementById('td-start').value,
+    airportCode:   airport,
+    notes:         document.getElementById('td-notes').value,
     'Status of Trip': _isHistoryTrip ? 'Completed' : (document.getElementById('td-status').value || 'Research'),
     dnaGuideId:  _pendingDnaGuideId || undefined,
     history:     _isHistoryTrip || document.getElementById('td-history').value === 'true',
@@ -7182,36 +7185,6 @@ function _scheduleDestsForCountry(country) {
   return DESTINATIONS.filter(r => r[1] === country).map(r => r[0]).sort();
 }
 
-async function openTripSchedule() {
-  if (!currentTripId) return;
-  const section = document.getElementById('trip-schedule-section');
-  const list    = document.getElementById('trip-schedule-list');
-  const status  = document.getElementById('trip-schedule-status');
-  section.style.display = 'block';
-  list.innerHTML = '<div style="color:var(--soft);font-size:0.88rem;">Loading days…</div>';
-  status.style.display = 'none';
-  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  try {
-    const [daysResp, lodgingResp] = await Promise.all([
-      fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId)),
-      fetch('/api/lodging?tripId='   + encodeURIComponent(currentTripId))
-    ]);
-    const daysData    = await daysResp.json();
-    const lodgingData = await lodgingResp.json();
-    _scheduleRecords = daysData.records || [];
-    _lodgingRecords  = lodgingData.records || [];
-    _lodgingMap      = {};
-    _lodgingRecords.forEach(r => { _lodgingMap[r.id] = r.fields['Name'] || 'Lodging'; });
-    if (!_scheduleRecords.length) {
-      list.innerHTML = '<div style="color:var(--soft);font-size:0.88rem;">No itinerary days found. Save the trip with dates and create days first.</div>';
-      return;
-    }
-    renderScheduleList();
-  } catch(e) {
-    list.innerHTML = '<div style="color:#f43f5e;font-size:0.88rem;">Error loading days: ' + e.message + '</div>';
-  }
-}
 
 function _locLabel(destName, country) {
   if (!destName) return '';
@@ -8561,7 +8534,6 @@ async function doCreateItinerary() {
     if (data.success) {
       status.style.color = 'var(--teal)';
       status.textContent = data.count + ' day' + (data.count !== 1 ? 's' : '') + ' created!';
-      document.getElementById('trip-schedule-btn').style.display = 'inline-block';
       setTimeout(() => {
         document.getElementById('create-itinerary-modal').style.display = 'none';
         document.getElementById('trip-saved-modal').style.display = 'flex';

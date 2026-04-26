@@ -650,8 +650,9 @@ function buildFields(b) {
   if (b.destination !== undefined) fields['Destination']  = b.destination;
   if (b.country     !== undefined) fields['Country']      = b.country;
   if (b.continent   !== undefined) fields['Continent']    = b.continent;
-  if (b.startDate) fields['Start Date'] = b.startDate;
-  if (b.endDate)   fields['End Date']   = b.endDate;
+  if (b.startDate)     fields['Start Date']     = b.startDate;
+  if (b.endDate)       fields['End Date']       = b.endDate;
+  if (b.departureDate) fields['Departure Date'] = b.departureDate;
   if (b.airportCode !== undefined) fields['Destination Airport'] = b.airportCode;
   if (b.notes       !== undefined) fields['Notes']        = b.notes;
   if (b.place1      !== undefined) fields['Place 1']      = b.place1;

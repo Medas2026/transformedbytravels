@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trip Schedule · Transformed by Travels</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+  <script src="/js/destinations.js"></script>
+  <style>
+    :root {
+      --bg:    #0d1520;
+      --s1:    #131f30;
+      --s2:    #1a2a40;
+      --bd:    rgba(255,255,255,0.07);
+      --teal:  #2dd4bf;
+      --text:  #e2e8f0;
+      --muted: #64748b;
+      --soft:  #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Open Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; margin: 0; }
+    .page-header {
+      background: rgba(13,21,32,0.97);
+      border-bottom: 1px solid var(--bd);
+      padding: 0 20px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .back-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: var(--soft);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 7px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .back-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .trip-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #fff;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .trip-dates {
+      font-size: 0.78rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .content { max-width: 680px; margin: 0 auto; padding: 24px 16px 80px; }
+    .section-card {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 14px;
+    }
+    #loading { text-align: center; padding: 60px 20px; color: var(--soft); font-size: 0.9rem; }
+    /* Confirm modal */
+    #confirm-modal {
+      display: none; position: fixed; inset: 0; z-index: 1020;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    #confirm-modal > div {
+      background: #0f172a; border: 1px solid rgba(45,212,191,0.3);
+      border-radius: 16px; padding: 28px 24px; max-width: 340px;
+      width: 100%; text-align: center;
+    }
+    /* Lodging modal */
+    #lodging-form-modal {
+      display: none; position: fixed; inset: 0; z-index: 1010;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+      align-items: flex-start; justify-content: center;
+      padding: 20px; overflow-y: auto;
+    }
+    /* Day modal */
+    #day-modal {
+      display: none; position: fixed; inset: 0; z-index: 1010;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+      align-items: flex-start; justify-content: center;
+      padding: 20px; overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <button class="back-btn" onclick="goBack()">← Back to Trip</button>
+  <div class="trip-title" id="sch-trip-name">Loading…</div>
+  <div class="trip-dates" id="sch-trip-dates"></div>
+</div>
+
+<div id="loading">Loading schedule…</div>
+
+<div class="content" id="main-content" style="display:none;">
+
+  <!-- Route Map card -->
+  <div class="section-card" id="map-card">
+    <div class="section-title">Route Map</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <button onclick="renderScheduleMap(false)" style="background:none;border:1px solid rgba(45,212,191,0.5);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🗺 Route Map</button>
+      <button onclick="renderScheduleMap(true)" style="background:none;border:1px solid rgba(100,116,139,0.5);color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">🏠 Include Home</button>
+    </div>
+    <div id="schedule-map-wrap" style="display:none;margin-bottom:8px;">
+      <div id="schedule-map" style="width:100%;height:300px;border-radius:10px;border:1px solid var(--bd);"></div>
+      <div id="schedule-map-status" style="font-size:0.78rem;color:var(--muted);margin-top:6px;"></div>
+    </div>
+  </div>
+
+  <!-- Days card -->
+  <div class="section-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="section-title" style="margin-bottom:0;">Day-by-Day Schedule</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveTripSchedule()" id="save-schedule-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;">Save Locations</button>
+      </div>
+    </div>
+    <div id="trip-schedule-status" style="display:none;font-size:0.85rem;margin-bottom:10px;"></div>
+    <div id="trip-schedule-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="scheduleAddDay()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 18px;cursor:pointer;">+ Add Day at End</button>
+    </div>
+    <div id="schedule-day-warning" style="display:none;margin-top:10px;font-size:0.83rem;color:#f59e0b;"></div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- Confirm Modal -->
+<div id="confirm-modal">
+  <div>
+    <div id="confirm-modal-icon" style="font-size:2rem;margin-bottom:12px;"></div>
+    <div id="confirm-modal-title" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;margin-bottom:8px;"></div>
+    <div id="confirm-modal-msg" style="color:#94a3b8;font-size:0.88rem;line-height:1.65;margin:0 0 22px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button id="confirm-modal-cancel" style="flex:1;padding:11px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Cancel</button>
+      <button id="confirm-modal-ok" style="flex:1;padding:11px;border:none;border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lodging Modal -->
+<div id="lodging-form-modal">
+  <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,0.7);margin:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;" id="lm-title">Lodging</div>
+      <button onclick="closeLodgingModal()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1;">×</button>
+    </div>
+    <div style="padding:16px 24px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Property Name</div>
+          <input id="lm-name" type="text" placeholder="e.g. Amuka Safari Lodge"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Type</div>
+          <select id="lm-type" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;">
+            <option value="">— Select —</option>
+            <option value="Hotel">Hotel</option>
+            <option value="Lodge">Lodge</option>
+            <option value="AirBnb">AirBnb</option>
+            <option value="VRBO">VRBO</option>
+            <option value="Glamping">Glamping</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Location</div>
+        <input id="lm-location" type="text" placeholder="City / region / park"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Check-in Date</div>
+          <input id="lm-checkin" type="date" onchange="updateLodgingNights()"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+        </div>
+        <div id="lm-nights" style="text-align:center;padding-bottom:10px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;white-space:nowrap;"></div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Check-out Date</div>
+          <input id="lm-checkout" type="date" onchange="updateLodgingNights()"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Description</div>
+        <textarea id="lm-description" rows="3" placeholder="Notes about the property…"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.85rem;resize:vertical;box-sizing:border-box;"></textarea>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Amenities</div>
+        <input id="lm-amenities" type="text" placeholder="Pool, Wi-Fi, restaurant…"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Confirmation #</div>
+          <input id="lm-confirmation" type="text" placeholder="Booking reference"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Reservation URL</div>
+          <input id="lm-url" type="url" placeholder="https://…"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Image URL</div>
+        <input id="lm-image" type="url" placeholder="https://… (property photo)"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+      </div>
+      <div id="lm-status" style="display:none;font-size:0.85rem;text-align:center;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:4px;">
+        <button id="lm-delete-btn" onclick="deleteLodging()" style="display:none;background:none;border:1px solid rgba(239,68,68,0.4);color:#f87171;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:10px 18px;cursor:pointer;">Delete</button>
+        <button onclick="closeLodgingModal()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:10px 18px;cursor:pointer;">Cancel</button>
+        <button onclick="saveLodging()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.85rem;border:none;border-radius:8px;padding:10px 24px;cursor:pointer;">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Day Modal -->
+<div id="day-modal">
+  <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;width:100%;max-width:560px;box-shadow:0 24px 60px rgba(0,0,0,0.7);margin:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;">
+      <div>
+        <div id="day-modal-title" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;"></div>
+        <div id="day-modal-sub" style="font-size:0.78rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;margin-top:2px;"></div>
+      </div>
+      <button onclick="closeDayModal()" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;padding:4px 8px;line-height:1;">×</button>
+    </div>
+    <div id="day-modal-slots" style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;"></div>
+    <div style="display:flex;gap:10px;padding:0 24px 24px;flex-wrap:wrap;">
+      <button onclick="closeDayModal()" style="flex:1;min-width:80px;padding:11px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Cancel</button>
+      <button onclick="saveDayModal(false)" style="flex:2;min-width:100px;padding:11px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save Day</button>
+      <button id="day-modal-next-btn" onclick="saveDayModal(true)" style="flex:2;min-width:100px;padding:11px;background:#1e3a5f;border:1px solid rgba(45,212,191,0.4);border-radius:10px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Save & Next Day →</button>
+    </div>
+    <div id="day-modal-status" style="display:none;text-align:center;font-size:0.85rem;padding:0 24px 16px;"></div>
+  </div>
+</div>
+
+<script>
+const AUTH0_DOMAIN    = 'dev-oys4h8z7qa7irffk.us.auth0.com';
+const AUTH0_CLIENT_ID = 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd';
+
+let auth0Client       = null;
+let userEmail         = null;
+let portalProfile     = null;
+let currentTripId     = null;
+let currentTripStart  = '';
+let currentTripEnd    = '';
+let currentTripDestination = '';
+let currentTripCountry     = '';
+
+let _scheduleRecords  = [];
+let _lodgingRecords   = [];
+let _lodgingMap       = {};
+let _lodgingModalIdx  = null;
+let _lodgingEditId    = null;
+let _scheduleCountries = [];
+let _confirmCallback  = null;
+let _scheduleMap      = null;
+
+const _TIMES = [
+  'Night','6:00 AM','7:00 AM','8:00 AM','9:00 AM','10:00 AM','11:00 AM',
+  '12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM',
+  '6:00 PM','7:00 PM','8:00 PM','9:00 PM','Late Night'
+];
+const _SLOT_LABELS = ['Morning','Lunch','Afternoon','Evening'];
+let _dayModalIdx   = null;
+let _dayModalSlots = [null,null,null,null];
+const _smSelectedActivity = {};
+
+// ── Auth ────────────────────────────────────────────────────────────────────
+
+async function initSchedulePage() {
+  const params = new URLSearchParams(window.location.search);
+  currentTripId = params.get('trip') || '';
+  if (!currentTripId) {
+    document.getElementById('loading').textContent = 'No trip specified.';
+    return;
+  }
+
+  auth0Client = await auth0.createAuth0Client({
+    domain:           AUTH0_DOMAIN,
+    clientId:         AUTH0_CLIENT_ID,
+    useRefreshTokens: true,
+    cacheLocation:    'localstorage',
+    authorizationParams: { redirect_uri: window.location.origin + '/portal.html' }
+  });
+
+  if (window.location.search.includes('code=')) {
+    await auth0Client.handleRedirectCallback();
+    window.history.replaceState({}, document.title, window.location.pathname + '?trip=' + currentTripId);
+  }
+
+  const isAuthenticated = await auth0Client.isAuthenticated();
+  if (!isAuthenticated) {
+    window.location.href = '/portal.html';
+    return;
+  }
+
+  const user = await auth0Client.getUser();
+  userEmail = (user.email || '').toLowerCase();
+
+  await loadSchedule();
+}
+
+function goBack() {
+  window.location.href = '/portal.html';
+}
+
+// ── Data loading ─────────────────────────────────────────────────────────────
+
+async function loadSchedule() {
+  try {
+    const [tripResp, daysResp, lodgingResp] = await Promise.all([
+      fetch('/api/trips?id=' + encodeURIComponent(currentTripId)),
+      fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId)),
+      fetch('/api/lodging?tripId='   + encodeURIComponent(currentTripId))
+    ]);
+    const tripData    = await tripResp.json();
+    const daysData    = await daysResp.json();
+    const lodgingData = await lodgingResp.json();
+
+    const tf = tripData.fields || tripData.record?.fields || {};
+    currentTripStart       = tf['Start Date'] || '';
+    currentTripEnd         = tf['End Date']   || '';
+    currentTripDestination = tf['Destination'] || '';
+    currentTripCountry     = tf['Country']     || '';
+
+    document.getElementById('sch-trip-name').textContent  = tf['Trip Name'] || 'Trip Schedule';
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fmtDate = s => { if (!s) return ''; const d = new Date(s+'T00:00:00Z'); return MONTHS[d.getUTCMonth()]+' '+d.getUTCDate()+', '+d.getUTCFullYear(); };
+    document.getElementById('sch-trip-dates').textContent = currentTripStart
+      ? fmtDate(currentTripStart) + ' – ' + fmtDate(currentTripEnd) : '';
+
+    _scheduleRecords = daysData.records || [];
+    _lodgingRecords  = lodgingData.records || [];
+    _lodgingMap      = {};
+    _lodgingRecords.forEach(r => { _lodgingMap[r.id] = r.fields['Name'] || 'Lodging'; });
+
+    document.getElementById('loading').style.display       = 'none';
+    document.getElementById('main-content').style.display  = 'block';
+
+    if (!_scheduleRecords.length) {
+      document.getElementById('trip-schedule-list').innerHTML =
+        '<div style="color:var(--soft);font-size:0.88rem;">No days found. Save the trip with dates, then create itinerary days from the trip detail page first.</div>';
+      return;
+    }
+    renderScheduleList();
+    _scheduleWarn();
+  } catch(e) {
+    document.getElementById('loading').textContent = 'Error loading schedule: ' + e.message;
+  }
+}
+
+// ── Location picker helpers ──────────────────────────────────────────────────
+
+function _scheduleGetCountries() {
+  if (_scheduleCountries.length) return _scheduleCountries;
+  if (typeof DESTINATIONS === 'undefined') return [];
+  const set = new Set(DESTINATIONS.map(r => r[1]));
+  _scheduleCountries = [...set].sort();
+  return _scheduleCountries;
+}
+function _scheduleDestsForCountry(country) {
+  if (typeof DESTINATIONS === 'undefined') return [];
+  return DESTINATIONS.filter(r => r[1] === country).map(r => r[0]).sort();
+}
+function _locLabel(dest) { return dest === 'Home' ? '🏠 Home' : dest; }
+
+function _locPickerHtml(idx, field) {
+  const r = _scheduleRecords[idx];
+  const f = r.fields;
+  const locField     = field === 'start' ? 'Starting Location' : 'Ending Location';
+  const countryField = field === 'start' ? 'Starting Country'  : 'Ending Country';
+  const curDest    = f[locField]     || '';
+  const curCountry = f[countryField] || '';
+  const label      = _locLabel(curDest) || (field === 'start' ? 'Set starting location' : 'Set ending location');
+  const labelColor = curDest ? 'var(--text)' : 'var(--muted)';
+  const countries  = _scheduleGetCountries();
+  const countryOpts = countries.map(c =>
+    `<option value="${c.replace(/"/g,'&quot;')}"${c===curCountry?' selected':''}>${c}</option>`
+  ).join('');
+  const destOpts = curCountry ? _scheduleDestsForCountry(curCountry).map(d =>
+    `<option value="${d.replace(/"/g,'&quot;')}"${d===curDest?' selected':''}>${d}</option>`
+  ).join('') : '';
+
+  return `
+    <div style="position:relative;">
+      <button id="loc-btn-${idx}-${field}" onclick="_locTogglePicker(${idx},'${field}')"
+        style="width:100%;text-align:left;background:var(--s1);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:8px 10px;color:${labelColor};font-family:'Open Sans',sans-serif;font-size:0.85rem;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        ${label}
+      </button>
+      <div id="loc-picker-${idx}-${field}" style="display:none;position:absolute;z-index:200;top:calc(100% + 4px);left:0;right:0;background:#0f172a;border:1px solid rgba(45,212,191,0.35);border-radius:10px;padding:12px;box-shadow:0 8px 32px rgba(0,0,0,0.6);min-width:220px;">
+        <button onclick="_locSetHome(${idx},'${field}')"
+          style="width:100%;text-align:left;background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:6px;padding:7px 12px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;margin-bottom:10px;">
+          🏠 Home Base
+        </button>
+        <select id="loc-country-${idx}-${field}" onchange="_locCountryChange(${idx},'${field}')"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 8px;color:var(--text);font-size:0.83rem;margin-bottom:6px;">
+          <option value="">— select country —</option>
+          ${countryOpts}
+        </select>
+        <select id="loc-dest-${idx}-${field}" onchange="_locDestChange(${idx},'${field}')"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 8px;color:var(--text);font-size:0.83rem;margin-bottom:6px;"
+          ${curCountry ? '' : 'disabled'}>
+          <option value="">— select destination —</option>
+          ${destOpts}
+        </select>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:4px;">Not on the list? Type manually:</div>
+        <div style="display:flex;gap:6px;">
+          <input id="loc-manual-${idx}-${field}" type="text" placeholder="Enter place name…"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();_locManualApply(${idx},'${field}');}"
+            style="flex:1;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 8px;color:var(--text);font-size:0.83rem;min-width:0;">
+          <button onclick="_locManualApply(${idx},'${field}')"
+            style="background:rgba(45,212,191,0.15);border:1px solid rgba(45,212,191,0.4);border-radius:6px;color:var(--teal);font-size:0.85rem;padding:0 10px;cursor:pointer;white-space:nowrap;font-weight:700;">✓</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function _locTogglePicker(idx, field) {
+  document.querySelectorAll('[id^="loc-picker-"]').forEach(el => {
+    if (el.id !== `loc-picker-${idx}-${field}`) el.style.display = 'none';
+  });
+  const el = document.getElementById(`loc-picker-${idx}-${field}`);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+function _locCountryChange(idx, field) {
+  const country = document.getElementById(`loc-country-${idx}-${field}`).value;
+  const destSel = document.getElementById(`loc-dest-${idx}-${field}`);
+  destSel.innerHTML = '<option value="">— select destination —</option>' +
+    _scheduleDestsForCountry(country).map(d => `<option value="${d.replace(/"/g,'&quot;')}">${d}</option>`).join('');
+  destSel.disabled = !country;
+}
+function _locDestChange(idx, field) {
+  const dest    = document.getElementById(`loc-dest-${idx}-${field}`).value;
+  const country = document.getElementById(`loc-country-${idx}-${field}`).value;
+  if (!dest) return;
+  const manual = document.getElementById(`loc-manual-${idx}-${field}`);
+  if (manual) manual.value = '';
+  _locApply(idx, field, dest, country);
+}
+function _locManualApply(idx, field) {
+  const manual  = document.getElementById(`loc-manual-${idx}-${field}`);
+  const country = document.getElementById(`loc-country-${idx}-${field}`);
+  if (!manual) return;
+  const dest = manual.value.trim();
+  if (!dest) return;
+  manual.value = '';
+  _locApply(idx, field, dest, (country && country.value) || '');
+}
+function _locSetHome(idx, field) { _locApply(idx, field, 'Home', ''); }
+function _locApply(idx, field, dest, country) {
+  const r = _scheduleRecords[idx];
+  const locField     = field === 'start' ? 'Starting Location' : 'Ending Location';
+  const countryField = field === 'start' ? 'Starting Country'  : 'Ending Country';
+  r.fields[locField]     = dest;
+  r.fields[countryField] = country;
+  if (field === 'start') r._startDirty = true;
+  else                   r._endDirty   = true;
+  const picker = document.getElementById(`loc-picker-${idx}-${field}`);
+  if (picker) picker.style.display = 'none';
+  const btn = document.getElementById(`loc-btn-${idx}-${field}`);
+  if (btn) { btn.textContent = _locLabel(dest) || (field === 'start' ? 'Set starting location' : 'Set ending location'); btn.style.color = dest ? 'var(--text)' : 'var(--muted)'; }
+  if (field === 'end') _cascadeLocation(idx);
+}
+function _cascadeLocation(idx) {
+  const next = _scheduleRecords[idx + 1];
+  if (!next) return;
+  const endDest    = _scheduleRecords[idx].fields['Ending Location'] || '';
+  const endCountry = _scheduleRecords[idx].fields['Ending Country']  || '';
+  if (!next.fields['Starting Location'] || next._autoCascaded) {
+    next.fields['Starting Location'] = endDest;
+    next.fields['Starting Country']  = endCountry;
+    next._autoCascaded = true;
+    next._startDirty   = true;
+    const btn = document.getElementById(`loc-btn-${idx+1}-start`);
+    if (btn) { btn.textContent = _locLabel(endDest) || 'Set starting location'; btn.style.color = endDest ? 'var(--text)' : 'var(--muted)'; }
+  }
+}
+
+// ── Schedule list ────────────────────────────────────────────────────────────
+
+function renderScheduleList() {
+  const list = document.getElementById('trip-schedule-list');
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const btnBase = 'background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:var(--muted);font-size:0.75rem;font-family:\'Montserrat\',sans-serif;font-weight:600;padding:4px 12px;cursor:pointer;';
+
+  list.innerHTML = _scheduleRecords.map((r, i) => {
+    const f   = r.fields;
+    const raw = f['Date'] || '';
+    let dateLabel = '';
+    if (raw) {
+      const d = new Date(raw + 'T00:00:00Z');
+      dateLabel = DAYS[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
+    }
+    return `
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;" data-idx="${i}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:var(--teal);">Day ${f['Day Number'] || i+1}</div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${dateLabel}</div>
+          </div>
+          <button onclick="openDayModal(${i})" title="Open day schedule"
+            style="background:none;border:1px solid rgba(45,212,191,0.35);border-radius:8px;color:var(--teal);font-size:1.05rem;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📅</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          ${_locPickerHtml(i, 'start')}
+          ${_locPickerHtml(i, 'end')}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${i < _scheduleRecords.length - 1 ? `<button onclick="_copyLocDown(${i})" style="${btnBase}" onmouseover="this.style.borderColor='rgba(45,212,191,0.5)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">↓ Copy Down</button>` : ''}
+          <button onclick="scheduleInsertAfter(${i})" style="${btnBase}" onmouseover="this.style.borderColor='rgba(45,212,191,0.5)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">+ Insert Day</button>
+          <button onclick="scheduleDeleteDay(${i})" style="${btnBase}" onmouseover="this.style.borderColor='rgba(239,68,68,0.5)';this.style.color='#ef4444'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">× Delete</button>
+          <button onclick="openLodgingModal(${i})" style="${btnBase}" onmouseover="this.style.borderColor='rgba(45,212,191,0.5)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">🏨 Lodging</button>
+        </div>
+        ${f['Lodging ID'] ? `<div style="margin-top:8px;font-size:0.75rem;color:var(--teal);background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.2);border-radius:6px;padding:4px 10px;display:inline-block;cursor:pointer;" onclick="openLodgingModal(${i})">🏨 ${_lodgingMap[f['Lodging ID']] || 'Lodging set'}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('[id^="loc-picker-"]') && !e.target.closest('button[onclick*="_locTogglePicker"]')) {
+      document.querySelectorAll('[id^="loc-picker-"]').forEach(el => el.style.display = 'none');
+    }
+  }, { capture: true });
+}
+
+function _copyLocDown(idx) {
+  const cur  = _scheduleRecords[idx];
+  const dest    = cur.fields['Starting Location'] || '';
+  const country = cur.fields['Starting Country']  || '';
+  if (!dest) return;
+  cur.fields['Ending Location'] = dest;
+  cur.fields['Ending Country']  = country;
+  cur._endDirty = true;
+  const endBtn = document.getElementById(`loc-btn-${idx}-end`);
+  if (endBtn) { endBtn.textContent = _locLabel(dest); endBtn.style.color = 'var(--text)'; }
+  const next = _scheduleRecords[idx + 1];
+  if (next) {
+    next.fields['Starting Location'] = dest;
+    next.fields['Starting Country']  = country;
+    next._startDirty   = true;
+    next._autoCascaded = true;
+    const nextBtn = document.getElementById(`loc-btn-${idx + 1}-start`);
+    if (nextBtn) { nextBtn.textContent = _locLabel(dest); nextBtn.style.color = 'var(--text)'; }
+  }
+}
+
+function _scheduleTripDays() {
+  return Math.round((new Date(currentTripEnd + 'T00:00:00Z') - new Date(currentTripStart + 'T00:00:00Z')) / 86400000) + 1;
+}
+function _scheduleWarn() {
+  const warn = document.getElementById('schedule-day-warning');
+  if (!warn) return;
+  if (currentTripStart && currentTripEnd && _scheduleRecords.length > _scheduleTripDays()) {
+    warn.style.display = 'block';
+    warn.textContent = 'Day count (' + _scheduleRecords.length + ') exceeds the trip date range (' + _scheduleTripDays() + ' days).';
+  } else {
+    warn.style.display = 'none';
+  }
+}
+function _scheduleNewRecord(dayNum, date) {
+  return { id: null, _new: true, _startDirty: false, _endDirty: false, fields: { 'Trip ID': currentTripId, 'Day Number': dayNum, 'Date': date, 'Starting Location': '', 'Starting Country': '', 'Ending Location': '', 'Ending Country': '' } };
+}
+function _scheduleDateForDay(dayNum) {
+  if (!currentTripStart) return '';
+  const d = new Date(currentTripStart + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + dayNum - 1);
+  return d.toISOString().split('T')[0];
+}
+
+function scheduleInsertAfter(idx) {
+  showConfirm('📅', 'Insert Day', `Insert a new blank day after Day ${idx + 1}?`, 'Insert', 'var(--teal)', () => _doInsertAfter(idx));
+}
+async function _doInsertAfter(idx) {
+  const newDay  = idx + 2;
+  const newDate = _scheduleDateForDay(newDay);
+  const newRec  = _scheduleNewRecord(newDay, newDate);
+  _scheduleRecords.splice(idx + 1, 0, newRec);
+  for (let i = idx + 2; i < _scheduleRecords.length; i++) {
+    _scheduleRecords[i].fields['Day Number'] = i + 1;
+    _scheduleRecords[i].fields['Date'] = _scheduleDateForDay(i + 1);
+    _scheduleRecords[i]._renumberDirty = true;
+  }
+  renderScheduleList();
+  _scheduleWarn();
+  try {
+    const resp = await fetch('/api/trip-days', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tripId: currentTripId, startDate: newDate, endDate: newDate }) });
+    const data = await resp.json();
+    if (data.success && data.records && data.records[0]) {
+      _scheduleRecords[idx + 1].id   = data.records[0].id;
+      _scheduleRecords[idx + 1]._new = false;
+    }
+  } catch(e) {}
+  await _saveRenumbered();
+}
+
+function scheduleDeleteDay(idx) {
+  const dayNum = _scheduleRecords[idx].fields['Day Number'] || idx + 1;
+  showConfirm('🗑', 'Delete Day', `Delete Day ${dayNum}? This cannot be undone.`, 'Delete', '#f43f5e', () => _doDeleteDay(idx));
+}
+async function _doDeleteDay(idx) {
+  if (_scheduleRecords.length <= 1) return;
+  const rec = _scheduleRecords[idx];
+  _scheduleRecords.splice(idx, 1);
+  for (let i = idx; i < _scheduleRecords.length; i++) {
+    _scheduleRecords[i].fields['Day Number'] = i + 1;
+    _scheduleRecords[i].fields['Date'] = _scheduleDateForDay(i + 1);
+    _scheduleRecords[i]._renumberDirty = true;
+  }
+  renderScheduleList();
+  _scheduleWarn();
+  if (rec.id) {
+    try { await fetch('/api/trip-days?id=' + encodeURIComponent(rec.id), { method: 'DELETE' }); } catch(e) {}
+  }
+  await _saveRenumbered();
+}
+
+async function scheduleAddDay() {
+  const newDayNum = _scheduleRecords.length + 1;
+  const newDate   = _scheduleDateForDay(newDayNum);
+  _scheduleRecords.push(_scheduleNewRecord(newDayNum, newDate));
+  renderScheduleList();
+  _scheduleWarn();
+  try {
+    const resp = await fetch('/api/trip-days', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tripId: currentTripId, startDate: newDate, endDate: newDate }) });
+    const data = await resp.json();
+    if (data.success && data.records && data.records[0]) {
+      _scheduleRecords[_scheduleRecords.length - 1].id   = data.records[0].id;
+      _scheduleRecords[_scheduleRecords.length - 1]._new = false;
+    }
+  } catch(e) {}
+}
+
+async function _saveRenumbered() {
+  const dirty = _scheduleRecords.filter(r => r._renumberDirty && r.id);
+  for (const r of dirty) {
+    try {
+      await fetch('/api/trip-days', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: r.id, 'Day Number': r.fields['Day Number'], 'Date': r.fields['Date'] }) });
+      r._renumberDirty = false;
+    } catch(e) {}
+  }
+}
+
+async function saveTripSchedule() {
+  const status = document.getElementById('trip-schedule-status');
+  const btn    = document.getElementById('save-schedule-btn');
+  status.style.display = 'block';
+  status.style.color   = 'var(--teal)';
+  status.textContent   = 'Saving…';
+  btn.disabled = true;
+  const dirty = _scheduleRecords.filter(r => r._startDirty || r._endDirty);
+  if (!dirty.length) { status.textContent = 'No changes to save.'; btn.disabled = false; return; }
+  let errors = 0;
+  for (const r of dirty) {
+    try {
+      const fields = {};
+      if (r._startDirty) { fields['Starting Location'] = r.fields['Starting Location'] || ''; fields['Starting Country'] = r.fields['Starting Country'] || ''; }
+      if (r._endDirty)   { fields['Ending Location']   = r.fields['Ending Location']   || ''; fields['Ending Country']   = r.fields['Ending Country']   || ''; }
+      const resp = await fetch('/api/trip-days', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: r.id, ...fields }) });
+      const d = await resp.json();
+      if (!d.success) errors++; else { r._startDirty = false; r._endDirty = false; r._autoCascaded = false; }
+    } catch(e) { errors++; }
+  }
+  if (errors) { status.style.color = '#f43f5e'; status.textContent = errors + ' day(s) failed to save.'; }
+  else { status.style.color = 'var(--teal)'; status.textContent = 'Locations saved!'; setTimeout(() => { status.style.display = 'none'; }, 2000); }
+  btn.disabled = false;
+}
+
+// ── Route Map ────────────────────────────────────────────────────────────────
+
+async function renderScheduleMap(includeHome) {
+  const wrap   = document.getElementById('schedule-map-wrap');
+  const status = document.getElementById('schedule-map-status');
+  wrap.style.display = 'block';
+  status.textContent = '';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const seen = new Set();
+  const points = [];
+  for (const r of _scheduleRecords) {
+    const f = r.fields;
+    for (const [loc, ctry] of [[f['Starting Location'],f['Starting Country']],[f['Ending Location'],f['Ending Country']]]) {
+      if (!loc) continue;
+      if (loc === 'Home' && !includeHome) continue;
+      const key = loc + '|' + (ctry || '');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      let lat = null, lng = null;
+      if (typeof DESTINATIONS !== 'undefined') {
+        const match = DESTINATIONS.find(d => d[0] === loc && (!ctry || d[1] === ctry));
+        if (match) { lat = match[12]; lng = match[13]; }
+      }
+      const displayLoc = (loc === 'Home' && includeHome && portalProfile)
+        ? [portalProfile['City'], portalProfile['State']].filter(Boolean).join(', ') || 'Home'
+        : loc;
+      points.push({ label: displayLoc, dest: displayLoc, lat, lng });
+    }
+  }
+
+  const needsGeocode = points.filter(p => p.lat == null);
+  if (needsGeocode.length) {
+    status.textContent = 'Geocoding locations…';
+    try {
+      const resp = await fetch('/api/geocode-places', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ places: needsGeocode.map(p => p.dest), destination: '', country: '' }) });
+      const data = await resp.json();
+      (data.coords || []).forEach((c, i) => { if (c && c.lat != null) { needsGeocode[i].lat = c.lat; needsGeocode[i].lng = c.lng; } });
+    } catch(e) {}
+    status.textContent = '';
+  }
+
+  const validPoints = points.filter(p => p.lat != null && p.lng != null);
+  if (!validPoints.length) { status.textContent = 'No mappable locations found.'; return; }
+
+  if (!window._mapboxToken) {
+    try { const r = await fetch('/api/mapbox-token'); const d = await r.json(); window._mapboxToken = d.token || ''; }
+    catch(e) { status.textContent = 'Could not load map.'; return; }
+  }
+
+  if (_scheduleMap) { _scheduleMap.remove(); _scheduleMap = null; }
+  mapboxgl.accessToken = window._mapboxToken;
+  _scheduleMap = new mapboxgl.Map({ container: 'schedule-map', style: 'mapbox://styles/mapbox/outdoors-v12', scrollZoom: false });
+  _scheduleMap.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+
+  const bounds = new mapboxgl.LngLatBounds();
+  validPoints.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;';
+    el.innerHTML = `<div style="width:28px;height:28px;background:#2dd4bf;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:12px;font-weight:700;color:#0f172a;box-shadow:0 2px 6px rgba(0,0,0,0.35);">${i+1}</div>
+      <div style="margin-top:3px;background:rgba(15,23,42,0.85);color:#fff;font-family:sans-serif;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;">${p.label}</div>`;
+    new mapboxgl.Marker({ element: el, anchor: 'top' }).setLngLat([p.lng, p.lat]).addTo(_scheduleMap);
+    bounds.extend([p.lng, p.lat]);
+  });
+  _scheduleMap.once('load', () => {
+    const coords = validPoints.map(p => [p.lng, p.lat]);
+    _scheduleMap.addSource('route', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } } });
+    _scheduleMap.addLayer({ id: 'route-line', type: 'line', source: 'route', paint: { 'line-color': '#2dd4bf', 'line-width': 2.5, 'line-dasharray': [2,2] } });
+    validPoints.length === 1 ? _scheduleMap.flyTo({ center: [validPoints[0].lng, validPoints[0].lat], zoom: 7 }) : _scheduleMap.fitBounds(bounds, { padding: 60, maxZoom: 10 });
+  });
+}
+
+// ── Slot / Day Modal ─────────────────────────────────────────────────────────
+
+function _timeOpts(selected) {
+  return _TIMES.map(t => `<option value="${t}"${t===selected?' selected':''}>${t}</option>`).join('');
+}
+
+function _slotFieldsHtml(n, slot) {
+  const type = (slot && slot.type) || '';
+  if (type === 'freeform') return `<textarea id="sm-s${n}-desc" placeholder="Description (optional)" rows="2" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;resize:vertical;box-sizing:border-box;">${(slot&&slot.description)||''}</textarea>`;
+  if (type === 'transfer') {
+    const mode = (slot&&slot.mode)||'Road';
+    return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <input id="sm-s${n}-from" type="text" placeholder="From" value="${((slot&&slot.from)||'').replace(/"/g,'&quot;')}" oninput="_smAutoName(${n})" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+      <input id="sm-s${n}-to"   type="text" placeholder="To"   value="${((slot&&slot.to)||'').replace(/"/g,'&quot;')}"   oninput="_smAutoName(${n})" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <select id="sm-s${n}-mode" onchange="_smAutoName(${n});_smToggleFlightsBtn(${n})" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+        ${['Road','Air','Boat','Rail'].map(m=>`<option value="${m}"${mode===m?' selected':''}>${m}</option>`).join('')}
+      </select>
+      <input id="sm-s${n}-duration" type="text" placeholder="Duration (e.g. 3 hrs)" value="${((slot&&slot.duration)||'').replace(/"/g,'&quot;')}" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
+    </div>
+    <div id="sm-s${n}-maps-btn" style="${mode==='Road'?'':'display:none;'}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">
+        <button onclick="_smOpenMaps(${n})" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">🗺 Directions</button>
+        <button onclick="_smGetDriveTime(${n})" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">⏱ Drive Time</button>
+      </div>
+      <div id="sm-s${n}-drivetime-status" style="display:none;font-size:0.78rem;padding:3px 0;"></div>
+    </div>
+    <div id="sm-s${n}-flights-btn" style="${mode==='Air'?'':'display:none;'}">
+      <button onclick="_smOpenFlightsSearch(${n})" style="width:100%;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">✈ Search Google Flights</button>
+    </div>`;
+  }
+  if (type === 'gyg') return `
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <input id="sm-s${n}-gyg-url" type="url" placeholder="Get Your Guide link" value="${((slot&&slot.url)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+      <input id="sm-s${n}-gyg-ref" type="text" placeholder="Booking reference (optional)" value="${((slot&&slot.bookingRef)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+    </div>`;
+  if (type === 'passion') {
+    const selected = (slot&&slot.passion)||'';
+    const PASSION_GROUPS = [
+      { label:'Nature & Wildlife',    passions:['Wildlife & Safari','Birding','National Parks'] },
+      { label:'Adventure & Active',   passions:['Day Hiking & Trekking','Mountain Climbing','Cycling & Mountain Biking','SCUBA & Marine Exploration','Sailing & Boating','Fishing'] },
+      { label:'Culture & History',    passions:['Ancient History & Archaeology','Art & Architecture','Local Traditions & Village Life','Religious & Sacred Sites','Music & Performing Arts'] },
+      { label:'Food & Drink',         passions:['Culinary Travel & Street Food','Wine & Vineyards','Coffee Culture'] },
+      { label:'Landscapes',           passions:['Open Spaces','Rainforests & Jungles','Mountains & High Places','Oceans & Coastlines'] },
+      { label:'Wellness & Purpose',   passions:['Wellness & Spa','Photography','Voluntourism & Service','Cultural Immersion'] },
+    ];
+    const pillsHtml = PASSION_GROUPS.map(g => `
+      <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin:6px 0 3px;">${g.label}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        ${g.passions.map(p=>`<button onclick="_smPassionPick(${n},'${p.replace(/'/g,"\\'")}')" style="background:${p===selected?'rgba(45,212,191,0.25)':'rgba(255,255,255,0.06)'};border:1px solid ${p===selected?'rgba(45,212,191,0.6)':'rgba(255,255,255,0.12)'};border-radius:20px;color:${p===selected?'var(--teal)':'var(--soft)'};font-size:0.83rem;padding:5px 12px;cursor:pointer;white-space:nowrap;">${p}</button>`).join('')}
+      </div>`).join('');
+    return `<div style="margin-bottom:8px;">${pillsHtml}</div>
+    <div id="sm-s${n}-act-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Loading activities…</div>
+    <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;"></div>`;
+  }
+  if (type === 'event') {
+    const savedDate = (slot&&slot.eventDate)||'';
+    const preSelected = (slot&&slot.name) ? `<div style="font-size:0.82rem;color:var(--teal);padding:4px 0;">✓ ${slot.name}${slot.venue?' · '+slot.venue:''}</div>` : '';
+    return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <div><div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">From date</div><input id="sm-s${n}-ev-start" type="date" value="${savedDate}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;box-sizing:border-box;"></div>
+      <div><div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">To date</div><input id="sm-s${n}-ev-end" type="date" value="${savedDate}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;box-sizing:border-box;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:6px;margin-bottom:8px;">
+      <select id="sm-s${n}-ev-radius" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;"><option value="10">10 mi</option><option value="25">25 mi</option><option value="50" selected>50 mi</option><option value="100">100 mi</option></select>
+      <button onclick="_smLoadEvents(${n})" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:7px;padding:7px 14px;cursor:pointer;white-space:nowrap;">Find Events</button>
+    </div>
+    <div id="sm-s${n}-ev-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Searching events…</div>
+    <div id="sm-s${n}-ev-list" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;">${preSelected}</div>`;
+  }
+  return '';
+}
+
+function _slotCardHtml(n, slot) {
+  const type      = (slot&&slot.type)||'';
+  const startTime = (slot&&slot.startTime)||'';
+  const endTime   = (slot&&slot.endTime)||'';
+  const label     = _SLOT_LABELS[n-1] || ('Slot '+n);
+  const hasContent = type && type !== '';
+  return `
+    <div style="background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;color:var(--teal);">${label}</div>
+        <select id="sm-s${n}-type" onchange="smTypeChange(${n})" style="background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 8px;color:var(--text);font-size:0.82rem;">
+          <option value="">— Empty —</option>
+          <option value="freeform"${type==='freeform'?' selected':''}>Free Form</option>
+          <option value="transfer"${type==='transfer'?' selected':''}>Transfer</option>
+          <option value="passion"${type==='passion'?' selected':''}>Passion Activity</option>
+          <option value="event"${type==='event'?' selected':''}>Event</option>
+          <option value="gyg"${type==='gyg'?' selected':''}>Get Your Guide</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:${hasContent?'10px':'0'};">
+        <div><div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">Start</div><select id="sm-s${n}-start" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;"><option value="">—</option>${_timeOpts(startTime)}</select></div>
+        <div><div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">End</div><select id="sm-s${n}-end" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;"><option value="">—</option>${_timeOpts(endTime)}</select></div>
+      </div>
+      <input id="sm-s${n}-name" type="text" placeholder="Activity name" value="${((slot&&slot.name)||'').replace(/"/g,'&quot;')}" oninput="this.dataset.userEdited='true'" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;margin-bottom:8px;box-sizing:border-box;">
+      <input id="sm-s${n}-loc" type="text" placeholder="Location (e.g. Yellowstone National Park)" value="${((slot&&slot.location)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;margin-bottom:${type&&type!=='transfer'?'8px':'0'};box-sizing:border-box;display:${type==='transfer'?'none':'block'};">
+      <div id="sm-s${n}-fields">${_slotFieldsHtml(n,slot)}</div>
+    </div>`;
+}
+
+function smTypeChange(n) {
+  const type   = document.getElementById(`sm-s${n}-type`).value;
+  const flds   = document.getElementById(`sm-s${n}-fields`);
+  const nameEl = document.getElementById(`sm-s${n}-name`);
+  const pseudo = { type, startTime: document.getElementById(`sm-s${n}-start`).value, endTime: document.getElementById(`sm-s${n}-end`).value };
+  flds.innerHTML = _slotFieldsHtml(n, pseudo);
+  const locEl = document.getElementById(`sm-s${n}-loc`);
+  if (locEl) { locEl.style.display = type === 'transfer' ? 'none' : 'block'; locEl.style.marginBottom = (type&&type!=='transfer')?'8px':'0'; }
+  if (nameEl) {
+    nameEl.style.marginBottom = '8px';
+    if (type === 'passion' && !nameEl.value.trim()) { nameEl.value = 'Passion Activity'; nameEl.dataset.userEdited = 'false'; }
+    if (type === 'event') {
+      const dayDate = (_scheduleRecords[_dayModalIdx]?.fields||{})['Date']||'';
+      const startEl = document.getElementById('sm-s'+n+'-ev-start');
+      const endEl   = document.getElementById('sm-s'+n+'-ev-end');
+      if (startEl && !startEl.value && dayDate) startEl.value = dayDate;
+      if (endEl   && !endEl.value   && dayDate) endEl.value   = dayDate;
+    }
+    if (type === 'transfer') {
+      const dayFields = _scheduleRecords[_dayModalIdx]?.fields || {};
+      const fromEl = document.getElementById(`sm-s${n}-from`);
+      const toEl   = document.getElementById(`sm-s${n}-to`);
+      if (fromEl && !fromEl.value.trim()) {
+        let chainFrom = '';
+        for (let prev = n-1; prev >= 1; prev--) {
+          const prevType = document.getElementById(`sm-s${prev}-type`)?.value;
+          if (prevType === 'transfer') { const prevTo = (document.getElementById(`sm-s${prev}-to`)?.value||'').trim(); if (prevTo) { chainFrom = prevTo; break; } }
+        }
+        fromEl.value = chainFrom || dayFields['Starting Location'] || '';
+      }
+      if (toEl && !toEl.value.trim()) {
+        let chainTo = '';
+        for (let next = n+1; next <= 4; next++) {
+          const nextType = document.getElementById(`sm-s${next}-type`)?.value;
+          if (nextType === 'transfer') { const nextFrom = (document.getElementById(`sm-s${next}-from`)?.value||'').trim(); if (nextFrom) { chainTo = nextFrom; break; } }
+        }
+        toEl.value = chainTo || dayFields['Ending Location'] || '';
+      }
+      _smAutoName(n);
+    }
+  }
+}
+
+function _smToggleFlightsBtn(n) {
+  const mode      = document.getElementById(`sm-s${n}-mode`)?.value;
+  const flightsEl = document.getElementById(`sm-s${n}-flights-btn`);
+  const mapsEl    = document.getElementById(`sm-s${n}-maps-btn`);
+  if (flightsEl) flightsEl.style.display = mode === 'Air'  ? 'block' : 'none';
+  if (mapsEl)    mapsEl.style.display    = mode === 'Road' ? 'block' : 'none';
+}
+
+function _smOpenMaps(n) {
+  const from = (document.getElementById(`sm-s${n}-from`)?.value||'').trim();
+  const to   = (document.getElementById(`sm-s${n}-to`)?.value||'').trim();
+  if (!from && !to) return;
+  const url = 'https://www.google.com/maps/dir/?api=1' + (from?'&origin='+encodeURIComponent(from):'') + (to?'&destination='+encodeURIComponent(to):'') + '&travelmode=driving';
+  window.open(url, '_blank', 'noopener');
+}
+
+function _smOpenFlightsSearch(n) {
+  const from = (document.getElementById(`sm-s${n}-from`)?.value||'').trim();
+  const to   = (document.getElementById(`sm-s${n}-to`)?.value||'').trim();
+  const url  = 'https://www.google.com/travel/flights' + (from||to ? '?q=Flights+' + encodeURIComponent((from||'')+(from&&to?' to ':' ')+(to||'')) : '');
+  window.open(url, '_blank', 'noopener');
+}
+
+async function _smGetDriveTime(n) {
+  const from     = (document.getElementById(`sm-s${n}-from`)?.value||'').trim();
+  const to       = (document.getElementById(`sm-s${n}-to`)?.value||'').trim();
+  const statusEl = document.getElementById(`sm-s${n}-drivetime-status`);
+  const durEl    = document.getElementById(`sm-s${n}-duration`);
+  if (!from || !to) { if (statusEl) { statusEl.textContent='Enter From and To first.'; statusEl.style.color='#f59e0b'; statusEl.style.display='block'; } return; }
+  if (statusEl) { statusEl.textContent='Calculating…'; statusEl.style.color='var(--muted)'; statusEl.style.display='block'; }
+  try {
+    if (!window._mapboxToken) { const r = await fetch('/api/mapbox-token'); const d = await r.json(); window._mapboxToken = d.token||''; }
+    const token = window._mapboxToken;
+    if (!token) throw new Error('Map token unavailable');
+    const geocode = async (place) => {
+      const r = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(place)}.json?limit=1&access_token=${token}`);
+      const d = await r.json();
+      const c = d.features?.[0]?.center;
+      if (!c) throw new Error(`Could not locate "${place}"`);
+      return c;
+    };
+    const [fromCoords, toCoords] = await Promise.all([geocode(from), geocode(to)]);
+    const dirResp = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${fromCoords[0]},${fromCoords[1]};${toCoords[0]},${toCoords[1]}?access_token=${token}`);
+    const dirData = await dirResp.json();
+    const route   = dirData.routes?.[0];
+    if (!route) throw new Error('No route found');
+    const secs = route.duration;
+    const hrs  = Math.floor(secs/3600);
+    const mins = Math.round((secs%3600)/60);
+    const distMi = Math.round(route.distance/1609.34);
+    const distKm = Math.round(route.distance/1000);
+    const timeStr = hrs>0 ? `${hrs} hr${mins>0?' '+mins+' min':''}` : `${mins} min`;
+    if (durEl && !durEl.value.trim()) durEl.value = timeStr;
+    if (statusEl) { statusEl.textContent=`✓ ${timeStr} · ${distMi} mi (${distKm} km)`; statusEl.style.color='var(--teal)'; }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent='Error: '+e.message; statusEl.style.color='#ef4444'; }
+  }
+}
+
+function _smAutoName(n) {
+  const nameEl = document.getElementById(`sm-s${n}-name`);
+  if (!nameEl || nameEl.dataset.userEdited==='true') return;
+  const from = (document.getElementById(`sm-s${n}-from`)?.value||'').trim();
+  const to   = (document.getElementById(`sm-s${n}-to`)?.value||'').trim();
+  const mode = (document.getElementById(`sm-s${n}-mode`)?.value||'Road');
+  const parts = [from,to].filter(Boolean);
+  nameEl.value = mode+' Transfer'+(parts.length===2?': '+parts[0]+' → '+parts[1]:parts.length===1?': '+parts[0]:'');
+}
+
+const _SM_PASSION_TYPE_MAP = {
+  'Photography':'photography','Coffee Culture':'coffee','Fishing':'fishing',
+  'SCUBA & Marine Exploration':'diving','Sailing & Boating':'sailing',
+  'Cycling & Mountain Biking':'mountain-biking','Wildlife & Safari':'wildlife',
+  'Birding':'birding','Mountain Climbing':'mountaineering',
+  'Ancient History & Archaeology':'archaeology','Art & Architecture':'history-art',
+  'Culinary Travel & Street Food':'culinary','Wine & Vineyards':'wine',
+  'Voluntourism & Service':'volunteerism',
+};
+
+async function _smPassionPick(n, passion) {
+  const dayFields = _scheduleRecords[_dayModalIdx]?.fields||{};
+  const place     = dayFields['Ending Location']||dayFields['Starting Location']||currentTripDestination||'';
+  const country   = dayFields['Ending Country']||dayFields['Starting Country']||currentTripCountry||'';
+  const actType   = _SM_PASSION_TYPE_MAP[passion]||passion.toLowerCase().replace(/[\s&,]+/g,'-');
+  const loading   = document.getElementById(`sm-s${n}-act-loading`);
+  const list      = document.getElementById(`sm-s${n}-act-list`);
+  const nameEl    = document.getElementById(`sm-s${n}-name`);
+
+  document.querySelectorAll(`#sm-s${n}-fields button`).forEach(b => {
+    const match = b.textContent.trim()===passion;
+    b.style.background  = match?'rgba(45,212,191,0.25)':'rgba(255,255,255,0.06)';
+    b.style.borderColor = match?'rgba(45,212,191,0.6)':'rgba(255,255,255,0.12)';
+    b.style.color       = match?'var(--teal)':'var(--soft)';
+  });
+
+  if (!place) { list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">Set a day location first.</div>'; return; }
+  loading.style.display='block'; list.innerHTML='';
+  try {
+    const resp = await fetch('/api/activities', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({place,country,type:actType}) });
+    const data = await resp.json();
+    loading.style.display='none';
+    const acts = data.items||data.activities||[];
+    if (!acts.length) { list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">No activities found.</div>'; return; }
+    list.innerHTML = acts.map(a => `<button data-name="${(a.name||'').replace(/"/g,'&quot;')}" data-desc="${(a.detail||a.highlights||a.description||'').replace(/"/g,'&quot;')}" data-passion="${passion.replace(/"/g,'&quot;')}" style="text-align:left;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text);width:100%;"><div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${a.name||''}</div>${(a.highlights||a.description||'')?`<div style="font-size:0.82rem;color:var(--muted);margin-top:3px;line-height:1.5;">${(a.highlights||a.description||'').slice(0,100)}…</div>`:''}</button>`).join('');
+    list.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => _smActivitySelect(n, btn)));
+  } catch(e) {
+    loading.style.display='none'; list.innerHTML='<div style="font-size:0.82rem;color:#f43f5e;">Error loading activities.</div>';
+  }
+}
+
+function _smActivitySelect(n, btn) {
+  const name = btn.dataset.name||'', description = btn.dataset.desc||'', passion = btn.dataset.passion||'';
+  _smSelectedActivity[n] = { name, description, passion };
+  const nameEl = document.getElementById('sm-s'+n+'-name');
+  if (nameEl) { nameEl.value=name; nameEl.dataset.userEdited='true'; nameEl.style.borderColor='var(--teal)'; nameEl.scrollIntoView({behavior:'smooth',block:'nearest'}); setTimeout(()=>{nameEl.style.borderColor='rgba(255,255,255,0.1)';},1500); }
+  const fieldsEl = document.getElementById('sm-s'+n+'-fields');
+  if (fieldsEl) fieldsEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:8px 12px;"><div style="font-size:0.82rem;color:var(--teal);">✓ ${passion} · ${name}</div><button onclick="_smReopenPassionPicker(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;">Change</button></div>`;
+}
+function _smReopenPassionPicker(n) {
+  const fieldsEl = document.getElementById('sm-s'+n+'-fields');
+  if (fieldsEl) { const sel=_smSelectedActivity[n]||{}; fieldsEl.innerHTML=_slotFieldsHtml(n,{type:'passion',passion:sel.passion||''}); }
+}
+
+async function _smLoadEvents(n) {
+  const dayFields = _scheduleRecords[_dayModalIdx]?.fields||{};
+  const city    = dayFields['Ending Location']||dayFields['Starting Location']||'';
+  const country = dayFields['Ending Country']||dayFields['Starting Country']||'';
+  const start   = document.getElementById('sm-s'+n+'-ev-start')?.value||'';
+  const end     = document.getElementById('sm-s'+n+'-ev-end')?.value||'';
+  const radius  = document.getElementById('sm-s'+n+'-ev-radius')?.value||'50';
+  const loading = document.getElementById('sm-s'+n+'-ev-loading');
+  const list    = document.getElementById('sm-s'+n+'-ev-list');
+  if (!start||!end) { if(list) list.innerHTML='<div style="font-size:0.85rem;color:#fbbf24;">Select a date range first.</div>'; return; }
+  if (!city) { if(list) list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">Set a day location first.</div>'; return; }
+  if(loading) loading.style.display='block'; if(list) list.innerHTML='';
+  try {
+    const resp = await fetch('/api/events?'+new URLSearchParams({city,country,startDate:start,endDate:end,radius}));
+    const data = await resp.json();
+    if(loading) loading.style.display='none';
+    const events = data.events||[];
+    if(!events.length) { if(list) list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">No events found.</div>'; return; }
+    if(list) {
+      list.innerHTML = events.map(e=>`<button data-name="${(e.name||'').replace(/"/g,'&quot;')}" data-date="${e.date||''}" data-time="${e.time||''}" data-venue="${([e.venue,e.city].filter(Boolean).join(', ')).replace(/"/g,'&quot;')}" data-category="${(e.category||'').replace(/"/g,'&quot;')}" data-url="${(e.url||'').replace(/"/g,'&quot;')}" style="text-align:left;background:var(--s1);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;cursor:pointer;color:var(--text);width:100%;"><div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:#fff;">${e.name||''}</div>${e.venue?`<div style="font-size:0.75rem;color:var(--muted);">${e.venue}</div>`:''}</button>`).join('');
+      list.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>_smEventSelect(n,btn)));
+    }
+  } catch(e) { if(loading) loading.style.display='none'; if(list) list.innerHTML='<div style="font-size:0.82rem;color:#f43f5e;">Error loading events.</div>'; }
+}
+
+function _smEventSelect(n, btn) {
+  const name=btn.dataset.name||'', date=btn.dataset.date||'', time=btn.dataset.time||'', venue=btn.dataset.venue||'', category=btn.dataset.category||'', url=btn.dataset.url||'';
+  _smSelectedActivity[n] = { name, date, time, venue, category, url, isEvent:true };
+  const nameEl = document.getElementById('sm-s'+n+'-name');
+  if (nameEl) { nameEl.value=name; nameEl.dataset.userEdited='true'; }
+  const fieldsEl = document.getElementById('sm-s'+n+'-fields');
+  if (fieldsEl) fieldsEl.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:8px 12px;"><div style="font-size:0.82rem;color:var(--teal);flex:1;min-width:0;">✓ ${name}${venue?'<br><span style="font-size:0.75rem;color:var(--muted);">'+venue+'</span>':''}</div><button onclick="_smReopenEventPicker(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;">Change</button></div>`;
+}
+function _smReopenEventPicker(n) {
+  const fieldsEl=document.getElementById('sm-s'+n+'-fields');
+  if(fieldsEl) { const dayDate=(_scheduleRecords[_dayModalIdx]?.fields||{})['Date']||''; fieldsEl.innerHTML=_slotFieldsHtml(n,{type:'event',eventDate:dayDate}); }
+}
+
+function openDayModal(idx) {
+  _dayModalIdx = idx;
+  const r = _scheduleRecords[idx];
+  const f = r.fields;
+  const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const raw = f['Date']||'';
+  let dateLabel = '';
+  if (raw) { const d=new Date(raw+'T00:00:00Z'); dateLabel=DAYS[d.getUTCDay()]+', '+MONTHS[d.getUTCMonth()]+' '+d.getUTCDate(); }
+  document.getElementById('day-modal-title').textContent = 'Day '+(f['Day Number']||idx+1);
+  const startLoc=f['Starting Location']||'', endLoc=f['Ending Location']||'';
+  let locLabel = '';
+  if (startLoc&&endLoc&&startLoc!==endLoc) locLabel=startLoc+' → '+endLoc;
+  else if (startLoc||endLoc) locLabel=startLoc||endLoc;
+  document.getElementById('day-modal-sub').textContent=[dateLabel,locLabel].filter(Boolean).join(' · ');
+  document.getElementById('day-modal-status').style.display='none';
+  [1,2,3,4].forEach(n=>{delete _smSelectedActivity[n];});
+  _dayModalSlots=[1,2,3,4].map(n=>{const raw=f['Slot '+n]; if(!raw) return null; try{return JSON.parse(raw);}catch(e){return null;}});
+  document.getElementById('day-modal-slots').innerHTML=[1,2,3,4].map(n=>_slotCardHtml(n,_dayModalSlots[n-1])).join('');
+  document.getElementById('day-modal').style.display='flex';
+  const nextBtn=document.getElementById('day-modal-next-btn');
+  if(nextBtn) nextBtn.style.display=(idx+1<_scheduleRecords.length)?'':'none';
+}
+
+function closeDayModal() {
+  document.getElementById('day-modal').style.display='none';
+  _dayModalIdx=null;
+}
+
+async function saveDayModal(andNext=false) {
+  const status=document.getElementById('day-modal-status');
+  status.style.display='block'; status.style.color='var(--teal)'; status.textContent='Saving…';
+  const r=_scheduleRecords[_dayModalIdx];
+  const fields={id:r.id};
+  for(let n=1;n<=4;n++){
+    const type=document.getElementById(`sm-s${n}-type`).value;
+    if(!type){fields['Slot '+n]='';continue;}
+    const slot={type,startTime:document.getElementById(`sm-s${n}-start`).value,endTime:document.getElementById(`sm-s${n}-end`).value,name:(document.getElementById(`sm-s${n}-name`)?.value||'').trim()};
+    if(type==='freeform') slot.description=(document.getElementById(`sm-s${n}-desc`)?.value||'').trim();
+    else if(type==='passion'){const sel=_smSelectedActivity[n]||{};slot.passion=sel.passion||'';slot.description=sel.description||'';}
+    else if(type==='gyg'){slot.url=(document.getElementById('sm-s'+n+'-gyg-url')?.value||'').trim();slot.bookingRef=(document.getElementById('sm-s'+n+'-gyg-ref')?.value||'').trim();}
+    else if(type==='event'){const sel=_smSelectedActivity[n]||{};slot.eventDate=sel.date||'';slot.eventTime=sel.time||'';slot.venue=sel.venue||'';slot.category=sel.category||'';slot.url=sel.url||'';}
+    else if(type==='transfer'){slot.from=(document.getElementById(`sm-s${n}-from`)?.value||'').trim();slot.to=(document.getElementById(`sm-s${n}-to`)?.value||'').trim();slot.mode=(document.getElementById(`sm-s${n}-mode`)?.value||'Road');slot.duration=(document.getElementById(`sm-s${n}-duration`)?.value||'').trim();}
+    if(type&&type!=='transfer') slot.location=(document.getElementById(`sm-s${n}-loc`)?.value||'').trim();
+    fields['Slot '+n]=JSON.stringify(slot);
+  }
+  try {
+    const resp=await fetch('/api/trip-days',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(fields)});
+    const data=await resp.json();
+    if(data.success){
+      for(let n=1;n<=4;n++) r.fields['Slot '+n]=fields['Slot '+n];
+      status.style.color='var(--teal)'; status.textContent='Saved!';
+      const nextIdx=_dayModalIdx+1;
+      if(andNext&&nextIdx<_scheduleRecords.length) setTimeout(()=>openDayModal(nextIdx),500);
+      else setTimeout(closeDayModal,800);
+    } else { status.style.color='#f43f5e'; status.textContent='Error: '+(data.error||'Could not save'); }
+  } catch(e) { status.style.color='#f43f5e'; status.textContent='Error: '+e.message; }
+}
+
+// ── Lodging ──────────────────────────────────────────────────────────────────
+
+function updateLodgingNights() {
+  const ci=document.getElementById('lm-checkin').value;
+  const co=document.getElementById('lm-checkout').value;
+  const el=document.getElementById('lm-nights');
+  if(!el) return;
+  if(ci&&co){const nights=Math.round((new Date(co)-new Date(ci))/86400000);if(nights<=0){el.textContent='⚠️';el.style.color='#f43f5e';}else{el.textContent=`← ${nights} night${nights!==1?'s':''} →`;el.style.color='var(--teal)';}}else{el.textContent='';}
+}
+
+function openLodgingModal(idx) {
+  _lodgingModalIdx=idx;
+  const dayFields=_scheduleRecords[idx]?.fields||{};
+  const lodgingId=dayFields['Lodging ID']||'';
+  const existing=lodgingId?_lodgingRecords.find(r=>r.id===lodgingId):null;
+  _lodgingEditId=existing?existing.id:null;
+  document.getElementById('lm-title').textContent=existing?'Edit Lodging':'Add Lodging';
+  document.getElementById('lm-delete-btn').style.display=existing?'block':'none';
+  const f=existing?existing.fields:{};
+  document.getElementById('lm-name').value=f['Name']||'';
+  document.getElementById('lm-type').value=f['Type']||'';
+  document.getElementById('lm-location').value=f['Location']||'';
+  const ciVal=f['Check-in Date']||(dayFields&&dayFields['Date'])||'';
+  document.getElementById('lm-checkin').value=ciVal;
+  let coVal=f['Check-out Date']||'';
+  if(!coVal&&ciVal){const next=new Date(ciVal+'T12:00:00');next.setDate(next.getDate()+1);coVal=next.toISOString().split('T')[0];}
+  document.getElementById('lm-checkout').value=coVal;
+  updateLodgingNights();
+  document.getElementById('lm-description').value=f['Description']||'';
+  document.getElementById('lm-amenities').value=f['Amenities']||'';
+  document.getElementById('lm-confirmation').value=f['Confirmation #']||'';
+  document.getElementById('lm-url').value=f['Reservation URL']||'';
+  document.getElementById('lm-image').value=f['Image URL']||'';
+  document.getElementById('lm-status').style.display='none';
+  document.getElementById('lodging-form-modal').style.display='flex';
+}
+
+function closeLodgingModal() {
+  document.getElementById('lodging-form-modal').style.display='none';
+  _lodgingModalIdx=null; _lodgingEditId=null;
+}
+
+async function saveLodging() {
+  const status=document.getElementById('lm-status');
+  status.style.display='block'; status.style.color='var(--teal)'; status.textContent='Saving…';
+  const payload={tripId:currentTripId,name:document.getElementById('lm-name').value.trim(),type:document.getElementById('lm-type').value,location:document.getElementById('lm-location').value.trim(),checkIn:document.getElementById('lm-checkin').value,checkOut:document.getElementById('lm-checkout').value,description:document.getElementById('lm-description').value.trim(),amenities:document.getElementById('lm-amenities').value.trim(),confirmationNum:document.getElementById('lm-confirmation').value.trim(),reservationUrl:document.getElementById('lm-url').value.trim(),imageUrl:document.getElementById('lm-image').value.trim()};
+  if(!payload.name){status.style.color='#f43f5e';status.textContent='Property name is required.';return;}
+  try {
+    let resp,data;
+    if(_lodgingEditId) resp=await fetch('/api/lodging',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:_lodgingEditId,...payload})});
+    else resp=await fetch('/api/lodging',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    data=await resp.json();
+    if(!data.success){status.style.color='#f43f5e';status.textContent='Error: '+(data.error||'Could not save');return;}
+    const lr=await fetch('/api/lodging?tripId='+encodeURIComponent(currentTripId));
+    const ld=await lr.json();
+    _lodgingRecords=ld.records||[];
+    _lodgingMap={};
+    _lodgingRecords.forEach(r=>{_lodgingMap[r.id]=r.fields['Name']||'Lodging';});
+    const dr=await fetch('/api/trip-days?tripId='+encodeURIComponent(currentTripId));
+    const dd=await dr.json();
+    _scheduleRecords=dd.records||[];
+    status.textContent='Saved!';
+    setTimeout(()=>{closeLodgingModal();renderScheduleList();},600);
+  } catch(e){status.style.color='#f43f5e';status.textContent='Error: '+e.message;}
+}
+
+async function deleteLodging() {
+  if(!_lodgingEditId) return;
+  const status=document.getElementById('lm-status');
+  status.style.display='block'; status.style.color='#f43f5e'; status.textContent='Deleting…';
+  try {
+    const resp=await fetch('/api/lodging?id='+encodeURIComponent(_lodgingEditId)+'&tripId='+encodeURIComponent(currentTripId),{method:'DELETE'});
+    const data=await resp.json();
+    if(!data.success){status.textContent='Error: '+(data.error||'Could not delete');return;}
+    _lodgingRecords=_lodgingRecords.filter(r=>r.id!==_lodgingEditId);
+    delete _lodgingMap[_lodgingEditId];
+    const dr=await fetch('/api/trip-days?tripId='+encodeURIComponent(currentTripId));
+    const dd=await dr.json();
+    _scheduleRecords=dd.records||[];
+    closeLodgingModal(); renderScheduleList();
+  } catch(e){status.textContent='Error: '+e.message;}
+}
+
+// ── Confirm modal ─────────────────────────────────────────────────────────────
+
+function showConfirm(icon, title, msg, okLabel, okColor, callback) {
+  document.getElementById('confirm-modal-icon').textContent  = icon;
+  document.getElementById('confirm-modal-title').textContent = title;
+  document.getElementById('confirm-modal-msg').textContent   = msg;
+  const okBtn = document.getElementById('confirm-modal-ok');
+  okBtn.textContent      = okLabel;
+  okBtn.style.background = okColor || '#f43f5e';
+  document.getElementById('confirm-modal-cancel').onclick = () => { document.getElementById('confirm-modal').style.display='none'; _confirmCallback=null; };
+  okBtn.onclick = () => { document.getElementById('confirm-modal').style.display='none'; if(_confirmCallback){_confirmCallback();_confirmCallback=null;} };
+  _confirmCallback = callback;
+  document.getElementById('confirm-modal').style.display='flex';
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+initSchedulePage();
+</script>
+</body>
+</html>
