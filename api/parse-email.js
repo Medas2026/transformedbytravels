@@ -176,18 +176,25 @@ module.exports = async function handler(req, res) {
 
   try {
     const payload = req.body || {};
+    console.log('parse-email: method=', req.method, 'keys=', Object.keys(payload).join(','));
 
-    // Postmark webhook fields
-    const fromEmail = ((payload.From || payload.FromFull?.Email || '')).toLowerCase().trim();
+    // Postmark webhook fields — From may be "Name <email>" so extract just the address
+    const rawFrom   = payload.FromFull?.Email || payload.From || '';
+    const fromEmail = (rawFrom.match(/<([^>]+)>/) ? rawFrom.match(/<([^>]+)>/)[1] : rawFrom).toLowerCase().trim();
     const subject   = payload.Subject || '';
     const textBody  = payload.TextBody || '';
     const htmlBody  = payload.HtmlBody || '';
-    const emailBody = textBody || stripHtml(htmlBody);
+    const emailBody = (textBody || stripHtml(htmlBody)).slice(0, 8000);
 
-    console.log('parse-email: from=', fromEmail, 'subject=', subject.slice(0, 80));
+    console.log('parse-email: from=', fromEmail, 'subject=', subject.slice(0, 80), 'bodyLen=', emailBody.length);
 
-    if (!fromEmail || !emailBody) {
-      return res.status(400).json({ error: 'Missing from or body' });
+    if (!fromEmail) {
+      console.log('parse-email: no from address, returning 200');
+      return res.status(200).json({ ok: true, note: 'no from address' });
+    }
+    if (!emailBody) {
+      console.log('parse-email: no body, returning 200');
+      return res.status(200).json({ ok: true, note: 'no body' });
     }
 
     // 1. Look up traveler by email
@@ -336,11 +343,11 @@ Return JSON in this exact format (use null for any field you cannot determine):
       ? `🚗 ${parsed.rental_company || 'Car rental'} added to ${tripName}`
       : `Reservation added to ${tripName}`;
 
-    await sendResend(fromEmail, emailSubject, html);
+    try { await sendResend(fromEmail, emailSubject, html); } catch(e) { console.error('parse-email: resend error:', e.message); }
     return res.status(200).json({ ok: true, type: parsed.type, tripId });
 
   } catch(e) {
-    console.error('parse-email error:', e.message);
+    console.error('parse-email FATAL:', e.message, e.stack?.split('\n')[1]);
     return res.status(500).json({ error: e.message });
   }
 };
