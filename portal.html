@@ -907,6 +907,7 @@
               <input id="tm-email" type="email" placeholder="Invite by email" style="flex:1;min-width:160px;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 12px;color:var(--text);font-size:0.85rem;">
               <select id="tm-role" onchange="onTmRoleChange()" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;">
                 <option value="Partner">Partner</option>
+                <option value="Co-Traveler">Co-Traveler</option>
                 <option value="Trip Planner">Trip Planner</option>
                 <option value="Family">Family</option>
                 <option value="Guest">Guest</option>
@@ -6854,7 +6855,7 @@ async function loadTripMembers(tripId) {
       return `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 12px;">
         <div style="flex:1;min-width:140px;font-size:0.82rem;color:var(--text);word-break:break-all;">${email}</div>
         <select onchange="updateTripMemberRole('${r.id}', this.value)" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:4px 8px;color:var(--text);font-size:0.8rem;">
-          ${['Partner','Trip Planner','Family','Guest'].map(opt => `<option value="${opt}"${role===opt?' selected':''}>${opt}</option>`).join('')}
+          ${['Partner','Co-Traveler','Trip Planner','Family','Guest'].map(opt => `<option value="${opt}"${role===opt?' selected':''}>${opt}</option>`).join('')}
         </select>
         <div style="font-size:0.75rem;color:${statusColor};white-space:nowrap;">${status}</div>
         <button onclick="removeTripMember('${r.id}')" style="background:none;border:1px solid rgba(244,63,94,0.4);color:#f43f5e;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;">Remove</button>
