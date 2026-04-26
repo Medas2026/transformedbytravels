@@ -273,7 +273,24 @@ Return JSON in this exact format (use null for any field you cannot determine):
     const tripName = tripRec?.fields?.['Trip Name'] || tripRec?.fields?.['Destination'] || 'your upcoming trip';
     const tripId   = tripRec?.id || null;
 
-    // 4. Store the reservation
+    // 4. Save raw email to Reservations table
+    try {
+      await airtableFetch('Reservations', '', 'POST', {
+        fields: {
+          'Trip ID':             tripId || '',
+          'Type':                parsed.type || 'other',
+          'From Email':          fromEmail,
+          'Subject':             subject,
+          'Raw Email':           emailBody,
+          'Parsed Data':         JSON.stringify(parsed, null, 2),
+          'Confirmation Number': parsed.confirmation_number || '',
+          'Key Date':            keyDate || '',
+          'Date Received':       new Date().toISOString()
+        }
+      });
+    } catch(e) { console.error('parse-email: reservations write error:', e.message); }
+
+    // 5. Store the reservation
     if (tripId) {
       if (parsed.type === 'hotel' && parsed.hotel_name && parsed.check_in_date) {
         // Create a Lodging record
