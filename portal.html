@@ -948,9 +948,10 @@
           </div>
 
           <!-- Box 5: Trip Details -->
-          <div class="profile-section">
-            <div class="trip-field-group" id="td-status-group">
-              <div class="trip-field-label">Trip Status</div>
+          <!-- Trip Status card -->
+          <div id="trip-status-card" class="profile-section" style="display:none;">
+            <div class="profile-section-title" style="margin-bottom:12px;padding-bottom:10px;">Trip Status</div>
+            <div id="td-status-group">
               <select id="td-status" class="trip-input" style="appearance:none;-webkit-appearance:none;cursor:pointer;">
                 <option value="Research">Research</option>
                 <option value="Planned">Planned</option>
@@ -959,18 +960,7 @@
                 <option value="Completed">Completed</option>
               </select>
             </div>
-            <div class="trip-field-group">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <div class="trip-field-label" style="margin-bottom:0;">Trip Passions <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">(select up to 3)</span></div>
-                <span id="td-passions-scroll-hint" style="font-size:0.72rem;color:var(--muted);">scroll for more ↕</span>
-              </div>
-              <div style="position:relative;">
-                <div id="td-passions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:180px;overflow-y:auto;padding-right:4px;" onscroll="_tdPassionsScroll(this)"></div>
-                <div id="td-passions-fade-top" style="display:none;position:absolute;top:0;left:0;right:0;height:28px;background:linear-gradient(to bottom,var(--s1),transparent);pointer-events:none;border-radius:4px 4px 0 0;"></div>
-                <div id="td-passions-fade-bot" style="position:absolute;bottom:0;left:0;right:0;height:28px;background:linear-gradient(to top,var(--s1),transparent);pointer-events:none;border-radius:0 0 4px 4px;"></div>
-              </div>
-            </div>
-            <div class="trip-field-group" id="td-rating-group" style="display:none;">
+            <div id="td-rating-group" style="display:none;margin-top:12px;">
               <div class="trip-field-label">Trip Rating</div>
               <select id="td-rating" class="trip-input" style="appearance:none;-webkit-appearance:none;cursor:pointer;">
                 <option value="">— Select a rating —</option>
@@ -981,6 +971,24 @@
                 <option value="Disappointing">Disappointing</option>
               </select>
             </div>
+          </div>
+
+          <!-- Trip Passions card -->
+          <div id="trip-passions-card" class="profile-section" style="display:none;">
+            <div class="profile-section-title" style="margin-bottom:8px;padding-bottom:10px;">Trip Passions</div>
+            <div style="color:var(--soft);font-size:0.85rem;margin-bottom:14px;">What are activities that are top priorities for this trip?</div>
+            <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
+              <span id="td-passions-scroll-hint" style="font-size:0.72rem;color:var(--muted);">scroll for more ↕</span>
+            </div>
+            <div style="position:relative;">
+              <div id="td-passions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:180px;overflow-y:auto;padding-right:4px;" onscroll="_tdPassionsScroll(this)"></div>
+              <div id="td-passions-fade-top" style="display:none;position:absolute;top:0;left:0;right:0;height:28px;background:linear-gradient(to bottom,var(--s1),transparent);pointer-events:none;border-radius:4px 4px 0 0;"></div>
+              <div id="td-passions-fade-bot" style="position:absolute;bottom:0;left:0;right:0;height:28px;background:linear-gradient(to top,var(--s1),transparent);pointer-events:none;border-radius:0 0 4px 4px;"></div>
+            </div>
+          </div>
+
+          <!-- Trip Details card -->
+          <div class="profile-section">
             <div class="trip-field-group">
               <div class="trip-field-label">Notes</div>
               <textarea id="td-notes" class="trip-textarea" placeholder="Ideas, wishes, things to research…"></textarea>
@@ -5397,6 +5405,8 @@ function openTrip(record) {
   // Pre-load DNA records for place modal guide picker
   if (!_pmDNARecords) fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail)).then(r=>r.json()).then(d=>{ _pmDNARecords = d.records||[]; }).catch(()=>{});
   // Show trip-specific boxes
+  document.getElementById('trip-status-card').style.display = 'block';
+  document.getElementById('trip-passions-card').style.display = 'block';
   document.getElementById('trip-members-section').style.display = 'block';
   document.getElementById('trip-flights-card').style.display = 'block';
   loadTripMembers(record.id);
@@ -6575,6 +6585,8 @@ function showNewTripForm() {
   _tdClearPassions();
   document.getElementById('trip-dest-picker').style.display = 'block';
   document.getElementById('trip-dest-readonly').style.display = 'none';
+  document.getElementById('trip-status-card').style.display = 'block';
+  document.getElementById('trip-passions-card').style.display = 'block';
   document.getElementById('trip-schedule-card').style.display = 'none';
   document.getElementById('trip-flights-card').style.display = 'none';
   document.getElementById('itinerary-section').style.display = 'none';
@@ -6610,6 +6622,8 @@ function showNewHistoryTripForm() {
   _tdClearPassions();
   document.getElementById('trip-dest-picker').style.display = 'block';
   document.getElementById('trip-dest-readonly').style.display = 'none';
+  document.getElementById('trip-status-card').style.display = 'block';
+  document.getElementById('trip-passions-card').style.display = 'block';
   // Show planning page content without changing the active menu highlight
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-planning').classList.add('active');
@@ -6620,6 +6634,8 @@ function showNewHistoryTripForm() {
 
 function closeTripDetail() {
   document.getElementById('trip-detail').style.display = 'none';
+  document.getElementById('trip-status-card').style.display = 'none';
+  document.getElementById('trip-passions-card').style.display = 'none';
   document.getElementById('td-status-group').style.display = 'block';
   document.getElementById('td-rating-group').style.display = 'none';
   document.getElementById('td-start').min = '';

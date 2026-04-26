@@ -81,7 +81,8 @@ module.exports = async function handler(req, res) {
   const WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const MONTHS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  // Build structured day objects
+  // Build structured day objects — lodging shown as paragraph on check-in day only
+  const seenLodgingIds = new Set();
   const structuredDays = days.map(d => {
     const dateRaw = d['Date'] || '';
     let dateLabel = '';
@@ -89,13 +90,27 @@ module.exports = async function handler(req, res) {
       const dt = new Date(dateRaw + 'T00:00:00Z');
       dateLabel = WEEKDAYS[dt.getUTCDay()] + ', ' + MONTHS[dt.getUTCMonth()] + ' ' + dt.getUTCDate();
     }
-    const lodgingId   = d['Lodging ID'] || '';
-    const lodgingRec  = lodgingId && lodgingById[lodgingId] ? lodgingById[lodgingId] : null;
+    const lodgingId  = d['Lodging ID'] || '';
+    const lodgingRec = lodgingId && lodgingById[lodgingId] ? lodgingById[lodgingId] : null;
     const slots = [1, 2, 3, 4].map(n => {
       const raw = d['Slot ' + n];
       if (!raw) return null;
       try { return JSON.parse(raw); } catch(e) { return null; }
     }).filter(Boolean);
+
+    let lodgingParagraph = '';
+    if (lodgingRec && !seenLodgingIds.has(lodgingId)) {
+      seenLodgingIds.add(lodgingId);
+      const lf = lodgingRec;
+      const nameType = [lf['Name'], lf['Type']].filter(Boolean).join(' — ');
+      const location = lf['Location'] || '';
+      const checkIn  = lf['Check-in Date']  || '';
+      const checkOut = lf['Check-out Date'] || '';
+      const parts = [`Check in to ${nameType}${location ? ' in ' + location : ''}${checkIn && checkOut ? ' (' + checkIn + ' to ' + checkOut + ')' : ''}.`];
+      if (lf['Description']) parts.push(lf['Description']);
+      if (lf['Amenities'])   parts.push('Amenities include: ' + lf['Amenities'] + '.');
+      lodgingParagraph = parts.join(' ');
+    }
 
     return {
       dayNum:    d['Day Number'] || 0,
@@ -103,7 +118,7 @@ module.exports = async function handler(req, res) {
       dateLabel,
       startLoc:  d['Starting Location'] || '',
       endLoc:    d['Ending Location']   || '',
-      lodging:   lodgingRec ? (lodgingRec['Name'] || '') : '',
+      lodging:   lodgingParagraph,
       slotLabels: slots.map(slotLabel).filter(Boolean)
     };
   });
@@ -114,7 +129,7 @@ module.exports = async function handler(req, res) {
       ? `${d.startLoc} → ${d.endLoc}`
       : (d.startLoc || d.endLoc || '');
     const lines = [`Day ${d.dayNum}${d.dateLabel ? ' — ' + d.dateLabel : ''}${loc ? ' (' + loc + ')' : ''}`];
-    if (d.lodging) lines.push(`  Staying at: ${d.lodging}`);
+    if (d.lodging) lines.push(`  Lodging: ${d.lodging}`);
     if (d.slotLabels.length) {
       d.slotLabels.forEach(s => lines.push(`  • ${s}`));
     } else {
