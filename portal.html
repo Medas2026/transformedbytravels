@@ -8066,8 +8066,15 @@ function openLodgingModal(idx) {
   document.getElementById('lm-name').value         = f['Name']            || '';
   document.getElementById('lm-type').value         = f['Type']            || '';
   document.getElementById('lm-location').value     = f['Location']        || '';
-  document.getElementById('lm-checkin').value      = f['Check-in Date']   || dayFields['Date'] || '';
-  document.getElementById('lm-checkout').value     = f['Check-out Date']  || '';
+  const ciVal = f['Check-in Date'] || (dayFields && dayFields['Date']) || '';
+  document.getElementById('lm-checkin').value  = ciVal;
+  let coVal = f['Check-out Date'] || '';
+  if (!coVal && ciVal) {
+    const next = new Date(ciVal + 'T12:00:00');
+    next.setDate(next.getDate() + 1);
+    coVal = next.toISOString().split('T')[0];
+  }
+  document.getElementById('lm-checkout').value = coVal;
   updateLodgingNights();
   document.getElementById('lm-description').value  = f['Description']     || '';
   document.getElementById('lm-amenities').value    = f['Amenities']       || '';
