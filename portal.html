@@ -1020,14 +1020,15 @@
             <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
             <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
               <button onclick="saveTrip()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">Save Trip</button>
-              <button onclick="buildItinerary()" id="build-itinerary-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">✦ Build Itinerary</button>
               <button onclick="closeTripDetail()" style="background:none;border:1px solid #475569;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 20px;cursor:pointer;">Cancel</button>
             </div>
+          </div>
 
-            <!-- Build Itinerary -->
-            <div id="itinerary-section" style="margin-top:28px;border-top:1px solid var(--bd);padding-top:24px;">
-              <div id="itinerary-panel" style="display:none;"></div>
-            </div>
+          <!-- Itinerary Card -->
+          <div id="itinerary-section" class="profile-section" style="display:none;">
+            <div class="profile-section-title">✦ Itinerary</div>
+            <button onclick="buildItinerary()" id="build-itinerary-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;margin-bottom:16px;">✦ Build Itinerary</button>
+            <div id="itinerary-panel"></div>
           </div>
 
           <!-- Integration Report — shown for Completed trips -->
@@ -5442,6 +5443,7 @@ function openTrip(record) {
   document.getElementById('trip-members-section').style.display = 'block';
   document.getElementById('trip-flights-card').style.display = 'block';
   document.getElementById('trip-reservations-card').style.display = 'block';
+  document.getElementById('itinerary-section').style.display = 'block';
   loadTripReservations(record.id);
   loadTripMembers(record.id);
   onTmRoleChange();
@@ -6673,6 +6675,7 @@ function closeTripDetail() {
   document.getElementById('trip-status-card').style.display = 'none';
   document.getElementById('trip-passions-card').style.display = 'none';
   document.getElementById('trip-reservations-card').style.display = 'none';
+  document.getElementById('itinerary-section').style.display = 'none';
   document.getElementById('td-status-group').style.display = 'block';
   document.getElementById('td-rating-group').style.display = 'none';
   document.getElementById('td-start').min = '';
