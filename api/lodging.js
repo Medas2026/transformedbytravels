@@ -120,7 +120,7 @@ module.exports = async function handler(req, res) {
       'Trip ID':         tripId,
       'Name':            name,
       'Location':        location        || '',
-      'Type':            type            || '',
+      'Type':            type            || null,
       'Description':     description     || '',
       'Amenities':       amenities       || '',
       'Image URL':       imageUrl        || '',
@@ -148,7 +148,7 @@ module.exports = async function handler(req, res) {
     const fields = {};
     if (name            !== undefined) fields['Name']            = name;
     if (location        !== undefined) fields['Location']        = location;
-    if (type            !== undefined) fields['Type']            = type;
+    if (type            !== undefined) fields['Type']            = type || null;
     if (description     !== undefined) fields['Description']     = description;
     if (amenities       !== undefined) fields['Amenities']       = amenities;
     if (imageUrl        !== undefined) fields['Image URL']       = imageUrl;
