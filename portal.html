@@ -2325,7 +2325,12 @@
           <input id="lm-amenities" type="text" placeholder="Pool, Wi-Fi, restaurant…"
             style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Phone</div>
+            <input id="lm-phone" type="tel" placeholder="+1 555-000-0000"
+              style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+          </div>
           <div>
             <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Confirmation #</div>
             <input id="lm-confirmation" type="text" placeholder="Booking reference"
@@ -6861,13 +6866,27 @@ async function loadTripReservations(tripId) {
       const summary = p.summary ? `<div style="font-size:0.78rem;color:var(--soft);margin-top:8px;font-style:italic;line-height:1.5;">${p.summary}</div>` : '';
 
       return `<div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin-bottom:8px;">
-        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${icon} ${label}</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${icon} ${label}</div>
+          <button onclick="deleteReservation('${r.id}')" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:0 0 0 8px;line-height:1;" title="Remove reservation">×</button>
+        </div>
         ${detailHtml}
         ${summary}
       </div>`;
     }).join('');
   } catch(e) {
     list.innerHTML = '<div style="font-size:0.85rem;color:#f43f5e;">Error loading reservations.</div>';
+  }
+}
+
+async function deleteReservation(id) {
+  if (!confirm('Remove this reservation?')) return;
+  try {
+    const resp = await fetch('/api/reservations?id=' + encodeURIComponent(id), { method: 'DELETE' });
+    if (!resp.ok) throw new Error('Failed');
+    loadTripReservations(currentTripId);
+  } catch(e) {
+    alert('Could not delete reservation. Please try again.');
   }
 }
 
@@ -7775,12 +7794,14 @@ async function scheduleAddDay() {
     const resp = await fetch('/api/trip-days', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tripId, startDate: newDate, endDate: newDate })
+      body: JSON.stringify({ tripId, startDate: newDate, endDate: newDate, dayNum: newDayNum })
     });
-    const data = await resp.json();
-    if (data.success && data.records && data.records[0]) {
-      _scheduleRecords[_scheduleRecords.length - 1].id = data.records[0].id;
-      _scheduleRecords[_scheduleRecords.length - 1]._new = false;
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.success && data.records && data.records[0]) {
+        _scheduleRecords[_scheduleRecords.length - 1].id = data.records[0].id;
+        _scheduleRecords[_scheduleRecords.length - 1]._new = false;
+      }
     }
   } catch(e) { /* non-critical */ }
 }
@@ -7980,9 +8001,10 @@ function _slotFieldsHtml(n, slot) {
           ${p}</button>`).join('')}
       </div>`).join('');
     return `
-    <div style="margin-bottom:8px;">${pillsHtml}</div>
+    <div id="sm-s${n}-passion-groups" style="margin-bottom:8px;">${pillsHtml}</div>
+    <div id="sm-s${n}-passion-chosen" style="display:none;margin-bottom:8px;"></div>
     <div id="sm-s${n}-act-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Loading activities…</div>
-    <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;"></div>`;
+    <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;"></div>`;
   }
   return '';
 }
@@ -8103,6 +8125,17 @@ const _SM_PASSION_TYPE_MAP = {
   'Voluntourism & Service':         'volunteerism',
 };
 
+function _smShowPassionGroups(n) {
+  const groups  = document.getElementById(`sm-s${n}-passion-groups`);
+  const chosen  = document.getElementById(`sm-s${n}-passion-chosen`);
+  const list    = document.getElementById(`sm-s${n}-act-list`);
+  const loading = document.getElementById(`sm-s${n}-act-loading`);
+  if (groups)  groups.style.display  = '';
+  if (chosen)  { chosen.style.display = 'none'; chosen.innerHTML = ''; }
+  if (list)    list.innerHTML = '';
+  if (loading) loading.style.display = 'none';
+}
+
 async function _smPassionPick(n, passion) {
   const dayFields  = _scheduleRecords[_dayModalIdx]?.fields || {};
   const place      = dayFields['Ending Location'] || dayFields['Starting Location'] || currentTripDestination || '';
@@ -8110,15 +8143,18 @@ async function _smPassionPick(n, passion) {
   const actType    = _SM_PASSION_TYPE_MAP[passion] || passion.toLowerCase().replace(/[\s&,]+/g, '-');
   const loading    = document.getElementById(`sm-s${n}-act-loading`);
   const list       = document.getElementById(`sm-s${n}-act-list`);
-  const nameEl     = document.getElementById(`sm-s${n}-name`);
+  const groups     = document.getElementById(`sm-s${n}-passion-groups`);
+  const chosen     = document.getElementById(`sm-s${n}-passion-chosen`);
 
-  // Highlight selected passion pill
-  document.querySelectorAll(`#sm-s${n}-fields button`).forEach(b => {
-    const match = b.textContent.trim() === passion;
-    b.style.background   = match ? 'rgba(45,212,191,0.25)' : 'rgba(255,255,255,0.06)';
-    b.style.borderColor  = match ? 'rgba(45,212,191,0.6)'  : 'rgba(255,255,255,0.12)';
-    b.style.color        = match ? 'var(--teal)'           : 'var(--soft)';
-  });
+  // Collapse pill groups and show compact chosen row
+  if (groups) groups.style.display = 'none';
+  if (chosen) {
+    chosen.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:7px 12px;">
+      <span style="font-size:0.82rem;color:var(--teal);">🎯 ${passion}</span>
+      <button onclick="_smShowPassionGroups(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;">Change</button>
+    </div>`;
+    chosen.style.display = 'block';
+  }
 
   if (!place) { list.innerHTML = '<div style="font-size:0.85rem;color:var(--muted);">Set a day location first to get activity suggestions.</div>'; return; }
 
@@ -8150,6 +8186,7 @@ async function _smPassionPick(n, passion) {
     list.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => _smActivitySelect(n, btn));
     });
+    requestAnimationFrame(() => list.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
   } catch(e) {
     loading.style.display = 'none';
     list.innerHTML = '<div style="font-size:0.82rem;color:#f43f5e;">Error loading activities.</div>';
@@ -8170,9 +8207,6 @@ function _smActivitySelect(n, btn) {
   if (nameEl) {
     nameEl.value = name;
     nameEl.dataset.userEdited = 'true';
-    nameEl.style.borderColor = 'var(--teal)';
-    nameEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    setTimeout(() => { nameEl.style.borderColor = 'rgba(255,255,255,0.1)'; }, 1500);
   }
 
   const fieldsEl = document.getElementById('sm-s' + n + '-fields');
@@ -8182,6 +8216,8 @@ function _smActivitySelect(n, btn) {
         <div style="font-size:0.82rem;color:var(--teal);">✓ ${passion} · ${name}</div>
         <button onclick="_smReopenPassionPicker(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;">Change</button>
       </div>`;
+    // Scroll badge into view after DOM updates so user sees the panel collapsed
+    requestAnimationFrame(() => fieldsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
   }
 }
 
@@ -8320,6 +8356,7 @@ function openLodgingModal(idx) {
   updateLodgingNights();
   document.getElementById('lm-description').value  = f['Description']     || '';
   document.getElementById('lm-amenities').value    = f['Amenities']       || '';
+  document.getElementById('lm-phone').value        = f['Phone']           || '';
   document.getElementById('lm-confirmation').value = f['Confirmation #']  || '';
   document.getElementById('lm-url').value          = f['Reservation URL'] || '';
   document.getElementById('lm-image').value        = f['Image URL']       || '';
@@ -8350,6 +8387,7 @@ async function saveLodging() {
     checkOut:        document.getElementById('lm-checkout').value,
     description:     document.getElementById('lm-description').value.trim(),
     amenities:       document.getElementById('lm-amenities').value.trim(),
+    phone:           document.getElementById('lm-phone').value.trim(),
     confirmationNum: document.getElementById('lm-confirmation').value.trim(),
     reservationUrl:  document.getElementById('lm-url').value.trim(),
     imageUrl:        document.getElementById('lm-image').value.trim()
@@ -8577,6 +8615,11 @@ async function saveDayModal(andNext = false) {
   status.textContent   = 'Saving…';
 
   const r = _scheduleRecords[_dayModalIdx];
+  if (!r || !r.id) {
+    status.style.color = '#f43f5e';
+    status.textContent = 'Day record not yet created — please wait a moment and try again, or refresh the page.';
+    return;
+  }
   const fields = { id: r.id };
 
   for (let n = 1; n <= 4; n++) {

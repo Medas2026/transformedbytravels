@@ -2,15 +2,31 @@ const BASE_ID = 'appdlxcWb45dIqNK2';
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const apiKey = process.env.AIRTABLE_API_KEY;
+
+  if (req.method === 'DELETE') {
+    const id = (req.query.id || '').trim();
+    if (!id) return res.status(400).json({ error: 'id required' });
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent('Reservations')}/${id}`;
+    try {
+      const resp = await fetch(url, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + apiKey } });
+      const data = await resp.json();
+      if (data.error) return res.status(500).json({ error: data.error.message || JSON.stringify(data.error) });
+      return res.status(200).json({ success: true });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const tripId = (req.query.tripId || '').trim();
   if (!tripId) return res.status(400).json({ error: 'tripId required' });
 
-  const apiKey = process.env.AIRTABLE_API_KEY;
   const filter = `?filterByFormula=${encodeURIComponent(`({Trip ID}="${tripId}")`)}` +
     `&sort[0][field]=Key%20Date&sort[0][direction]=asc`;
   const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent('Reservations')}${filter}`;

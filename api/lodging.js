@@ -113,7 +113,7 @@ module.exports = async function handler(req, res) {
 
   // POST — create lodging and link to days
   if (req.method === 'POST') {
-    const { tripId, name, location, type, description, amenities, imageUrl,
+    const { tripId, name, location, type, description, amenities, phone, imageUrl,
             confirmationNum, reservationUrl, checkIn, checkOut } = req.body || {};
     if (!tripId || !name) return res.status(400).json({ error: 'tripId and name required' });
     const fields = {
@@ -123,6 +123,7 @@ module.exports = async function handler(req, res) {
       'Type':            type            || null,
       'Description':     description     || '',
       'Amenities':       amenities       || '',
+      'Phone':           phone           || '',
       'Image URL':       imageUrl        || '',
       'Confirmation #':  confirmationNum || '',
       'Reservation URL': reservationUrl  || '',
@@ -142,7 +143,7 @@ module.exports = async function handler(req, res) {
 
   // PATCH — update lodging and re-link days
   if (req.method === 'PATCH') {
-    const { id, tripId, name, location, type, description, amenities, imageUrl,
+    const { id, tripId, name, location, type, description, amenities, phone, imageUrl,
             confirmationNum, reservationUrl, checkIn, checkOut } = req.body || {};
     if (!id || !tripId) return res.status(400).json({ error: 'id and tripId required' });
     const fields = {};
@@ -151,6 +152,7 @@ module.exports = async function handler(req, res) {
     if (type            !== undefined) fields['Type']            = type || null;
     if (description     !== undefined) fields['Description']     = description;
     if (amenities       !== undefined) fields['Amenities']       = amenities;
+    if (phone           !== undefined) fields['Phone']           = phone;
     if (imageUrl        !== undefined) fields['Image URL']       = imageUrl;
     if (confirmationNum !== undefined) fields['Confirmation #']  = confirmationNum;
     if (reservationUrl  !== undefined) fields['Reservation URL'] = reservationUrl;

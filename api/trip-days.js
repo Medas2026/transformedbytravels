@@ -65,7 +65,7 @@ module.exports = async function handler(req, res) {
 
   // POST — generate day records for a trip
   if (req.method === 'POST') {
-    const { tripId, startDate, endDate } = req.body || {};
+    const { tripId, startDate, endDate, dayNum: explicitDayNum } = req.body || {};
     if (!tripId || !startDate || !endDate) {
       return res.status(400).json({ error: 'tripId, startDate, and endDate required' });
     }
@@ -84,7 +84,7 @@ module.exports = async function handler(req, res) {
       d.setUTCDate(d.getUTCDate() + i);
       const record = {
         'Trip ID':    tripId,
-        'Day Number': i + 1,
+        'Day Number': (explicitDayNum && days === 1) ? explicitDayNum : i + 1,
         'Date':       d.toISOString().split('T')[0]
       };
       if (i === 0)        record['Starting Location'] = 'Home';
