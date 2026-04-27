@@ -866,11 +866,6 @@
           </div>
           <div id="trip-pinned-content" style="display:none;margin-top:12px;font-size:0.85rem;color:var(--soft);line-height:1.8;border-top:1px solid rgba(45,212,191,0.2);padding-top:12px;"></div>
 
-          <!-- Trip Photo Banner (shown when trip has a photo) -->
-          <div id="td-photo-banner" style="display:none;margin-bottom:16px;position:relative;">
-            <img id="td-photo-banner-img" src="" alt="Trip photo" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;" />
-            <button onclick="clearTripPhoto()" style="position:absolute;top:10px;right:10px;background:rgba(15,23,42,0.75);border:none;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;border-radius:6px;padding:5px 10px;cursor:pointer;">✕ Remove</button>
-          </div>
 
           <!-- Box 1: Trip Basics -->
           <div class="profile-section">
@@ -995,33 +990,27 @@
             </div>
           </div>
 
-          <!-- Trip Details card -->
+          <!-- Trip Notes card -->
           <div class="profile-section">
-            <div class="trip-field-group">
-              <div class="trip-field-label">Notes</div>
-              <textarea id="td-notes" class="trip-textarea" placeholder="Ideas, wishes, things to research…"></textarea>
-            </div>
-            <div class="trip-field-group">
-              <input type="file" id="td-photo-file" accept="image/*" onchange="uploadTripPhoto(this)" style="display:none;" />
-              <button id="td-photo-btn" onclick="document.getElementById('td-photo-file').click()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:7px 16px;cursor:pointer;">📷 Add Trip Photo</button>
-              <span id="td-photo-status" style="font-size:0.8rem;color:var(--soft);margin-left:10px;"></span>
-            </div>
+            <div class="profile-section-title">Notes</div>
+            <textarea id="td-notes" class="trip-textarea" placeholder="Ideas, wishes, things to research…"></textarea>
             <input type="hidden" id="td-photo-url" value="" />
             <input type="hidden" id="td-history" value="false" />
-            <div class="trip-field-group" style="display:none;">
-              <div class="trip-field-label">Places to Visit</div>
-              <div id="places-container" style="display:flex;flex-direction:column;gap:8px;"></div>
-              <div style="margin-top:10px;">
-                <button onclick="openPlaceModal(-1)" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:6px;padding:6px 14px;cursor:pointer;">+ Add Place</button>
-              </div>
+            <div style="display:none;">
+              <div id="places-container"></div>
             </div>
+          </div>
 
-
-            <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
-            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-              <button onclick="saveTrip()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 28px;cursor:pointer;">Save Trip</button>
-              <button onclick="closeTripDetail()" style="background:none;border:1px solid #475569;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 20px;cursor:pointer;">Cancel</button>
+          <!-- Trip Photo card -->
+          <div class="profile-section">
+            <div class="profile-section-title">Trip Photo</div>
+            <div id="td-photo-banner" style="display:none;margin-bottom:14px;position:relative;">
+              <img id="td-photo-banner-img" src="" alt="Trip photo" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;" />
+              <button onclick="clearTripPhoto()" style="position:absolute;top:10px;right:10px;background:rgba(15,23,42,0.75);border:none;color:#e2e8f0;font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:700;border-radius:6px;padding:5px 10px;cursor:pointer;">✕ Remove</button>
             </div>
+            <input type="file" id="td-photo-file" accept="image/*" onchange="uploadTripPhoto(this)" style="display:none;" />
+            <button id="td-photo-btn" onclick="document.getElementById('td-photo-file').click()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:9px 20px;cursor:pointer;">📷 Add Trip Photo</button>
+            <span id="td-photo-status" style="font-size:0.8rem;color:var(--soft);margin-left:10px;"></span>
           </div>
 
           <!-- Itinerary Card -->
@@ -1041,6 +1030,12 @@
             <div id="integration-report-actions"></div>
           </div>
 
+          <!-- Save / Cancel row -->
+          <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:24px;">
+            <button onclick="saveTrip()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;border:none;border-radius:8px;padding:13px 32px;cursor:pointer;">Save Trip Plan</button>
+            <button onclick="closeTripDetail()" style="background:#ef4444;color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;border:none;border-radius:8px;padding:13px 24px;cursor:pointer;">Cancel Trip Plan</button>
+          </div>
 
         </div><!-- /trip-detail -->
       </div>
