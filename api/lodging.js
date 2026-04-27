@@ -113,22 +113,22 @@ module.exports = async function handler(req, res) {
 
   // POST — create lodging and link to days
   if (req.method === 'POST') {
-    const { tripId, name, location, type, description, amenities, phone, imageUrl,
-            confirmationNum, reservationUrl, checkIn, checkOut } = req.body || {};
+    const { tripId, name, location, type, description, amenities, phone, siteUrl, imageUrl,
+            confirmationNum, checkIn, checkOut } = req.body || {};
     if (!tripId || !name) return res.status(400).json({ error: 'tripId and name required' });
     const fields = {
-      'Trip ID':         tripId,
-      'Name':            name,
-      'Location':        location        || '',
-      'Type':            type            || null,
-      'Description':     description     || '',
-      'Amenities':       amenities       || '',
-      'Phone':           phone           || '',
-      'Image URL':       imageUrl        || '',
-      'Confirmation #':  confirmationNum || '',
-      'Reservation URL': reservationUrl  || '',
-      'Check-in Date':   checkIn         || '',
-      'Check-out Date':  checkOut        || ''
+      'Trip ID':        tripId,
+      'Name':           name,
+      'Location':       location        || '',
+      'Type':           type            || null,
+      'Description':    description     || '',
+      'Amenities':      amenities       || '',
+      'Phone':          phone           || '',
+      'Site URL':       siteUrl         || '',
+      'Image URL':      imageUrl        || '',
+      'Confirmation #': confirmationNum || '',
+      'Check-in Date':  checkIn         || '',
+      'Check-out Date': checkOut        || ''
     };
     try {
       const r = await airtableRequest('POST', '', { fields });
@@ -143,21 +143,21 @@ module.exports = async function handler(req, res) {
 
   // PATCH — update lodging and re-link days
   if (req.method === 'PATCH') {
-    const { id, tripId, name, location, type, description, amenities, phone, imageUrl,
-            confirmationNum, reservationUrl, checkIn, checkOut } = req.body || {};
+    const { id, tripId, name, location, type, description, amenities, phone, siteUrl, imageUrl,
+            confirmationNum, checkIn, checkOut } = req.body || {};
     if (!id || !tripId) return res.status(400).json({ error: 'id and tripId required' });
     const fields = {};
-    if (name            !== undefined) fields['Name']            = name;
-    if (location        !== undefined) fields['Location']        = location;
-    if (type            !== undefined) fields['Type']            = type || null;
-    if (description     !== undefined) fields['Description']     = description;
-    if (amenities       !== undefined) fields['Amenities']       = amenities;
-    if (phone           !== undefined) fields['Phone']           = phone;
-    if (imageUrl        !== undefined) fields['Image URL']       = imageUrl;
-    if (confirmationNum !== undefined) fields['Confirmation #']  = confirmationNum;
-    if (reservationUrl  !== undefined) fields['Reservation URL'] = reservationUrl;
-    if (checkIn         !== undefined) fields['Check-in Date']   = checkIn;
-    if (checkOut        !== undefined) fields['Check-out Date']  = checkOut;
+    if (name            !== undefined) fields['Name']           = name;
+    if (location        !== undefined) fields['Location']       = location;
+    if (type            !== undefined) fields['Type']           = type || null;
+    if (description     !== undefined) fields['Description']    = description;
+    if (amenities       !== undefined) fields['Amenities']      = amenities;
+    if (phone           !== undefined) fields['Phone']          = phone;
+    if (siteUrl         !== undefined) fields['Site URL']       = siteUrl;
+    if (imageUrl        !== undefined) fields['Image URL']      = imageUrl;
+    if (confirmationNum !== undefined) fields['Confirmation #'] = confirmationNum;
+    if (checkIn         !== undefined) fields['Check-in Date']  = checkIn;
+    if (checkOut        !== undefined) fields['Check-out Date'] = checkOut;
     try {
       const r = await airtableRequest('PATCH', `/${id}`, { fields });
       if (r.body.error) return res.status(500).json({ error: r.body.error.message || JSON.stringify(r.body.error) });
