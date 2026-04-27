@@ -159,6 +159,24 @@ module.exports = async function handler(req, res) {
     };
   });
 
+  // If no scheduled days, generate synthetic days from date range so reservations can be shown
+  if (structuredDays.length === 0 && startDate && endDate) {
+    const base  = new Date(startDate + 'T00:00:00Z');
+    const last  = new Date(endDate   + 'T00:00:00Z');
+    const total = Math.round((last - base) / 86400000) + 1;
+    for (let i = 0; i < total; i++) {
+      const d = new Date(base);
+      d.setUTCDate(d.getUTCDate() + i);
+      const dateRaw  = d.toISOString().split('T')[0];
+      const dateLabel = WEEKDAYS[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
+      structuredDays.push({
+        dayNum: i + 1, date: dateRaw, dateLabel,
+        startLoc: '', endLoc: '', lodging: '', lodgingName: '',
+        slotLabels: [], reservations: reservationsByDate[dateRaw] || []
+      });
+    }
+  }
+
   // Format days for the prompt
   const dayScheduleText = structuredDays.map(d => {
     const loc = d.startLoc && d.endLoc && d.startLoc !== d.endLoc
@@ -261,12 +279,7 @@ Continue for all ${structuredDays.length} days. Be specific and evocative.${lodg
       tripSummary,
       days: structuredDays,
       daySummaries,
-      lodgingDescriptions,
-      _debug: {
-        reservationCount: (reservationsData.records || []).length,
-        reservationsByDate,
-        dayDates: structuredDays.map(d => ({ dayNum: d.dayNum, date: d.date, resCount: d.reservations.length }))
-      }
+      lodgingDescriptions
     });
   } catch(e) {
     return res.status(500).json({ error: e.message });

@@ -2814,13 +2814,6 @@ async function buildItinerary() {
     const data = await resp.json();
     if (data.error) throw new Error(data.error);
 
-    // Temporary debug — remove once reservation matching works
-    if (data._debug) {
-      panel.innerHTML = `<pre style="font-size:0.72rem;color:var(--muted);white-space:pre-wrap;word-break:break-all;">${JSON.stringify(data._debug, null, 2)}</pre>`;
-      btn.disabled = false; btn.textContent = '↻ Rebuild Itinerary';
-      return;
-    }
-
     const fmtDate = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
     const summaryDates = [fmtDate(data.startDate), fmtDate(data.endDate)].filter(Boolean).join(' – ');
     const nights = (data.days && data.days.length) ? data.days.length - 1 : 0;
