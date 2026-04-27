@@ -2297,10 +2297,17 @@
             </select>
           </div>
         </div>
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Location</div>
-          <input id="lm-location" type="text" placeholder="City / region / park"
-            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Location</div>
+            <input id="lm-location" type="text" placeholder="City / region / park"
+              style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Phone</div>
+            <input id="lm-phone" type="tel" placeholder="+1 555-000-0000"
+              style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;width:160px;">
+          </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;">
           <div>
@@ -2325,17 +2332,10 @@
           <input id="lm-amenities" type="text" placeholder="Pool, Wi-Fi, restaurant…"
             style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div>
-            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Phone</div>
-            <input id="lm-phone" type="tel" placeholder="+1 555-000-0000"
-              style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
-          </div>
-          <div>
-            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Confirmation #</div>
-            <input id="lm-confirmation" type="text" placeholder="Booking reference"
-              style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
-          </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Confirmation #</div>
+          <input id="lm-confirmation" type="text" placeholder="Booking reference"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
         </div>
         <div>
           <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Site URL</div>
