@@ -78,8 +78,15 @@ module.exports = async function handler(req, res) {
   // Build reservations keyed by date (YYYY-MM-DD)
   const reservationsByDate = {};
   (reservationsData.records || []).forEach(r => {
-    const f    = r.fields;
-    const date = (f['Key Date'] || '').split('T')[0];
+    const f       = r.fields;
+    const rawDate = f['Key Date'] || '';
+    // Normalize to YYYY-MM-DD regardless of Airtable format
+    let date = '';
+    if (rawDate) {
+      const parsed = new Date(rawDate);
+      if (!isNaN(parsed)) date = parsed.toISOString().split('T')[0];
+      else date = rawDate.split('T')[0];
+    }
     if (!date) return;
     let parsed = {};
     try { parsed = JSON.parse(f['Parsed Data'] || '{}'); } catch(e) {}
@@ -101,7 +108,13 @@ module.exports = async function handler(req, res) {
   // Build structured day objects — lodging shown as paragraph on check-in day only
   const seenLodgingIds = new Set();
   const structuredDays = days.map(d => {
-    const dateRaw = d['Date'] || '';
+    // Use stored Date field; fall back to computing from trip start + day number
+    let dateRaw = d['Date'] || '';
+    if (!dateRaw && startDate) {
+      const base = new Date(startDate + 'T00:00:00Z');
+      base.setUTCDate(base.getUTCDate() + ((d['Day Number'] || 1) - 1));
+      dateRaw = base.toISOString().split('T')[0];
+    }
     let dateLabel = '';
     if (dateRaw) {
       const dt = new Date(dateRaw + 'T00:00:00Z');
