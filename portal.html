@@ -7984,7 +7984,18 @@ function _slotFieldsHtml(n, slot) {
     <div id="sm-s${n}-ev-list" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;">${preSelected}</div>`;
   }
   if (type === 'passion') {
-    const selected = (slot && slot.passion) || '';
+    const selected  = (slot && slot.passion) || '';
+    const savedName = (slot && slot.name)    || '';
+
+    // If both passion and activity name are saved, show the badge immediately
+    if (selected && savedName) {
+      return `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:8px 12px;">
+        <div style="font-size:0.82rem;color:var(--teal);">✓ ${selected} · ${savedName}</div>
+        <button onclick="_smReopenPassionPicker(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;">Change</button>
+      </div>`;
+    }
+
     const PASSION_GROUPS = [
       { label: 'Nature & Wildlife',    passions: ['Wildlife & Safari','Birding','National Parks'] },
       { label: 'Adventure & Active',   passions: ['Day Hiking & Trekking','Mountain Climbing','Cycling & Mountain Biking','SCUBA & Marine Exploration','Sailing & Boating','Fishing'] },
@@ -8000,9 +8011,13 @@ function _slotFieldsHtml(n, slot) {
           style="background:${p===selected?'rgba(45,212,191,0.25)':'rgba(255,255,255,0.06)'};border:1px solid ${p===selected?'rgba(45,212,191,0.6)':'rgba(255,255,255,0.12)'};border-radius:20px;color:${p===selected?'var(--teal)':'var(--soft)'};font-size:0.83rem;padding:5px 12px;cursor:pointer;white-space:nowrap;">
           ${p}</button>`).join('')}
       </div>`).join('');
+    const chosenHtml = selected ? `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:7px 12px;">
+      <span style="font-size:0.82rem;color:var(--teal);">🎯 ${selected}</span>
+      <button onclick="_smShowPassionGroups(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;">Change</button>
+    </div>` : '';
     return `
-    <div id="sm-s${n}-passion-groups" style="margin-bottom:8px;">${pillsHtml}</div>
-    <div id="sm-s${n}-passion-chosen" style="display:none;margin-bottom:8px;"></div>
+    <div id="sm-s${n}-passion-groups" style="margin-bottom:8px;${selected ? 'display:none;' : ''}">${pillsHtml}</div>
+    <div id="sm-s${n}-passion-chosen" style="${selected ? '' : 'display:none;'}margin-bottom:8px;">${chosenHtml}</div>
     <div id="sm-s${n}-act-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Loading activities…</div>
     <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;"></div>`;
   }
@@ -8591,6 +8606,13 @@ function openDayModal(idx) {
     const raw = f['Slot ' + n];
     if (!raw) return null;
     try { return JSON.parse(raw); } catch(e) { return null; }
+  });
+
+  // Restore passion/event selections from saved slot data
+  _dayModalSlots.forEach((slot, i) => {
+    if (slot && slot.type === 'passion' && slot.passion) {
+      _smSelectedActivity[i + 1] = { name: slot.name || '', passion: slot.passion, description: slot.description || '' };
+    }
   });
 
   // Render slot cards
