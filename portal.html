@@ -7166,9 +7166,6 @@ async function _checkPendingInvites() {
     const pending = data.records || [];
     if (!pending.length) return;
 
-    const banner = document.getElementById('pending-invites-banner');
-    if (!banner) return;
-
     const items = await Promise.all(pending.map(async m => {
       const tripId = m.fields['Trip ID'];
       const inviterName = m.fields['Invited By Name'] || m.fields['Invited By'] || 'Someone';
@@ -7184,18 +7181,57 @@ async function _checkPendingInvites() {
       return { id: m.id, tripId, inviterName, role, tripName };
     }));
 
-    banner.style.display = 'block';
-    const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    banner.innerHTML = items.map(item => `
-      <div style="background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.3);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-        <div>
-          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;color:#e2e8f0;">Trip Invitation</div>
-          <div style="font-size:0.85rem;color:var(--soft);margin-top:3px;"><strong style="color:#e2e8f0;">${esc(item.inviterName)}</strong> invited you to <strong style="color:#e2e8f0;">${esc(item.tripName)}</strong> as ${esc(item.role)}</div>
-        </div>
-        <button onclick="_acceptPendingInvite('${esc(item.tripId)}','${esc(item.id)}',this)" style="background:#2dd4bf;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:6px;padding:8px 20px;cursor:pointer;white-space:nowrap;">Accept</button>
-      </div>`).join('');
+    // Also update the planning page banner for visibility there
+    const banner = document.getElementById('pending-invites-banner');
+    if (banner) {
+      const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      banner.style.display = 'block';
+      banner.innerHTML = items.map(item => `
+        <div style="background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.3);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;color:#e2e8f0;">Trip Invitation</div>
+            <div style="font-size:0.85rem;color:var(--soft);margin-top:3px;"><strong style="color:#e2e8f0;">${esc(item.inviterName)}</strong> invited you to <strong style="color:#e2e8f0;">${esc(item.tripName)}</strong> as ${esc(item.role)}</div>
+          </div>
+          <button onclick="_acceptPendingInvite('${esc(item.tripId)}','${esc(item.id)}',this)" style="background:#2dd4bf;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:6px;padding:8px 20px;cursor:pointer;white-space:nowrap;">Accept</button>
+        </div>`).join('');
+    }
+
+    // Show a modal for each invite so it appears regardless of which page they land on
+    _showNextPendingInviteModal(items, 0);
   } catch(e) {
     console.error('[pending-invites]', e.message);
+  }
+}
+
+function _showNextPendingInviteModal(items, idx) {
+  if (idx >= items.length) return;
+  const item = items[idx];
+  const canEdit = item.role === 'Trip Planner' || item.role === 'Partner';
+  const roleLabel = canEdit ? `${item.role} (can view & edit)` : `${item.role} (view only)`;
+  showConfirm('✈️', 'Trip Invitation',
+    `${item.inviterName} invited you to join "${item.tripName}" as ${roleLabel}.`,
+    'Accept', 'var(--teal)',
+    async () => {
+      await _acceptPendingInviteById(item.tripId, item.id);
+      _showNextPendingInviteModal(items, idx + 1);
+    }
+  );
+}
+
+async function _acceptPendingInviteById(tripId) {
+  try {
+    const resp = await fetch(`/api/trip-members?action=accept-by-email&tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(userEmail)}`);
+    const data = await resp.json();
+    if (data.success) {
+      tripsLoaded = false;
+      loadTrips();
+      showPage('planning');
+      showToast('Invitation accepted! Trip added to your list.');
+    } else {
+      showToast('Could not accept: ' + (data.error || 'Unknown error'), true);
+    }
+  } catch(e) {
+    showToast('Error accepting invite', true);
   }
 }
 
@@ -7203,21 +7239,11 @@ async function _acceptPendingInvite(tripId, memberId, btn) {
   btn.disabled = true;
   btn.textContent = '…';
   try {
-    const resp = await fetch(`/api/trip-members?action=accept-by-email&tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(userEmail)}`);
-    const data = await resp.json();
-    if (data.success) {
-      const row = btn.closest('div[style]');
-      if (row) row.remove();
-      const banner = document.getElementById('pending-invites-banner');
-      if (banner && !banner.querySelector('button')) banner.style.display = 'none';
-      tripsLoaded = false;
-      loadTrips();
-      showToast('Invitation accepted! Trip added to your list.');
-    } else {
-      btn.disabled = false;
-      btn.textContent = 'Accept';
-      showToast('Could not accept: ' + (data.error || 'Unknown error'), true);
-    }
+    await _acceptPendingInviteById(tripId);
+    const row = btn.closest('div[style]');
+    if (row) row.remove();
+    const banner = document.getElementById('pending-invites-banner');
+    if (banner && !banner.querySelector('button')) banner.style.display = 'none';
   } catch(e) {
     btn.disabled = false;
     btn.textContent = 'Accept';
