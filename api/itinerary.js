@@ -53,7 +53,7 @@ module.exports = async function handler(req, res) {
   const email  = ((req.body?.email)  || '').toLowerCase().trim();
   if (!tripId) return res.status(400).json({ error: 'tripId required' });
 
-  const [tripData, daysData, lodgingData, travelerData] = await Promise.all([
+  const [tripData, daysData, lodgingData, travelerData, reservationsData] = await Promise.all([
     airtableFetch('Trips', `/${tripId}`),
     airtableFetch('Trip Days',
       '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`) +
@@ -62,7 +62,10 @@ module.exports = async function handler(req, res) {
       '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`)),
     email
       ? airtableFetch('Traveler', `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`)
-      : Promise.resolve({ records: [] })
+      : Promise.resolve({ records: [] }),
+    airtableFetch('Reservations',
+      '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`) +
+      '&sort[0][field]=Key%20Date&sort[0][direction]=asc')
   ]);
 
   const trip     = tripData.fields || {};
@@ -70,6 +73,19 @@ module.exports = async function handler(req, res) {
   const lodgingById = {};
   (lodgingData.records || []).forEach(r => { lodgingById[r.id] = r.fields; });
   const traveler = (travelerData.records || [])[0]?.fields || {};
+
+  // Build reservations keyed by date (YYYY-MM-DD)
+  const reservationsByDate = {};
+  (reservationsData.records || []).forEach(r => {
+    const f    = r.fields;
+    const date = (f['Key Date'] || '').split('T')[0];
+    if (!date) return;
+    let parsed = {};
+    try { parsed = JSON.parse(f['Parsed Data'] || '{}'); } catch(e) {}
+    const entry = { type: f['Type'] || 'other', parsed };
+    if (!reservationsByDate[date]) reservationsByDate[date] = [];
+    reservationsByDate[date].push(entry);
+  });
 
   const tripName  = trip['Trip Name'] || trip['Destination'] || 'this trip';
   const dest      = [trip['Destination'], trip['Country']].filter(Boolean).join(', ');
@@ -117,14 +133,15 @@ module.exports = async function handler(req, res) {
     }
 
     return {
-      dayNum:    d['Day Number'] || 0,
-      date:      dateRaw,
+      dayNum:       d['Day Number'] || 0,
+      date:         dateRaw,
       dateLabel,
-      startLoc:  d['Starting Location'] || '',
-      endLoc:    d['Ending Location']   || '',
-      lodging:   lodgingParagraph,
+      startLoc:     d['Starting Location'] || '',
+      endLoc:       d['Ending Location']   || '',
+      lodging:      lodgingParagraph,
       lodgingName,
-      slotLabels: slots.map(slotLabel).filter(Boolean)
+      slotLabels:   slots.map(slotLabel).filter(Boolean),
+      reservations: reservationsByDate[dateRaw] || []
     };
   });
 
@@ -135,9 +152,21 @@ module.exports = async function handler(req, res) {
       : (d.startLoc || d.endLoc || '');
     const lines = [`Day ${d.dayNum}${d.dateLabel ? ' — ' + d.dateLabel : ''}${loc ? ' (' + loc + ')' : ''}`];
     if (d.lodging) lines.push(`  Lodging: ${d.lodging}`);
+    d.reservations.forEach(res => {
+      const p = res.parsed;
+      if (res.type === 'flight') {
+        const route = [p.from_airport, p.to_airport].filter(Boolean).join(' → ');
+        const time  = p.departure_time ? ' at ' + p.departure_time : '';
+        lines.push(`  ✈ Flight: ${p.airline || ''} ${p.flight_number || ''} ${route}${time}`.trim());
+      } else if (res.type === 'hotel') {
+        lines.push(`  🏨 Hotel check-in: ${p.hotel_name || ''}${p.hotel_location ? ' in ' + p.hotel_location : ''}`);
+      } else if (res.type === 'car_rental') {
+        lines.push(`  🚗 Car rental pickup: ${p.rental_company || ''} ${p.car_type || ''} at ${p.pickup_location || ''}`.trim());
+      }
+    });
     if (d.slotLabels.length) {
       d.slotLabels.forEach(s => lines.push(`  • ${s}`));
-    } else {
+    } else if (!d.reservations.length) {
       lines.push(`  (free day / no activities planned)`);
     }
     return lines.join('\n');

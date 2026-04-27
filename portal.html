@@ -2852,6 +2852,42 @@ async function buildItinerary() {
             ${loc ? `<div style="font-size:0.82rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;margin-bottom:8px;">📍 ${loc}</div>` : ''}
             ${d.lodging ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:6px;">🏨 ${d.lodging}</div>` : ''}
             ${lodgingDesc ? `<div style="font-size:0.83rem;color:var(--soft);line-height:1.7;margin-bottom:8px;font-style:italic;">${lodgingDesc}</div>` : ''}
+            ${(d.reservations && d.reservations.length) ? `
+              <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+                ${d.reservations.map(res => {
+                  const p = res.parsed || {};
+                  if (res.type === 'flight') {
+                    const route = [p.from_airport, p.to_airport].filter(Boolean).join(' → ');
+                    const time  = p.departure_time ? ' · Departs ' + p.departure_time : '';
+                    const conf  = p.confirmation_number ? ' · Conf: ' + p.confirmation_number : '';
+                    return `<div style="display:flex;align-items:flex-start;gap:8px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:8px;padding:8px 12px;">
+                      <span style="font-size:1rem;flex-shrink:0;">✈️</span>
+                      <div style="font-size:0.8rem;color:var(--soft);line-height:1.5;">
+                        <span style="font-weight:700;color:#fff;">${p.airline || 'Flight'} ${p.flight_number || ''}</span>${route ? ' · ' + route : ''}${time}${conf}
+                      </div>
+                    </div>`;
+                  } else if (res.type === 'hotel') {
+                    const loc  = p.hotel_location ? ' · ' + p.hotel_location : '';
+                    const conf = p.confirmation_number ? ' · Conf: ' + p.confirmation_number : '';
+                    return `<div style="display:flex;align-items:flex-start;gap:8px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:8px 12px;">
+                      <span style="font-size:1rem;flex-shrink:0;">🏨</span>
+                      <div style="font-size:0.8rem;color:var(--soft);line-height:1.5;">
+                        <span style="font-weight:700;color:#fff;">${p.hotel_name || 'Hotel'}</span> Check-in${loc}${conf}
+                      </div>
+                    </div>`;
+                  } else if (res.type === 'car_rental') {
+                    const loc  = p.pickup_location ? ' · ' + p.pickup_location : '';
+                    const conf = p.confirmation_number ? ' · Conf: ' + p.confirmation_number : '';
+                    return `<div style="display:flex;align-items:flex-start;gap:8px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:8px;padding:8px 12px;">
+                      <span style="font-size:1rem;flex-shrink:0;">🚗</span>
+                      <div style="font-size:0.8rem;color:var(--soft);line-height:1.5;">
+                        <span style="font-weight:700;color:#fff;">${p.rental_company || 'Car Rental'}</span> ${p.car_type || ''}${loc}${conf}
+                      </div>
+                    </div>`;
+                  }
+                  return '';
+                }).join('')}
+              </div>` : ''}
             ${d.slotLabels.length ? `
               <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:${narrative ? '12px' : '0'};">
                 ${d.slotLabels.map(s => `<div style="font-size:0.83rem;color:var(--soft);padding-left:10px;border-left:2px solid rgba(45,212,191,0.3);">• ${s}</div>`).join('')}
