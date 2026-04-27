@@ -53,7 +53,7 @@ module.exports = async function handler(req, res) {
   const email  = ((req.body?.email)  || '').toLowerCase().trim();
   if (!tripId) return res.status(400).json({ error: 'tripId required' });
 
-  const [tripData, daysData, lodgingData, travelerData, reservationsData] = await Promise.all([
+  const [tripData, daysData, lodgingData, travelerData] = await Promise.all([
     airtableFetch('Trips', `/${tripId}`),
     airtableFetch('Trip Days',
       '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`) +
@@ -62,11 +62,13 @@ module.exports = async function handler(req, res) {
       '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`)),
     email
       ? airtableFetch('Traveler', `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`)
-      : Promise.resolve({ records: [] }),
-    airtableFetch('Reservations',
-      '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`) +
-      '&sort[0][field]=Key%20Date&sort[0][direction]=asc')
+      : Promise.resolve({ records: [] })
   ]);
+
+  const reservationsData = await airtableFetch('Reservations',
+    '?filterByFormula=' + encodeURIComponent(`({Trip ID}="${tripId}")`) +
+    '&sort[0][field]=Key%20Date&sort[0][direction]=asc'
+  ).catch(() => ({ records: [] }));
 
   const trip     = tripData.fields || {};
   const days     = (daysData.records || []).map(r => ({ _id: r.id, ...r.fields }));

@@ -2807,6 +2807,10 @@ async function buildItinerary() {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ tripId: currentTripId, email: userEmail })
     });
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error('Server error (' + resp.status + '): ' + text.slice(0, 120));
+    }
     const data = await resp.json();
     if (data.error) throw new Error(data.error);
 
