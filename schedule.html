@@ -194,10 +194,17 @@
           </select>
         </div>
       </div>
-      <div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Location</div>
-        <input id="lm-location" type="text" placeholder="City / region / park"
-          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Location</div>
+          <input id="lm-location" type="text" placeholder="City / region / park"
+            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Phone</div>
+          <input id="lm-phone" type="tel" placeholder="+1 555-000-0000"
+            style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;width:160px;">
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;">
         <div>
@@ -222,22 +229,27 @@
         <input id="lm-amenities" type="text" placeholder="Pool, Wi-Fi, restaurant…"
           style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Confirmation #</div>
-          <input id="lm-confirmation" type="text" placeholder="Booking reference"
-            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
-        </div>
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Reservation URL</div>
-          <input id="lm-url" type="url" placeholder="https://…"
-            style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
-        </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Confirmation #</div>
+        <input id="lm-confirmation" type="text" placeholder="Booking reference"
+          style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
       </div>
       <div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Image URL</div>
-        <input id="lm-image" type="url" placeholder="https://… (property photo)"
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Site URL</div>
+        <input id="lm-site-url" type="url" placeholder="https://… (property website)"
           style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;box-sizing:border-box;">
+      </div>
+      <div>
+        <div id="lm-photo-wrap" style="display:none;margin-bottom:8px;">
+          <img id="lm-photo-preview" src="" alt="Property photo" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;" />
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="file" id="lm-photo-file" accept="image/*" onchange="uploadLodgingPhoto(this)" style="display:none;">
+          <button id="lm-photo-btn" onclick="document.getElementById('lm-photo-file').click()"
+            style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:9px 18px;cursor:pointer;">📷 Add Property Photo</button>
+          <span id="lm-photo-status" style="font-size:0.8rem;color:var(--soft);"></span>
+        </div>
+        <input type="hidden" id="lm-image" value="">
       </div>
       <div id="lm-status" style="display:none;font-size:0.85rem;text-align:center;"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:4px;">
@@ -1197,9 +1209,14 @@ function openLodgingModal(idx) {
   updateLodgingNights();
   document.getElementById('lm-description').value=f['Description']||'';
   document.getElementById('lm-amenities').value=f['Amenities']||'';
+  document.getElementById('lm-phone').value=f['Phone']||'';
   document.getElementById('lm-confirmation').value=f['Confirmation #']||'';
-  document.getElementById('lm-url').value=f['Reservation URL']||'';
-  document.getElementById('lm-image').value=f['Image URL']||'';
+  document.getElementById('lm-site-url').value=f['Site URL']||'';
+  const imageUrl=f['Image URL']||'';
+  document.getElementById('lm-image').value=imageUrl;
+  if(imageUrl){document.getElementById('lm-photo-preview').src=imageUrl;document.getElementById('lm-photo-wrap').style.display='block';document.getElementById('lm-photo-btn').textContent='📷 Change Photo';}
+  else{document.getElementById('lm-photo-wrap').style.display='none';document.getElementById('lm-photo-btn').textContent='📷 Add Property Photo';}
+  document.getElementById('lm-photo-status').textContent='';
   document.getElementById('lm-status').style.display='none';
   document.getElementById('lodging-form-modal').style.display='flex';
 }
@@ -1209,10 +1226,31 @@ function closeLodgingModal() {
   _lodgingModalIdx=null; _lodgingEditId=null;
 }
 
+async function uploadLodgingPhoto(input) {
+  const file=input.files[0]; if(!file) return;
+  const status=document.getElementById('lm-photo-status');
+  if(file.size>5*1024*1024){status.textContent='Photo must be under 5MB.';input.value='';return;}
+  status.textContent='Uploading…';
+  const fd=new FormData(); fd.append('file',file); fd.append('upload_preset','Trip Image');
+  try {
+    const resp=await fetch('https://api.cloudinary.com/v1_1/dporenlvw/image/upload',{method:'POST',body:fd});
+    const data=await resp.json();
+    if(data.secure_url){
+      document.getElementById('lm-image').value=data.secure_url;
+      document.getElementById('lm-photo-preview').src=data.secure_url;
+      document.getElementById('lm-photo-wrap').style.display='block';
+      document.getElementById('lm-photo-btn').textContent='📷 Change Photo';
+      status.textContent='✓ Ready — click Save to keep';
+      setTimeout(()=>{status.textContent='';},3000);
+    } else { status.textContent='Upload failed.'; }
+  } catch(e){ status.textContent='Upload failed.'; }
+  input.value='';
+}
+
 async function saveLodging() {
   const status=document.getElementById('lm-status');
   status.style.display='block'; status.style.color='var(--teal)'; status.textContent='Saving…';
-  const payload={tripId:currentTripId,name:document.getElementById('lm-name').value.trim(),type:document.getElementById('lm-type').value,location:document.getElementById('lm-location').value.trim(),checkIn:document.getElementById('lm-checkin').value,checkOut:document.getElementById('lm-checkout').value,description:document.getElementById('lm-description').value.trim(),amenities:document.getElementById('lm-amenities').value.trim(),confirmationNum:document.getElementById('lm-confirmation').value.trim(),reservationUrl:document.getElementById('lm-url').value.trim(),imageUrl:document.getElementById('lm-image').value.trim()};
+  const payload={tripId:currentTripId,name:document.getElementById('lm-name').value.trim(),type:document.getElementById('lm-type').value,location:document.getElementById('lm-location').value.trim(),checkIn:document.getElementById('lm-checkin').value,checkOut:document.getElementById('lm-checkout').value,description:document.getElementById('lm-description').value.trim(),amenities:document.getElementById('lm-amenities').value.trim(),phone:document.getElementById('lm-phone').value.trim(),confirmationNum:document.getElementById('lm-confirmation').value.trim(),siteUrl:document.getElementById('lm-site-url').value.trim(),imageUrl:document.getElementById('lm-image').value.trim()};
   if(!payload.name){status.style.color='#f43f5e';status.textContent='Property name is required.';return;}
   try {
     let resp,data;
