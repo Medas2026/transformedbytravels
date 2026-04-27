@@ -157,7 +157,7 @@ module.exports = async function handler(req, res) {
       const rec = (r.body.records || [])[0];
       if (rec) {
         const patch = await airtableRequest('PATCH', MEMBERS_TABLE, `/${rec.id}`, {
-          fields: { 'Status': 'Accepted' }
+          fields: { 'Status': 'Accepted', 'Accepted By': acceptorEmail }
         });
         if (patch.body.error) return res.status(500).json({ error: patch.body.error.message || JSON.stringify(patch.body.error) });
         return res.status(200).json({ success: true, tripId, role: rec.fields['Role'] });
@@ -187,7 +187,7 @@ module.exports = async function handler(req, res) {
 
       // Accept — update record
       const patch = await airtableRequest('PATCH', MEMBERS_TABLE, `/${rec.id}`, {
-        fields: { 'Status': 'Accepted', 'Email': acceptorEmail }
+        fields: { 'Status': 'Accepted', 'Email': acceptorEmail, 'Accepted By': acceptorEmail }
       });
       if (patch.body.error) return res.status(500).json({ error: patch.body.error.message || JSON.stringify(patch.body.error) });
       return res.status(200).json({ success: true, tripId: rec.fields['Trip ID'], role: rec.fields['Role'] });
