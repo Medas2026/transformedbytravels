@@ -7161,9 +7161,27 @@ async function _handleAcceptTripInvite() {
 async function _checkPendingInvites() {
   if (!userEmail) return;
   try {
-    const resp = await fetch(`/api/trip-members?action=pending&email=${encodeURIComponent(userEmail)}`);
-    const data = await resp.json();
-    const pending = data.records || [];
+    const [memberResp, partnerResp] = await Promise.all([
+      fetch(`/api/trip-members?action=pending&email=${encodeURIComponent(userEmail)}`),
+      fetch(`/api/partner?action=pending&email=${encodeURIComponent(userEmail)}`)
+    ]);
+    const memberData  = await memberResp.json();
+    const partnerData = await partnerResp.json();
+
+    // Show partner invite modals first, then trip member invites
+    const pendingPartners = partnerData.records || [];
+    for (const p of pendingPartners) {
+      await new Promise(resolve => {
+        showConfirm('🤝', 'Travel Partner Invitation',
+          `${p.senderName} invited you to connect as a Travel Partner.`,
+          'Accept', 'var(--teal)',
+          async () => { await acceptPartnerInvite(p.token); resolve(); }
+        );
+        document.getElementById('confirm-modal-cancel').addEventListener('click', resolve, { once: true });
+      });
+    }
+
+    const pending = memberData.records || [];
     if (!pending.length) return;
 
     const items = await Promise.all(pending.map(async m => {

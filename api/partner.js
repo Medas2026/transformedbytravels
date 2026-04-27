@@ -363,6 +363,20 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ success: true, partnerName: f['Traveler Name'] || '' });
   }
 
+  // ── GET: pending partner invite for a given email ───────────────────────
+  if (req.method === 'GET' && req.query.action === 'pending') {
+    const email = (req.query.email || '').toLowerCase().trim();
+    if (!email) return res.status(400).json({ error: 'email required' });
+    const filter = `?filterByFormula=${encodeURIComponent(`AND({Travel Partner Email}="${email}",{Partner Status}="Pending")`)}`;
+    const data = await airtableGet(filter);
+    const records = (data.records || []).map(r => ({
+      senderName:  r.fields['Traveler Name']  || r.fields['Traveler Email'] || 'Someone',
+      senderEmail: r.fields['Traveler Email'] || '',
+      token:       r.fields['Partner Link Token'] || ''
+    }));
+    return res.status(200).json({ records });
+  }
+
   // ── GET: partner bullets ─────────────────────────────────────────────────
   if (req.method === 'GET' && req.query.action === 'bullets') {
     const email = (req.query.email || '').toLowerCase().trim();
