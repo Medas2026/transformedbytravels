@@ -261,7 +261,12 @@ Continue for all ${structuredDays.length} days. Be specific and evocative.${lodg
       tripSummary,
       days: structuredDays,
       daySummaries,
-      lodgingDescriptions
+      lodgingDescriptions,
+      _debug: {
+        reservationCount: (reservationsData.records || []).length,
+        reservationsByDate,
+        dayDates: structuredDays.map(d => ({ dayNum: d.dayNum, date: d.date, resCount: d.reservations.length }))
+      }
     });
   } catch(e) {
     return res.status(500).json({ error: e.message });
