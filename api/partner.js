@@ -4,6 +4,14 @@ const crypto = require('crypto');
 const BASE_ID = 'appdlxcWb45dIqNK2';
 const TABLE   = 'Traveler';
 
+function scoreLabel(n) {
+  const v = parseInt(n, 10) || 0;
+  if (v <= 2) return 'Low';
+  if (v <= 4) return 'Moderate';
+  if (v <= 5) return 'High';
+  return 'Very High';
+}
+
 // ── Airtable helpers ─────────────────────────────────────────────────────────
 
 function airtableGet(filter) {
@@ -154,12 +162,12 @@ function buildPartnerBullets(travelerA, travelerB) {
 ${nameA}:
 - Archetype: ${travelerA['Archetype'] || 'Unknown'}
 - Passions: ${travelerA['Passions'] || 'Not specified'}
-- Dimension scores (out of 7): Curiosity ${travelerA['DS-1 Curiosity'] || 0}, Adventure ${travelerA['DS-2 Adventure'] || 0}, Reflection ${travelerA['DS-3 Reflection'] || 0}, Connection ${travelerA['DS-4 Connection'] || 0}, Travel Purpose ${travelerA['DS-5 Intention'] || 0}
+- Dimensions: Curiosity ${scoreLabel(travelerA['DS-1 Curiosity'])}, Adventure ${scoreLabel(travelerA['DS-2 Adventure'])}, Reflection ${scoreLabel(travelerA['DS-3 Reflection'])}, Connection ${scoreLabel(travelerA['DS-4 Connection'])}, Travel Purpose ${scoreLabel(travelerA['DS-5 Intention'])}
 
 ${nameB}:
 - Archetype: ${travelerB['Archetype'] || 'Unknown'}
 - Passions: ${travelerB['Passions'] || 'Not specified'}
-- Dimension scores (out of 7): Curiosity ${travelerB['DS-1 Curiosity'] || 0}, Adventure ${travelerB['DS-2 Adventure'] || 0}, Reflection ${travelerB['DS-3 Reflection'] || 0}, Connection ${travelerB['DS-4 Connection'] || 0}, Travel Purpose ${travelerB['DS-5 Intention'] || 0}
+- Dimensions: Curiosity ${scoreLabel(travelerB['DS-1 Curiosity'])}, Adventure ${scoreLabel(travelerB['DS-2 Adventure'])}, Reflection ${scoreLabel(travelerB['DS-3 Reflection'])}, Connection ${scoreLabel(travelerB['DS-4 Connection'])}, Travel Purpose ${scoreLabel(travelerB['DS-5 Intention'])}
 
 Output only the bullet points, one per line, each starting with a bullet character •. Keep each bullet to 10 words or fewer. No headers, no intro sentence, no trailing text.`;
 
@@ -201,34 +209,21 @@ Output only the bullet points, one per line, each starting with a bullet charact
 // ── Claude compatibility report ───────────────────────────────────────────────
 
 function buildCompatibilityReport(travelerA, travelerB) {
-  const dims = ['Curiosity', 'Adventure', 'Reflection', 'Connection', 'Travel Purpose'];
-  const scoresA = {
-    Curiosity:        travelerA['DS-1 Curiosity']  || 0,
-    Adventure:        travelerA['DS-2 Adventure']  || 0,
-    Reflection:       travelerA['DS-3 Reflection'] || 0,
-    Connection:       travelerA['DS-4 Connection'] || 0,
-    'Travel Purpose': travelerA['DS-5 Intention']  || 0
-  };
-  const scoresB = {
-    Curiosity:        travelerB['DS-1 Curiosity']  || 0,
-    Adventure:        travelerB['DS-2 Adventure']  || 0,
-    Reflection:       travelerB['DS-3 Reflection'] || 0,
-    Connection:       travelerB['DS-4 Connection'] || 0,
-    'Travel Purpose': travelerB['DS-5 Intention']  || 0
-  };
-
   return new Promise((resolve, reject) => {
+    const dimA = `Curiosity ${scoreLabel(travelerA['DS-1 Curiosity'])}, Adventure ${scoreLabel(travelerA['DS-2 Adventure'])}, Reflection ${scoreLabel(travelerA['DS-3 Reflection'])}, Connection ${scoreLabel(travelerA['DS-4 Connection'])}, Travel Purpose ${scoreLabel(travelerA['DS-5 Intention'])}`;
+    const dimB = `Curiosity ${scoreLabel(travelerB['DS-1 Curiosity'])}, Adventure ${scoreLabel(travelerB['DS-2 Adventure'])}, Reflection ${scoreLabel(travelerB['DS-3 Reflection'])}, Connection ${scoreLabel(travelerB['DS-4 Connection'])}, Travel Purpose ${scoreLabel(travelerB['DS-5 Intention'])}`;
+
     const prompt = `You are an expert travel psychology consultant. Two travelers want to understand how they'll travel together.
 
 Traveler A: ${travelerA['Traveler Name'] || 'Traveler A'}
 - Archetype: ${travelerA['Archetype'] || 'Unknown'}
 - Passions: ${travelerA['Passions'] || 'Not specified'}
-- Dimension scores (out of 7): Curiosity ${scoresA.Curiosity}, Adventure ${scoresA.Adventure}, Reflection ${scoresA.Reflection}, Connection ${scoresA.Connection}, Travel Purpose ${scoresA['Travel Purpose']}
+- Dimensions: ${dimA}
 
 Traveler B: ${travelerB['Traveler Name'] || 'Traveler B'}
 - Archetype: ${travelerB['Archetype'] || 'Unknown'}
 - Passions: ${travelerB['Passions'] || 'Not specified'}
-- Dimension scores (out of 7): Curiosity ${scoresB.Curiosity}, Adventure ${scoresB.Adventure}, Reflection ${scoresB.Reflection}, Connection ${scoresB.Connection}, Travel Purpose ${scoresB['Travel Purpose']}
+- Dimensions: ${dimB}
 
 Write a warm, insightful travel compatibility report with these four sections. Use plain text with section headers (no markdown, no asterisks, no bullet dashes — use numbers for lists if needed):
 
@@ -239,12 +234,14 @@ YOUR STRENGTHS AS TRAVEL PARTNERS
 Three to four specific strengths of this combination — what you'll both love, where you'll naturally agree, and what makes your trips richer because you're together.
 
 WHERE TO FIND YOUR RHYTHM
-Two to three areas where your different scores or archetypes may create friction, and practical ways to navigate them so both travelers feel fulfilled.
+Two to three areas where their different travel styles or archetypes may create friction, and practical ways to navigate them so both travelers feel fulfilled.
 
 TRIP STYLES MADE FOR YOU BOTH
 Three specific types of trips or experiences that play to both travelers' strengths — be concrete (e.g. "a slow river journey through Southeast Asia" not just "cultural travel").
 
-Keep the tone warm, personal, and forward-looking. Address them by first name throughout.`;
+Keep the tone warm, personal, and forward-looking. Address them by first name throughout.
+
+IMPORTANT: Never include numeric scores in your output. Reference dimension levels only as natural language (e.g. "high curiosity", "very high adventure") — never as a number or parenthetical like "(Adventure 7)".`;
 
     const body = JSON.stringify({
       model:      'claude-sonnet-4-6',

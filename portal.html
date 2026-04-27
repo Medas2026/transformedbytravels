@@ -836,6 +836,7 @@
               <button class="btn-new-trip" onclick="showNewTripForm()">+ New Trip</button>
             </div>
           </div>
+          <div id="pending-invites-banner" style="display:none;margin-bottom:16px;"></div>
           <div id="trip-list-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading trips…</div>
           <div id="trip-list"></div>
 
@@ -851,6 +852,7 @@
           <div class="trip-detail-header">
             <button class="btn-back" onclick="closeTripDetail()">← Back</button>
             <div class="trip-detail-title" id="trip-detail-title">New Trip</div>
+            <span id="trip-role-badge" style="display:none;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:3px 10px;border-radius:10px;background:rgba(255,255,255,0.08);color:var(--soft);border:1px solid rgba(255,255,255,0.12);"></span>
             <button id="cancel-trip-btn" onclick="cancelTrip()" style="display:none;background:none;border:1px solid #ef4444;border-radius:8px;color:#ef4444;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;padding:7px 16px;cursor:pointer;">Cancel Trip</button>
           </div>
 
@@ -2466,23 +2468,33 @@ async function initAuth0() {
     }
   });
 
-  // Handle redirect callback — restore any pending page from appState
+  // Handle redirect callback — restore any pending page or invite tokens from appState
   if (window.location.search.includes('code=')) {
     const _cbResult = await auth0Client.handleRedirectCallback();
-    if (_cbResult && _cbResult.appState && _cbResult.appState.pendingPage) {
-      sessionStorage.setItem('pendingDeepPage', _cbResult.appState.pendingPage);
+    if (_cbResult && _cbResult.appState) {
+      if (_cbResult.appState.pendingPage)      sessionStorage.setItem('pendingDeepPage',   _cbResult.appState.pendingPage);
+      if (_cbResult.appState.acceptTripToken)  sessionStorage.setItem('acceptTripToken',   _cbResult.appState.acceptTripToken);
+      if (_cbResult.appState.acceptTripEmail)  sessionStorage.setItem('acceptTripEmail',   _cbResult.appState.acceptTripEmail);
+      if (_cbResult.appState.acceptPartnerToken) sessionStorage.setItem('acceptPartnerToken', _cbResult.appState.acceptPartnerToken);
+      if (_cbResult.appState.acceptPartnerTripId) sessionStorage.setItem('acceptPartnerTripId', _cbResult.appState.acceptPartnerTripId);
     }
     window.history.replaceState({}, document.title, '/portal.html');
   }
 
   const isAuthenticated = await auth0Client.isAuthenticated();
 
-
   if (!isAuthenticated) {
-    const _pendingPage = new URLSearchParams(window.location.search).get('page');
+    const _lrParams = new URLSearchParams(window.location.search);
+    const _pendingPage = _lrParams.get('page');
     if (_pendingPage) sessionStorage.setItem('pendingDeepPage', _pendingPage);
     await auth0Client.loginWithRedirect({
-      appState: { pendingPage: _pendingPage || null }
+      appState: {
+        pendingPage:          _pendingPage || null,
+        acceptTripToken:      _lrParams.get('accept-trip')         || null,
+        acceptTripEmail:      _lrParams.get('email')               || null,
+        acceptPartnerToken:   _lrParams.get('accept-partner')      || null,
+        acceptPartnerTripId:  _lrParams.get('accept-partner-trip') || null
+      }
     });
     return;
   }
@@ -2622,8 +2634,9 @@ async function loadProfile(email) {
       sessionStorage.removeItem('acceptPartnerToken');
       acceptPartnerInvite(_partnerToken);
     }
-    // Handle trip invite accept deep link
+    // Handle trip invite accept deep link (token-based, then email-based fallback)
     _handleAcceptTripInvite();
+    _checkPendingInvites();
   } catch(err) {
     document.getElementById('profile-loading').textContent = 'Error loading profile: ' + err.message;
   }
@@ -3791,17 +3804,8 @@ async function acceptPartnerInvite(token) {
       if (pendingTripId) {
         sessionStorage.removeItem('acceptPartnerTripId');
         try {
-          await fetch('/api/trip-members', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              tripId:       pendingTripId,
-              inviteeEmail: userEmail,
-              role:         'Partner',
-              skipEmail:    true
-            })
-          });
-        } catch(e) { console.error('partner trip-member add error:', e.message); }
+          await fetch(`/api/trip-members?action=accept-by-email&tripId=${encodeURIComponent(pendingTripId)}&email=${encodeURIComponent(userEmail)}`);
+        } catch(e) { console.error('partner trip-member accept error:', e.message); }
       }
       showPage('profile');
       await loadProfile(userEmail);
@@ -4808,6 +4812,7 @@ let currentTripStatus      = '';
 let tripsLoaded        = false;
 let _returnToHistory   = false;
 let _isHistoryTrip     = false;
+let _tripReadOnly      = false;
 const _tripRecordsMap  = {}; // id → record, avoids JSON-in-HTML apostrophe bug
 
 function loadTrips() {
@@ -4815,24 +4820,55 @@ function loadTrips() {
   document.getElementById('trip-list-section').style.display = 'block';
   document.getElementById('trip-detail').style.display = 'none';
   if (tripsLoaded) return;
-  fetch('/api/trips?email=' + encodeURIComponent(userEmail))
-    .then(r => r.json())
-    .then(data => {
-      tripsLoaded = true;
-      document.getElementById('trip-list-loading').style.display = 'none';
-      const all     = data.records || [];
-      const active  = all.filter(r => !r.fields['History']);
-      const history = all.filter(r =>  r.fields['History']).sort((a, b) => {
-        const da = a.fields['End Date'] || a.fields['Start Date'] || '0';
-        const db = b.fields['End Date'] || b.fields['Start Date'] || '0';
-        return new Date(db) - new Date(da);
-      });
-      renderTripList(active);
-      renderHistoryTripList(history);
-    })
-    .catch(() => {
-      document.getElementById('trip-list-loading').textContent = 'Could not load trips.';
+
+  Promise.all([
+    fetch('/api/trips?email=' + encodeURIComponent(userEmail)).then(r => r.json()),
+    fetch('/api/trip-members?memberEmail=' + encodeURIComponent(userEmail)).then(r => r.json()).catch(() => ({ records: [] }))
+  ]).then(async ([ownData, memberData]) => {
+    tripsLoaded = true;
+    document.getElementById('trip-list-loading').style.display = 'none';
+
+    const ownRecords = ownData.records || [];
+    const ownIds     = new Set(ownRecords.map(r => r.id));
+
+    // Fetch shared trip records (accepted memberships that aren't already owned)
+    const memberships = (memberData.records || []).filter(m => {
+      const tripId = m.fields['Trip ID'];
+      return tripId && !ownIds.has(tripId);
     });
+
+    let sharedRecords = [];
+    if (memberships.length) {
+      const fetched = await Promise.all(
+        memberships.map(m =>
+          fetch('/api/trips?id=' + encodeURIComponent(m.fields['Trip ID']))
+            .then(r => r.json())
+            .then(d => {
+              if (d.record) {
+                d.record._fromName   = m.fields['Invited By Name'] || m.fields['Invited By'] || '';
+                d.record._shared     = true;
+                d.record._memberRole = m.fields['Role'] || 'Viewer';
+              }
+              return d.record || null;
+            })
+            .catch(() => null)
+        )
+      );
+      sharedRecords = fetched.filter(Boolean);
+    }
+
+    const all     = [...ownRecords, ...sharedRecords];
+    const active  = all.filter(r => !r.fields['History']);
+    const history = all.filter(r =>  r.fields['History']).sort((a, b) => {
+      const da = a.fields['End Date'] || a.fields['Start Date'] || '0';
+      const db = b.fields['End Date'] || b.fields['Start Date'] || '0';
+      return new Date(db) - new Date(da);
+    });
+    renderTripList(active);
+    renderHistoryTripList(history);
+  }).catch(() => {
+    document.getElementById('trip-list-loading').textContent = 'Could not load trips.';
+  });
 }
 
 function loadTravelStory() {
@@ -5331,10 +5367,11 @@ function renderTripList(records) {
     const statusBadge = `<span style="display:inline-block;background:${sc.bg};color:${sc.color};font-size:0.7rem;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:10px;">${st}</span>`;
     const badgeHtml = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px;">${countdownBadge}${statusBadge}</div>`;
     _tripRecordsMap[r.id] = r;
+    const fromLabel = r._fromName ? `<span style="font-weight:400;color:var(--muted);font-size:0.82rem;"> (from ${r._fromName})</span>` : '';
     return `<div class="trip-card" data-trip-id="${r.id}" onclick="_openTripById(this.dataset.tripId)">
       <div>
         ${badgeHtml}
-        <div class="trip-card-name">${name}</div>
+        <div class="trip-card-name">${name}${fromLabel}</div>
         <div class="trip-card-dates">${dates}</div>
       </div>
       <div class="trip-card-arrow">›</div>
@@ -5441,6 +5478,21 @@ function openTrip(record) {
   _lodgingRecords  = [];
   _lodgingMap      = {};
   const f = record.fields;
+
+  // Determine access level
+  const _editRoles = ['Partner', 'Trip Planner'];
+  const memberRole = record._memberRole || null;
+  _tripReadOnly = record._shared && !_editRoles.includes(memberRole);
+  const roleBadge = document.getElementById('trip-role-badge');
+  if (record._shared && memberRole) {
+    roleBadge.textContent = _tripReadOnly ? memberRole + ' · View Only' : memberRole + ' · Can Edit';
+    roleBadge.style.display = 'inline-block';
+    roleBadge.style.color = _tripReadOnly ? 'var(--muted)' : 'var(--teal)';
+    roleBadge.style.borderColor = _tripReadOnly ? 'rgba(255,255,255,0.12)' : 'rgba(45,212,191,0.4)';
+    roleBadge.style.background = _tripReadOnly ? 'rgba(255,255,255,0.05)' : 'rgba(45,212,191,0.08)';
+  } else {
+    roleBadge.style.display = 'none';
+  }
   document.getElementById('trip-detail-title').textContent = f['Trip Name'] || 'Trip Details';
   document.getElementById('td-name').value        = f['Trip Name']    || '';
   // Hide destination picker — destination is locked for existing trips
@@ -5477,7 +5529,34 @@ function openTrip(record) {
   if (mapSection) mapSection.style.display = 'none';
   loadTripPlaces(record.id);
   updateDuration();
-  document.getElementById('cancel-trip-btn').style.display = _isHistoryTrip ? 'none' : 'inline-block';
+  document.getElementById('cancel-trip-btn').style.display = (_isHistoryTrip || _tripReadOnly) ? 'none' : 'inline-block';
+
+  // Enforce read-only for non-editor roles
+  if (_tripReadOnly) {
+    document.getElementById('trip-detail').querySelectorAll('input, select, textarea, button').forEach(el => {
+      const keep = el.closest('.btn-back') || el.id === 'trip-role-badge';
+      if (!keep && !el.classList.contains('btn-back')) el.disabled = true;
+    });
+    // Hide write-only action buttons by id
+    ['save-trip-btn','tm-invite-btn','td-photo-btn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    // Hide the inline Save Trip Plan button (it has no id — target by text)
+    document.getElementById('trip-detail').querySelectorAll('button').forEach(btn => {
+      if (btn.textContent.trim() === 'Save Trip Plan') btn.style.display = 'none';
+    });
+  } else {
+    // Restore if switching from a read-only trip to an editable one
+    document.getElementById('trip-detail').querySelectorAll('input, select, textarea, button').forEach(el => {
+      el.disabled = false;
+    });
+    document.getElementById('trip-detail').querySelectorAll('button').forEach(btn => {
+      if (btn.style.display === 'none' && btn.textContent.trim() === 'Save Trip Plan') btn.style.display = '';
+    });
+    const inviteBtn = document.getElementById('tm-invite-btn');
+    if (inviteBtn) inviteBtn.style.display = '';
+  }
   document.getElementById('trip-list-section').style.display = 'none';
   document.getElementById('trip-detail').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -6730,6 +6809,8 @@ function closeTripDetail() {
   document.getElementById('td-end').min   = '';
   document.getElementById('td-end').max   = '';
   _isHistoryTrip = false;
+  _tripReadOnly  = false;
+  document.getElementById('trip-role-badge').style.display = 'none';
   if (_returnToHistory) {
     _returnToHistory = false;
     showPage('story');
@@ -6966,7 +7047,7 @@ async function inviteTripMember() {
   try {
     const tripNameEl  = document.getElementById('td-name');
     const tripName    = tripNameEl ? tripNameEl.value : '';
-    const inviterName = (portalProfile && portalProfile['First Name']) ? portalProfile['First Name'] : userEmail;
+    const inviterName = (portalProfile && portalProfile['Traveler Name']) ? portalProfile['Traveler Name'].split(' ')[0] : userEmail;
 
     // No-partner path: send partner connection invite (which also mentions the trip)
     if (isPartnerInvite) {
@@ -7074,6 +7155,73 @@ async function _handleAcceptTripInvite() {
     }
   } catch(e) {
     console.error('[accept-trip]', e.message);
+  }
+}
+
+async function _checkPendingInvites() {
+  if (!userEmail) return;
+  try {
+    const resp = await fetch(`/api/trip-members?action=pending&email=${encodeURIComponent(userEmail)}`);
+    const data = await resp.json();
+    const pending = data.records || [];
+    if (!pending.length) return;
+
+    const banner = document.getElementById('pending-invites-banner');
+    if (!banner) return;
+
+    const items = await Promise.all(pending.map(async m => {
+      const tripId = m.fields['Trip ID'];
+      const inviterName = m.fields['Invited By Name'] || m.fields['Invited By'] || 'Someone';
+      const role = m.fields['Role'] || 'Viewer';
+      let tripName = 'a trip';
+      try {
+        const tr = await fetch('/api/trips?id=' + encodeURIComponent(tripId)).then(r => r.json());
+        if (tr.record && tr.record.fields) {
+          const f = tr.record.fields;
+          tripName = f['Trip Name'] || f['Destination'] || tripName;
+        }
+      } catch(e) {}
+      return { id: m.id, tripId, inviterName, role, tripName };
+    }));
+
+    banner.style.display = 'block';
+    const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    banner.innerHTML = items.map(item => `
+      <div style="background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.3);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;color:#e2e8f0;">Trip Invitation</div>
+          <div style="font-size:0.85rem;color:var(--soft);margin-top:3px;"><strong style="color:#e2e8f0;">${esc(item.inviterName)}</strong> invited you to <strong style="color:#e2e8f0;">${esc(item.tripName)}</strong> as ${esc(item.role)}</div>
+        </div>
+        <button onclick="_acceptPendingInvite('${esc(item.tripId)}','${esc(item.id)}',this)" style="background:#2dd4bf;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:6px;padding:8px 20px;cursor:pointer;white-space:nowrap;">Accept</button>
+      </div>`).join('');
+  } catch(e) {
+    console.error('[pending-invites]', e.message);
+  }
+}
+
+async function _acceptPendingInvite(tripId, memberId, btn) {
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const resp = await fetch(`/api/trip-members?action=accept-by-email&tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(userEmail)}`);
+    const data = await resp.json();
+    if (data.success) {
+      const row = btn.closest('div[style]');
+      if (row) row.remove();
+      const banner = document.getElementById('pending-invites-banner');
+      if (banner && !banner.querySelector('button')) banner.style.display = 'none';
+      tripsLoaded = false;
+      loadTrips();
+      showToast('Invitation accepted! Trip added to your list.');
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Accept';
+      showToast('Could not accept: ' + (data.error || 'Unknown error'), true);
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Accept';
+    showToast('Error accepting invite', true);
   }
 }
 
@@ -7193,14 +7341,20 @@ async function uploadProfilePhoto(input) {
       document.getElementById('profile-user-photo-placeholder').style.display = 'none';
       document.getElementById('profile-photo-btn').style.display = 'none';
       document.getElementById('profile-photo-edit-btn').style.display = 'inline-block';
-      status.textContent = '✓ Saved';
-      setTimeout(() => status.textContent = '', 2000);
+      status.textContent = 'Saving…';
       // Save to Airtable
-      await fetch('/api/airtable-traveler', {
+      const saveResp = await fetch('/api/airtable-traveler', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: userEmail, profileEdit: true, profilePhotoUrl: data.secure_url })
       });
+      const saveData = await saveResp.json();
+      if (!saveResp.ok || saveData.error) {
+        status.textContent = 'Photo uploaded but not saved: ' + (saveData.error || saveResp.status);
+      } else {
+        status.textContent = '✓ Saved';
+        setTimeout(() => status.textContent = '', 2000);
+      }
     } else {
       status.textContent = 'Upload failed. Please try again.';
     }
@@ -7339,6 +7493,7 @@ async function uploadTripPhoto(input) {
 }
 
 async function saveTrip() {
+  if (_tripReadOnly) return;
   const msg = document.getElementById('trip-save-msg');
   msg.style.display = 'block';
   msg.style.color   = 'var(--teal)';

@@ -15,18 +15,26 @@ module.exports = async function handler(req, res) {
 
   const { Curiosity, Adventure, Reflection, Connection, Intention } = scores;
 
+  function scoreLabel(n) {
+    const v = parseInt(n, 10) || 0;
+    if (v <= 2) return 'Low';
+    if (v <= 4) return 'Moderate';
+    if (v <= 5) return 'High';
+    return 'Very High';
+  }
+
   const prompt = `You are a transformational travel expert who specializes in matching destinations to a traveler's personal psychology.
 
 A traveler has completed the Transformational Travel Profile assessment. Here are their results:
 
 Archetype: ${archetype}
 
-Dimension Scores (out of 7):
-- Curiosity (intellectual exploration & culture): ${Curiosity}/7
-- Adventure (physical challenge & novelty): ${Adventure}/7
-- Reflection (solitude & inner contemplation): ${Reflection}/7
-- Connection (human bonds & community): ${Connection}/7
-- Intention (purposeful, meaningful travel): ${Intention}/7
+Dimensions:
+- Curiosity (intellectual exploration & culture): ${scoreLabel(Curiosity)}
+- Adventure (physical challenge & novelty): ${scoreLabel(Adventure)}
+- Reflection (solitude & inner contemplation): ${scoreLabel(Reflection)}
+- Connection (human bonds & community): ${scoreLabel(Connection)}
+- Intention (purposeful, meaningful travel): ${scoreLabel(Intention)}
 
 They are exploring: ${destination}, ${country} (${continent})
 
@@ -44,7 +52,9 @@ Write a personalized destination guide for this specific traveler. Structure it 
 **How to Travel Here as a ${archetype}**
 2–3 sentences of practical mindset advice for getting the most transformational value from this trip given who they are.
 
-Keep the tone warm, inspiring, and personal — speak directly to "you". Be specific to the destination, not generic. Total length: 250–320 words.`;
+Keep the tone warm, inspiring, and personal — speak directly to "you". Be specific to the destination, not generic. Total length: 250–320 words.
+
+IMPORTANT: Never include numeric scores in your output. Reference dimension levels only as natural language (e.g. "high curiosity", "very high adventure sense") — never as a number or parenthetical like "(Adventure 7)".`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {

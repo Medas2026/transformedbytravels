@@ -52,6 +52,23 @@ function claudeGuide(prompt) {
 
 function truncate(val, max) { return (val || '').slice(0, max); }
 
+// Strip any numeric score references Claude might include despite instructions
+function stripScores(text) {
+  return text
+    .replace(/\b(Curiosity|Adventure|Reflection|Connection|Intention|Travel Purpose)\s+\d+(\s*\/\s*7)?\b/g, '$1')
+    .replace(/\(\s*(Curiosity|Adventure|Reflection|Connection|Intention|Travel Purpose)\s+\d+(?:,\s*(Curiosity|Adventure|Reflection|Connection|Intention|Travel Purpose)\s+\d+)*\s*\)/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function scoreLabel(n) {
+  const v = parseInt(n, 10) || 0;
+  if (v <= 2) return 'Low';
+  if (v <= 4) return 'Moderate';
+  if (v <= 5) return 'High';
+  return 'Very High';
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   try {
@@ -74,8 +91,8 @@ module.exports = async function handler(req, res) {
       const pPassions   = truncate((p.get('partnerPassions') || '').replace(/\|/g, ', '), 300);
 
       const dims = ['Curiosity','Adventure','Reflection','Connection','Intention'];
-      const scoreA = dims.map(d => `${d}: ${p.get(d) || 0}/7`).join(', ');
-      const scoreB = dims.map(d => `${d}: ${p.get('partner' + d) || 0}/7`).join(', ');
+      const scoreA = dims.map(d => `${d}: ${scoreLabel(p.get(d))}`).join(', ');
+      const scoreB = dims.map(d => `${d}: ${scoreLabel(p.get('partner' + d))}`).join(', ');
 
       const prompt = `You are an expert travel writer and destination specialist. Create a rich, personalized Destination DNA Guide for ${destination}${country ? ', ' + country : ''} tailored to two travel partners traveling together.
 
@@ -103,32 +120,54 @@ Write a destination guide that speaks to BOTH travelers — finding the sweet sp
 ## How to Structure Your Days Together
 ## Practical Tips
 
-Use vivid, inspiring language. Be specific to this destination. 600-800 words.`;
+Use vivid, inspiring language. Be specific to this destination. 600-800 words.
 
-      const guide = await claudeGuide(prompt);
+IMPORTANT: Never include numeric scores in your output. You may naturally reference a traveler's dimension level (e.g. "your high sense of adventure" or "your very high curiosity") but always as natural language — never as a score, number, or parenthetical like "(Adventure 7)".`;
+
+      const guide = stripScores(await claudeGuide(prompt));
       return res.status(200).json({ guide });
     }
 
-    // Standard solo guide — proxy to Google Apps Script
-    // Re-build query string with truncated inputs before forwarding
-    const safeP = new URLSearchParams();
-    for (const [k, v] of p.entries()) {
-      const limit = ['hopes','passions','partnerPassions'].includes(k) ? 300 : 100;
-      safeP.set(k, v.slice(0, limit));
-    }
-    const base = 'https://script.google.com/macros/s/AKfycbxxqhkHPKSnj48H6tpFtWbbCsrs6zkNvrmSIcw3NGdWhSNBehqjAsqMUIIbTpAUShx6mA/exec';
-    const url  = base + '?' + safeP.toString();
-    console.log('dest-guide fetching:', url.slice(0, 120));
+    // Standard solo guide — generate with Claude
+    const destination  = truncate(p.get('destination'), 100);
+    const country      = truncate(p.get('country'), 100);
+    const archetype    = truncate(p.get('archetype'), 100);
+    const passions     = truncate((p.get('passions')   || '').replace(/\|/g, ', '), 300);
+    const passionFocus = truncate(p.get('passion') || '', 100);
+    const hopes        = truncate((p.get('hopes')      || '').replace(/\|/g, ', '), 300);
+    const lifeStage    = truncate(p.get('lifeStage'), 100);
+    const travelStyle  = truncate(p.get('travelStyle'), 100);
+    const travelerName = truncate(p.get('travelerName') || 'Traveler', 100);
 
-    get(url, 10, (err, data) => {
-      if (err) { res.status(500).json({ error: err.message }); return; }
-      try {
-        const parsed = JSON.parse(data);
-        res.status(200).json(parsed);
-      } catch(e) {
-        res.status(500).json({ error: 'Parse error', raw: data.slice(0, 300) });
-      }
-    });
+    const dims   = ['Curiosity','Adventure','Reflection','Connection','Intention'];
+    const scoreA = dims.map(d => `${d}: ${scoreLabel(p.get(d))}`).join(', ');
+
+    const soloPrompt = `You are an expert travel writer and destination specialist. Create a rich, personalized Destination DNA Guide for ${destination}${country ? ', ' + country : ''} tailored to a single traveler.
+
+${travelerName}:
+- Archetype: ${archetype}
+- Passions: ${passions || 'not specified'}${passionFocus ? `\n- Passion Focus for this trip: ${passionFocus}` : ''}
+- Hopes to experience: ${hopes || 'not specified'}
+- Life stage: ${lifeStage}
+- Travel style: ${travelStyle}
+- Dimension scores: ${scoreA}
+${passionFocus ? `\nIMPORTANT: The traveler has specifically selected "${passionFocus}" as their passion focus for this destination. Make sure experiences related to ${passionFocus} are prominently featured throughout the guide.\n` : ''}
+Write a destination guide that speaks directly to this traveler — what makes this destination a natural fit for who they are, and how they should experience it. Structure it with these sections:
+
+# ${destination} — Your Destination DNA
+
+## Why This Destination Calls to You
+## Experiences Made for You
+## How to Make the Most of Your Time
+## Hidden Gems Worth Seeking Out
+## Practical Tips
+
+Use vivid, inspiring language. Be specific to this destination. 600-800 words.
+
+IMPORTANT: Never include numeric scores in your output. You may naturally reference a traveler's dimension level (e.g. "your high sense of adventure" or "your very high curiosity") but always as natural language — never as a score, number, or parenthetical like "(Adventure 7)".`;
+
+    const guide = stripScores(await claudeGuide(soloPrompt));
+    return res.status(200).json({ guide });
   } catch(e) {
     console.log('handler error:', e.message);
     res.status(500).json({ error: e.message });

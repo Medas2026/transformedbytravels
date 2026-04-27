@@ -106,14 +106,67 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // GET — list members for a trip
-  if (req.method === 'GET' && req.query.action !== 'accept') {
+  // GET — all accepted memberships for a given email (shared trips)
+  if (req.method === 'GET' && req.query.memberEmail) {
+    const email = (req.query.memberEmail || '').toLowerCase().trim();
+    if (!email) return res.status(400).json({ error: 'memberEmail required' });
+    const filter = `?filterByFormula=${encodeURIComponent(`AND({Email}="${email}",{Status}="Accepted")`)}`;
+    try {
+      const r = await airtableRequest('GET', MEMBERS_TABLE, filter, null);
+      return res.status(200).json({ records: r.body.records || [] });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // GET — list members for a trip (no action param)
+  if (req.method === 'GET' && !req.query.action) {
     const tripId = (req.query.tripId || '').trim();
     if (!tripId) return res.status(400).json({ error: 'tripId required' });
     const filter = `?filterByFormula=${encodeURIComponent(`({Trip ID}="${tripId}")`)}`;
     try {
       const r = await airtableRequest('GET', MEMBERS_TABLE, filter, null);
       return res.status(200).json({ records: r.body.records || [] });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // GET — pending invites for an email (any Invited records)
+  if (req.method === 'GET' && req.query.action === 'pending') {
+    const email = (req.query.email || '').toLowerCase().trim();
+    if (!email) return res.status(400).json({ error: 'email required' });
+    const filter = `?filterByFormula=${encodeURIComponent(`AND({Email}="${email}",{Status}="Invited")`)}`;
+    try {
+      const r = await airtableRequest('GET', MEMBERS_TABLE, filter, null);
+      return res.status(200).json({ records: r.body.records || [] });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // GET — accept invite by tripId+email (used when partner accept flow pre-created the member record)
+  if (req.method === 'GET' && req.query.action === 'accept-by-email') {
+    const tripId        = (req.query.tripId || '').trim();
+    const acceptorEmail = (req.query.email  || '').toLowerCase().trim();
+    if (!tripId || !acceptorEmail) return res.status(400).json({ error: 'tripId and email required' });
+
+    const filter = `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Email}="${acceptorEmail}")`)}`;
+    try {
+      const r = await airtableRequest('GET', MEMBERS_TABLE, filter, null);
+      const rec = (r.body.records || [])[0];
+      if (rec) {
+        const patch = await airtableRequest('PATCH', MEMBERS_TABLE, `/${rec.id}`, {
+          fields: { 'Status': 'Accepted' }
+        });
+        if (patch.body.error) return res.status(500).json({ error: patch.body.error.message || JSON.stringify(patch.body.error) });
+        return res.status(200).json({ success: true, tripId, role: rec.fields['Role'] });
+      }
+      // No record yet — create one as already accepted
+      const fields = { 'Trip ID': tripId, 'Email': acceptorEmail, 'Role': 'Partner', 'Status': 'Accepted' };
+      const cr = await airtableRequest('POST', MEMBERS_TABLE, '', { fields });
+      if (cr.body.error) return res.status(500).json({ error: cr.body.error.message || JSON.stringify(cr.body.error) });
+      return res.status(200).json({ success: true, tripId, role: 'Partner', created: true });
     } catch(e) {
       return res.status(500).json({ error: e.message });
     }
@@ -133,10 +186,10 @@ module.exports = async function handler(req, res) {
       if (rec.fields['Status'] === 'Accepted') return res.status(200).json({ success: true, alreadyAccepted: true, tripId: rec.fields['Trip ID'] });
 
       // Accept — update record
-      const now = new Date().toISOString();
-      await airtableRequest('PATCH', MEMBERS_TABLE, `/${rec.id}`, {
-        fields: { 'Status': 'Accepted', 'Email': acceptorEmail, 'Accepted Date': now }
+      const patch = await airtableRequest('PATCH', MEMBERS_TABLE, `/${rec.id}`, {
+        fields: { 'Status': 'Accepted', 'Email': acceptorEmail }
       });
+      if (patch.body.error) return res.status(500).json({ error: patch.body.error.message || JSON.stringify(patch.body.error) });
       return res.status(200).json({ success: true, tripId: rec.fields['Trip ID'], role: rec.fields['Role'] });
     } catch(e) {
       return res.status(500).json({ error: e.message });
@@ -158,13 +211,14 @@ module.exports = async function handler(req, res) {
     const token = crypto.randomBytes(24).toString('hex');
     const now   = new Date().toISOString().split('T')[0];
     const fields = {
-      'Trip ID':      tripId,
-      'Email':        inviteeEmail.toLowerCase(),
-      'Role':         role,
-      'Status':       'Invited',
-      'Invited By':   inviterEmail || '',
-      'Invited Date': now,
-      'Invite Token': token
+      'Trip ID':           tripId,
+      'Email':             inviteeEmail.toLowerCase(),
+      'Role':              role,
+      'Status':            'Invited',
+      'Invited By':        inviterEmail || '',
+      'Invited By Name':   inviterName  || '',
+      'Invited Date':      now,
+      'Invite Token':      token
     };
     try {
       const r = await airtableRequest('POST', MEMBERS_TABLE, '', { fields });
