@@ -845,7 +845,11 @@ function _slotFieldsHtml(n, slot) {
       <input id="sm-s${n}-gyg-ref" type="text" placeholder="Booking reference (optional)" value="${((slot&&slot.bookingRef)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
     </div>`;
   if (type === 'passion') {
-    const selected = (slot&&slot.passion)||'';
+    const selected  = (slot&&slot.passion)||'';
+    const savedName = (slot&&slot.name)||'';
+    if (selected && savedName) {
+      return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:8px 12px;"><div style="font-size:0.82rem;color:var(--teal);">✓ ${selected} · ${savedName}</div><button onclick="_smReopenPassionPicker(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;">Change</button></div>`;
+    }
     const PASSION_GROUPS = [
       { label:'Nature & Wildlife',    passions:['Wildlife & Safari','Birding','National Parks'] },
       { label:'Adventure & Active',   passions:['Day Hiking & Trekking','Mountain Climbing','Cycling & Mountain Biking','SCUBA & Marine Exploration','Sailing & Boating','Fishing'] },
@@ -859,9 +863,12 @@ function _slotFieldsHtml(n, slot) {
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
         ${g.passions.map(p=>`<button onclick="_smPassionPick(${n},'${p.replace(/'/g,"\\'")}')" style="background:${p===selected?'rgba(45,212,191,0.25)':'rgba(255,255,255,0.06)'};border:1px solid ${p===selected?'rgba(45,212,191,0.6)':'rgba(255,255,255,0.12)'};border-radius:20px;color:${p===selected?'var(--teal)':'var(--soft)'};font-size:0.83rem;padding:5px 12px;cursor:pointer;white-space:nowrap;">${p}</button>`).join('')}
       </div>`).join('');
-    return `<div style="margin-bottom:8px;">${pillsHtml}</div>
+    const chosenHtml = selected ? `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:7px 12px;"><span style="font-size:0.82rem;color:var(--teal);">🎯 ${selected}</span><button onclick="_smShowPassionGroups(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;">Change</button></div>` : '';
+    return `
+    <div id="sm-s${n}-passion-groups" style="margin-bottom:8px;${selected?'display:none;':''}">${pillsHtml}</div>
+    <div id="sm-s${n}-passion-chosen" style="${selected?'':'display:none;'}margin-bottom:8px;">${chosenHtml}</div>
     <div id="sm-s${n}-act-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Loading activities…</div>
-    <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;"></div>`;
+    <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;"></div>`;
   }
   if (type === 'event') {
     const savedDate = (slot&&slot.eventDate)||'';
@@ -1032,6 +1039,17 @@ const _SM_PASSION_TYPE_MAP = {
   'Voluntourism & Service':'volunteerism',
 };
 
+function _smShowPassionGroups(n) {
+  const groups=document.getElementById(`sm-s${n}-passion-groups`);
+  const chosen=document.getElementById(`sm-s${n}-passion-chosen`);
+  const list=document.getElementById(`sm-s${n}-act-list`);
+  const loading=document.getElementById(`sm-s${n}-act-loading`);
+  if(groups) groups.style.display='';
+  if(chosen){chosen.style.display='none';chosen.innerHTML='';}
+  if(list) list.innerHTML='';
+  if(loading) loading.style.display='none';
+}
+
 async function _smPassionPick(n, passion) {
   const dayFields = _scheduleRecords[_dayModalIdx]?.fields||{};
   const place     = dayFields['Ending Location']||dayFields['Starting Location']||currentTripDestination||'';
@@ -1039,14 +1057,11 @@ async function _smPassionPick(n, passion) {
   const actType   = _SM_PASSION_TYPE_MAP[passion]||passion.toLowerCase().replace(/[\s&,]+/g,'-');
   const loading   = document.getElementById(`sm-s${n}-act-loading`);
   const list      = document.getElementById(`sm-s${n}-act-list`);
-  const nameEl    = document.getElementById(`sm-s${n}-name`);
+  const groups    = document.getElementById(`sm-s${n}-passion-groups`);
+  const chosen    = document.getElementById(`sm-s${n}-passion-chosen`);
 
-  document.querySelectorAll(`#sm-s${n}-fields button`).forEach(b => {
-    const match = b.textContent.trim()===passion;
-    b.style.background  = match?'rgba(45,212,191,0.25)':'rgba(255,255,255,0.06)';
-    b.style.borderColor = match?'rgba(45,212,191,0.6)':'rgba(255,255,255,0.12)';
-    b.style.color       = match?'var(--teal)':'var(--soft)';
-  });
+  if(groups) groups.style.display='none';
+  if(chosen){chosen.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:7px 12px;"><span style="font-size:0.82rem;color:var(--teal);">🎯 ${passion}</span><button onclick="_smShowPassionGroups(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;">Change</button></div>`;chosen.style.display='block';}
 
   if (!place) { list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">Set a day location first.</div>'; return; }
   loading.style.display='block'; list.innerHTML='';
@@ -1058,6 +1073,7 @@ async function _smPassionPick(n, passion) {
     if (!acts.length) { list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">No activities found.</div>'; return; }
     list.innerHTML = acts.map(a => `<button data-name="${(a.name||'').replace(/"/g,'&quot;')}" data-desc="${(a.detail||a.highlights||a.description||'').replace(/"/g,'&quot;')}" data-passion="${passion.replace(/"/g,'&quot;')}" style="text-align:left;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text);width:100%;"><div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${a.name||''}</div>${(a.highlights||a.description||'')?`<div style="font-size:0.82rem;color:var(--muted);margin-top:3px;line-height:1.5;">${(a.highlights||a.description||'').slice(0,100)}…</div>`:''}</button>`).join('');
     list.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => _smActivitySelect(n, btn)));
+    requestAnimationFrame(()=>list.scrollIntoView({behavior:'smooth',block:'nearest'}));
   } catch(e) {
     loading.style.display='none'; list.innerHTML='<div style="font-size:0.82rem;color:#f43f5e;">Error loading activities.</div>';
   }
@@ -1067,9 +1083,12 @@ function _smActivitySelect(n, btn) {
   const name = btn.dataset.name||'', description = btn.dataset.desc||'', passion = btn.dataset.passion||'';
   _smSelectedActivity[n] = { name, description, passion };
   const nameEl = document.getElementById('sm-s'+n+'-name');
-  if (nameEl) { nameEl.value=name; nameEl.dataset.userEdited='true'; nameEl.style.borderColor='var(--teal)'; nameEl.scrollIntoView({behavior:'smooth',block:'nearest'}); setTimeout(()=>{nameEl.style.borderColor='rgba(255,255,255,0.1)';},1500); }
+  if (nameEl) { nameEl.value=name; nameEl.dataset.userEdited='true'; }
   const fieldsEl = document.getElementById('sm-s'+n+'-fields');
-  if (fieldsEl) fieldsEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:8px 12px;"><div style="font-size:0.82rem;color:var(--teal);">✓ ${passion} · ${name}</div><button onclick="_smReopenPassionPicker(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;">Change</button></div>`;
+  if (fieldsEl) {
+    fieldsEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:8px 12px;"><div style="font-size:0.82rem;color:var(--teal);">✓ ${passion} · ${name}</div><button onclick="_smReopenPassionPicker(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;">Change</button></div>`;
+    requestAnimationFrame(()=>fieldsEl.scrollIntoView({behavior:'smooth',block:'nearest'}));
+  }
 }
 function _smReopenPassionPicker(n) {
   const fieldsEl = document.getElementById('sm-s'+n+'-fields');
@@ -1134,6 +1153,7 @@ function openDayModal(idx) {
   document.getElementById('day-modal-status').style.display='none';
   [1,2,3,4].forEach(n=>{delete _smSelectedActivity[n];});
   _dayModalSlots=[1,2,3,4].map(n=>{const raw=f['Slot '+n]; if(!raw) return null; try{return JSON.parse(raw);}catch(e){return null;}});
+  _dayModalSlots.forEach((slot,i)=>{if(slot&&slot.type==='passion'&&slot.passion){_smSelectedActivity[i+1]={name:slot.name||'',passion:slot.passion,description:slot.description||''};}});
   document.getElementById('day-modal-slots').innerHTML=[1,2,3,4].map(n=>_slotCardHtml(n,_dayModalSlots[n-1])).join('');
   document.getElementById('day-modal').style.display='flex';
   const nextBtn=document.getElementById('day-modal-next-btn');
