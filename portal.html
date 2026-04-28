@@ -1048,6 +1048,7 @@
           <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:24px;">
             <button onclick="saveTrip()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;border:none;border-radius:8px;padding:13px 32px;cursor:pointer;">Save Trip Plan</button>
+            <button id="add-to-calendar-btn" onclick="downloadTripCalendar()" style="display:none;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;border-radius:8px;padding:13px 24px;cursor:pointer;">📅 Add to Calendar</button>
             <button onclick="closeTripDetail()" style="background:#ef4444;color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.92rem;border:none;border-radius:8px;padding:13px 24px;cursor:pointer;">Cancel Trip Plan</button>
           </div>
 
@@ -5593,6 +5594,8 @@ function openTrip(record) {
   document.getElementById('itinerary-panel').innerHTML = '';
   if (_iBtn) { _iBtn.textContent = '✦ Build Itinerary'; _iBtn.onclick = () => buildItinerary(false); _iBtn.disabled = false; }
   if (f['Itinerary Cache']) buildItinerary(false);
+  const _calBtn = document.getElementById('add-to-calendar-btn');
+  if (_calBtn) _calBtn.style.display = f['Start Date'] ? 'inline-block' : 'none';
   loadTripReservations(record.id);
   loadTripMembers(record.id);
   onTmRoleChange();
@@ -6827,6 +6830,16 @@ function showNewHistoryTripForm() {
   document.getElementById('itinerary-section').style.display = 'none';
   document.getElementById('trip-list-section').style.display = 'none';
   document.getElementById('trip-detail').style.display = 'block';
+}
+
+function downloadTripCalendar() {
+  if (!currentTripId) return;
+  const a = document.createElement('a');
+  a.href = '/api/ics?tripId=' + encodeURIComponent(currentTripId);
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 function closeTripDetail() {

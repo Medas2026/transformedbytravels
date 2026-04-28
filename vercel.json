@@ -33,7 +33,8 @@
     "api/lodging.js":      { "maxDuration": 30 },
     "api/trip-members.js": { "maxDuration": 30 },
     "api/parse-email.js":  { "maxDuration": 30 },
-    "api/itinerary.js":    { "maxDuration": 60 }
+    "api/itinerary.js":    { "maxDuration": 60 },
+    "api/ics.js":          { "maxDuration": 20 }
   },
   "crons": [
     {
