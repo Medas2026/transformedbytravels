@@ -2817,13 +2817,15 @@ async function generateIntegrationReport() {
 // ═══════════════════════════════════════════════
 // BUILD ITINERARY
 // ═══════════════════════════════════════════════
-async function buildItinerary() {
+async function buildItinerary(force) {
   const panel = document.getElementById('itinerary-panel');
   const btn   = document.getElementById('build-itinerary-btn');
   panel.style.display = 'block';
-  panel.innerHTML = `<p style="color:var(--soft);font-size:0.88rem;font-style:italic;">Building your itinerary — this may take 20–30 seconds…</p>`;
+  panel.innerHTML = force
+    ? `<p style="color:var(--soft);font-size:0.88rem;font-style:italic;">Regenerating your itinerary — this may take 20–30 seconds…</p>`
+    : `<p style="color:var(--soft);font-size:0.88rem;font-style:italic;">Building your itinerary — this may take 20–30 seconds…</p>`;
   btn.disabled    = true;
-  btn.textContent = 'Building…';
+  btn.textContent = force ? 'Regenerating…' : 'Building…';
   const pdfRow = document.getElementById('itinerary-pdf-row');
   if (pdfRow) pdfRow.remove();
 
@@ -2831,7 +2833,7 @@ async function buildItinerary() {
     const resp = await fetch('/api/itinerary', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ tripId: currentTripId, email: userEmail })
+      body:    JSON.stringify({ tripId: currentTripId, email: userEmail, force: force === true })
     });
     if (!resp.ok) {
       const text = await resp.text();
@@ -2935,7 +2937,8 @@ async function buildItinerary() {
         <button onclick="printItinerary()" style="background:none;border:1px solid rgba(255,255,255,0.2);color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;border-radius:6px;padding:7px 16px;cursor:pointer;">⬇ Save as PDF</button>
       </div>`);
 
-    btn.textContent = '↻ Rebuild Itinerary';
+    btn.textContent = data.fromCache ? '↻ Regenerate' : '↻ Regenerate';
+    btn.onclick = () => buildItinerary(true);
   } catch(e) {
     _setErrEl(panel, 'Error: ' + e.message, 'font-size:0.88rem;');
     btn.textContent = '✦ Build Itinerary';
@@ -5571,6 +5574,11 @@ function openTrip(record) {
   document.getElementById('trip-flights-card').style.display = 'block';
   document.getElementById('trip-reservations-card').style.display = 'block';
   document.getElementById('itinerary-section').style.display = 'block';
+  // Auto-load itinerary from cache if available
+  const _iBtn = document.getElementById('build-itinerary-btn');
+  document.getElementById('itinerary-panel').innerHTML = '';
+  if (_iBtn) { _iBtn.textContent = '✦ Build Itinerary'; _iBtn.onclick = () => buildItinerary(false); _iBtn.disabled = false; }
+  if (f['Itinerary Cache']) buildItinerary(false);
   loadTripReservations(record.id);
   loadTripMembers(record.id);
   onTmRoleChange();

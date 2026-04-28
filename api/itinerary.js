@@ -7,6 +7,16 @@ async function airtableFetch(table, params) {
   return resp.json();
 }
 
+async function airtablePatch(table, id, fields) {
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(table)}/${id}`;
+  await fetch(url, {
+    method:  'PATCH',
+    headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ fields })
+  });
+}
+
 async function callClaude(prompt) {
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method:  'POST',
@@ -69,6 +79,7 @@ module.exports = async function handler(req, res) {
     ).catch(() => ({ records: [] }))
   ]);
 
+  const tripRecordId = tripData.id;
   const trip     = tripData.fields || {};
   const days     = (daysData.records || []).map(r => ({ _id: r.id, ...r.fields }));
   const lodgingById = {};
@@ -244,6 +255,25 @@ For each day in the schedule above, write 1–2 vivid sentences that capture the
 
 Continue for all ${structuredDays.length} days. Be specific and evocative.${lodgingPromptSection}`;
 
+  const force = req.body?.force === true;
+
+  // Serve from cache if available and not forcing regeneration
+  if (!force && trip['Itinerary Cache']) {
+    try {
+      const cached = JSON.parse(trip['Itinerary Cache']);
+      return res.status(200).json({
+        tripName, destination: dest, startDate, endDate, archetype, passions,
+        tripSummary:         cached.tripSummary        || '',
+        days:                structuredDays,
+        daySummaries:        cached.daySummaries       || {},
+        lodgingDescriptions: cached.lodgingDescriptions || {},
+        fromCache:           true
+      });
+    } catch(e) {
+      // Cache corrupt — fall through to regenerate
+    }
+  }
+
   try {
     const raw = await callClaude(prompt);
 
@@ -267,6 +297,13 @@ Continue for all ${structuredDays.length} days. Be specific and evocative.${lodg
       for (const m of lodgingSectionMatch[1].matchAll(/###\s*(.+?)\s*\n([\s\S]*?)(?=###|$)/gi)) {
         lodgingDescriptions[m[1].trim()] = m[2].trim();
       }
+    }
+
+    // Save to cache (fire and forget — don't block the response)
+    if (tripRecordId) {
+      airtablePatch('Trips', tripRecordId, {
+        'Itinerary Cache': JSON.stringify({ tripSummary, daySummaries, lodgingDescriptions })
+      }).catch(e => console.error('[itinerary] cache save error:', e.message));
     }
 
     return res.status(200).json({
