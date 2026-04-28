@@ -318,7 +318,12 @@ module.exports = async function handler(req, res) {
       if (!rec || !rec.fields) return res.status(404).json({ error: 'Record not found' });
       const fromEmail = (rec.fields['From Email'] || '').toLowerCase().trim();
       const parsed    = JSON.parse(rec.fields['Parsed Data'] || '{}');
-      if (!fromEmail || !parsed.type) return res.status(400).json({ error: 'Record missing email or parsed data' });
+      if (!fromEmail || !parsed.type) return res.status(400).json({
+        error: 'Record missing email or parsed data',
+        availableFields: Object.keys(rec.fields || {}),
+        fromEmail,
+        parsedType: parsed.type || null
+      });
 
       const travelerData = await airtableFetch('Traveler',
         `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${fromEmail}")`)}`, 'GET');
