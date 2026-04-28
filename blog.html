@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Journal — Transformed by Travels</title>
+  <meta name="description" content="Stories, insights, and inspiration for transformational travelers.">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&family=Georgia:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:    #0d1520;
+      --s1:    #111d2e;
+      --s2:    #162032;
+      --teal:  #2dd4bf;
+      --text:  #e2e8f0;
+      --soft:  #94a3b8;
+      --muted: #64748b;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    body { background: var(--bg); color: var(--text); font-family: 'Open Sans', sans-serif; min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      background: #0d1520;
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem;
+      color: var(--text); text-decoration: none; letter-spacing: 0.02em;
+    }
+    .logo span { color: var(--teal); }
+    nav a {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem;
+      color: var(--soft); text-decoration: none; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-left: 28px; transition: color 0.2s;
+    }
+    nav a:hover, nav a.active { color: var(--teal); }
+
+    /* ── Hero ── */
+    .blog-hero {
+      background: linear-gradient(135deg, #0d1520 0%, #162032 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 64px 24px 48px;
+      text-align: center;
+    }
+    .blog-hero-label {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.15em; text-transform: uppercase; color: var(--teal); margin-bottom: 12px;
+    }
+    .blog-hero h1 {
+      font-family: Georgia, serif; font-size: clamp(2rem, 5vw, 3rem);
+      color: #fff; font-weight: 400; margin-bottom: 16px; line-height: 1.2;
+    }
+    .blog-hero p { color: var(--soft); font-size: 1.05rem; max-width: 560px; margin: 0 auto; line-height: 1.7; }
+
+    /* ── Tag filter ── */
+    .tag-filter {
+      max-width: 1100px; margin: 36px auto 0; padding: 0 24px;
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    }
+    .tag-btn {
+      background: none; border: 1px solid var(--border); color: var(--soft);
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.07em; text-transform: uppercase; border-radius: 20px;
+      padding: 6px 14px; cursor: pointer; transition: all 0.2s;
+    }
+    .tag-btn:hover, .tag-btn.active { background: var(--teal); border-color: var(--teal); color: #0f172a; }
+
+    /* ── Grid ── */
+    .blog-grid {
+      max-width: 1100px; margin: 40px auto 80px; padding: 0 24px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px;
+    }
+
+    /* ── Card ── */
+    .post-card {
+      background: var(--s1); border: 1px solid var(--border); border-radius: 14px;
+      overflow: hidden; display: flex; flex-direction: column;
+      transition: border-color 0.2s, transform 0.2s;
+      text-decoration: none; color: inherit;
+    }
+    .post-card:hover { border-color: rgba(45,212,191,0.4); transform: translateY(-3px); }
+    .post-card-img {
+      width: 100%; aspect-ratio: 16/9; object-fit: cover;
+      background: var(--s2);
+    }
+    .post-card-img-placeholder {
+      width: 100%; aspect-ratio: 16/9; background: var(--s2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; color: var(--muted);
+    }
+    .post-card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .post-card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .post-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background: rgba(45,212,191,0.12); color: var(--teal);
+      border-radius: 4px; padding: 3px 8px;
+    }
+    .post-card-title {
+      font-family: Georgia, serif; font-size: 1.15rem; color: #fff;
+      line-height: 1.35; font-weight: 400;
+    }
+    .post-card-excerpt { font-size: 0.85rem; color: var(--soft); line-height: 1.65; flex: 1; }
+    .post-card-meta {
+      font-family: 'Montserrat', sans-serif; font-size: 0.72rem; color: var(--muted);
+      display: flex; align-items: center; justify-content: space-between; margin-top: 4px;
+    }
+    .post-card-read {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.75rem;
+      color: var(--teal); letter-spacing: 0.05em;
+    }
+
+    /* ── Empty / Loading ── */
+    .blog-state { text-align: center; padding: 80px 24px; color: var(--muted); font-size: 1rem; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 32px 24px; text-align: center;
+      font-family: 'Montserrat', sans-serif; font-size: 0.75rem; color: var(--muted);
+    }
+    footer a { color: var(--teal); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-inner">
+      <a href="https://www.transformedbytravels.com" class="logo">Transformed<span>byTravels</span></a>
+      <nav>
+        <a href="https://www.transformedbytravels.com">Home</a>
+        <a href="/blog.html" class="active">Journal</a>
+        <a href="https://app.transformedbytravels.com/portal.html">My Journeys</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="blog-hero">
+    <div class="blog-hero-label">✦ Transformational Travel</div>
+    <h1>The Journal</h1>
+    <p>Stories, insights, and inspiration for travelers who want to grow.</p>
+  </div>
+
+  <div class="tag-filter" id="tag-filter"></div>
+
+  <div class="blog-grid" id="blog-grid">
+    <div class="blog-state" style="grid-column:1/-1;">Loading posts…</div>
+  </div>
+
+  <footer>
+    <p>© Transformed by Travels · <a href="https://www.transformedbytravels.com">transformedbytravels.com</a></p>
+  </footer>
+
+<script>
+let allPosts = [];
+let activeTag = null;
+
+async function loadPosts() {
+  const grid = document.getElementById('blog-grid');
+  try {
+    const resp = await fetch('/api/blog');
+    const data = await resp.json();
+    allPosts = data.records || [];
+    buildTagFilter();
+    renderGrid();
+  } catch(e) {
+    grid.innerHTML = '<div class="blog-state" style="grid-column:1/-1;">Could not load posts.</div>';
+  }
+}
+
+function buildTagFilter() {
+  const tags = new Set();
+  allPosts.forEach(r => (r.fields['Tags'] || []).forEach(t => tags.add(t)));
+  const filter = document.getElementById('tag-filter');
+  if (!tags.size) { filter.style.display = 'none'; return; }
+  const allBtn = `<button class="tag-btn active" onclick="filterTag(null, this)">All</button>`;
+  const tagBtns = [...tags].map(t =>
+    `<button class="tag-btn" onclick="filterTag('${t}', this)">${t}</button>`
+  ).join('');
+  filter.innerHTML = allBtn + tagBtns;
+}
+
+function filterTag(tag, btn) {
+  activeTag = tag;
+  document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('blog-grid');
+  const posts = activeTag
+    ? allPosts.filter(r => (r.fields['Tags'] || []).includes(activeTag))
+    : allPosts;
+
+  if (!posts.length) {
+    grid.innerHTML = '<div class="blog-state" style="grid-column:1/-1;">No posts yet — check back soon.</div>';
+    return;
+  }
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  grid.innerHTML = posts.map(r => {
+    const f       = r.fields;
+    const slug    = f['Slug'] || '';
+    const title   = f['Title'] || 'Untitled';
+    const excerpt = f['Excerpt'] || '';
+    const tags    = (f['Tags'] || []).map(t => `<span class="post-tag">${t}</span>`).join('');
+    const img     = f['Image 1 URL'] || f['Hero Image URL'] || '';
+    const imgEl   = img
+      ? `<img class="post-card-img" src="${img}" alt="${title}" loading="lazy">`
+      : `<div class="post-card-img-placeholder">✦</div>`;
+    let dateStr = '';
+    if (f['Published Date']) {
+      const d = new Date(f['Published Date'] + 'T00:00:00Z');
+      dateStr = MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+    }
+    return `
+      <a class="post-card" href="/blog-post.html?slug=${encodeURIComponent(slug)}">
+        ${imgEl}
+        <div class="post-card-body">
+          ${tags ? `<div class="post-card-tags">${tags}</div>` : ''}
+          <div class="post-card-title">${title}</div>
+          ${excerpt ? `<div class="post-card-excerpt">${excerpt}</div>` : ''}
+          <div class="post-card-meta">
+            <span>${dateStr}</span>
+            <span class="post-card-read">Read →</span>
+          </div>
+        </div>
+      </a>`;
+  }).join('');
+}
+
+loadPosts();
+</script>
+</body>
+</html>

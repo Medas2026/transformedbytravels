@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loading… — Transformed by Travels</title>
+  <meta name="description" content="">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:    #0d1520;
+      --s1:    #111d2e;
+      --s2:    #162032;
+      --teal:  #2dd4bf;
+      --text:  #e2e8f0;
+      --soft:  #94a3b8;
+      --muted: #64748b;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    body { background: var(--bg); color: var(--text); font-family: 'Open Sans', sans-serif; min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      background: #0d1520; border-bottom: 1px solid var(--border);
+      padding: 0 24px; position: sticky; top: 0; z-index: 100;
+    }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; height: 64px;
+    }
+    .logo {
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem;
+      color: var(--text); text-decoration: none;
+    }
+    .logo span { color: var(--teal); }
+    nav a {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem;
+      color: var(--soft); text-decoration: none; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-left: 28px; transition: color 0.2s;
+    }
+    nav a:hover { color: var(--teal); }
+
+    /* ── Hero image ── */
+    .post-hero {
+      width: 100%; max-height: 480px; object-fit: cover; display: block;
+    }
+    .post-hero-placeholder {
+      width: 100%; height: 280px; background: var(--s2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; color: var(--muted);
+    }
+
+    /* ── Article ── */
+    article { max-width: 740px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .post-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .post-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background: rgba(45,212,191,0.12); color: var(--teal);
+      border-radius: 4px; padding: 3px 8px;
+    }
+
+    h1.post-title {
+      font-family: Georgia, serif; font-size: clamp(1.6rem, 4vw, 2.4rem);
+      color: #fff; font-weight: 400; line-height: 1.25; margin-bottom: 16px;
+    }
+
+    .post-meta {
+      font-family: 'Montserrat', sans-serif; font-size: 0.78rem; color: var(--muted);
+      display: flex; align-items: center; gap: 16px; margin-bottom: 36px;
+      padding-bottom: 28px; border-bottom: 1px solid var(--border);
+    }
+    .post-meta-author { color: var(--soft); font-weight: 600; }
+
+    /* ── Body content ── */
+    .post-body { font-size: 1.05rem; line-height: 1.85; color: var(--text); }
+    .post-body p { margin-bottom: 1.4em; }
+    .post-body h2 {
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem;
+      color: #fff; margin: 2em 0 0.6em; letter-spacing: 0.02em;
+    }
+    .post-body h3 {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1rem;
+      color: var(--teal); margin: 1.6em 0 0.5em;
+    }
+    .post-body ul, .post-body ol { margin: 0 0 1.4em 1.4em; }
+    .post-body li { margin-bottom: 0.5em; }
+    .post-body blockquote {
+      border-left: 3px solid var(--teal); margin: 1.8em 0;
+      padding: 12px 20px; background: var(--s1); border-radius: 0 8px 8px 0;
+      color: var(--soft); font-style: italic;
+    }
+    .post-body a { color: var(--teal); }
+    .post-body img {
+      width: 100%; border-radius: 10px; margin: 1.6em 0; display: block;
+    }
+    .post-body strong { color: #fff; }
+
+    /* ── Second image ── */
+    .post-img2 { width: 100%; border-radius: 10px; margin: 2em 0; display: block; }
+
+    /* ── Back link ── */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.8rem;
+      color: var(--teal); text-decoration: none; letter-spacing: 0.05em;
+      margin-bottom: 32px;
+    }
+    .back-link:hover { opacity: 0.8; }
+
+    /* ── Related posts ── */
+    .related { max-width: 1100px; margin: 0 auto 64px; padding: 0 24px; }
+    .related-title {
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem;
+      text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 20px;
+    }
+    .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .related-card {
+      background: var(--s1); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; text-decoration: none; color: inherit; display: block;
+      transition: border-color 0.2s;
+    }
+    .related-card:hover { border-color: rgba(45,212,191,0.4); }
+    .related-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: var(--s2); }
+    .related-card-body { padding: 16px; }
+    .related-card-title { font-family: Georgia, serif; font-size: 1rem; color: #fff; line-height: 1.35; }
+    .related-card-date { font-family: 'Montserrat', sans-serif; font-size: 0.72rem; color: var(--muted); margin-top: 8px; }
+
+    /* ── Loading / error ── */
+    .post-state { text-align: center; padding: 100px 24px; color: var(--muted); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 32px 24px; text-align: center;
+      font-family: 'Montserrat', sans-serif; font-size: 0.75rem; color: var(--muted);
+    }
+    footer a { color: var(--teal); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-inner">
+      <a href="https://www.transformedbytravels.com" class="logo">Transformed<span>byTravels</span></a>
+      <nav>
+        <a href="https://www.transformedbytravels.com">Home</a>
+        <a href="/blog.html">Journal</a>
+        <a href="https://app.transformedbytravels.com/portal.html">My Journeys</a>
+      </nav>
+    </div>
+  </header>
+
+  <div id="post-hero-wrap"></div>
+
+  <article id="post-article">
+    <div class="post-state">Loading…</div>
+  </article>
+
+  <div class="related" id="related-section" style="display:none;">
+    <div class="related-title">More from the Journal</div>
+    <div class="related-grid" id="related-grid"></div>
+  </div>
+
+  <footer>
+    <p>© Transformed by Travels · <a href="https://www.transformedbytravels.com">transformedbytravels.com</a></p>
+  </footer>
+
+<script>
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T00:00:00Z');
+  return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+}
+
+async function loadPost() {
+  const slug    = new URLSearchParams(window.location.search).get('slug') || '';
+  const article = document.getElementById('post-article');
+  const heroWrap = document.getElementById('post-hero-wrap');
+
+  if (!slug) {
+    article.innerHTML = '<div class="post-state">No post specified.</div>';
+    return;
+  }
+
+  try {
+    const resp = await fetch('/api/blog?slug=' + encodeURIComponent(slug));
+    if (!resp.ok) throw new Error('not found');
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    const f = data.record.fields;
+
+    // Update page title + meta description
+    document.title = (f['Title'] || 'Post') + ' — Transformed by Travels';
+    document.querySelector('meta[name="description"]').content = f['Excerpt'] || '';
+
+    // Hero image
+    const hero1 = f['Image 1 URL'] || f['Hero Image URL'] || '';
+    heroWrap.innerHTML = hero1
+      ? `<img class="post-hero" src="${hero1}" alt="${f['Title'] || ''}">`
+      : `<div class="post-hero-placeholder">✦</div>`;
+
+    // Tags
+    const tags = (f['Tags'] || []).map(t => `<span class="post-tag">${t}</span>`).join('');
+
+    // Second image (inserted after body if present)
+    const img2 = f['Image 2 URL'] || '';
+    const img2El = img2 ? `<img class="post-img2" src="${img2}" alt="">` : '';
+
+    // Body — Airtable rich text stores as markdown-ish; wrap in div
+    const body = f['Body'] || '<p>Coming soon.</p>';
+
+    article.innerHTML = `
+      <a class="back-link" href="/blog.html">← Back to Journal</a>
+      ${tags ? `<div class="post-tags">${tags}</div>` : ''}
+      <h1 class="post-title">${f['Title'] || 'Untitled'}</h1>
+      <div class="post-meta">
+        ${f['Author'] ? `<span class="post-meta-author">${f['Author']}</span>` : ''}
+        ${f['Published Date'] ? `<span>${fmtDate(f['Published Date'])}</span>` : ''}
+      </div>
+      <div class="post-body">${body}</div>
+      ${img2El}
+    `;
+
+    loadRelated(slug, f['Tags'] || []);
+
+  } catch(e) {
+    article.innerHTML = `<div class="post-state">
+      <p style="font-size:1.5rem;margin-bottom:12px;">Post not found</p>
+      <a href="/blog.html" style="color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;">← Back to Journal</a>
+    </div>`;
+  }
+}
+
+async function loadRelated(currentSlug, tags) {
+  try {
+    const resp  = await fetch('/api/blog');
+    const data  = await resp.json();
+    const posts = (data.records || [])
+      .filter(r => r.fields['Slug'] !== currentSlug)
+      .filter(r => tags.length === 0 || (r.fields['Tags'] || []).some(t => tags.includes(t)))
+      .slice(0, 3);
+
+    if (!posts.length) return;
+    const section = document.getElementById('related-section');
+    const grid    = document.getElementById('related-grid');
+    section.style.display = 'block';
+    grid.innerHTML = posts.map(r => {
+      const f   = r.fields;
+      const img = f['Image 1 URL'] || f['Hero Image URL'] || '';
+      return `<a class="related-card" href="/blog-post.html?slug=${encodeURIComponent(f['Slug'] || '')}">
+        ${img ? `<img src="${img}" alt="${f['Title'] || ''}">` : ''}
+        <div class="related-card-body">
+          <div class="related-card-title">${f['Title'] || 'Untitled'}</div>
+          <div class="related-card-date">${fmtDate(f['Published Date'])}</div>
+        </div>
+      </a>`;
+    }).join('');
+  } catch(e) {}
+}
+
+loadPost();
+</script>
+</body>
+</html>
