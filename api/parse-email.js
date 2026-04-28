@@ -259,11 +259,29 @@ Return JSON in this exact format (use null for any field you cannot determine):
     const keyDate = parsed.departure_date || parsed.check_in_date || parsed.pickup_date || null;
     let tripRec = null;
     if (keyDate) {
-      const tripsData = await airtableFetch('Trips',
-        `?filterByFormula=${encodeURIComponent(`AND({Traveler Email}="${fromEmail}",{Start Date}<="${keyDate}",{End Date}>="${keyDate}")`)}`, 'GET');
-      tripRec = (tripsData.records || [])[0];
+      // Widen window ±2 days to handle overnight departures and date-line crossings
+      const kd = new Date(keyDate + 'T00:00:00Z');
+      const dateMinus2 = new Date(kd); dateMinus2.setUTCDate(kd.getUTCDate() - 2);
+      const datePlus2  = new Date(kd); datePlus2.setUTCDate(kd.getUTCDate() + 2);
+      const lo = dateMinus2.toISOString().split('T')[0];
+      const hi = datePlus2.toISOString().split('T')[0];
 
-      // Fallback: nearest future trip if date match fails
+      const tripsData = await airtableFetch('Trips',
+        `?filterByFormula=${encodeURIComponent(`AND({Traveler Email}="${fromEmail}",{Start Date}<="${hi}",{End Date}>="${lo}")`)}` +
+        `&sort[0][field]=Start%20Date&sort[0][direction]=asc`, 'GET');
+      // Pick the trip whose start date is closest to keyDate
+      const candidates = tripsData.records || [];
+      if (candidates.length === 1) {
+        tripRec = candidates[0];
+      } else if (candidates.length > 1) {
+        tripRec = candidates.reduce((best, r) => {
+          const bDiff = Math.abs(new Date(best.fields['Start Date']) - kd);
+          const rDiff = Math.abs(new Date(r.fields['Start Date'])    - kd);
+          return rDiff < bDiff ? r : best;
+        });
+      }
+
+      // Fallback: nearest future trip if date match still fails
       if (!tripRec) {
         const futureData = await airtableFetch('Trips',
           `?filterByFormula=${encodeURIComponent(`AND({Traveler Email}="${fromEmail}",{End Date}>="${new Date().toISOString().split('T')[0]}")`)}` +
