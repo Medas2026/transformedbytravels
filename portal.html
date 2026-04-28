@@ -2284,6 +2284,23 @@
     </div>
   </div>
 
+  <!-- Calendar Send Modal -->
+  <div id="calendar-modal" style="display:none;position:fixed;inset:0;z-index:1010;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;padding:28px;max-width:400px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.7);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;">📅 Add to Calendar</div>
+        <button onclick="closeCalendarModal()" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <p style="font-size:0.83rem;color:var(--muted);margin:0 0 16px;line-height:1.6;">Download the calendar file for yourself, or send it to trip members.</p>
+      <div id="calendar-modal-members" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
+      <div id="calendar-modal-msg" style="font-size:0.8rem;color:var(--teal);margin-bottom:12px;display:none;"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button onclick="downloadTripCalendarDirect()" style="flex:1;padding:11px 16px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;cursor:pointer;">⬇ Download for Me</button>
+        <button id="calendar-send-btn" onclick="sendCalendarToMembers()" style="flex:1;padding:11px 16px;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:8px;cursor:pointer;">Send Selected</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Day Schedule Modal -->
   <!-- Lodging Modal -->
   <div id="lodging-form-modal" style="display:none;position:fixed;inset:0;z-index:1010;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
@@ -4832,6 +4849,7 @@ let tripsLoaded        = false;
 let _returnToHistory   = false;
 let _isHistoryTrip     = false;
 let _tripReadOnly      = false;
+let _tripMembersData   = []; // accepted members for the current trip
 const _tripRecordsMap  = {}; // id → record, avoids JSON-in-HTML apostrophe bug
 
 function loadTrips() {
@@ -6834,12 +6852,83 @@ function showNewHistoryTripForm() {
 
 function downloadTripCalendar() {
   if (!currentTripId) return;
+  const modal   = document.getElementById('calendar-modal');
+  const members = document.getElementById('calendar-modal-members');
+  const msg     = document.getElementById('calendar-modal-msg');
+  msg.style.display = 'none';
+
+  const myEmail = (portalProfile?.['Traveler Email'] || '').toLowerCase();
+  const rows = _tripMembersData.map(r => {
+    const email = (r.fields['Email'] || '').toLowerCase();
+    const role  = r.fields['Role'] || '';
+    const label = email + (role ? ` (${role})` : '');
+    return `<label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;cursor:pointer;">
+      <input type="checkbox" value="${email}" checked style="accent-color:var(--teal);width:16px;height:16px;">
+      <span style="font-size:0.83rem;color:var(--text);word-break:break-all;">${label}</span>
+    </label>`;
+  });
+
+  members.innerHTML = rows.length
+    ? rows.join('')
+    : '<div style="font-size:0.82rem;color:var(--muted);">No other trip members to send to.</div>';
+
+  modal.style.display = 'flex';
+}
+
+function closeCalendarModal() {
+  document.getElementById('calendar-modal').style.display = 'none';
+}
+
+function downloadTripCalendarDirect() {
+  if (!currentTripId) return;
+  closeCalendarModal();
   const a = document.createElement('a');
   a.href = '/api/ics?tripId=' + encodeURIComponent(currentTripId);
   a.download = '';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+}
+
+async function sendCalendarToMembers() {
+  if (!currentTripId) return;
+  const checkboxes = document.querySelectorAll('#calendar-modal-members input[type=checkbox]:checked');
+  const emails = Array.from(checkboxes).map(cb => cb.value).filter(Boolean);
+  if (!emails.length) {
+    const msg = document.getElementById('calendar-modal-msg');
+    msg.textContent = 'Please select at least one recipient.';
+    msg.style.color = '#f43f5e';
+    msg.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('calendar-send-btn');
+  const msg = document.getElementById('calendar-modal-msg');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+  try {
+    const resp = await fetch('/api/ics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tripId: currentTripId, emails })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      msg.textContent = `Sent to ${emails.length} recipient${emails.length !== 1 ? 's' : ''}.`;
+      msg.style.color = 'var(--teal)';
+      msg.style.display = 'block';
+      setTimeout(closeCalendarModal, 2000);
+    } else {
+      msg.textContent = data.error || 'Send failed.';
+      msg.style.color = '#f43f5e';
+      msg.style.display = 'block';
+    }
+  } catch(e) {
+    msg.textContent = 'Send failed.';
+    msg.style.color = '#f43f5e';
+    msg.style.display = 'block';
+  }
+  btn.textContent = 'Send Selected';
+  btn.disabled = false;
 }
 
 function closeTripDetail() {
@@ -7033,6 +7122,7 @@ async function loadTripMembers(tripId) {
     const resp = await fetch('/api/trip-members?tripId=' + encodeURIComponent(tripId));
     const data = await resp.json();
     const records = data.records || [];
+    _tripMembersData = records.filter(r => r.fields['Status'] === 'Accepted');
     if (!records.length) {
       list.innerHTML = '<div style="font-size:0.8rem;color:var(--muted);">No members yet.</div>';
       return;
