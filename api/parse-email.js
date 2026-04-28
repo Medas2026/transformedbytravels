@@ -122,6 +122,14 @@ function buildConfirmationHtml(travelerName, tripName, parsed) {
     if (parsed.to_airport)      detailRows.push(['To',         parsed.to_airport]);
     if (parsed.departure_date)  detailRows.push(['Departure',  parsed.departure_date + (parsed.departure_time ? ' at ' + parsed.departure_time : '')]);
     if (parsed.arrival_date)    detailRows.push(['Arrival',    parsed.arrival_date   + (parsed.arrival_time   ? ' at ' + parsed.arrival_time   : '')]);
+    if (parsed.return_departure_date) {
+      detailRows.push(['———', 'Return Flight']);
+      if (parsed.return_flight_number)  detailRows.push(['Flight',     parsed.return_flight_number]);
+      if (parsed.return_from_airport)   detailRows.push(['From',       parsed.return_from_airport]);
+      if (parsed.return_to_airport)     detailRows.push(['To',         parsed.return_to_airport]);
+      detailRows.push(['Departure', parsed.return_departure_date + (parsed.return_departure_time ? ' at ' + parsed.return_departure_time : '')]);
+      if (parsed.return_arrival_date)   detailRows.push(['Arrival',    parsed.return_arrival_date + (parsed.return_arrival_time ? ' at ' + parsed.return_arrival_time : '')]);
+    }
   } else if (parsed.type === 'hotel') {
     if (parsed.hotel_name)      detailRows.push(['Property',   parsed.hotel_name]);
     if (parsed.hotel_location)  detailRows.push(['Location',   parsed.hotel_location]);
@@ -412,6 +420,13 @@ Return JSON in this exact format (use null for any field you cannot determine):
   "departure_time": "HH:MM",
   "arrival_date": "YYYY-MM-DD",
   "arrival_time": "HH:MM",
+  "return_flight_number": "...",
+  "return_departure_date": "YYYY-MM-DD",
+  "return_departure_time": "HH:MM",
+  "return_from_airport": "...",
+  "return_to_airport": "...",
+  "return_arrival_date": "YYYY-MM-DD",
+  "return_arrival_time": "HH:MM",
   "hotel_name": "...",
   "hotel_location": "...",
   "check_in_date": "YYYY-MM-DD",
@@ -424,7 +439,9 @@ Return JSON in this exact format (use null for any field you cannot determine):
   "dropoff_date": "YYYY-MM-DD",
   "pickup_location": "...",
   "summary": "One sentence summary of this reservation"
-}`;
+}
+
+For round-trip flights, populate both the outbound fields (departure_date, from_airport, to_airport, etc.) AND the return fields (return_departure_date, return_from_airport, return_to_airport, etc.).`;
 
     const claudeText = await callClaude(prompt);
     const parsed     = parseClaudeJson(claudeText);

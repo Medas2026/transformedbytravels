@@ -7064,6 +7064,14 @@ async function loadTripReservations(tripId) {
         if (p.to_airport)     rows.push(['To',         p.to_airport]);
         if (p.departure_date) rows.push(['Departure',  p.departure_date + (p.departure_time ? ' at ' + p.departure_time : '')]);
         if (p.arrival_date)   rows.push(['Arrival',    p.arrival_date   + (p.arrival_time   ? ' at ' + p.arrival_time   : '')]);
+        if (p.return_departure_date) {
+          rows.push(['— Return —', '']);
+          if (p.return_flight_number)   rows.push(['Flight',    p.return_flight_number]);
+          if (p.return_from_airport)    rows.push(['From',      p.return_from_airport]);
+          if (p.return_to_airport)      rows.push(['To',        p.return_to_airport]);
+          rows.push(['Departure', p.return_departure_date + (p.return_departure_time ? ' at ' + p.return_departure_time : '')]);
+          if (p.return_arrival_date)    rows.push(['Arrival',   p.return_arrival_date + (p.return_arrival_time ? ' at ' + p.return_arrival_time : '')]);
+        }
       } else if (type === 'hotel') {
         if (p.hotel_name)     rows.push(['Property',   p.hotel_name]);
         if (p.hotel_location) rows.push(['Location',   p.hotel_location]);
