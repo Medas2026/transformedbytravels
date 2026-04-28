@@ -102,7 +102,8 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
     const tripId = (req.query.tripId || '').trim();
     if (!tripId) return res.status(400).json({ error: 'tripId required' });
-    const filter = `?filterByFormula=${encodeURIComponent(`({Trip ID}="${tripId}")`)}`;
+    const filter = `?filterByFormula=${encodeURIComponent(`({Trip ID}="${tripId}")`)}` +
+      `&sort[0][field]=Check-in%20Date&sort[0][direction]=asc`;
     try {
       const r = await airtableRequest('GET', filter, null);
       return res.status(200).json({ records: r.body.records || [] });
