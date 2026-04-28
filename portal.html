@@ -7554,9 +7554,15 @@ async function saveTrip() {
 
   const { destination, country, continent, passion } = dpGetValues('tdp');
   const airport = (document.getElementById('td-airport').value || '').trim().toUpperCase();
-  if (!currentTripId) {
+  const _isNewTrip = !currentTripId;
+  if (_isNewTrip) {
     if (!country) { msg.style.color='#f43f5e'; msg.textContent='Please select a country.'; return; }
     if (!destination) { msg.style.color='#f43f5e'; msg.textContent='Please enter a destination.'; return; }
+    // Log manual destinations not in our database
+    if (document.getElementById('tdp-dest') && document.getElementById('tdp-dest').value === '__other__') {
+      fetch('/api/dest-request', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ destination, country, continent }) }).catch(() => {});
+    }
   }
   const _s = document.getElementById('td-start').value;
   const _e = document.getElementById('td-end').value;
@@ -9359,6 +9365,13 @@ async function generateDestDNA(pickerCtx) {
   if (!destination) {
     alert('Please select a destination first.');
     return;
+  }
+  // Log manual destinations not in our database
+  const _dnaPicker = prefix === 'dna' ? 'dna' : 'tdp';
+  const _dnaDestEl = document.getElementById(`${_dnaPicker}-dest`);
+  if (_dnaDestEl && _dnaDestEl.value === '__other__') {
+    fetch('/api/dest-request', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ destination, country, continent }) }).catch(() => {});
   }
 
   const panel   = document.getElementById(prefix === 'dna' ? 'dna-page-panel'   : 'trip-dna-panel');
