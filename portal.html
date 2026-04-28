@@ -5596,8 +5596,15 @@ function openTrip(record) {
   loadTripReservations(record.id);
   loadTripMembers(record.id);
   onTmRoleChange();
-  // Lodging timeline
-  renderLodgingTimeline(f['Start Date'], f['End Date']);
+  // Lodging timeline — fetch records then render
+  fetch('/api/lodging?tripId=' + encodeURIComponent(record.id))
+    .then(r => r.json())
+    .then(d => {
+      _lodgingRecords = d.records || [];
+      _lodgingMap = {};
+      _lodgingRecords.forEach(r => { _lodgingMap[r.id] = r.fields['Name'] || 'Lodging'; });
+      renderLodgingTimeline(f['Start Date'], f['End Date']);
+    }).catch(() => {});
   // Schedule card — show with day count
   document.getElementById('trip-schedule-card').style.display = 'block';
   document.getElementById('trip-schedule-summary').textContent = '';
