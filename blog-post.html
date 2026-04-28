@@ -169,6 +169,7 @@
     <p>© Transformed by Travels · <a href="https://www.transformedbytravels.com">transformedbytravels.com</a></p>
   </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -213,7 +214,8 @@ async function loadPost() {
     const img2El = img2 ? `<img class="post-img2" src="${img2}" alt="">` : '';
 
     // Body — Airtable rich text stores as markdown-ish; wrap in div
-    const body = f['Body'] || '<p>Coming soon.</p>';
+    const rawBody = f['Body'] || 'Coming soon.';
+    const body = typeof marked !== 'undefined' ? marked.parse(rawBody) : `<p>${rawBody}</p>`;
 
     article.innerHTML = `
       <a class="back-link" href="/blog.html">← Back to Journal</a>
