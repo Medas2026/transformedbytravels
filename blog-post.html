@@ -169,7 +169,44 @@
     <p>© Transformed by Travels · <a href="https://www.transformedbytravels.com">transformedbytravels.com</a></p>
   </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+// Minimal markdown renderer — no external dependency
+function renderMarkdown(md) {
+  return md
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    // Headings
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    // Bold + italic
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Blockquote
+    .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+    // Unordered list items → wrap in <ul> after
+    .replace(/^\* (.+)$/gm, '<li>$1</li>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    // Ordered list items
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    // Wrap consecutive <li> blocks in <ul>
+    .replace(/(<li>[\s\S]*?<\/li>)(\n(?=<li>)|(?=\n\n)|$)/g, (m, li) => li)
+    .replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
+    // Links
+    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    // Horizontal rule
+    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:2em 0;">')
+    // Paragraphs — blank-line separated blocks not already wrapped in a tag
+    .split(/\n\n+/)
+    .map(block => {
+      block = block.trim();
+      if (!block) return '';
+      if (/^<(h[123]|ul|blockquote|hr)/.test(block)) return block;
+      return '<p>' + block.replace(/\n/g, '<br>') + '</p>';
+    })
+    .join('\n');
+}
+</script>
 <script>
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -215,7 +252,7 @@ async function loadPost() {
 
     // Body — Airtable rich text stores as markdown-ish; wrap in div
     const rawBody = f['Body'] || 'Coming soon.';
-    const body = typeof marked !== 'undefined' ? marked.parse(rawBody) : `<p>${rawBody}</p>`;
+    const body = renderMarkdown(rawBody);
 
     article.innerHTML = `
       <a class="back-link" href="/blog.html">← Back to Journal</a>
