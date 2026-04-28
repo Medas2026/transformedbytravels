@@ -169,10 +169,150 @@ function buildConfirmationHtml(travelerName, tripName, parsed) {
 
 // ── Main handler ─────────────────────────────────────────────────────────────
 
+async function matchAndStore(fromEmail, parsed, existingReservationId) {
+  const keyDate = parsed.departure_date || parsed.check_in_date || parsed.pickup_date || null;
+  let tripRec = null;
+  if (keyDate) {
+    const kd = new Date(keyDate + 'T00:00:00Z');
+    const dateMinus2 = new Date(kd); dateMinus2.setUTCDate(kd.getUTCDate() - 2);
+    const datePlus2  = new Date(kd); datePlus2.setUTCDate(kd.getUTCDate() + 2);
+    const lo = dateMinus2.toISOString().split('T')[0];
+    const hi = datePlus2.toISOString().split('T')[0];
+
+    const tripsData = await airtableFetch('Trips',
+      `?filterByFormula=${encodeURIComponent(`AND({Traveler Email}="${fromEmail}",{Start Date}<="${hi}",{End Date}>="${lo}")`)}` +
+      `&sort[0][field]=Start%20Date&sort[0][direction]=asc`, 'GET');
+    const candidates = tripsData.records || [];
+    if (candidates.length === 1) {
+      tripRec = candidates[0];
+    } else if (candidates.length > 1) {
+      tripRec = candidates.reduce((best, r) => {
+        const bDiff = Math.abs(new Date(best.fields['Start Date']) - kd);
+        const rDiff = Math.abs(new Date(r.fields['Start Date'])    - kd);
+        return rDiff < bDiff ? r : best;
+      });
+    }
+    if (!tripRec) {
+      const futureData = await airtableFetch('Trips',
+        `?filterByFormula=${encodeURIComponent(`AND({Traveler Email}="${fromEmail}",{End Date}>="${new Date().toISOString().split('T')[0]}")`)}` +
+        `&sort[0][field]=Start%20Date&sort[0][direction]=asc`, 'GET');
+      tripRec = (futureData.records || [])[0];
+    }
+  }
+
+  const tripId   = tripRec?.id || null;
+  const tripName = tripRec?.fields?.['Trip Name'] || tripRec?.fields?.['Destination'] || 'your upcoming trip';
+
+  // Update existing reservation record with trip ID if found
+  if (existingReservationId && tripId) {
+    await airtableFetch('Reservations', `/${existingReservationId}`, 'PATCH', {
+      fields: { 'Trip ID': tripId }
+    });
+  }
+
+  if (tripId) {
+    if (parsed.type === 'hotel' && parsed.hotel_name && parsed.check_in_date) {
+      await airtableFetch('Lodging', '', 'POST', {
+        fields: {
+          'Trip ID':        tripId,
+          'Name':           parsed.hotel_name,
+          'Location':       parsed.hotel_location || '',
+          'Confirmation #': parsed.confirmation_number || '',
+          'Check-in Date':  parsed.check_in_date  || '',
+          'Check-out Date': parsed.check_out_date || ''
+        }
+      });
+    } else if (parsed.type === 'flight' && parsed.departure_date) {
+      const daysData = await airtableFetch('Trip Days',
+        `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Date}="${parsed.departure_date}")`)}`, 'GET');
+      const dayRec = (daysData.records || [])[0];
+      if (dayRec) {
+        const slot = {
+          type:        'freeform',
+          time:        parsed.departure_time || '',
+          description: [
+            parsed.airline, parsed.flight_number,
+            parsed.from_airport && parsed.to_airport ? parsed.from_airport + ' → ' + parsed.to_airport : null,
+            parsed.confirmation_number ? 'Conf: ' + parsed.confirmation_number : null
+          ].filter(Boolean).join(' · ')
+        };
+        const existingSlots = [1,2,3,4].map(n => dayRec.fields['Slot ' + n]).filter(Boolean);
+        const slotNum = Math.min(existingSlots.length + 1, 4);
+        await airtableFetch('Trip Days', `/${dayRec.id}`, 'PATCH', {
+          fields: { ['Slot ' + slotNum]: JSON.stringify(slot) }
+        });
+      }
+    } else if (parsed.type === 'car_rental' && parsed.pickup_date) {
+      const daysData = await airtableFetch('Trip Days',
+        `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Date}="${parsed.pickup_date}")`)}`, 'GET');
+      const dayRec = (daysData.records || [])[0];
+      if (dayRec) {
+        const slot = {
+          type:        'freeform',
+          time:        parsed.pickup_time || '',
+          description: [
+            '🚗', parsed.rental_company, parsed.car_type,
+            parsed.pickup_location ? 'Pickup: ' + parsed.pickup_location : null,
+            parsed.dropoff_date ? 'Return: ' + parsed.dropoff_date : null,
+            parsed.confirmation_number ? 'Conf: ' + parsed.confirmation_number : null
+          ].filter(Boolean).join(' · ')
+        };
+        const existingSlots = [1,2,3,4].map(n => dayRec.fields['Slot ' + n]).filter(Boolean);
+        const slotNum = Math.min(existingSlots.length + 1, 4);
+        await airtableFetch('Trip Days', `/${dayRec.id}`, 'PATCH', {
+          fields: { ['Slot ' + slotNum]: JSON.stringify(slot) }
+        });
+      }
+    }
+  }
+
+  return { tripId, tripName };
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
+
+  // GET — reprocess an existing reservation record by ID
+  if (req.method === 'GET' && req.query.action === 'reprocess') {
+    const recordId = (req.query.id || '').trim();
+    if (!recordId) return res.status(400).json({ error: 'id required' });
+    try {
+      const rec = await airtableFetch('Reservations', `/${recordId}`, 'GET');
+      if (!rec || !rec.fields) return res.status(404).json({ error: 'Record not found' });
+      const fromEmail = (rec.fields['From Email'] || '').toLowerCase().trim();
+      const parsed    = JSON.parse(rec.fields['Parsed Data'] || '{}');
+      if (!fromEmail || !parsed.type) return res.status(400).json({ error: 'Record missing email or parsed data' });
+
+      const travelerData = await airtableFetch('Traveler',
+        `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${fromEmail}")`)}`, 'GET');
+      const travelerRec  = (travelerData.records || [])[0];
+      const travelerName = travelerRec?.fields?.['First Name'] || travelerRec?.fields?.['Name'] || '';
+
+      const { tripId, tripName } = await matchAndStore(fromEmail, parsed, recordId);
+
+      if (tripId) {
+        const html = buildConfirmationHtml(travelerName, tripName, parsed);
+        const emailSubject = parsed.type === 'flight'
+          ? `✈️ Flight added to ${tripName}`
+          : parsed.type === 'hotel'
+          ? `🏨 ${parsed.hotel_name || 'Hotel'} added to ${tripName}`
+          : parsed.type === 'car_rental'
+          ? `🚗 ${parsed.rental_company || 'Car rental'} added to ${tripName}`
+          : `Reservation added to ${tripName}`;
+        try { await sendResend(fromEmail, emailSubject, html); } catch(e) { console.error('reprocess: resend error:', e.message); }
+        return res.status(200).json({ ok: true, tripId, tripName, type: parsed.type });
+      } else {
+        return res.status(200).json({ ok: false, note: 'No matching trip found', fromEmail, keyDate: parsed.departure_date || parsed.check_in_date || parsed.pickup_date });
+      }
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
     const payload = req.body || {};
@@ -255,49 +395,12 @@ Return JSON in this exact format (use null for any field you cannot determine):
       return res.status(200).json({ ok: true, note: 'parse failed' });
     }
 
-    // 3. Find the matching trip by date
+    // 3. Save raw email to Reservations table (before trip match so we always capture it)
     const keyDate = parsed.departure_date || parsed.check_in_date || parsed.pickup_date || null;
-    let tripRec = null;
-    if (keyDate) {
-      // Widen window ±2 days to handle overnight departures and date-line crossings
-      const kd = new Date(keyDate + 'T00:00:00Z');
-      const dateMinus2 = new Date(kd); dateMinus2.setUTCDate(kd.getUTCDate() - 2);
-      const datePlus2  = new Date(kd); datePlus2.setUTCDate(kd.getUTCDate() + 2);
-      const lo = dateMinus2.toISOString().split('T')[0];
-      const hi = datePlus2.toISOString().split('T')[0];
-
-      const tripsData = await airtableFetch('Trips',
-        `?filterByFormula=${encodeURIComponent(`AND({Traveler Email}="${fromEmail}",{Start Date}<="${hi}",{End Date}>="${lo}")`)}` +
-        `&sort[0][field]=Start%20Date&sort[0][direction]=asc`, 'GET');
-      // Pick the trip whose start date is closest to keyDate
-      const candidates = tripsData.records || [];
-      if (candidates.length === 1) {
-        tripRec = candidates[0];
-      } else if (candidates.length > 1) {
-        tripRec = candidates.reduce((best, r) => {
-          const bDiff = Math.abs(new Date(best.fields['Start Date']) - kd);
-          const rDiff = Math.abs(new Date(r.fields['Start Date'])    - kd);
-          return rDiff < bDiff ? r : best;
-        });
-      }
-
-      // Fallback: nearest future trip if date match still fails
-      if (!tripRec) {
-        const futureData = await airtableFetch('Trips',
-          `?filterByFormula=${encodeURIComponent(`AND({Traveler Email}="${fromEmail}",{End Date}>="${new Date().toISOString().split('T')[0]}")`)}` +
-          `&sort[0][field]=Start%20Date&sort[0][direction]=asc`, 'GET');
-        tripRec = (futureData.records || [])[0];
-      }
-    }
-
-    const tripName = tripRec?.fields?.['Trip Name'] || tripRec?.fields?.['Destination'] || 'your upcoming trip';
-    const tripId   = tripRec?.id || null;
-
-    // 4. Save raw email to Reservations table
+    let reservationId = null;
     try {
-      await airtableFetch('Reservations', '', 'POST', {
+      const resRec = await airtableFetch('Reservations', '', 'POST', {
         fields: {
-          'Trip ID':             tripId || '',
           'Type':                parsed.type || 'other',
           'From Email':          fromEmail,
           'Subject':             subject,
@@ -308,67 +411,11 @@ Return JSON in this exact format (use null for any field you cannot determine):
           'Date Received':       new Date().toISOString()
         }
       });
+      reservationId = resRec.id || null;
     } catch(e) { console.error('parse-email: reservations write error:', e.message); }
 
-    // 5. Store the reservation
-    if (tripId) {
-      if (parsed.type === 'hotel' && parsed.hotel_name && parsed.check_in_date) {
-        // Create a Lodging record
-        await airtableFetch('Lodging', '', 'POST', {
-          fields: {
-            'Trip ID':        tripId,
-            'Name':           parsed.hotel_name,
-            'Location':       parsed.hotel_location || '',
-            'Confirmation #': parsed.confirmation_number || '',
-            'Check-in Date':  parsed.check_in_date  || '',
-            'Check-out Date': parsed.check_out_date || ''
-          }
-        });
-      } else if (parsed.type === 'flight' && parsed.departure_date) {
-        const daysData = await airtableFetch('Trip Days',
-          `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Date}="${parsed.departure_date}")`)}`, 'GET');
-        const dayRec = (daysData.records || [])[0];
-        if (dayRec) {
-          const slot = {
-            type:        'freeform',
-            time:        parsed.departure_time || '',
-            description: [
-              parsed.airline, parsed.flight_number,
-              parsed.from_airport && parsed.to_airport ? parsed.from_airport + ' → ' + parsed.to_airport : null,
-              parsed.confirmation_number ? 'Conf: ' + parsed.confirmation_number : null
-            ].filter(Boolean).join(' · ')
-          };
-          const existingSlots = [1,2,3,4].map(n => dayRec.fields['Slot ' + n]).filter(Boolean);
-          const slotNum = Math.min(existingSlots.length + 1, 4);
-          await airtableFetch('Trip Days', `/${dayRec.id}`, 'PATCH', {
-            fields: { ['Slot ' + slotNum]: JSON.stringify(slot) }
-          });
-        }
-      } else if (parsed.type === 'car_rental' && parsed.pickup_date) {
-        const daysData = await airtableFetch('Trip Days',
-          `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Date}="${parsed.pickup_date}")`)}`, 'GET');
-        const dayRec = (daysData.records || [])[0];
-        if (dayRec) {
-          const slot = {
-            type:        'freeform',
-            time:        parsed.pickup_time || '',
-            description: [
-              '🚗',
-              parsed.rental_company,
-              parsed.car_type,
-              parsed.pickup_location ? 'Pickup: ' + parsed.pickup_location : null,
-              parsed.dropoff_date ? 'Return: ' + parsed.dropoff_date : null,
-              parsed.confirmation_number ? 'Conf: ' + parsed.confirmation_number : null
-            ].filter(Boolean).join(' · ')
-          };
-          const existingSlots = [1,2,3,4].map(n => dayRec.fields['Slot ' + n]).filter(Boolean);
-          const slotNum = Math.min(existingSlots.length + 1, 4);
-          await airtableFetch('Trip Days', `/${dayRec.id}`, 'PATCH', {
-            fields: { ['Slot ' + slotNum]: JSON.stringify(slot) }
-          });
-        }
-      }
-    }
+    // 4. Match trip and store lodging/flight/car — also updates Trip ID on reservation record
+    const { tripId, tripName } = await matchAndStore(fromEmail, parsed, reservationId);
 
     // 5. Send confirmation email
     const html = buildConfirmationHtml(travelerName, tripName, parsed);
