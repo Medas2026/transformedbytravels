@@ -192,6 +192,40 @@ async function matchAndStore(fromEmail, parsed, existingReservationId) {
         return rDiff < bDiff ? r : best;
       });
     }
+    // Fallback 1: check Trip Members — email may belong to a client/partner on the trip
+    if (!tripRec) {
+      const membersData = await airtableFetch('Trip Members',
+        `?filterByFormula=${encodeURIComponent(`AND({Email}="${fromEmail}",{Status}="Accepted")`)}`, 'GET');
+      const memberTripIds = (membersData.records || []).map(r => r.fields['Trip ID']).filter(Boolean);
+      if (memberTripIds.length) {
+        // Fetch all those trips and pick the one whose date range best covers keyDate
+        const tripFetches = await Promise.all(
+          memberTripIds.map(id => airtableFetch('Trips', `/${id}`, 'GET').catch(() => null))
+        );
+        const memberCandidates = tripFetches
+          .filter(r => r && r.fields && r.fields['Start Date'] && r.fields['End Date'])
+          .filter(r => r.fields['Start Date'] <= hi && r.fields['End Date'] >= lo);
+        if (memberCandidates.length === 1) {
+          tripRec = memberCandidates[0];
+        } else if (memberCandidates.length > 1) {
+          tripRec = memberCandidates.reduce((best, r) => {
+            const bDiff = Math.abs(new Date(best.fields['Start Date']) - kd);
+            const rDiff = Math.abs(new Date(r.fields['Start Date'])    - kd);
+            return rDiff < bDiff ? r : best;
+          });
+        }
+        // If still no date match, take the nearest upcoming member trip
+        if (!tripRec) {
+          const today = new Date().toISOString().split('T')[0];
+          const future = tripFetches
+            .filter(r => r && r.fields && r.fields['End Date'] >= today)
+            .sort((a, b) => a.fields['Start Date'].localeCompare(b.fields['Start Date']));
+          tripRec = future[0] || null;
+        }
+      }
+    }
+
+    // Fallback 2: nearest future trip owned by this email
     if (!tripRec) {
       const futureData = await airtableFetch('Trips',
         `?filterByFormula=${encodeURIComponent(`AND({Traveler Email}="${fromEmail}",{End Date}>="${new Date().toISOString().split('T')[0]}")`)}` +
