@@ -5542,7 +5542,7 @@ function openTrip(record) {
       if (!keep && !el.classList.contains('btn-back')) el.disabled = true;
     });
     // Hide write-only action buttons by id
-    ['save-trip-btn','tm-invite-btn','td-photo-btn'].forEach(id => {
+    ['save-trip-btn','tm-invite-btn','td-photo-btn','build-itinerary-btn'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
