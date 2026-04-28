@@ -4015,10 +4015,13 @@ function toggleMobileMenu() {
 }
 
 function showPageGated(name) {
-  if (isSubscribed()) {
-    showPage(name);
+  if (portalProfile !== null) {
+    isSubscribed() ? showPage(name) : showPage('upsell');
   } else {
-    showPage('upsell');
+    // Profile still loading — wait for it then re-check
+    window.addEventListener('portalReady', () => {
+      isSubscribed() ? showPage(name) : showPage('upsell');
+    }, { once: true });
   }
 }
 
