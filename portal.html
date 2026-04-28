@@ -920,9 +920,14 @@
           <div id="trip-schedule-card" class="profile-section" style="display:none;">
             <div class="profile-section-title" style="margin-bottom:12px;padding-bottom:10px;">Trip Schedule</div>
             <div id="trip-schedule-summary" style="font-size:0.85rem;color:var(--soft);margin-bottom:14px;"></div>
-            <button onclick="openSchedulePage()" style="display:inline-flex;align-items:center;gap:8px;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 24px;cursor:pointer;">
-              📅 Enter / Edit Schedule →
-            </button>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <button onclick="openSchedulePage()" style="display:inline-flex;align-items:center;gap:8px;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 24px;cursor:pointer;">
+                📅 Enter / Edit Schedule →
+              </button>
+              <button id="lodging-timeline-btn" onclick="toggleLodgingTimeline()" style="display:none;align-items:center;gap:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 24px;cursor:pointer;">
+                🏨 Lodging Timeline
+              </button>
+            </div>
           </div>
 
           <!-- Lodging Timeline -->
@@ -8621,12 +8626,26 @@ function openLodgingModal(idx) {
   document.getElementById('lodging-form-modal').style.display = 'flex';
 }
 
+function toggleLodgingTimeline() {
+  const card = document.getElementById('lodging-timeline-card');
+  const btn  = document.getElementById('lodging-timeline-btn');
+  if (!card) return;
+  const open = card.style.display === 'none' || card.style.display === '';
+  card.style.display = open ? 'block' : 'none';
+  if (btn) btn.style.borderColor = open ? 'var(--teal)' : 'rgba(45,212,191,0.4)';
+  if (btn) btn.style.background  = open ? 'rgba(45,212,191,0.08)' : 'none';
+}
+
 function renderLodgingTimeline(tripStart, tripEnd) {
   const card    = document.getElementById('lodging-timeline-card');
   const content = document.getElementById('lodging-timeline-content');
+  const btn     = document.getElementById('lodging-timeline-btn');
   if (!card || !content) return;
 
   const recs = (_lodgingRecords || []).filter(r => r.fields['Check-in Date'] && r.fields['Check-out Date']);
+  // Show/hide the button based on whether there's lodging with dates
+  if (btn) btn.style.display = recs.length && tripStart && tripEnd ? 'inline-flex' : 'none';
+
   if (!recs.length || !tripStart || !tripEnd) {
     card.style.display = 'none';
     return;
@@ -8675,7 +8694,7 @@ function renderLodgingTimeline(tripStart, tripEnd) {
   }).join('');
 
   content.innerHTML = rulerHtml + barsHtml;
-  card.style.display = 'block';
+  // Keep card in its current state (open/closed) — button controls visibility
 }
 
 function closeLodgingModal() {
