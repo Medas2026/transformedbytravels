@@ -925,6 +925,12 @@
             </button>
           </div>
 
+          <!-- Lodging Timeline -->
+          <div id="lodging-timeline-card" class="profile-section" style="display:none;">
+            <div class="profile-section-title" style="margin-bottom:14px;padding-bottom:10px;">🏨 Lodging Timeline</div>
+            <div id="lodging-timeline-content"></div>
+          </div>
+
           <!-- Box 4: Flights -->
           <div id="trip-flights-card" class="profile-section" style="display:none;">
             <div class="profile-section-title" style="margin-bottom:12px;padding-bottom:10px;">Flight to Destination</div>
@@ -5582,6 +5588,8 @@ function openTrip(record) {
   loadTripReservations(record.id);
   loadTripMembers(record.id);
   onTmRoleChange();
+  // Lodging timeline
+  renderLodgingTimeline(f['Start Date'], f['End Date']);
   // Schedule card — show with day count
   document.getElementById('trip-schedule-card').style.display = 'block';
   document.getElementById('trip-schedule-summary').textContent = '';
@@ -6760,6 +6768,7 @@ function showNewTripForm() {
   document.getElementById('trip-status-card').style.display = 'block';
   document.getElementById('trip-passions-card').style.display = 'block';
   document.getElementById('trip-schedule-card').style.display = 'none';
+  document.getElementById('lodging-timeline-card').style.display = 'none';
   document.getElementById('trip-flights-card').style.display = 'none';
   document.getElementById('trip-reservations-card').style.display = 'none';
   document.getElementById('itinerary-section').style.display = 'none';
@@ -8612,6 +8621,63 @@ function openLodgingModal(idx) {
   document.getElementById('lodging-form-modal').style.display = 'flex';
 }
 
+function renderLodgingTimeline(tripStart, tripEnd) {
+  const card    = document.getElementById('lodging-timeline-card');
+  const content = document.getElementById('lodging-timeline-content');
+  if (!card || !content) return;
+
+  const recs = (_lodgingRecords || []).filter(r => r.fields['Check-in Date'] && r.fields['Check-out Date']);
+  if (!recs.length || !tripStart || !tripEnd) {
+    card.style.display = 'none';
+    return;
+  }
+
+  const tripStartMs = new Date(tripStart + 'T00:00:00Z').getTime();
+  const tripEndMs   = new Date(tripEnd   + 'T00:00:00Z').getTime();
+  const tripDays    = Math.round((tripEndMs - tripStartMs) / 86400000) + 1;
+  if (tripDays <= 0) { card.style.display = 'none'; return; }
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtDate = ms => { const d = new Date(ms); return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate(); };
+
+  // Build date ruler — show a label every N days based on trip length
+  const labelEvery = tripDays <= 7 ? 1 : tripDays <= 14 ? 2 : tripDays <= 21 ? 3 : 7;
+  let rulerHtml = '<div style="position:relative;height:22px;margin-bottom:6px;">';
+  for (let i = 0; i < tripDays; i += labelEvery) {
+    const pct = (i / (tripDays - 1)) * 100;
+    const ms  = tripStartMs + i * 86400000;
+    rulerHtml += `<span style="position:absolute;left:${pct}%;transform:translateX(-50%);font-size:0.68rem;color:var(--muted);white-space:nowrap;">${fmtDate(ms)}</span>`;
+  }
+  rulerHtml += '</div>';
+
+  // Build lodging bars
+  const COLORS = ['#2dd4bf','#38bdf8','#a78bfa','#fb923c','#f472b6','#34d399'];
+  const barsHtml = recs.map((r, i) => {
+    const f       = r.fields;
+    const ciMs    = new Date(f['Check-in Date']  + 'T00:00:00Z').getTime();
+    const coMs    = new Date(f['Check-out Date'] + 'T00:00:00Z').getTime();
+    const left    = Math.max(0, Math.min(100, ((ciMs - tripStartMs) / 86400000) / (tripDays - 1) * 100));
+    const width   = Math.max(2, Math.min(100 - left, ((coMs - ciMs) / 86400000) / (tripDays - 1) * 100));
+    const color   = COLORS[i % COLORS.length];
+    const nights  = Math.round((coMs - ciMs) / 86400000);
+    const label   = f['Name'] + (f['Location'] ? ', ' + f['Location'] : '');
+    const tooltip = `${f['Name']} · ${fmtDate(ciMs)} – ${fmtDate(coMs)} · ${nights} night${nights !== 1 ? 's' : ''}`;
+
+    return `
+      <div style="margin-bottom:10px;">
+        <div style="font-size:0.75rem;color:var(--soft);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${label}</div>
+        <div style="position:relative;height:28px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden;">
+          <div title="${tooltip}" style="position:absolute;left:${left}%;width:${width}%;height:100%;background:${color};border-radius:5px;opacity:0.85;cursor:default;display:flex;align-items:center;padding:0 8px;box-sizing:border-box;overflow:hidden;">
+            <span style="font-size:0.72rem;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nights}n</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  content.innerHTML = rulerHtml + barsHtml;
+  card.style.display = 'block';
+}
+
 function closeLodgingModal() {
   document.getElementById('lodging-form-modal').style.display = 'none';
   _lodgingModalIdx = null;
@@ -8692,7 +8758,11 @@ async function saveLodging() {
     _scheduleRecords = dd.records || [];
 
     status.textContent = 'Saved!';
-    setTimeout(() => { closeLodgingModal(); renderScheduleList(); }, 600);
+    setTimeout(() => {
+      closeLodgingModal();
+      renderScheduleList();
+      renderLodgingTimeline(currentTripStart, currentTripEnd);
+    }, 600);
   } catch(e) {
     status.style.color = '#f43f5e';
     status.textContent = 'Error: ' + e.message;
@@ -8716,6 +8786,7 @@ async function deleteLodging() {
     _scheduleRecords = dd.records || [];
     closeLodgingModal();
     renderScheduleList();
+    renderLodgingTimeline(currentTripStart, currentTripEnd);
   } catch(e) {
     status.textContent = 'Error: ' + e.message;
   }
