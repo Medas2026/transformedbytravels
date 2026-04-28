@@ -314,8 +314,10 @@ module.exports = async function handler(req, res) {
     const recordId = (req.query.id || '').trim();
     if (!recordId) return res.status(400).json({ error: 'id required' });
     try {
-      const rec = await airtableFetch('Reservations', `/${recordId}`, 'GET');
-      if (!rec || !rec.fields) return res.status(404).json({ error: 'Record not found' });
+      const recData = await airtableFetch('Reservations',
+        `?filterByFormula=${encodeURIComponent(`RECORD_ID()="${recordId}"`)}`, 'GET');
+      const rec = (recData.records || [])[0];
+      if (!rec || !rec.fields) return res.status(404).json({ error: 'Record not found', airtableResponse: recData });
       const fromEmail = (rec.fields['From Email'] || '').toLowerCase().trim();
       const parsed    = JSON.parse(rec.fields['Parsed Data'] || '{}');
       if (!fromEmail || !parsed.type) return res.status(400).json({
