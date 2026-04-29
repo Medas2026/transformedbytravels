@@ -2995,7 +2995,7 @@ async function buildItinerary(force) {
                   if (res.type === 'hotel') {
                     const loc  = p.hotel_location ? ' · ' + p.hotel_location : '';
                     const conf = p.confirmation_number ? ' · Conf: ' + p.confirmation_number : '';
-                    const co   = p.check_out_date ? ` · Check-out ${p.check_out_date}` : '';
+                    const co   = p.check_out_date ? ` · Check-out ${new Date(p.check_out_date+'T00:00:00Z').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric',timeZone:'UTC'})}` : '';
                     return `<div style="display:flex;align-items:flex-start;gap:8px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:8px 12px;">
                       <span style="font-size:1rem;flex-shrink:0;">🏨</span>
                       <div style="font-size:0.8rem;color:var(--soft);line-height:1.5;">
@@ -7134,34 +7134,40 @@ async function loadTripReservations(tripId) {
       let p = {};
       try { p = JSON.parse(f['Parsed Data'] || '{}'); } catch(e) {}
 
+      const fmtResDate = s => {
+        if (!s) return '';
+        const d = new Date(s + 'T00:00:00Z');
+        if (isNaN(d)) return s;
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+      };
       const rows = [];
       if (type === 'flight') {
         if (p.airline)        rows.push(['Airline',    p.airline]);
         if (p.flight_number)  rows.push(['Flight',     p.flight_number]);
         if (p.from_airport)   rows.push(['From',       p.from_airport]);
         if (p.to_airport)     rows.push(['To',         p.to_airport]);
-        if (p.departure_date) rows.push(['Departure',  p.departure_date + (p.departure_time ? ' at ' + p.departure_time : '')]);
-        if (p.arrival_date)   rows.push(['Arrival',    p.arrival_date   + (p.arrival_time   ? ' at ' + p.arrival_time   : '')]);
+        if (p.departure_date) rows.push(['Departure',  fmtResDate(p.departure_date) + (p.departure_time ? ' at ' + p.departure_time : '')]);
+        if (p.arrival_date)   rows.push(['Arrival',    fmtResDate(p.arrival_date)   + (p.arrival_time   ? ' at ' + p.arrival_time   : '')]);
         if (p.return_departure_date) {
           rows.push(['— Return —', '']);
           if (p.return_flight_number)   rows.push(['Flight',    p.return_flight_number]);
           if (p.return_from_airport)    rows.push(['From',      p.return_from_airport]);
           if (p.return_to_airport)      rows.push(['To',        p.return_to_airport]);
-          rows.push(['Departure', p.return_departure_date + (p.return_departure_time ? ' at ' + p.return_departure_time : '')]);
-          if (p.return_arrival_date)    rows.push(['Arrival',   p.return_arrival_date + (p.return_arrival_time ? ' at ' + p.return_arrival_time : '')]);
+          rows.push(['Departure', fmtResDate(p.return_departure_date) + (p.return_departure_time ? ' at ' + p.return_departure_time : '')]);
+          if (p.return_arrival_date)    rows.push(['Arrival',   fmtResDate(p.return_arrival_date) + (p.return_arrival_time ? ' at ' + p.return_arrival_time : '')]);
         }
       } else if (type === 'hotel') {
         if (p.hotel_name)     rows.push(['Property',   p.hotel_name]);
         if (p.hotel_location) rows.push(['Location',   p.hotel_location]);
-        if (p.check_in_date)  rows.push(['Check-in',   p.check_in_date]);
-        if (p.check_out_date) rows.push(['Check-out',  p.check_out_date]);
+        if (p.check_in_date)  rows.push(['Check-in',   fmtResDate(p.check_in_date)]);
+        if (p.check_out_date) rows.push(['Check-out',  fmtResDate(p.check_out_date)]);
         if (p.room_type)      rows.push(['Room',       p.room_type]);
       } else if (type === 'car_rental') {
         if (p.rental_company)  rows.push(['Company',   p.rental_company]);
         if (p.car_type)        rows.push(['Vehicle',   p.car_type]);
-        if (p.pickup_date)     rows.push(['Pickup',    p.pickup_date + (p.pickup_time ? ' at ' + p.pickup_time : '')]);
+        if (p.pickup_date)     rows.push(['Pickup',    fmtResDate(p.pickup_date) + (p.pickup_time ? ' at ' + p.pickup_time : '')]);
         if (p.pickup_location) rows.push(['Location',  p.pickup_location]);
-        if (p.dropoff_date)    rows.push(['Return',    p.dropoff_date]);
+        if (p.dropoff_date)    rows.push(['Return',    fmtResDate(p.dropoff_date)]);
       }
       if (p.confirmation_number) rows.push(['Conf #', p.confirmation_number]);
 
