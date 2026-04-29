@@ -1202,6 +1202,30 @@ async function saveDayModal(andNext=false) {
   } catch(e) { status.style.color='#f43f5e'; status.textContent='Error: '+e.message; }
 }
 
+// ── Trip days refresh (preserves unsaved location dirty state) ───────────────
+
+async function _refreshTripDays() {
+  const dirty = {};
+  _scheduleRecords.forEach(r => {
+    if (r.id && (r._startDirty || r._endDirty)) {
+      dirty[r.id] = {
+        _startDirty: r._startDirty, _endDirty: r._endDirty,
+        sl: r.fields['Starting Location'], sc: r.fields['Starting Country'],
+        el: r.fields['Ending Location'],   ec: r.fields['Ending Country']
+      };
+    }
+  });
+  const dr = await fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId));
+  const dd = await dr.json();
+  _scheduleRecords = dd.records || [];
+  _scheduleRecords.forEach(r => {
+    const d = dirty[r.id];
+    if (!d) return;
+    if (d._startDirty) { r.fields['Starting Location'] = d.sl; r.fields['Starting Country'] = d.sc; r._startDirty = true; }
+    if (d._endDirty)   { r.fields['Ending Location']   = d.el; r.fields['Ending Country']   = d.ec; r._endDirty   = true; }
+  });
+}
+
 // ── Lodging ──────────────────────────────────────────────────────────────────
 
 function updateLodgingNights() {
@@ -1301,9 +1325,7 @@ async function selectExistingLodging(lodgingId) {
     }
     // Always link the specific day clicked (may be outside the stored date range)
     await fetch('/api/trip-days',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:dayRec.id,'Lodging ID':lodgingId})});
-    const dr=await fetch('/api/trip-days?tripId='+encodeURIComponent(currentTripId));
-    const dd=await dr.json();
-    _scheduleRecords=dd.records||[];
+    await _refreshTripDays();
     closeLodgingModal();
     renderScheduleList();
   } catch(e){ alert('Could not link lodging: '+e.message); }
@@ -1353,9 +1375,7 @@ async function saveLodging() {
     _lodgingRecords=ld.records||[];
     _lodgingMap={};
     _lodgingRecords.forEach(r=>{_lodgingMap[r.id]=r.fields['Name']||'Lodging';});
-    const dr=await fetch('/api/trip-days?tripId='+encodeURIComponent(currentTripId));
-    const dd=await dr.json();
-    _scheduleRecords=dd.records||[];
+    await _refreshTripDays();
     status.textContent='Saved!';
     setTimeout(()=>{closeLodgingModal();renderScheduleList();},600);
   } catch(e){status.style.color='#f43f5e';status.textContent='Error: '+e.message;}
@@ -1371,9 +1391,7 @@ async function deleteLodging() {
     if(!data.success){status.textContent='Error: '+(data.error||'Could not delete');return;}
     _lodgingRecords=_lodgingRecords.filter(r=>r.id!==_lodgingEditId);
     delete _lodgingMap[_lodgingEditId];
-    const dr=await fetch('/api/trip-days?tripId='+encodeURIComponent(currentTripId));
-    const dd=await dr.json();
-    _scheduleRecords=dd.records||[];
+    await _refreshTripDays();
     closeLodgingModal(); renderScheduleList();
   } catch(e){status.textContent='Error: '+e.message;}
 }
