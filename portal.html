@@ -927,9 +927,6 @@
               <button id="lodging-timeline-btn" onclick="toggleLodgingTimeline()" style="display:none;align-items:center;gap:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 24px;cursor:pointer;">
                 🏨 Lodging Timeline
               </button>
-              <button id="trip-map-btn" onclick="toggleTripMap()" style="display:none;align-items:center;gap:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 24px;cursor:pointer;">
-                🗺 Trip Map
-              </button>
             </div>
           </div>
 
@@ -941,12 +938,15 @@
 
           <!-- Trip Map -->
           <div id="trip-map-section" class="profile-section" style="display:none;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bd);">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bd);">
               <div class="profile-section-title" style="margin:0;padding:0;border:none;">🗺 Trip Map</div>
-              <label style="display:flex;align-items:center;gap:8px;font-family:'Montserrat',sans-serif;font-size:0.78rem;color:var(--soft);cursor:pointer;">
-                <input type="checkbox" id="map-include-home" onchange="renderScheduleMap(this.checked)" style="accent-color:var(--teal);width:15px;height:15px;">
-                Include Home
-              </label>
+              <div style="display:flex;align-items:center;gap:14px;">
+                <label style="display:flex;align-items:center;gap:8px;font-family:'Montserrat',sans-serif;font-size:0.78rem;color:var(--soft);cursor:pointer;">
+                  <input type="checkbox" id="map-include-home" onchange="renderScheduleMap(this.checked)" style="accent-color:var(--teal);width:15px;height:15px;">
+                  Include Home
+                </label>
+                <button onclick="refreshTripMap()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;border-radius:6px;padding:5px 12px;cursor:pointer;">↺ Refresh</button>
+              </div>
             </div>
             <div id="schedule-map-status" style="font-size:0.82rem;color:var(--muted);margin-bottom:10px;"></div>
             <div id="schedule-map-wrap" style="border-radius:10px;overflow:hidden;">
@@ -5654,8 +5654,15 @@ function openTrip(record) {
         const n = (d.records || []).length;
         document.getElementById('trip-schedule-summary').textContent =
           n ? n + ' day' + (n !== 1 ? 's' : '') + ' planned' : 'No days yet — click to start planning.';
-        const mapBtn = document.getElementById('trip-map-btn');
-        if (mapBtn) mapBtn.style.display = n > 0 ? 'inline-flex' : 'none';
+        const mapSection = document.getElementById('trip-map-section');
+        if (n > 0 && mapSection) {
+          _scheduleRecords = (d.records || []).sort((a, b) => (a.fields['Day Number'] || 0) - (b.fields['Day Number'] || 0));
+          mapSection.style.display = 'block';
+          const includeHome = document.getElementById('map-include-home')?.checked || false;
+          renderScheduleMap(includeHome);
+        } else if (mapSection) {
+          mapSection.style.display = 'none';
+        }
       }).catch(() => {});
   }
   if (!_isHistoryTrip && f['Status of Trip'] === 'Completed') {
@@ -8768,28 +8775,21 @@ function openLodgingModal(idx) {
   document.getElementById('lodging-form-modal').style.display = 'flex';
 }
 
-async function toggleTripMap() {
-  const card = document.getElementById('trip-map-section');
-  const btn  = document.getElementById('trip-map-btn');
-  if (!card) return;
-  const open = card.style.display === 'none' || card.style.display === '';
-  card.style.display = open ? 'block' : 'none';
-  if (btn) btn.style.borderColor = open ? 'var(--teal)' : 'rgba(45,212,191,0.4)';
-  if (btn) btn.style.background  = open ? 'rgba(45,212,191,0.08)' : 'none';
-  if (open) {
-    const includeHome = document.getElementById('map-include-home')?.checked || false;
-    // Fetch trip days if not already loaded by schedule page
-    if (!_scheduleRecords.length && currentTripId) {
-      const status = document.getElementById('schedule-map-status');
-      if (status) status.textContent = 'Loading days…';
-      try {
-        const r  = await fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId));
-        const d  = await r.json();
-        _scheduleRecords = (d.records || []).sort((a, b) => (a.fields['Day Number'] || 0) - (b.fields['Day Number'] || 0));
-      } catch(e) {}
-    }
-    renderScheduleMap(includeHome);
+async function refreshTripMap() {
+  const status = document.getElementById('schedule-map-status');
+  if (status) status.textContent = 'Refreshing…';
+  _scheduleRecords = [];
+  if (!currentTripId) return;
+  try {
+    const r = await fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId));
+    const d = await r.json();
+    _scheduleRecords = (d.records || []).sort((a, b) => (a.fields['Day Number'] || 0) - (b.fields['Day Number'] || 0));
+  } catch(e) {
+    if (status) status.textContent = 'Failed to load days.';
+    return;
   }
+  const includeHome = document.getElementById('map-include-home')?.checked || false;
+  renderScheduleMap(includeHome);
 }
 
 function toggleLodgingTimeline() {
