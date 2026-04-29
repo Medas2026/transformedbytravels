@@ -671,7 +671,7 @@ async function scheduleAddDay() {
   renderScheduleList();
   _scheduleWarn();
   try {
-    const resp = await fetch('/api/trip-days', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tripId: currentTripId, startDate: newDate, endDate: newDate }) });
+    const resp = await fetch('/api/trip-days', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tripId: currentTripId, startDate: newDate, endDate: newDate, dayNum: newDayNum }) });
     const data = await resp.json();
     if (data.success && data.records && data.records[0]) {
       _scheduleRecords[_scheduleRecords.length - 1].id   = data.records[0].id;
