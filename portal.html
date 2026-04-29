@@ -927,6 +927,9 @@
               <button id="lodging-timeline-btn" onclick="toggleLodgingTimeline()" style="display:none;align-items:center;gap:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 24px;cursor:pointer;">
                 🏨 Lodging Timeline
               </button>
+              <button id="trip-map-btn" onclick="toggleTripMap()" style="display:none;align-items:center;gap:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 24px;cursor:pointer;">
+                🗺 Trip Map
+              </button>
             </div>
           </div>
 
@@ -934,6 +937,21 @@
           <div id="lodging-timeline-card" class="profile-section" style="display:none;">
             <div class="profile-section-title" style="margin-bottom:14px;padding-bottom:10px;">🏨 Lodging Timeline</div>
             <div id="lodging-timeline-content"></div>
+          </div>
+
+          <!-- Trip Map -->
+          <div id="trip-map-section" class="profile-section" style="display:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bd);">
+              <div class="profile-section-title" style="margin:0;padding:0;border:none;">🗺 Trip Map</div>
+              <label style="display:flex;align-items:center;gap:8px;font-family:'Montserrat',sans-serif;font-size:0.78rem;color:var(--soft);cursor:pointer;">
+                <input type="checkbox" id="map-include-home" onchange="renderScheduleMap(this.checked)" style="accent-color:var(--teal);width:15px;height:15px;">
+                Include Home
+              </label>
+            </div>
+            <div id="schedule-map-status" style="font-size:0.82rem;color:var(--muted);margin-bottom:10px;"></div>
+            <div id="schedule-map-wrap" style="border-radius:10px;overflow:hidden;">
+              <div id="schedule-map" style="width:100%;height:360px;"></div>
+            </div>
           </div>
 
           <!-- Box 4: Flights -->
@@ -5636,6 +5654,8 @@ function openTrip(record) {
         const n = (d.records || []).length;
         document.getElementById('trip-schedule-summary').textContent =
           n ? n + ' day' + (n !== 1 ? 's' : '') + ' planned' : 'No days yet — click to start planning.';
+        const mapBtn = document.getElementById('trip-map-btn');
+        if (mapBtn) mapBtn.style.display = n > 0 ? 'inline-flex' : 'none';
       }).catch(() => {});
   }
   if (!_isHistoryTrip && f['Status of Trip'] === 'Completed') {
@@ -6805,6 +6825,7 @@ function showNewTripForm() {
   document.getElementById('trip-passions-card').style.display = 'block';
   document.getElementById('trip-schedule-card').style.display = 'none';
   document.getElementById('lodging-timeline-card').style.display = 'none';
+  document.getElementById('trip-map-section').style.display = 'none';
   document.getElementById('trip-flights-card').style.display = 'none';
   document.getElementById('trip-reservations-card').style.display = 'none';
   document.getElementById('itinerary-section').style.display = 'none';
@@ -8745,6 +8766,20 @@ function openLodgingModal(idx) {
   const status = document.getElementById('lm-status');
   status.style.display = 'none';
   document.getElementById('lodging-form-modal').style.display = 'flex';
+}
+
+function toggleTripMap() {
+  const card = document.getElementById('trip-map-section');
+  const btn  = document.getElementById('trip-map-btn');
+  if (!card) return;
+  const open = card.style.display === 'none' || card.style.display === '';
+  card.style.display = open ? 'block' : 'none';
+  if (btn) btn.style.borderColor = open ? 'var(--teal)' : 'rgba(45,212,191,0.4)';
+  if (btn) btn.style.background  = open ? 'rgba(45,212,191,0.08)' : 'none';
+  if (open) {
+    const includeHome = document.getElementById('map-include-home')?.checked || false;
+    renderScheduleMap(includeHome);
+  }
 }
 
 function toggleLodgingTimeline() {
