@@ -1288,13 +1288,19 @@ function showLodgingForm(existing, dayFields) {
 }
 
 async function selectExistingLodging(lodgingId) {
+  const dayRec=_scheduleRecords[_lodgingModalIdx];
+  if(!dayRec) return;
   const lodgingRec=_lodgingRecords.find(r=>r.id===lodgingId);
   if(!lodgingRec) return;
   const checkIn =lodgingRec.fields['Check-in Date']||'';
   const checkOut=lodgingRec.fields['Check-out Date']||'';
   try {
-    // PATCH the lodging with its existing dates — server re-links all days in the range
-    await fetch('/api/lodging',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:lodgingId,tripId:currentTripId,checkIn,checkOut})});
+    // Re-link all days in the stored date range first
+    if(checkIn && checkOut) {
+      await fetch('/api/lodging',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:lodgingId,tripId:currentTripId,checkIn,checkOut})});
+    }
+    // Always link the specific day clicked (may be outside the stored date range)
+    await fetch('/api/trip-days',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:dayRec.id,'Lodging ID':lodgingId})});
     const dr=await fetch('/api/trip-days?tripId='+encodeURIComponent(currentTripId));
     const dd=await dr.json();
     _scheduleRecords=dd.records||[];
