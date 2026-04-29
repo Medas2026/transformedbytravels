@@ -8768,7 +8768,7 @@ function openLodgingModal(idx) {
   document.getElementById('lodging-form-modal').style.display = 'flex';
 }
 
-function toggleTripMap() {
+async function toggleTripMap() {
   const card = document.getElementById('trip-map-section');
   const btn  = document.getElementById('trip-map-btn');
   if (!card) return;
@@ -8778,6 +8778,16 @@ function toggleTripMap() {
   if (btn) btn.style.background  = open ? 'rgba(45,212,191,0.08)' : 'none';
   if (open) {
     const includeHome = document.getElementById('map-include-home')?.checked || false;
+    // Fetch trip days if not already loaded by schedule page
+    if (!_scheduleRecords.length && currentTripId) {
+      const status = document.getElementById('schedule-map-status');
+      if (status) status.textContent = 'Loading days…';
+      try {
+        const r  = await fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId));
+        const d  = await r.json();
+        _scheduleRecords = (d.records || []).sort((a, b) => (a.fields['Day Number'] || 0) - (b.fields['Day Number'] || 0));
+      } catch(e) {}
+    }
     renderScheduleMap(includeHome);
   }
 }
