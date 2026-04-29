@@ -168,7 +168,7 @@
       <a href="https://www.transformedbytravels.com" class="logo">Transformed<span>byTravels</span></a>
       <nav>
         <a href="https://www.transformedbytravels.com">Home</a>
-        <a href="/blog.html">Journal</a>
+        <a href="/blog.html">My Journeys</a>
         <a href="https://app.transformedbytravels.com/portal.html">My Journeys</a>
       </nav>
     </div>
@@ -181,7 +181,7 @@
   </article>
 
   <div class="related" id="related-section" style="display:none;">
-    <div class="related-title">More from the Journal</div>
+    <div class="related-title">More from the My Journeys</div>
     <div class="related-grid" id="related-grid"></div>
   </div>
 
@@ -304,7 +304,7 @@ async function loadPost() {
       </div>` : '';
 
     article.innerHTML = `
-      <a class="back-link" href="/blog.html">← Back to Journal</a>
+      <a class="back-link" href="/blog.html">← Back to My Journeys</a>
       ${tags ? `<div class="post-tags">${tags}</div>` : ''}
       <h1 class="post-title">${f['Title'] || 'Untitled'}</h1>
       <div class="post-meta">
@@ -320,7 +320,7 @@ async function loadPost() {
   } catch(e) {
     article.innerHTML = `<div class="post-state">
       <p style="font-size:1.5rem;margin-bottom:12px;">Post not found</p>
-      <a href="/blog.html" style="color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;">← Back to Journal</a>
+      <a href="/blog.html" style="color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;">← Back to My Journeys</a>
     </div>`;
   }
 }
@@ -340,7 +340,7 @@ async function loadRelated(currentSlug, tags) {
     section.style.display = 'block';
     grid.innerHTML = posts.map(r => {
       const f   = r.fields;
-      const img = f['Image 1 URL'] || f['Hero Image URL'] || '';
+      const img = f['Hero Image URL'] || '';
       return `<a class="related-card" href="/blog-post.html?slug=${encodeURIComponent(f['Slug'] || '')}">
         ${img ? `<img src="${img}" alt="${f['Title'] || ''}">` : ''}
         <div class="related-card-body">

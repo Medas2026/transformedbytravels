@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Journal — Transformed by Travels</title>
+  <title>My Journeys — Transformed by Travels</title>
   <meta name="description" content="Stories, insights, and inspiration for transformational travelers.">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&family=Georgia:wght@400;700&display=swap" rel="stylesheet" />
   <style>
@@ -139,7 +139,7 @@
       <a href="https://www.transformedbytravels.com" class="logo">Transformed<span>byTravels</span></a>
       <nav>
         <a href="https://www.transformedbytravels.com">Home</a>
-        <a href="/blog.html" class="active">Journal</a>
+        <a href="/blog.html" class="active">My Journeys</a>
         <a href="https://app.transformedbytravels.com/portal.html">My Journeys</a>
       </nav>
     </div>
@@ -147,7 +147,7 @@
 
   <div class="blog-hero">
     <div class="blog-hero-label">✦ Transformational Travel</div>
-    <h1>The Journal</h1>
+    <h1>My Journeys</h1>
     <p>Stories, insights, and inspiration for travelers who want to grow.</p>
   </div>
 
@@ -215,7 +215,7 @@ function renderGrid() {
     const title   = f['Title'] || 'Untitled';
     const excerpt = f['Excerpt'] || '';
     const tags    = (f['Tags'] || []).map(t => `<span class="post-tag">${t}</span>`).join('');
-    const img     = f['Image 1 URL'] || f['Hero Image URL'] || '';
+    const img     = f['Hero Image URL'] || '';
     const imgEl   = img
       ? `<img class="post-card-img" src="${img}" alt="${title}" loading="lazy">`
       : `<div class="post-card-img-placeholder">✦</div>`;
