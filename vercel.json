@@ -22,6 +22,9 @@
       ]
     }
   ],
+  "rewrites": [
+    { "source": "/blog-post.html", "destination": "/api/blog-post" }
+  ],
   "functions": {
     "api/trips.js":      { "maxDuration": 45 },
     "api/journal.js":    { "maxDuration": 45 },
@@ -35,7 +38,8 @@
     "api/parse-email.js":  { "maxDuration": 30 },
     "api/itinerary.js":    { "maxDuration": 60 },
     "api/ics.js":          { "maxDuration": 20 },
-    "api/blog.js":         { "maxDuration": 15 }
+    "api/blog.js":         { "maxDuration": 15 },
+    "api/blog-post.js":    { "maxDuration": 15 }
   },
   "crons": [
     {
