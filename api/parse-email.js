@@ -254,16 +254,38 @@ async function matchAndStore(fromEmail, parsed, existingReservationId) {
 
   if (tripId) {
     if (parsed.type === 'hotel' && parsed.hotel_name && parsed.check_in_date) {
-      await airtableFetch('Lodging', '', 'POST', {
-        fields: {
-          'Trip ID':        tripId,
-          'Name':           parsed.hotel_name,
-          'Location':       parsed.hotel_location || '',
-          'Confirmation #': parsed.confirmation_number || '',
-          'Check-in Date':  parsed.check_in_date  || '',
-          'Check-out Date': parsed.check_out_date || ''
+      // Check if a lodging record already exists for this trip + check-in date
+      const existingLodging = await airtableFetch('Lodging',
+        `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Check-in Date}="${parsed.check_in_date}")`)}`, 'GET');
+      let lodgingId = (existingLodging.records || [])[0]?.id || null;
+
+      if (!lodgingId) {
+        // Create new lodging record from reservation data
+        const newLodging = await airtableFetch('Lodging', '', 'POST', {
+          fields: {
+            'Trip ID':        tripId,
+            'Name':           parsed.hotel_name,
+            'Location':       parsed.hotel_location || '',
+            'Confirmation #': parsed.confirmation_number || '',
+            'Check-in Date':  parsed.check_in_date,
+            'Check-out Date': parsed.check_out_date || '',
+            'Type':           parsed.room_type || ''
+          }
+        });
+        lodgingId = newLodging.id || null;
+      }
+
+      // Link lodging to the matching trip day if not already linked
+      if (lodgingId) {
+        const daysData = await airtableFetch('Trip Days',
+          `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Date}="${parsed.check_in_date}")`)}`, 'GET');
+        const dayRec = (daysData.records || [])[0];
+        if (dayRec && !dayRec.fields['Lodging ID']) {
+          await airtableFetch('Trip Days', `/${dayRec.id}`, 'PATCH', {
+            fields: { 'Lodging ID': lodgingId }
+          });
         }
-      });
+      }
     } else if (parsed.type === 'flight' && parsed.departure_date) {
       const daysData = await airtableFetch('Trip Days',
         `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Date}="${parsed.departure_date}")`)}`, 'GET');
