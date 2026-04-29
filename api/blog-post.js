@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
   ${image ? `<meta name="twitter:image" content="${image}">` : ''}`;
 
   try {
-    const htmlPath = path.join(process.cwd(), 'blog-post.html');
+    const htmlPath = path.join(process.cwd(), 'blog-post-template.html');
     let html = fs.readFileSync(htmlPath, 'utf8');
     html = html.replace('</head>', ogTags + '\n</head>');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
