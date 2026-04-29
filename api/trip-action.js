@@ -99,6 +99,29 @@ async function generateTripSummary(destination, country, places, startDate, endD
   }
 }
 
+async function buildPendingInvitesBlock(tripId, headers) {
+  try {
+    const filter = encodeURIComponent(`AND({Trip ID}="${tripId}",{Status}="Invited")`);
+    const resp = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent('Trip Members')}?filterByFormula=${filter}`, { headers });
+    const data = await resp.json();
+    const pending = (data.records || []);
+    if (!pending.length) return '';
+    const list = pending.map(m => {
+      const email = m.fields['Email'] || '';
+      const role  = m.fields['Role']  || 'Invited';
+      return `<div style="font-family:Arial,sans-serif;font-size:14px;color:#0f172a;padding:5px 0;">· ${email} <span style="color:#94a3b8;font-size:12px;">(${role})</span></div>`;
+    }).join('');
+    return `<div style="background:#f8fafc;border-radius:12px;padding:20px 24px;margin:20px 0 8px;">
+      <div style="font-family:Georgia,serif;font-size:15px;font-weight:bold;color:#0f172a;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #2dd4bf;">Pending Invitations</div>
+      <p style="font-family:Arial,sans-serif;font-size:14px;color:#475569;margin:0 0 10px;">These travelers haven't responded to their invitation yet. You may want to follow up:</p>
+      ${list}
+    </div>`;
+  } catch(e) {
+    console.error('[pendingInvites]', e.message);
+    return '';
+  }
+}
+
 function tripDetailsBlock(destination, country, startDate, endDate, places) {
   const loc  = [destination, country].filter(Boolean).join(', ');
   const rows = [
@@ -357,14 +380,16 @@ module.exports = function handler(req, res) {
           const name        = await fetchTravelerName(email);
           const vars        = { name, tripName, destination, country, startDate };
           const para        = text => text ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${substitute(text, vars).replace(/\n/g, '<br>')}</p>` : '';
-          let subject, html;
+          let subject, bodyContent;
           if (tmpl) {
-            subject = substitute(tmpl.subject, vars) || `Your trip to ${tripName} starts tomorrow!`;
-            html    = emailHTML(subject, subject, para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3), 'Start My Trip →', activateUrl, photoUrl);
+            subject     = substitute(tmpl.subject, vars) || `Your trip to ${tripName} starts tomorrow!`;
+            bodyContent = para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3);
           } else {
-            subject = `Your trip to ${tripName} starts tomorrow!`;
-            html    = emailHTML(subject, subject, `<p>Just a reminder — your trip to <strong>${tripName}</strong> begins tomorrow. Activate it in your portal to start your daily journal reminders.</p>`, 'Start My Trip →', activateUrl, photoUrl);
+            subject     = `Your trip to ${tripName} starts tomorrow!`;
+            bodyContent = `<p>Just a reminder — your trip to <strong>${tripName}</strong> begins tomorrow. Activate it in your portal to start your daily journal reminders.</p>`;
           }
+          const pendingBlock1 = await buildPendingInvitesBlock(rec.id, headers);
+          const html = emailHTML(subject, subject, bodyContent + pendingBlock1, 'Start My Trip →', activateUrl, photoUrl);
           await sendEmailAsync(email, name, subject, html);
           if (coEmail) await sendEmailAsync(coEmail, name, subject, html);
           console.log('[1-day] sent to', email, tripName);
@@ -396,14 +421,16 @@ module.exports = function handler(req, res) {
           const name        = await fetchTravelerName(email);
           const vars        = { name, tripName, destination, country, startDate };
           const para        = text => text ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${substitute(text, vars).replace(/\n/g, '<br>')}</p>` : '';
-          let subject, html;
+          let subject, bodyContent;
           if (tmpl) {
-            subject = substitute(tmpl.subject, vars) || `Your trip to ${tripName} is in 3 days!`;
-            html    = emailHTML(subject, subject, para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3), 'Start My Trip →', activateUrl, photoUrl);
+            subject     = substitute(tmpl.subject, vars) || `Your trip to ${tripName} is in 3 days!`;
+            bodyContent = para(tmpl.p1) + para(tmpl.p2) + para(tmpl.p3);
           } else {
-            subject = `Your trip to ${tripName} is in 3 days!`;
-            html    = emailHTML(subject, subject, `<p>Your trip to <strong>${tripName}</strong> starts on <strong>${startDate}</strong> — just 3 days away! Head to your portal to activate it.</p>`, 'Start My Trip →', activateUrl, photoUrl);
+            subject     = `Your trip to ${tripName} is in 3 days!`;
+            bodyContent = `<p>Your trip to <strong>${tripName}</strong> starts on <strong>${startDate}</strong> — just 3 days away! Head to your portal to activate it.</p>`;
           }
+          const pendingBlock3 = await buildPendingInvitesBlock(rec.id, headers);
+          const html = emailHTML(subject, subject, bodyContent + pendingBlock3, 'Start My Trip →', activateUrl, photoUrl);
           await sendEmailAsync(email, name, subject, html);
           if (coEmail) await sendEmailAsync(coEmail, name, subject, html);
           console.log('[3-day] sent to', email, tripName);

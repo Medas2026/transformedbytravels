@@ -7250,6 +7250,7 @@ async function loadTripMembers(tripId) {
           ${['Partner','Co-Traveler','Trip Planner','Client','Family','Guest'].map(opt => `<option value="${opt}"${role===opt?' selected':''}>${opt}</option>`).join('')}
         </select>
         <div style="font-size:0.75rem;color:${statusColor};white-space:nowrap;">${status}</div>
+        ${status !== 'Accepted' ? `<button onclick="resendTripInvite('${r.id}','${email.replace(/'/g,"&#39;")}')" style="background:none;border:1px solid rgba(45,212,191,0.4);color:#2dd4bf;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;">Resend</button>` : ''}
         <button onclick="removeTripMember('${r.id}')" style="background:none;border:1px solid rgba(244,63,94,0.4);color:#f43f5e;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;">Remove</button>
       </div>`;
     }).join('');
@@ -7366,6 +7367,32 @@ async function removeTripMember(id) {
     loadTripMembers(currentTripId);
   } catch(e) {
     console.error('[trip-members] remove error:', e.message);
+  }
+}
+
+async function resendTripInvite(id, email) {
+  const msg         = document.getElementById('tm-msg');
+  const tripNameEl  = document.getElementById('td-name');
+  const tripName    = tripNameEl ? tripNameEl.value : '';
+  const inviterName = (portalProfile && portalProfile['Traveler Name']) ? portalProfile['Traveler Name'].split(' ')[0] : userEmail;
+  try {
+    const resp = await fetch('/api/trip-members?action=resend', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ id, inviterName, tripName })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      msg.textContent = `Invitation resent to ${email}.`;
+      msg.style.color = 'var(--teal)';
+      msg.style.display = 'block';
+    } else {
+      msg.textContent = 'Could not resend: ' + (data.error || 'unknown error');
+      msg.style.color = '#ef4444';
+      msg.style.display = 'block';
+    }
+  } catch(e) {
+    console.error('[resend invite]', e.message);
   }
 }
 

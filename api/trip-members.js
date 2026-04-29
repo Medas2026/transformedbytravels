@@ -196,6 +196,26 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // POST ?action=resend — re-send an existing invitation
+  if (req.method === 'POST' && req.query.action === 'resend') {
+    const { id, inviterName, tripName } = req.body || {};
+    if (!id) return res.status(400).json({ error: 'id required' });
+    try {
+      const r = await airtableRequest('GET', MEMBERS_TABLE, `/${id}`, null);
+      if (r.body.error) return res.status(404).json({ error: 'Member not found' });
+      const f     = r.body.fields;
+      const token = f['Invite Token'];
+      const email = f['Email'];
+      const role  = f['Role'] || 'Co-Traveler';
+      if (!token || !email) return res.status(400).json({ error: 'Invite token or email missing' });
+      const acceptUrl = `https://app.transformedbytravels.com/portal.html?accept-trip=${token}&email=${encodeURIComponent(email)}`;
+      await sendEmail(email, inviterName || f['Invited By Name'] || 'Your travel planner', tripName || 'a trip', role, acceptUrl);
+      return res.status(200).json({ success: true });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   // POST — invite someone to a trip
   if (req.method === 'POST') {
     const { tripId, tripName, inviterEmail, inviterName, inviteeEmail, role, skipEmail } = req.body || {};
