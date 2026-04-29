@@ -522,14 +522,11 @@ function _cascadeLocation(idx) {
   if (!next) return;
   const endDest    = _scheduleRecords[idx].fields['Ending Location'] || '';
   const endCountry = _scheduleRecords[idx].fields['Ending Country']  || '';
-  if (!next.fields['Starting Location'] || next._autoCascaded) {
-    next.fields['Starting Location'] = endDest;
-    next.fields['Starting Country']  = endCountry;
-    next._autoCascaded = true;
-    next._startDirty   = true;
-    const btn = document.getElementById(`loc-btn-${idx+1}-start`);
-    if (btn) { btn.textContent = _locLabel(endDest) || 'Set starting location'; btn.style.color = endDest ? 'var(--text)' : 'var(--muted)'; }
-  }
+  next.fields['Starting Location'] = endDest;
+  next.fields['Starting Country']  = endCountry;
+  next._startDirty   = true;
+  const btn = document.getElementById(`loc-btn-${idx+1}-start`);
+  if (btn) { btn.textContent = _locLabel(endDest) || 'Set starting location'; btn.style.color = endDest ? 'var(--text)' : 'var(--muted)'; }
 }
 
 // ── Schedule list ────────────────────────────────────────────────────────────
