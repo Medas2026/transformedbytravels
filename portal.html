@@ -439,7 +439,8 @@
               <div class="profile-field"><span class="field-label">ZIP / Postal Code</span><span class="field-value" id="pf-zip">—</span></div>
               <div class="profile-field"><span class="field-label">Home Airport</span><span class="field-value" id="pf-airport">—</span></div>
               <div class="profile-field"><span class="field-label">Home Timezone</span><span class="field-value" id="pf-timezone">—</span></div>
-              <div class="profile-field"><span class="field-label">Distance Units</span><span class="field-value" id="pf-units">Miles</span></div>
+              <div class="profile-field"><span class="field-label">Measurement</span><span class="field-value" id="pf-units">Imperial</span></div>
+              <div class="profile-field"><span class="field-label">Date Format</span><span class="field-value" id="pf-dateformat">Month Day, Year</span></div>
               <div class="profile-field"><span class="field-label">Life Stage</span><span class="field-value" id="pf-lifestage">—</span></div>
               <div class="profile-field"><span class="field-label">Assessment Date</span><span class="field-value" id="pf-date">—</span></div>
               <div class="profile-field"><span class="field-label">Package Status</span><span class="field-value" id="pf-status">—</span></div>
@@ -480,10 +481,15 @@
                   <div style="margin-top:6px;font-size:0.78rem;color:var(--muted);">Don't know your code? <a href="https://www.iata.org/en/publications/directories/code-search/" target="_blank" style="color:var(--teal);">Look it up →</a></div>
                 </div>
                 <div>
-                  <div class="field-label" style="margin-bottom:6px;">Distance Units</div>
+                  <div class="field-label" style="margin-bottom:6px;">Measurement</div>
                   <select id="edit-units" style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;appearance:none;-webkit-appearance:none;">
-                    <option value="Miles">Miles</option>
-                    <option value="Metric">Metric (km)</option>
+                    <option value="Imperial">Imperial (miles, °F)</option>
+                    <option value="Metric">Metric (km, °C)</option>
+                  </select>
+                  <div class="field-label" style="margin-bottom:6px;margin-top:12px;">Date Format</div>
+                  <select id="edit-dateformat" style="width:100%;background:var(--s2);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;appearance:none;-webkit-appearance:none;">
+                    <option value="Month Day, Year">Month Day, Year (April 14, 2026)</option>
+                    <option value="Day Month Year">Day Month Year (14 April 2026)</option>
                   </select>
                 </div>
                 <div>
@@ -2488,6 +2494,17 @@ let auth0Client  = null;
 let userEmail    = null;
 let portalProfile  = null;
 let portalRecordId = null;
+
+function appFmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s + 'T00:00:00Z');
+  if (isNaN(d)) return s;
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  if (portalProfile && portalProfile['Date Format'] === 'Day Month Year') {
+    return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+  }
+  return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+}
 let _places      = [];
 let _dnaPlaces   = [];
 let _currentDnaGuideId = null;
@@ -2600,8 +2617,9 @@ async function loadProfile(email) {
       document.getElementById('pf-state').textContent      = f['State']   || '—';
       document.getElementById('pf-zip').textContent        = f['ZIP Code']|| '—';
       document.getElementById('pf-airport').textContent    = f['Home Airport']   || '—';
-      document.getElementById('pf-timezone').textContent  = f['Home Timezone']  || '—';
-      document.getElementById('pf-units').textContent     = f['Distance Units'] || 'Miles';
+      document.getElementById('pf-timezone').textContent    = f['Home Timezone']  || '—';
+      document.getElementById('pf-units').textContent       = f['Distance Units'] || 'Imperial';
+      document.getElementById('pf-dateformat').textContent  = f['Date Format']    || 'Month Day, Year';
       document.getElementById('pf-lifestage').textContent  = f['Life Stage'] || '—';
       document.getElementById('pf-date').textContent       = f['Assessment Date'] || '—';
       document.getElementById('pf-status').textContent     = f['Package Status'] || 'Not yet purchased';
@@ -2995,7 +3013,7 @@ async function buildItinerary(force) {
                   if (res.type === 'hotel') {
                     const loc  = p.hotel_location ? ' · ' + p.hotel_location : '';
                     const conf = p.confirmation_number ? ' · Conf: ' + p.confirmation_number : '';
-                    const co   = p.check_out_date ? ` · Check-out ${new Date(p.check_out_date+'T00:00:00Z').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric',timeZone:'UTC'})}` : '';
+                    const co   = p.check_out_date ? ` · Check-out ${appFmtDate(p.check_out_date)}` : '';
                     return `<div style="display:flex;align-items:flex-start;gap:8px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:8px 12px;">
                       <span style="font-size:1rem;flex-shrink:0;">🏨</span>
                       <div style="font-size:0.8rem;color:var(--soft);line-height:1.5;">
@@ -3934,8 +3952,9 @@ function toggleEditProfile() {
     document.getElementById('edit-state').value    = document.getElementById('pf-state').textContent.replace('—','');
     document.getElementById('edit-zip').value      = document.getElementById('pf-zip').textContent.replace('—','');
     document.getElementById('edit-airport').value  = document.getElementById('pf-airport').textContent.replace('—','');
-    document.getElementById('edit-timezone').value = document.getElementById('pf-timezone').textContent.replace('—','');
-    document.getElementById('edit-units').value    = document.getElementById('pf-units').textContent.replace('—','') || 'Miles';
+    document.getElementById('edit-timezone').value    = document.getElementById('pf-timezone').textContent.replace('—','');
+    document.getElementById('edit-units').value       = document.getElementById('pf-units').textContent.replace('—','') || 'Imperial';
+    document.getElementById('edit-dateformat').value  = document.getElementById('pf-dateformat').textContent.replace('—','') || 'Month Day, Year';
     viewMode.style.display = 'none';
     editMode.style.display = 'block';
     btn.textContent = 'Cancel';
@@ -3967,7 +3986,8 @@ async function saveProfile() {
         zip:          document.getElementById('edit-zip').value,
         homeAirport:  document.getElementById('edit-airport').value.toUpperCase(),
         homeTimezone:  document.getElementById('edit-timezone').value,
-        distanceUnits: document.getElementById('edit-units').value
+        distanceUnits: document.getElementById('edit-units').value,
+        dateFormat:    document.getElementById('edit-dateformat').value
       })
     });
     const data = await resp.json();
@@ -3979,8 +3999,10 @@ async function saveProfile() {
       document.getElementById('pf-state').textContent    = document.getElementById('edit-state').value || '—';
       document.getElementById('pf-zip').textContent      = document.getElementById('edit-zip').value || '—';
       document.getElementById('pf-airport').textContent  = document.getElementById('edit-airport').value.toUpperCase() || '—';
-      document.getElementById('pf-timezone').textContent = document.getElementById('edit-timezone').value || '—';
-      document.getElementById('pf-units').textContent    = document.getElementById('edit-units').value || 'Miles';
+      document.getElementById('pf-timezone').textContent   = document.getElementById('edit-timezone').value   || '—';
+      document.getElementById('pf-units').textContent      = document.getElementById('edit-units').value      || 'Imperial';
+      document.getElementById('pf-dateformat').textContent = document.getElementById('edit-dateformat').value || 'Month Day, Year';
+      if (portalProfile) portalProfile['Date Format'] = document.getElementById('edit-dateformat').value;
       msg.textContent = '✓ Saved!';
       setTimeout(() => { toggleEditProfile(); msg.style.display = 'none'; }, 1000);
     } else {
@@ -7134,12 +7156,7 @@ async function loadTripReservations(tripId) {
       let p = {};
       try { p = JSON.parse(f['Parsed Data'] || '{}'); } catch(e) {}
 
-      const fmtResDate = s => {
-        if (!s) return '';
-        const d = new Date(s + 'T00:00:00Z');
-        if (isNaN(d)) return s;
-        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-      };
+      const fmtResDate = s => appFmtDate(s);
       const rows = [];
       if (type === 'flight') {
         if (p.airline)        rows.push(['Airline',    p.airline]);
