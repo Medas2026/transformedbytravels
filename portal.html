@@ -2917,30 +2917,37 @@ async function buildItinerary(force) {
     const allFlights = (data.allReservations || []).filter(r => r.type === 'flight')
       .map(r => ({ ...r, dateLabel: fmtItinDate(r.date) }));
     if (allFlights.length) {
-      const flightRows = allFlights.map(res => {
-        const p = res.parsed || {};
-        const depDate = res.dateLabel ? `<span style="color:var(--muted);font-size:0.75rem;">${res.dateLabel}</span> ` : '';
-        const outRoute = [p.from_airport, p.to_airport].filter(Boolean).join(' → ');
-        const outTime  = p.departure_time ? ' · ' + p.departure_time : '';
-        const conf     = p.confirmation_number ? `<span style="color:var(--muted);font-size:0.75rem;"> · Conf: ${p.confirmation_number}</span>` : '';
-        let rows = `<div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05);">
-          ${depDate}
-          <span style="font-weight:700;color:#fff;">${p.airline || 'Flight'} ${p.flight_number || ''}</span>
-          ${outRoute ? `<span style="color:var(--soft);"> · ${outRoute}</span>` : ''}
-          ${outTime ? `<span style="color:var(--muted);font-size:0.8rem;">${outTime}</span>` : ''}
-          ${conf}
+      const renderFlightLeg = (airline, flightNum, from, to, depDateStr, depTime, arrDateStr, arrTime, conf, isLast) => {
+        const line1 = [airline, flightNum].filter(Boolean).join(' ') + (from && to ? ` · ${from} → ${to}` : from || to ? ` · ${from || to}` : '');
+        const depFormatted = [fmtItinDate(depDateStr), depTime].filter(Boolean).join(' · ');
+        const arrFormatted = [fmtItinDate(arrDateStr), arrTime].filter(Boolean).join(' · ');
+        const line2 = [depFormatted, arrFormatted].filter(Boolean).join('  →  ');
+        return `<div style="padding:12px 14px;${isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,0.06);'}">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;margin-bottom:4px;">${line1}</div>
+          ${line2 ? `<div style="font-size:0.8rem;color:var(--soft);margin-bottom:${conf ? '7px' : '0'};">${line2}</div>` : ''}
+          ${conf ? `<div style="display:inline-block;background:rgba(45,212,191,0.15);border:1px solid rgba(45,212,191,0.35);border-radius:5px;padding:2px 9px;font-family:'Montserrat',sans-serif;font-size:0.72rem;font-weight:700;color:var(--teal);letter-spacing:0.04em;">Conf: ${conf}</div>` : ''}
         </div>`;
-        if (p.return_flight_number || p.return_departure_date) {
-          const retRoute = [p.return_from_airport, p.return_to_airport].filter(Boolean).join(' → ');
-          const retTime  = p.return_departure_time ? ' · ' + p.return_departure_time : '';
-          const retDate  = p.return_departure_date ? `<span style="color:var(--muted);font-size:0.75rem;">${p.return_departure_date}</span> ` : '';
-          rows += `<div style="padding:10px 14px;">
-            ${retDate}
-            <span style="font-weight:700;color:#fff;">${p.airline || 'Flight'} ${p.return_flight_number || ''}</span>
-            ${retRoute ? `<span style="color:var(--soft);"> · ${retRoute}</span>` : ''}
-            ${retTime ? `<span style="color:var(--muted);font-size:0.8rem;">${retTime}</span>` : ''}
-            ${conf}
-          </div>`;
+      };
+      const flightRows = allFlights.map((res, fi) => {
+        const p = res.parsed || {};
+        const hasReturn = !!(p.return_flight_number || p.return_departure_date);
+        let rows = renderFlightLeg(
+          p.airline, p.flight_number,
+          p.from_airport, p.to_airport,
+          p.departure_date || res.date, p.departure_time,
+          p.arrival_date, p.arrival_time,
+          p.confirmation_number,
+          !hasReturn && fi === allFlights.length - 1
+        );
+        if (hasReturn) {
+          rows += renderFlightLeg(
+            p.airline, p.return_flight_number,
+            p.return_from_airport, p.return_to_airport,
+            p.return_departure_date, p.return_departure_time,
+            p.return_arrival_date, p.return_arrival_time,
+            p.confirmation_number,
+            fi === allFlights.length - 1
+          );
         }
         return rows;
       }).join('');
