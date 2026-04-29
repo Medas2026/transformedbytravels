@@ -226,6 +226,22 @@ function renderMarkdown(md) {
     })
     .join('\n');
 }
+
+// Render markdown body with {{image1}} / {{image2}} placeholders replaced inline
+function renderBody(md, images) {
+  const TOKEN = /\{\{image([12])\}\}/gi;
+  const parts = md.split(TOKEN);
+  let html = '';
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 0) {
+      html += renderMarkdown(parts[i]);
+    } else {
+      const url = images[parseInt(parts[i]) - 1] || '';
+      if (url) html += `<img src="${url}" alt="" style="width:100%;border-radius:10px;margin:1.8em 0;display:block;">`;
+    }
+  }
+  return html;
+}
 </script>
 <script>
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -257,22 +273,21 @@ async function loadPost() {
     document.title = (f['Title'] || 'Post') + ' — Transformed by Travels';
     document.querySelector('meta[name="description"]').content = f['Excerpt'] || '';
 
-    // Hero image
-    const hero1 = f['Image 1 URL'] || f['Hero Image URL'] || '';
-    heroWrap.innerHTML = hero1
-      ? `<img class="post-hero" src="${hero1}" alt="${f['Title'] || ''}">`
+    // Hero image — uses dedicated Hero Image URL field only
+    const heroUrl = f['Hero Image URL'] || '';
+    heroWrap.innerHTML = heroUrl
+      ? `<img class="post-hero" src="${heroUrl}" alt="${f['Title'] || ''}">`
       : `<div class="post-hero-placeholder">✦</div>`;
 
     // Tags
     const tags = (f['Tags'] || []).map(t => `<span class="post-tag">${t}</span>`).join('');
 
-    // Second image (inserted after body if present)
-    const img2 = f['Image 2 URL'] || '';
-    const img2El = img2 ? `<img class="post-img2" src="${img2}" alt="">` : '';
+    // Inline images — referenced as {{image1}} and {{image2}} in the body text
+    const inlineImages = [f['Image 1 URL'] || '', f['Image 2 URL'] || ''];
 
-    // Body — Airtable rich text stores as markdown-ish; wrap in div
+    // Body — render markdown with inline image placeholders resolved
     const rawBody = f['Body'] || 'Coming soon.';
-    const body = renderMarkdown(rawBody);
+    const body = renderBody(rawBody, inlineImages);
 
     // Author bio card
     const authorName  = f['Author'] || '';
@@ -297,7 +312,6 @@ async function loadPost() {
         ${f['Published Date'] ? `<span>${fmtDate(f['Published Date'])}</span>` : ''}
       </div>
       <div class="post-body">${body}</div>
-      ${img2El}
       ${authorCard}
     `;
 
