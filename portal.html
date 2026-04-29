@@ -9236,11 +9236,13 @@ async function renderScheduleMap(includeHome) {
 
   // Build ordered list of unique locations from the day records
   const seen   = new Set();
-  const points = []; // { label, dest, country, lat, lng, dayNum }
+  const points = []; // { label, dest, country, lat, lng, dayNum, dates[] }
+  const pointIndex = {}; // key -> index in points
 
   for (const r of _scheduleRecords) {
     const f = r.fields;
     const dayNum = f['Day Number'] || '';
+    const dayDate = f['Date'] || '';
     for (const [loc, ctry] of [
       [f['Starting Location'], f['Starting Country']],
       [f['Ending Location'],   f['Ending Country']]
@@ -9254,7 +9256,11 @@ async function renderScheduleMap(includeHome) {
       const displayLoc = resolvedLoc[0];
       const geocodeLoc = resolvedLoc[0];
       const key = displayLoc + '|' + (ctry || '');
-      if (seen.has(key)) continue;
+      if (seen.has(key)) {
+        // Accumulate dates for already-seen location
+        if (dayDate) points[pointIndex[key]].dates.push(dayDate);
+        continue;
+      }
       seen.add(key);
       // Look up coords in DESTINATIONS array
       let lat = null, lng = null;
@@ -9262,7 +9268,8 @@ async function renderScheduleMap(includeHome) {
         const match = DESTINATIONS.find(d => d[0] === loc && (!ctry || d[1] === ctry));
         if (match) { lat = match[12]; lng = match[13]; }
       }
-      points.push({ label: displayLoc, dest: geocodeLoc, country: ctry || '', lat, lng, dayNum });
+      pointIndex[key] = points.length;
+      points.push({ label: displayLoc, dest: geocodeLoc, country: ctry || '', lat, lng, dayNum, dates: dayDate ? [dayDate] : [] });
     }
   }
 
@@ -9314,14 +9321,45 @@ async function renderScheduleMap(includeHome) {
 
   const bounds = new mapboxgl.LngLatBounds();
 
+  // Match lodging to each point by check-in date
+  const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtMapDate = s => { if (!s) return ''; const d = new Date(s + 'T00:00:00Z'); return MONTHS_SHORT[d.getUTCMonth()] + ' ' + d.getUTCDate(); };
+  validPoints.forEach(p => {
+    const dateSet = new Set(p.dates);
+    p.lodging = (_lodgingRecords || []).filter(r => {
+      const ci = r.fields['Check-in Date'];
+      return ci && dateSet.has(ci);
+    });
+  });
+
   // Add numbered markers
   validPoints.forEach((p, i) => {
     const el = document.createElement('div');
     el.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;';
+    const hasLodging = p.lodging && p.lodging.length > 0;
     el.innerHTML = `
-      <div style="width:28px;height:28px;background:#2dd4bf;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:12px;font-weight:700;color:#0f172a;box-shadow:0 2px 6px rgba(0,0,0,0.35);">${i+1}</div>
+      <div style="width:28px;height:28px;background:${hasLodging ? '#2dd4bf' : '#64748b'};border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:12px;font-weight:700;color:#0f172a;box-shadow:0 2px 6px rgba(0,0,0,0.35);">${i+1}</div>
       <div style="margin-top:3px;background:rgba(15,23,42,0.85);color:#fff;font-family:sans-serif;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(0,0,0,0.3);">${p.label}</div>`;
-    new mapboxgl.Marker({ element: el, anchor: 'top' }).setLngLat([p.lng, p.lat]).addTo(_scheduleMap);
+    const marker = new mapboxgl.Marker({ element: el, anchor: 'top' }).setLngLat([p.lng, p.lat]).addTo(_scheduleMap);
+    if (hasLodging) {
+      const lodgingHtml = p.lodging.map(r => {
+        const f = r.fields;
+        const ci = fmtMapDate(f['Check-in Date']);
+        const co = fmtMapDate(f['Check-out Date']);
+        const nights = f['Check-in Date'] && f['Check-out Date']
+          ? Math.round((new Date(f['Check-out Date']+'T00:00:00Z') - new Date(f['Check-in Date']+'T00:00:00Z')) / 86400000)
+          : null;
+        return `<div style="margin-bottom:${p.lodging.length > 1 ? '8px' : '0'};">
+          <div style="font-weight:700;color:#0f172a;font-size:13px;">${f['Name'] || 'Hotel'}</div>
+          ${f['Location'] ? `<div style="color:#475569;font-size:12px;">${f['Location']}</div>` : ''}
+          <div style="color:#64748b;font-size:11px;margin-top:2px;">${ci}${co ? ' → ' + co : ''}${nights ? ' · ' + nights + ' night' + (nights !== 1 ? 's' : '') : ''}</div>
+        </div>`;
+      }).join('');
+      const popup = new mapboxgl.Popup({ offset: 30, closeButton: false, maxWidth: '220px' })
+        .setHTML(`<div style="font-family:'Montserrat',sans-serif;padding:4px 2px;">${lodgingHtml}</div>`);
+      marker.setPopup(popup);
+      el.addEventListener('click', () => popup.isOpen() ? popup.remove() : marker.togglePopup());
+    }
     bounds.extend([p.lng, p.lat]);
   });
 
