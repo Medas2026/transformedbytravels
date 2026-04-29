@@ -2910,13 +2910,12 @@ async function buildItinerary(force) {
       </div>`;
     }
 
-    // ── Flights ──
-    const allFlights = [];
-    (data.days || []).forEach(d => {
-      (d.reservations || []).filter(r => r.type === 'flight').forEach(res => {
-        allFlights.push({ ...res, dateLabel: d.dateLabel });
-      });
-    });
+    // ── Flights ── (use allReservations so overnight/pre-trip departures aren't missed)
+    const WDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const MONS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fmtItinDate = s => { if (!s) return ''; const d = new Date(s+'T00:00:00Z'); return WDAYS[d.getUTCDay()] + ', ' + MONS[d.getUTCMonth()] + ' ' + d.getUTCDate(); };
+    const allFlights = (data.allReservations || []).filter(r => r.type === 'flight')
+      .map(r => ({ ...r, dateLabel: fmtItinDate(r.date) }));
     if (allFlights.length) {
       const flightRows = allFlights.map(res => {
         const p = res.parsed || {};

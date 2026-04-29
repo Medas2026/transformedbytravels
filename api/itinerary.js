@@ -86,8 +86,9 @@ module.exports = async function handler(req, res) {
   (lodgingData.records || []).forEach(r => { lodgingById[r.id] = r.fields; });
   const traveler = (travelerData.records || [])[0]?.fields || {};
 
-  // Build reservations keyed by date (YYYY-MM-DD)
+  // Build reservations keyed by date (YYYY-MM-DD) and as a flat list
   const reservationsByDate = {};
+  const allReservations = [];
   (reservationsData.records || []).forEach(r => {
     const f       = r.fields;
     const rawDate = f['Key Date'] || '';
@@ -101,9 +102,10 @@ module.exports = async function handler(req, res) {
     if (!date) return;
     let parsed = {};
     try { parsed = JSON.parse(f['Parsed Data'] || '{}'); } catch(e) {}
-    const entry = { type: f['Type'] || 'other', parsed };
+    const entry = { type: f['Type'] || 'other', parsed, date };
     if (!reservationsByDate[date]) reservationsByDate[date] = [];
     reservationsByDate[date].push(entry);
+    allReservations.push(entry);
   });
 
   const tripName  = trip['Trip Name'] || trip['Destination'] || 'this trip';
@@ -267,6 +269,7 @@ Continue for all ${structuredDays.length} days. Be specific and evocative.${lodg
         days:                structuredDays,
         daySummaries:        cached.daySummaries       || {},
         lodgingDescriptions: cached.lodgingDescriptions || {},
+        allReservations,
         fromCache:           true
       });
     } catch(e) {
@@ -316,7 +319,8 @@ Continue for all ${structuredDays.length} days. Be specific and evocative.${lodg
       tripSummary,
       days: structuredDays,
       daySummaries,
-      lodgingDescriptions
+      lodgingDescriptions,
+      allReservations
     });
   } catch(e) {
     return res.status(500).json({ error: e.message });
