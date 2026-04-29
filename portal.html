@@ -2895,13 +2895,64 @@ async function buildItinerary(force) {
 
     // ── Header ──
     let html = `
-      <div style="margin-bottom:24px;">
+      <div style="margin-bottom:${currentTripPhotoUrl ? '16px' : '24px'};">
         <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.3rem;color:#fff;margin-bottom:4px;">${data.destination || data.tripName}</div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
           ${summaryDates ? `<div style="font-size:0.85rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;">${summaryDates}</div>` : ''}
           ${nights ? `<div style="font-size:0.82rem;color:var(--muted);font-family:'Montserrat',sans-serif;">${nights} night${nights !== 1 ? 's' : ''}</div>` : ''}
         </div>
       </div>`;
+
+    // ── Trip Photo ──
+    if (currentTripPhotoUrl) {
+      html += `<div style="margin-bottom:24px;border-radius:12px;overflow:hidden;">
+        <img src="${currentTripPhotoUrl}" alt="Trip photo" style="width:100%;max-height:260px;object-fit:cover;display:block;" />
+      </div>`;
+    }
+
+    // ── Flights ──
+    const allFlights = [];
+    (data.days || []).forEach(d => {
+      (d.reservations || []).filter(r => r.type === 'flight').forEach(res => {
+        allFlights.push({ ...res, dateLabel: d.dateLabel });
+      });
+    });
+    if (allFlights.length) {
+      const flightRows = allFlights.map(res => {
+        const p = res.parsed || {};
+        const depDate = res.dateLabel ? `<span style="color:var(--muted);font-size:0.75rem;">${res.dateLabel}</span> ` : '';
+        const outRoute = [p.from_airport, p.to_airport].filter(Boolean).join(' → ');
+        const outTime  = p.departure_time ? ' · ' + p.departure_time : '';
+        const conf     = p.confirmation_number ? `<span style="color:var(--muted);font-size:0.75rem;"> · Conf: ${p.confirmation_number}</span>` : '';
+        let rows = `<div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05);">
+          ${depDate}
+          <span style="font-weight:700;color:#fff;">${p.airline || 'Flight'} ${p.flight_number || ''}</span>
+          ${outRoute ? `<span style="color:var(--soft);"> · ${outRoute}</span>` : ''}
+          ${outTime ? `<span style="color:var(--muted);font-size:0.8rem;">${outTime}</span>` : ''}
+          ${conf}
+        </div>`;
+        if (p.return_flight_number || p.return_departure_date) {
+          const retRoute = [p.return_from_airport, p.return_to_airport].filter(Boolean).join(' → ');
+          const retTime  = p.return_departure_time ? ' · ' + p.return_departure_time : '';
+          const retDate  = p.return_departure_date ? `<span style="color:var(--muted);font-size:0.75rem;">${p.return_departure_date}</span> ` : '';
+          rows += `<div style="padding:10px 14px;">
+            ${retDate}
+            <span style="font-weight:700;color:#fff;">${p.airline || 'Flight'} ${p.return_flight_number || ''}</span>
+            ${retRoute ? `<span style="color:var(--soft);"> · ${retRoute}</span>` : ''}
+            ${retTime ? `<span style="color:var(--muted);font-size:0.8rem;">${retTime}</span>` : ''}
+            ${conf}
+          </div>`;
+        }
+        return rows;
+      }).join('');
+      html += `<div style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.3);border-radius:12px;margin-bottom:24px;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgba(99,102,241,0.2);">
+          <span style="font-size:1rem;">✈️</span>
+          <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:#a5b4fc;">Flights</span>
+        </div>
+        ${flightRows}
+      </div>`;
+    }
 
     // ── Trip Summary ──
     if (data.tripSummary) {
@@ -2931,27 +2982,18 @@ async function buildItinerary(force) {
             ${loc ? `<div style="font-size:0.82rem;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;margin-bottom:8px;">📍 ${loc}</div>` : ''}
             ${d.lodging ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:6px;">🏨 ${d.lodging}</div>` : ''}
             ${lodgingDesc ? `<div style="font-size:0.83rem;color:var(--soft);line-height:1.7;margin-bottom:8px;font-style:italic;">${lodgingDesc}</div>` : ''}
-            ${(d.reservations && d.reservations.length) ? `
+            ${(d.reservations && d.reservations.filter(r => r.type !== 'flight').length) ? `
               <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
-                ${d.reservations.map(res => {
+                ${d.reservations.filter(r => r.type !== 'flight').map(res => {
                   const p = res.parsed || {};
-                  if (res.type === 'flight') {
-                    const route = [p.from_airport, p.to_airport].filter(Boolean).join(' → ');
-                    const time  = p.departure_time ? ' · Departs ' + p.departure_time : '';
-                    const conf  = p.confirmation_number ? ' · Conf: ' + p.confirmation_number : '';
-                    return `<div style="display:flex;align-items:flex-start;gap:8px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:8px;padding:8px 12px;">
-                      <span style="font-size:1rem;flex-shrink:0;">✈️</span>
-                      <div style="font-size:0.8rem;color:var(--soft);line-height:1.5;">
-                        <span style="font-weight:700;color:#fff;">${p.airline || 'Flight'} ${p.flight_number || ''}</span>${route ? ' · ' + route : ''}${time}${conf}
-                      </div>
-                    </div>`;
-                  } else if (res.type === 'hotel') {
+                  if (res.type === 'hotel') {
                     const loc  = p.hotel_location ? ' · ' + p.hotel_location : '';
                     const conf = p.confirmation_number ? ' · Conf: ' + p.confirmation_number : '';
+                    const co   = p.check_out_date ? ` · Check-out ${p.check_out_date}` : '';
                     return `<div style="display:flex;align-items:flex-start;gap:8px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:8px 12px;">
                       <span style="font-size:1rem;flex-shrink:0;">🏨</span>
                       <div style="font-size:0.8rem;color:var(--soft);line-height:1.5;">
-                        <span style="font-weight:700;color:#fff;">${p.hotel_name || 'Hotel'}</span> Check-in${loc}${conf}
+                        <span style="font-weight:700;color:#fff;">${p.hotel_name || 'Hotel'}</span> Check-in${loc}${co}${conf}
                       </div>
                     </div>`;
                   } else if (res.type === 'car_rental') {
@@ -4863,6 +4905,7 @@ let currentTripCountry     = '';
 let currentTripStart       = '';
 let currentTripEnd         = '';
 let currentTripStatus      = '';
+let currentTripPhotoUrl    = '';
 let tripsLoaded        = false;
 let _returnToHistory   = false;
 let _isHistoryTrip     = false;
@@ -5571,6 +5614,7 @@ function openTrip(record) {
   _tdSetPassions(f['Trip Passions'] || '');
   // Photo
   const _photoUrl = f['Trip Photo URL'] || '';
+  currentTripPhotoUrl = _photoUrl;
   document.getElementById('td-photo-url').value = _photoUrl;
   if (_photoUrl) {
     document.getElementById('td-photo-banner-img').src = _photoUrl;
