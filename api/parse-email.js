@@ -432,6 +432,8 @@ Return JSON in this exact format (use null for any field you cannot determine):
   "check_in_date": "YYYY-MM-DD",
   "check_out_date": "YYYY-MM-DD",
   "room_type": "...",
+  "guests": "...",
+  "total_cost": "...",
   "rental_company": "...",
   "car_type": "...",
   "pickup_date": "YYYY-MM-DD",
@@ -440,6 +442,12 @@ Return JSON in this exact format (use null for any field you cannot determine):
   "pickup_location": "...",
   "summary": "One sentence summary of this reservation"
 }
+
+Type classification rules:
+- "flight" — any airline ticket or flight booking
+- "hotel" — any hotel, motel, resort, inn, bed & breakfast, Airbnb, VRBO, vacation rental, or short-term rental property. Use hotel_name for the property name.
+- "car_rental" — any vehicle rental booking
+- "other" — anything else (tours, activities, transfers, etc.)
 
 For round-trip flights, populate both the outbound fields (departure_date, from_airport, to_airport, etc.) AND the return fields (return_departure_date, return_from_airport, return_to_airport, etc.).`;
 

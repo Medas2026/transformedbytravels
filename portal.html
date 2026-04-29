@@ -7179,6 +7179,8 @@ async function loadTripReservations(tripId) {
         if (p.check_in_date)  rows.push(['Check-in',   fmtResDate(p.check_in_date)]);
         if (p.check_out_date) rows.push(['Check-out',  fmtResDate(p.check_out_date)]);
         if (p.room_type)      rows.push(['Room',       p.room_type]);
+        if (p.guests)         rows.push(['Guests',     p.guests]);
+        if (p.total_cost)     rows.push(['Total',      p.total_cost]);
       } else if (type === 'car_rental') {
         if (p.rental_company)  rows.push(['Company',   p.rental_company]);
         if (p.car_type)        rows.push(['Vehicle',   p.car_type]);
