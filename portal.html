@@ -4150,6 +4150,7 @@ function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   const menuItem = document.querySelector(`[data-page="${name}"]`);
   if (menuItem) menuItem.classList.add('active');
   const isWorkshop = name === 'workshop' || name === 'integration';
