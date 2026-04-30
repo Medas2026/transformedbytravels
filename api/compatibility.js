@@ -117,7 +117,7 @@ module.exports = async function handler(req, res) {
       result = await airtableCreate('Trip Members', {
         'Trip ID':  tripId,
         'Email':    email,
-        'Role':     'Trip Planner',
+        'Role':     'Owner',
         'Status':   'Accepted',
         'Survey Answers': JSON.stringify(answers || {})
       }, apiKey);
