@@ -2731,6 +2731,18 @@ async function loadProfile(email) {
       loadProfileTrips();
       loadProfileWorkshopStatus();
       window.dispatchEvent(new Event('portalReady'));
+      // Handle return from schedule page — re-open the trip
+      const returnTripId = sessionStorage.getItem('returnToTripId');
+      if (returnTripId) {
+        sessionStorage.removeItem('returnToTripId');
+        fetch('/api/trips?email=' + encodeURIComponent(userEmail))
+          .then(r => r.json())
+          .then(d => {
+            const rec = (d.records || []).find(r => r.id === returnTripId);
+            if (rec) { showPage('planning'); openTrip(rec); }
+          }).catch(() => {});
+      }
+
       // Handle activation deep link
       const deepTripId = sessionStorage.getItem('deepLinkTripId');
       if (deepTripId) {
