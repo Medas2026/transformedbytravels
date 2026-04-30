@@ -622,6 +622,7 @@ function renderScheduleList() {
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:${f['Lodging ID'] || f['DNA Guide ID'] ? '8px' : '0'};">
           ${f['Lodging ID'] ? `<div style="font-size:0.75rem;color:var(--teal);background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.2);border-radius:6px;padding:4px 10px;cursor:pointer;" onclick="openLodgingModal(${i})">🏨 ${_lodgingMap[f['Lodging ID']] || 'Lodging set'}</div>` : ''}
           ${f['DNA Guide ID'] ? `<div style="font-size:0.75rem;color:#a78bfa;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);border-radius:6px;padding:4px 10px;cursor:pointer;display:flex;gap:6px;align-items:center;" onclick="openDnaViewer('${f['DNA Guide ID']}')">🧬 ${_dnaGuideMap[f['DNA Guide ID']] || 'DNA Guide linked'} <span style="opacity:0.6;font-size:0.68rem;">view</span></div>` : ''}
+      </div>
       </div>`;
   }).join('');
 
