@@ -2340,8 +2340,9 @@
       </div>
       <p style="font-size:0.83rem;color:var(--muted);margin:0 0 18px;line-height:1.6;">Choose which questions your group will answer. Select the ones most relevant to this trip.</p>
       <div id="survey-picker-questions" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
+      <div id="survey-picker-msg" style="display:none;font-size:0.82rem;margin-bottom:10px;"></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button onclick="saveQuestionSelection()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:10px 22px;cursor:pointer;">Save Questions</button>
+        <button id="survey-picker-save-btn" onclick="saveQuestionSelection()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:10px 22px;cursor:pointer;">Save Questions</button>
         <button onclick="closeSurveyPicker()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;border-radius:8px;padding:10px 22px;cursor:pointer;">Cancel</button>
       </div>
     </div>
@@ -7541,6 +7542,11 @@ function closeSurveyPicker() {
 async function saveQuestionSelection() {
   const checkboxes  = document.querySelectorAll('#survey-picker-questions input[type=checkbox]');
   const questionIds = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+  const msgEl = document.getElementById('survey-picker-msg');
+  const saveBtn = document.getElementById('survey-picker-save-btn');
+  msgEl.style.display = 'none';
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
   try {
     const resp = await fetch('/api/compatibility?action=save-questions', {
       method:  'POST',
@@ -7551,9 +7557,18 @@ async function saveQuestionSelection() {
     if (data.success) {
       closeSurveyPicker();
       loadCompatibilitySurvey(currentTripId);
+    } else {
+      msgEl.textContent = 'Could not save: ' + (data.error || 'unknown error');
+      msgEl.style.color = '#ef4444';
+      msgEl.style.display = 'block';
     }
   } catch(e) {
-    console.error('[save survey questions]', e.message);
+    msgEl.textContent = 'Error: ' + e.message;
+    msgEl.style.color = '#ef4444';
+    msgEl.style.display = 'block';
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Questions';
   }
 }
 

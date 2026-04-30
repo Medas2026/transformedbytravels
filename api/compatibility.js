@@ -91,7 +91,10 @@ module.exports = async function handler(req, res) {
     const result = await airtablePatch('Trips', tripId, {
       'Survey Question IDs': JSON.stringify(questionIds || [])
     }, apiKey);
-    if (result.error) return res.status(500).json({ error: result.error.message || JSON.stringify(result.error) });
+    if (result.error) {
+      console.error('[compatibility] save-questions error:', JSON.stringify(result.error));
+      return res.status(500).json({ error: result.error.message || JSON.stringify(result.error) });
+    }
     return res.status(200).json({ success: true });
   }
 
