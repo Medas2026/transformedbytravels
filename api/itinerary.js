@@ -144,11 +144,13 @@ module.exports = async function handler(req, res) {
     let lodgingParagraph = '';
     let lodgingName      = '';
     let lodgingImageUrl  = '';
+    let lodgingIsNew     = false;
     if (lodgingRec) {
       const lf = lodgingRec;
       lodgingName = lf['Name'] || '';
       if (!seenLodgingIds.has(lodgingId)) {
         seenLodgingIds.add(lodgingId);
+        lodgingIsNew = true;
         const nameType = [lf['Name'], lf['Type']].filter(Boolean).join(' — ');
         const location = lf['Location'] || '';
         const checkIn  = lf['Check-in Date']  || '';
@@ -169,6 +171,7 @@ module.exports = async function handler(req, res) {
       endLoc:         d['Ending Location']   || '',
       lodging:        lodgingParagraph,
       lodgingName,
+      lodgingIsNew,
       lodgingImageUrl,
       slotLabels:     slots.map(slotLabel).filter(Boolean),
       reservations:   reservationsByDate[dateRaw] || []
