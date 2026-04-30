@@ -1558,10 +1558,12 @@ function closeDnaPicker() {
 }
 
 function _scrollToDay(idx) {
-  requestAnimationFrame(() => {
+  const savedY = window.scrollY;
+  setTimeout(() => {
     const el = document.querySelector(`[data-idx="${idx}"]`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  });
+    if (el) el.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+    else window.scrollTo(0, savedY);
+  }, 50);
 }
 
 async function linkDayGuide(guideId) {
