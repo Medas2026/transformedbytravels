@@ -267,6 +267,22 @@
   </div>
 </div>
 
+<!-- DNA Guide Picker Modal -->
+<div id="dna-picker-modal" style="display:none;position:fixed;inset:0;z-index:1010;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+  <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;width:100%;max-width:500px;box-shadow:0 24px 60px rgba(0,0,0,0.7);margin:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;">🧬 Link DNA Guide</div>
+      <button onclick="closeDnaPicker()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1;">×</button>
+    </div>
+    <div style="padding:12px 24px 6px;font-size:0.82rem;color:var(--muted);">Choose a saved DNA Guide to link to this day.</div>
+    <div id="dna-picker-list" style="padding:8px 24px;display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto;"></div>
+    <div style="padding:16px 24px 20px;display:flex;gap:10px;border-top:1px solid rgba(255,255,255,0.07);margin-top:8px;">
+      <button id="dna-picker-unlink-btn" onclick="unlinkDayGuide()" style="display:none;background:none;border:1px solid rgba(239,68,68,0.4);color:#f87171;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">Unlink Guide</button>
+      <button onclick="closeDnaPicker()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,0.15);color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.85rem;border-radius:8px;padding:8px 18px;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- Day Modal -->
 <div id="day-modal">
   <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;width:100%;max-width:560px;box-shadow:0 24px 60px rgba(0,0,0,0.7);margin:auto;">
@@ -307,6 +323,9 @@ let _lodgingMap       = {};
 let _lodgingModalIdx  = null;
 let _lodgingEditId    = null;
 let _scheduleCountries = [];
+let _dnaGuideRecords  = [];  // saved DNA guides for current user
+let _dnaGuideMap      = {};  // id → destination label
+let _dnaPickerIdx     = null;
 let _confirmCallback  = null;
 let _scheduleMap      = null;
 
@@ -363,14 +382,16 @@ function goBack() {
 
 async function loadSchedule() {
   try {
-    const [tripResp, daysResp, lodgingResp] = await Promise.all([
+    const [tripResp, daysResp, lodgingResp, dnaResp] = await Promise.all([
       fetch('/api/trips?id=' + encodeURIComponent(currentTripId)),
       fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId)),
-      fetch('/api/lodging?tripId='   + encodeURIComponent(currentTripId))
+      fetch('/api/lodging?tripId='   + encodeURIComponent(currentTripId)),
+      fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail))
     ]);
     const tripData    = await tripResp.json();
     const daysData    = await daysResp.json();
     const lodgingData = await lodgingResp.json();
+    const dnaData     = await dnaResp.json();
 
     const tf = tripData.fields || tripData.record?.fields || {};
     currentTripStart       = tf['Start Date'] || '';
@@ -388,6 +409,12 @@ async function loadSchedule() {
     _lodgingRecords  = lodgingData.records || [];
     _lodgingMap      = {};
     _lodgingRecords.forEach(r => { _lodgingMap[r.id] = r.fields['Name'] || 'Lodging'; });
+    _dnaGuideRecords = dnaData.records || [];
+    _dnaGuideMap     = {};
+    _dnaGuideRecords.forEach(r => {
+      const dest = [r.fields['Destination'], r.fields['Country']].filter(Boolean).join(', ');
+      _dnaGuideMap[r.id] = dest || 'DNA Guide';
+    });
 
     document.getElementById('loading').style.display       = 'none';
     document.getElementById('main-content').style.display  = 'block';
@@ -564,8 +591,11 @@ function renderScheduleList() {
           <button onclick="scheduleInsertAfter(${i})" style="${btnBase}" onmouseover="this.style.borderColor='rgba(45,212,191,0.5)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">+ Insert Day</button>
           <button onclick="scheduleDeleteDay(${i})" style="${btnBase}" onmouseover="this.style.borderColor='rgba(239,68,68,0.5)';this.style.color='#ef4444'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">× Delete</button>
           <button onclick="openLodgingModal(${i})" style="${btnBase}" onmouseover="this.style.borderColor='rgba(45,212,191,0.5)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">🏨 Lodging</button>
+          <button onclick="openDnaPicker(${i})" style="${btnBase}" onmouseover="this.style.borderColor='rgba(45,212,191,0.5)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='var(--muted)'">🧬 DNA Guide</button>
         </div>
-        ${f['Lodging ID'] ? `<div style="margin-top:8px;font-size:0.75rem;color:var(--teal);background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.2);border-radius:6px;padding:4px 10px;display:inline-block;cursor:pointer;" onclick="openLodgingModal(${i})">🏨 ${_lodgingMap[f['Lodging ID']] || 'Lodging set'}</div>` : ''}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:${f['Lodging ID'] || f['DNA Guide ID'] ? '8px' : '0'};">
+          ${f['Lodging ID'] ? `<div style="font-size:0.75rem;color:var(--teal);background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.2);border-radius:6px;padding:4px 10px;cursor:pointer;" onclick="openLodgingModal(${i})">🏨 ${_lodgingMap[f['Lodging ID']] || 'Lodging set'}</div>` : ''}
+          ${f['DNA Guide ID'] ? `<div style="font-size:0.75rem;color:#a78bfa;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);border-radius:6px;padding:4px 10px;cursor:pointer;" onclick="openDnaPicker(${i})">🧬 ${_dnaGuideMap[f['DNA Guide ID']] || 'DNA Guide linked'}</div>` : ''}
       </div>`;
   }).join('');
 
@@ -1420,6 +1450,79 @@ async function deleteLodging() {
     await _refreshTripDays();
     closeLodgingModal(); renderScheduleList();
   } catch(e){status.textContent='Error: '+e.message;}
+}
+
+// ── DNA Guide picker ─────────────────────────────────────────────────────────
+
+function openDnaPicker(idx) {
+  _dnaPickerIdx = idx;
+  const modal    = document.getElementById('dna-picker-modal');
+  const list     = document.getElementById('dna-picker-list');
+  const unlinkBtn = document.getElementById('dna-picker-unlink-btn');
+  const f        = _scheduleRecords[idx]?.fields || {};
+  const linked   = f['DNA Guide ID'] || '';
+  unlinkBtn.style.display = linked ? 'inline-block' : 'none';
+
+  if (!_dnaGuideRecords.length) {
+    list.innerHTML = '<div style="font-size:0.83rem;color:var(--muted);padding:8px 0;">No saved DNA Guides found. Generate one from the DNA Guide page first.</div>';
+  } else {
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    list.innerHTML = _dnaGuideRecords.map(r => {
+      const dest    = [r.fields['Destination'], r.fields['Country']].filter(Boolean).join(', ');
+      const dateStr = r.fields['Date'] ? (() => { const d = new Date(r.fields['Date']+'T00:00:00Z'); return MONTHS[d.getUTCMonth()]+' '+d.getUTCDate()+', '+d.getUTCFullYear(); })() : '';
+      const isLinked = r.id === linked;
+      return `<div onclick="linkDayGuide('${r.id}')"
+        style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;border:1px solid ${isLinked ? 'rgba(167,139,250,0.5)' : 'rgba(255,255,255,0.08)'};background:${isLinked ? 'rgba(167,139,250,0.08)' : 'rgba(255,255,255,0.03)'};cursor:pointer;"
+        onmouseover="this.style.background='rgba(167,139,250,0.1)'" onmouseout="this.style.background='${isLinked ? 'rgba(167,139,250,0.08)' : 'rgba(255,255,255,0.03)'}'">
+        <span style="font-size:1.1rem;">🧬</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.85rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${dest}</div>
+          ${dateStr ? `<div style="font-size:0.75rem;color:var(--muted);">${dateStr}</div>` : ''}
+        </div>
+        ${isLinked ? '<span style="font-size:0.72rem;color:#a78bfa;font-family:\'Montserrat\',sans-serif;font-weight:700;white-space:nowrap;">✓ Linked</span>' : ''}
+      </div>`;
+    }).join('');
+  }
+  modal.style.display = 'flex';
+}
+
+function closeDnaPicker() {
+  document.getElementById('dna-picker-modal').style.display = 'none';
+  _dnaPickerIdx = null;
+}
+
+async function linkDayGuide(guideId) {
+  if (_dnaPickerIdx === null) return;
+  const rec = _scheduleRecords[_dnaPickerIdx];
+  try {
+    await fetch('/api/trip-days', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ id: rec.id, 'DNA Guide ID': guideId })
+    });
+    rec.fields['DNA Guide ID'] = guideId;
+    closeDnaPicker();
+    renderScheduleList();
+  } catch(e) {
+    console.error('[dna-picker] link error:', e.message);
+  }
+}
+
+async function unlinkDayGuide() {
+  if (_dnaPickerIdx === null) return;
+  const rec = _scheduleRecords[_dnaPickerIdx];
+  try {
+    await fetch('/api/trip-days', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ id: rec.id, 'DNA Guide ID': '' })
+    });
+    rec.fields['DNA Guide ID'] = '';
+    closeDnaPicker();
+    renderScheduleList();
+  } catch(e) {
+    console.error('[dna-picker] unlink error:', e.message);
+  }
 }
 
 // ── Confirm modal ─────────────────────────────────────────────────────────────
