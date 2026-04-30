@@ -1557,9 +1557,17 @@ function closeDnaPicker() {
   _dnaPickerIdx = null;
 }
 
+function _scrollToDay(idx) {
+  requestAnimationFrame(() => {
+    const el = document.querySelector(`[data-idx="${idx}"]`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+}
+
 async function linkDayGuide(guideId) {
   if (_dnaPickerIdx === null) return;
-  const rec = _scheduleRecords[_dnaPickerIdx];
+  const idx = _dnaPickerIdx;
+  const rec = _scheduleRecords[idx];
   try {
     await fetch('/api/trip-days', {
       method:  'PATCH',
@@ -1569,6 +1577,7 @@ async function linkDayGuide(guideId) {
     rec.fields['DNA Guide ID'] = guideId;
     closeDnaPicker();
     renderScheduleList();
+    _scrollToDay(idx);
   } catch(e) {
     console.error('[dna-picker] link error:', e.message);
   }
@@ -1576,7 +1585,8 @@ async function linkDayGuide(guideId) {
 
 async function unlinkDayGuide() {
   if (_dnaPickerIdx === null) return;
-  const rec = _scheduleRecords[_dnaPickerIdx];
+  const idx = _dnaPickerIdx;
+  const rec = _scheduleRecords[idx];
   try {
     await fetch('/api/trip-days', {
       method:  'PATCH',
@@ -1586,6 +1596,7 @@ async function unlinkDayGuide() {
     rec.fields['DNA Guide ID'] = '';
     closeDnaPicker();
     renderScheduleList();
+    _scrollToDay(idx);
   } catch(e) {
     console.error('[dna-picker] unlink error:', e.message);
   }
