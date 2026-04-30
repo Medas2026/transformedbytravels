@@ -113,11 +113,11 @@ module.exports = async function handler(req, res) {
         'Survey Answers': JSON.stringify(answers || {})
       }, apiKey);
     } else {
-      // Owner has no member record — create one
+      // Owner has no member record — create one using an existing role value
       result = await airtableCreate('Trip Members', {
         'Trip ID':  tripId,
         'Email':    email,
-        'Role':     'Owner',
+        'Role':     'Trip Planner',
         'Status':   'Accepted',
         'Survey Answers': JSON.stringify(answers || {})
       }, apiKey);
