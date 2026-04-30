@@ -387,6 +387,7 @@ module.exports = async function handler(req, res) {
     const archetype  = (b.archetype  || '').trim().slice(0, 100);
     const hopes      = (b.hopes      || '').trim().slice(0, 500);
     const recordId   = (b.recordId   || '').trim().slice(0, 100);
+    const tipNum     = parseInt(b.tipNum, 10) || 0;
 
     if (!email) return res.status(400).json({ error: 'email required' });
     if (!reflection && !barriers && !memory) return res.status(400).json({ error: 'at least one response required' });
@@ -438,6 +439,7 @@ module.exports = async function handler(req, res) {
       if (tripId)      fields['Trip ID']    = tripId;
       if (dayNumber)   fields['Day Number'] = dayNumber;
       if (b.entryType) fields['Entry Type'] = b.entryType;
+      if (tipNum)      fields['Tip Number'] = tipNum;
 
       airtablePost(JOURNAL_TABLE, fields, (err, data) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -537,7 +539,7 @@ module.exports = async function handler(req, res) {
           ]);
           const dayType    = isLastDay ? 'LAST' : isFirstDay ? 'FIRST' : 'MIDDLE';
           const dayLabel   = dayNum ? `Day ${dayNum}` : 'Today';
-          const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(email)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}&daytype=${dayType}`;
+          const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(email)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}&daytype=${dayType}&tip=${tipNum}`;
 
           // ── Tomorrow section HTML ──────────────────────────────────
           const tomorrowLabel = tomorrowDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });

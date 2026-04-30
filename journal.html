@@ -295,6 +295,7 @@
   const startDate  = params.get('start')   || '';
   const tripName   = params.get('dest')    || '';
   const dayType    = (params.get('daytype') || 'MIDDLE').toUpperCase();
+  const tipNum     = parseInt(params.get('tip') || '0', 10) || 0;
 
   // — Fetch and display lead-in prompt
   fetch('/api/journal-prompts')
@@ -471,7 +472,7 @@
       const resp = await fetch('/api/journal', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, tripId, startDate, entryDate: dateStr, tripName, reflection, barriers, memory, photoUrl, dayRating, archetype: travelerArchetype, hopes: travelerHopes, recordId: existingRecordId })
+        body: JSON.stringify({ email, tripId, startDate, entryDate: dateStr, tripName, reflection, barriers, memory, photoUrl, dayRating, archetype: travelerArchetype, hopes: travelerHopes, recordId: existingRecordId, tipNum: tipNum || undefined })
       });
       const data = await resp.json();
 
