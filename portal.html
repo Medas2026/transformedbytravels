@@ -7504,16 +7504,26 @@ async function loadCompatibilitySurvey(tripId) {
       pendingBanner.innerHTML = '';
     }
 
-    // Results — 2+ people fully answered
+    // Results — show button once 2+ people have answered
     const answeredMembers = members.filter(m => selectedIds.every(id => m.answers[id] !== undefined));
     const resultsArea = document.getElementById('survey-results-area');
     if (answeredMembers.length >= 2) {
+      const totalMembers = _tripMembersData.length + (members.find(m => m.email === userEmail.toLowerCase()) ? 0 : 1);
       resultsArea.style.display = 'block';
+      resultsArea.innerHTML = `
+        <div style="margin-top:12px;">
+          <button onclick="toggleCompatibilityResults(this)" data-open="false"
+            style="display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">
+            📊 View Compatibility Results (${answeredMembers.length} of ${totalMembers} responded)
+          </button>
+          <div id="survey-results-panel" style="display:none;margin-top:10px;"></div>
+        </div>`;
+      // Pre-render results into the panel (hidden until button clicked)
       renderCompatibilityResults(data, answeredMembers);
     } else if (iHaveAnswered) {
+      const waiting = _tripMembersData.length - answeredMembers.length;
       resultsArea.style.display = 'block';
-      const waitingCount = (hasAcceptedMembers ? _tripMembersData.length : 0) + (members.find(m => m.email === userEmail.toLowerCase()) ? 0 : 1) - answeredMembers.length;
-      resultsArea.innerHTML = `<div style="font-size:0.82rem;color:var(--muted);margin-top:10px;font-style:italic;">Waiting for ${waitingCount > 0 ? waitingCount + ' other traveler' + (waitingCount > 1 ? 's' : '') : 'other travelers'} to complete the survey…</div>`;
+      resultsArea.innerHTML = `<div style="font-size:0.82rem;color:var(--muted);margin-top:10px;font-style:italic;">Waiting for ${waiting > 0 ? waiting + ' other traveler' + (waiting !== 1 ? 's' : '') : 'other travelers'} to complete the survey…</div>`;
     } else {
       resultsArea.style.display = 'none';
     }
@@ -7636,6 +7646,15 @@ async function saveSurveyAnswers() {
   }
 }
 
+function toggleCompatibilityResults(btn) {
+  const panel = document.getElementById('survey-results-panel');
+  if (!panel) return;
+  const open = btn.dataset.open === 'true';
+  panel.style.display = open ? 'none' : 'block';
+  btn.dataset.open = open ? 'false' : 'true';
+  btn.textContent = open ? btn.textContent.replace('▲ Hide', '📊 View') : btn.textContent.replace('📊 View', '▲ Hide');
+}
+
 function renderCompatibilityResults(data, answeredMembers) {
   const { questions, selectedIds } = data;
   const resultsArea = document.getElementById('survey-results-area');
@@ -7693,11 +7712,10 @@ function renderCompatibilityResults(data, answeredMembers) {
       </div>`;
   }).join('');
 
-  resultsArea.innerHTML = `
-    <div style="margin-top:14px;">
-      <div style="font-family:'Montserrat',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--teal);margin-bottom:10px;">Compatibility Results</div>
-      ${pairsHtml}
-    </div>`;
+  const panel = document.getElementById('survey-results-panel');
+  if (panel) {
+    panel.innerHTML = `<div style="font-family:'Montserrat',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--teal);margin-bottom:10px;">Compatibility Results</div>${pairsHtml}`;
+  }
 }
 
 // ── End Compatibility Survey ─────────────────────────────────────────────────
