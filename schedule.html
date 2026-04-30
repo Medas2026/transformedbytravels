@@ -276,7 +276,16 @@
     </div>
     <div style="padding:12px 24px 6px;font-size:0.82rem;color:var(--muted);">Choose a saved DNA Guide to link to this day.</div>
     <div id="dna-picker-list" style="padding:8px 24px;display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto;"></div>
-    <div style="padding:16px 24px 20px;display:flex;gap:10px;border-top:1px solid rgba(255,255,255,0.07);margin-top:8px;">
+    <div style="padding:12px 24px 0;border-top:1px solid rgba(255,255,255,0.07);margin-top:8px;">
+      <button onclick="toggleDnaGenerate()" id="dna-gen-toggle-btn" style="background:none;border:1px solid rgba(45,212,191,0.35);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:8px;padding:7px 14px;cursor:pointer;width:100%;text-align:center;">✦ Generate New Guide</button>
+      <div id="dna-gen-area" style="display:none;margin-top:12px;padding-bottom:4px;">
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Destination to generate guide for:</div>
+        <input id="dna-gen-dest" type="text" placeholder="Destination name" style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 12px;color:var(--text);font-size:0.85rem;margin-bottom:8px;">
+        <div id="dna-gen-status" style="display:none;font-size:0.8rem;margin-bottom:8px;"></div>
+        <button onclick="generateAndLinkGuide()" id="dna-gen-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;width:100%;">✦ Generate & Link</button>
+      </div>
+    </div>
+    <div style="padding:12px 24px 20px;display:flex;gap:10px;margin-top:4px;">
       <button id="dna-picker-unlink-btn" onclick="unlinkDayGuide()" style="display:none;background:none;border:1px solid rgba(239,68,68,0.4);color:#f87171;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;">Unlink Guide</button>
       <button onclick="closeDnaPicker()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,0.15);color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.85rem;border-radius:8px;padding:8px 18px;cursor:pointer;">Cancel</button>
     </div>
@@ -382,16 +391,19 @@ function goBack() {
 
 async function loadSchedule() {
   try {
-    const [tripResp, daysResp, lodgingResp, dnaResp] = await Promise.all([
+    const [tripResp, daysResp, lodgingResp, dnaResp, profileResp] = await Promise.all([
       fetch('/api/trips?id=' + encodeURIComponent(currentTripId)),
       fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId)),
       fetch('/api/lodging?tripId='   + encodeURIComponent(currentTripId)),
-      fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail))
+      fetch('/api/dna-queries?email=' + encodeURIComponent(userEmail)),
+      fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail))
     ]);
     const tripData    = await tripResp.json();
     const daysData    = await daysResp.json();
     const lodgingData = await lodgingResp.json();
     const dnaData     = await dnaResp.json();
+    const profileData = await profileResp.json();
+    portalProfile = profileData.fields || profileData.record?.fields || null;
 
     const tf = tripData.fields || tripData.record?.fields || {};
     currentTripStart       = tf['Start Date'] || '';
@@ -1522,6 +1534,83 @@ async function unlinkDayGuide() {
     renderScheduleList();
   } catch(e) {
     console.error('[dna-picker] unlink error:', e.message);
+  }
+}
+
+function toggleDnaGenerate() {
+  const area = document.getElementById('dna-gen-area');
+  const btn  = document.getElementById('dna-gen-toggle-btn');
+  const open = area.style.display === 'none';
+  area.style.display = open ? 'block' : 'none';
+  btn.textContent    = open ? '✕ Cancel' : '✦ Generate New Guide';
+  if (open) {
+    const destInput = document.getElementById('dna-gen-dest');
+    destInput.value = currentTripDestination;
+    document.getElementById('dna-gen-status').style.display = 'none';
+  }
+}
+
+async function generateAndLinkGuide() {
+  const destInput = document.getElementById('dna-gen-dest');
+  const status    = document.getElementById('dna-gen-status');
+  const genBtn    = document.getElementById('dna-gen-btn');
+  const destination = (destInput.value || '').trim();
+  if (!destination) { destInput.focus(); return; }
+
+  const p = portalProfile || {};
+  const hopes   = (p['Hopes to Experience'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
+  const passions = (p['Passions'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
+  const country  = currentTripCountry || '';
+
+  const params = '?destination='  + encodeURIComponent(destination)
+    + '&country='      + encodeURIComponent(country)
+    + '&travelerName=' + encodeURIComponent(p['Traveler Name'] || '')
+    + '&archetype='    + encodeURIComponent(p['Archetype'] || '')
+    + '&Curiosity='    + (p['DS-1 Curiosity']  || 0)
+    + '&Adventure='    + (p['DS-2 Adventure']  || 0)
+    + '&Reflection='   + (p['DS-3 Reflection'] || 0)
+    + '&Connection='   + (p['DS-4 Connection'] || 0)
+    + '&Intention='    + (p['DS-5 Intention']  || 0)
+    + '&hopes='        + encodeURIComponent(hopes)
+    + '&passions='     + encodeURIComponent(passions)
+    + '&lifeStage='    + encodeURIComponent(p['Life Stage']   || '')
+    + '&travelStyle='  + encodeURIComponent(p['Travel Style'] || '');
+
+  status.style.display = 'block';
+  status.style.color   = 'var(--muted)';
+  status.textContent   = 'Generating your guide…';
+  genBtn.disabled      = true;
+
+  try {
+    const resp = await fetch('/api/dest-guide' + params);
+    const data = await resp.json();
+    if (!data.guide) throw new Error(data.error || 'No guide returned');
+
+    const saved = await fetch('/api/dna-queries', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        email:       userEmail,
+        destination: destination,
+        country:     country,
+        date:        new Date().toISOString().split('T')[0],
+        guide:       data.guide
+      })
+    }).then(r => r.json());
+
+    if (!saved || !saved.id) throw new Error('Failed to save guide');
+
+    // Add to local state
+    _dnaGuideRecords.unshift({ id: saved.id, fields: { Destination: destination, Country: country, Date: new Date().toISOString().split('T')[0], Guide: data.guide } });
+    _dnaGuideMap[saved.id] = [destination, country].filter(Boolean).join(', ');
+
+    status.style.color = '#4ade80';
+    status.textContent = 'Guide created — linking…';
+    await linkDayGuide(saved.id);
+  } catch(e) {
+    status.style.color = '#f87171';
+    status.textContent = 'Error: ' + e.message;
+    genBtn.disabled    = false;
   }
 }
 
