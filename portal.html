@@ -920,6 +920,7 @@
             </div>
             <div id="tm-partner-hint" style="display:none;font-size:0.78rem;color:var(--muted);margin-top:6px;line-height:1.5;"></div>
             <div id="tm-msg" style="display:none;font-size:0.8rem;margin-top:8px;"></div>
+            <button id="tm-message-btn" onclick="openMemberMsg()" style="display:none;margin-top:10px;background:none;border:1px solid rgba(45,212,191,0.3);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.8rem;border-radius:7px;padding:7px 14px;cursor:pointer;">✉ Message Members</button>
             <!-- Compatibility Survey -->
             <div id="survey-section" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.07);">
               <div id="survey-owner-controls"></div>
@@ -2327,6 +2328,26 @@
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button onclick="downloadTripCalendarDirect()" style="flex:1;padding:11px 16px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;cursor:pointer;">⬇ Download for Me</button>
         <button id="calendar-send-btn" onclick="sendCalendarToMembers()" style="flex:1;padding:11px 16px;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:8px;cursor:pointer;">Send Selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Members Modal -->
+  <div id="member-msg-modal" style="display:none;position:fixed;inset:0;z-index:1010;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;">
+    <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;padding:28px;max-width:500px;width:100%;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,0.7);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;">✉ Message Trip Members</div>
+        <button onclick="closeMemberMsg()" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <p style="font-size:0.83rem;color:var(--muted);margin:0 0 18px;line-height:1.6;">Send a quick note to selected members. They'll receive it by email with a link back to the trip.</p>
+      <div style="font-family:'Montserrat',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft);margin-bottom:8px;">Send to</div>
+      <div id="member-msg-recipients" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;"></div>
+      <div style="font-family:'Montserrat',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft);margin-bottom:6px;">Message</div>
+      <textarea id="member-msg-body" rows="5" placeholder="Type your message here…" style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--text);font-size:0.88rem;font-family:'Open Sans',sans-serif;line-height:1.6;resize:vertical;"></textarea>
+      <div id="member-msg-status" style="display:none;font-size:0.82rem;margin:10px 0 0;"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+        <button id="member-msg-send-btn" onclick="sendMemberMessage()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:10px 22px;cursor:pointer;">Send Message</button>
+        <button onclick="closeMemberMsg()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;border-radius:8px;padding:10px 22px;cursor:pointer;">Cancel</button>
       </div>
     </div>
   </div>
@@ -7292,6 +7313,8 @@ async function loadTripMembers(tripId) {
       return true;
     });
     _tripMembersData = records.filter(r => r.fields['Status'] === 'Accepted');
+    const msgBtn = document.getElementById('tm-message-btn');
+    if (msgBtn) msgBtn.style.display = _tripMembersData.length > 0 && !_tripReadOnly ? 'inline-block' : 'none';
     if (!records.length) {
       list.innerHTML = '<div style="font-size:0.8rem;color:var(--muted);">No members yet.</div>';
       loadCompatibilitySurvey(tripId);
@@ -7724,6 +7747,83 @@ function renderCompatibilityResults(data, answeredMembers) {
 }
 
 // ── End Compatibility Survey ─────────────────────────────────────────────────
+
+// ── Message Members ───────────────────────────────────────────────────────────
+
+function openMemberMsg() {
+  const modal    = document.getElementById('member-msg-modal');
+  const recipBox = document.getElementById('member-msg-recipients');
+  const accepted = _tripMembersData.filter(r => r.fields['Status'] === 'Accepted');
+  recipBox.innerHTML = accepted.map(r => {
+    const email = r.fields['Email'] || '';
+    const role  = r.fields['Role']  || '';
+    return `<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 10px;border-radius:7px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);">
+      <input type="checkbox" value="${email}" checked style="accent-color:var(--teal);flex-shrink:0;">
+      <span style="font-size:0.83rem;color:var(--text);flex:1;word-break:break-all;">${email}</span>
+      <span style="font-size:0.75rem;color:var(--muted);">${role}</span>
+    </label>`;
+  }).join('');
+  document.getElementById('member-msg-body').value = '';
+  document.getElementById('member-msg-status').style.display = 'none';
+  modal.style.display = 'flex';
+}
+
+function closeMemberMsg() {
+  document.getElementById('member-msg-modal').style.display = 'none';
+}
+
+async function sendMemberMessage() {
+  const checkboxes = document.querySelectorAll('#member-msg-recipients input[type=checkbox]');
+  const emails  = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+  const message = (document.getElementById('member-msg-body').value || '').trim();
+  const statusEl = document.getElementById('member-msg-status');
+  const sendBtn  = document.getElementById('member-msg-send-btn');
+  if (!emails.length) {
+    statusEl.textContent = 'Please select at least one recipient.';
+    statusEl.style.color = '#ef4444';
+    statusEl.style.display = 'block';
+    return;
+  }
+  if (!message) {
+    statusEl.textContent = 'Please enter a message.';
+    statusEl.style.color = '#ef4444';
+    statusEl.style.display = 'block';
+    return;
+  }
+  sendBtn.disabled = true;
+  sendBtn.textContent = 'Sending…';
+  statusEl.style.display = 'none';
+  try {
+    const tripNameEl  = document.getElementById('td-name');
+    const tripName    = tripNameEl ? tripNameEl.value : '';
+    const senderName  = (portalProfile && portalProfile['Traveler Name']) ? portalProfile['Traveler Name'].split(' ')[0] : userEmail;
+    const resp = await fetch('/api/trip-members?action=notify', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ emails, message, senderName, tripName, tripId: currentTripId })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      statusEl.textContent = `Sent to ${data.sent} member${data.sent !== 1 ? 's' : ''}.${data.failed && data.failed.length ? ' (failed: ' + data.failed.join(', ') + ')' : ''}`;
+      statusEl.style.color = 'var(--teal)';
+      statusEl.style.display = 'block';
+      setTimeout(() => closeMemberMsg(), 2000);
+    } else {
+      statusEl.textContent = 'Error: ' + (data.error || 'Could not send.');
+      statusEl.style.color = '#ef4444';
+      statusEl.style.display = 'block';
+    }
+  } catch(e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.style.color = '#ef4444';
+    statusEl.style.display = 'block';
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.textContent = 'Send Message';
+  }
+}
+
+// ── End Message Members ───────────────────────────────────────────────────────
 
 async function _handleAcceptTripInvite() {
   const token = sessionStorage.getItem('acceptTripToken');

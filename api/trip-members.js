@@ -196,6 +196,57 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // POST ?action=notify — send a message to selected members
+  if (req.method === 'POST' && req.query.action === 'notify') {
+    const { emails, message, senderName, tripName, tripId } = req.body || {};
+    if (!emails || !emails.length || !message) return res.status(400).json({ error: 'emails and message required' });
+    const tripUrl  = `https://app.transformedbytravels.com/portal.html?page=planning&tripId=${encodeURIComponent(tripId || '')}`;
+    const escaped  = message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;">
+  <tr><td align="center" style="padding:32px 16px;">
+    <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+      <tr><td style="background:#0d1520;padding:28px 40px;text-align:center;border-bottom:3px solid #2dd4bf;">
+        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#2dd4bf;margin:0 0 6px;">Transformed by Travels</p>
+        <p style="font-family:Georgia,serif;font-size:20px;color:#ffffff;margin:0;">Message from ${senderName || 'Your Trip Organizer'}</p>
+      </td></tr>
+      <tr><td style="padding:36px 40px 28px;">
+        <h2 style="font-family:Georgia,serif;font-size:20px;color:#0f172a;margin:0 0 6px;">Re: ${tripName || 'Your Trip'}</h2>
+        <p style="font-family:Arial,sans-serif;font-size:13px;color:#94a3b8;margin:0 0 24px;">from ${senderName || 'your trip organizer'}</p>
+        <div style="font-family:Arial,sans-serif;font-size:15px;color:#334155;line-height:1.75;margin:0 0 28px;padding:20px 24px;background:#f8fafc;border-radius:10px;border-left:3px solid #2dd4bf;">${escaped}</div>
+        <table cellpadding="0" cellspacing="0"><tr><td>
+          <a href="${tripUrl}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;text-decoration:none;padding:12px 28px;border-radius:8px;">
+            View Trip →
+          </a>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="background:#f8fafc;padding:20px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+        <p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+    const errors = [];
+    await Promise.all(emails.map(async toEmail => {
+      try {
+        const payload = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to: toEmail, subject: `Message about ${tripName || 'your trip'} from ${senderName || 'your organizer'}`, html });
+        await new Promise((resolve, reject) => {
+          const opts = { hostname: 'api.resend.com', path: '/emails', method: 'POST', headers: { 'Authorization': 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) } };
+          const req = https.request(opts, (res) => { let d = ''; res.on('data', c => { d += c; }); res.on('end', () => resolve()); });
+          req.on('error', reject);
+          req.write(payload);
+          req.end();
+        });
+      } catch(e) {
+        errors.push(toEmail);
+        console.error('[trip-members] notify error:', e.message);
+      }
+    }));
+    return res.status(200).json({ success: true, sent: emails.length - errors.length, failed: errors });
+  }
+
   // POST ?action=resend — re-send an existing invitation
   if (req.method === 'POST' && req.query.action === 'resend') {
     const { id, inviterName, tripName } = req.body || {};
