@@ -57,7 +57,7 @@ function stripScores(text) {
   return text
     .replace(/\b(Curiosity|Adventure|Reflection|Connection|Intention|Travel Purpose)\s+\d+(\s*\/\s*7)?\b/g, '$1')
     .replace(/\(\s*(Curiosity|Adventure|Reflection|Connection|Intention|Travel Purpose)\s+\d+(?:,\s*(Curiosity|Adventure|Reflection|Connection|Intention|Travel Purpose)\s+\d+)*\s*\)/g, '')
-    .replace(/\s{2,}/g, ' ')
+    .replace(/[^\S\n]{2,}/g, ' ')
     .trim();
 }
 
