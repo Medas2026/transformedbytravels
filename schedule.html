@@ -1591,8 +1591,9 @@ function toggleDnaGenerate() {
   area.style.display = open ? 'block' : 'none';
   btn.textContent    = open ? '✕ Cancel' : '✦ Generate New Guide';
   if (open) {
+    const dayF = (_dnaPickerIdx !== null && _scheduleRecords[_dnaPickerIdx]?.fields) || {};
     const destInput = document.getElementById('dna-gen-dest');
-    destInput.value = currentTripDestination;
+    destInput.value = dayF['Ending Location'] || dayF['Starting Location'] || currentTripDestination;
     document.getElementById('dna-gen-status').style.display = 'none';
   }
 }
@@ -1607,7 +1608,8 @@ async function generateAndLinkGuide() {
   const p = portalProfile || {};
   const hopes   = (p['Hopes to Experience'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
   const passions = (p['Passions'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
-  const country  = currentTripCountry || '';
+  const dayF    = (_dnaPickerIdx !== null && _scheduleRecords[_dnaPickerIdx]?.fields) || {};
+  const country = dayF['Ending Country'] || dayF['Starting Country'] || currentTripCountry || '';
 
   const params = '?destination='  + encodeURIComponent(destination)
     + '&country='      + encodeURIComponent(country)
