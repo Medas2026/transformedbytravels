@@ -7285,7 +7285,12 @@ async function loadTripMembers(tripId) {
   try {
     const resp = await fetch('/api/trip-members?tripId=' + encodeURIComponent(tripId));
     const data = await resp.json();
-    const records = data.records || [];
+    const records = (data.records || []).filter(r => {
+      // Never show the owner's own auto-created survey record in the members list
+      if (_tripIsOwner && (r.fields['Email'] || '').toLowerCase() === userEmail.toLowerCase()) return false;
+      if (r.fields['Role'] === 'Owner') return false;
+      return true;
+    });
     _tripMembersData = records.filter(r => r.fields['Status'] === 'Accepted');
     if (!records.length) {
       list.innerHTML = '<div style="font-size:0.8rem;color:var(--muted);">No members yet.</div>';
