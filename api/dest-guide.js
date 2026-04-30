@@ -122,6 +122,7 @@ Write a destination guide that speaks to BOTH travelers — finding the sweet sp
 
 Use vivid, inspiring language. Be specific to this destination. 600-800 words.
 
+IMPORTANT: Formatting rules — use # (single hash) ONLY for the main title line, and ## (double hash) for ALL section headings. Never use # for a section heading.
 IMPORTANT: Never include numeric scores in your output. You may naturally reference a traveler's dimension level (e.g. "your high sense of adventure" or "your very high curiosity") but always as natural language — never as a score, number, or parenthetical like "(Adventure 7)".`;
 
       const guide = stripScores(await claudeGuide(prompt));
@@ -164,6 +165,7 @@ Write a destination guide that speaks directly to this traveler — what makes t
 
 Use vivid, inspiring language. Be specific to this destination. 600-800 words.
 
+IMPORTANT: Formatting rules — use # (single hash) ONLY for the main title line, and ## (double hash) for ALL section headings. Never use # for a section heading.
 IMPORTANT: Never include numeric scores in your output. You may naturally reference a traveler's dimension level (e.g. "your high sense of adventure" or "your very high curiosity") but always as natural language — never as a score, number, or parenthetical like "(Adventure 7)".`;
 
     const guide = stripScores(await claudeGuide(soloPrompt));

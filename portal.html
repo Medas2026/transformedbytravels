@@ -2827,7 +2827,13 @@ function _setErrEl(el, msg, extraCss) {
 }
 
 function renderGuideHtml(guide) {
-  const raw = '<p style="margin-bottom:10px;">' + guide
+  // Normalise: only the first # line is the teal title; all other # lines become ## section headers
+  let firstH1 = true;
+  const normalised = guide.replace(/^# (.+)$/gm, (_, text) => {
+    if (firstH1) { firstH1 = false; return `# ${text}`; }
+    return `## ${text}`;
+  });
+  const raw = '<p style="margin-bottom:10px;">' + normalised
     .replace(/^# (.+)$/gm, '</p><h2 style="font-family:\'Montserrat\',sans-serif;font-weight:800;font-size:1.05rem;color:#2dd4bf;margin:16px 0 6px;">$1</h2><p style="margin-bottom:10px;">')
     .replace(/^## (.+)$/gm, '</p><h3 style="font-family:\'Montserrat\',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;text-transform:uppercase;letter-spacing:0.06em;margin:12px 0 4px;">$1</h3><p style="margin-bottom:10px;">')
     .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;">$1</strong>')
@@ -9840,14 +9846,7 @@ function loadDNAHistory() {
         const name = [f['Destination'], f['Country']].filter(Boolean).join(', ');
         const date = f['Date'] ? new Date(f['Date']).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '';
         const guide = f['Guide'] || '';
-        const guideHtml = guide
-          .replace(/^# (.+)$/gm, '</p><h2 style="font-family:\'Montserrat\',sans-serif;font-weight:800;font-size:1.05rem;color:#2dd4bf;margin:16px 0 6px;">$1</h2><p style="margin-bottom:10px;">')
-          .replace(/^## (.+)$/gm, '</p><h3 style="font-family:\'Montserrat\',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;text-transform:uppercase;letter-spacing:0.06em;margin:14px 0 4px;">$1</h3><p style="margin-bottom:10px;">')
-          .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;">$1</strong>')
-          .replace(/^- (.+)$/gm, '<li style="margin-bottom:4px;">$1</li>')
-          .replace(/(<li[\s\S]*?<\/li>)+/g, '<ul style="padding-left:18px;margin:8px 0;">$&</ul>')
-          .replace(/\n\n/g, '</p><p style="margin-bottom:10px;">')
-          .replace(/\n/g, '<br>');
+        const guideHtml = renderGuideHtml(guide).replace(/^<p[^>]*>/, '').replace(/<\/p>$/, '');
 
         return `<div style="border-bottom:1px solid var(--bd);padding:12px 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -10192,15 +10191,7 @@ async function generateDestDNA(pickerCtx) {
         }
       }
 
-      const _guideRaw = data.guide
-        .replace(/^# (.+)$/gm, '</p><h2 style="font-family:\'Montserrat\',sans-serif;font-weight:800;font-size:1.15rem;color:#2dd4bf;margin:22px 0 8px;">$1</h2><p style="margin-bottom:14px;">')
-        .replace(/^## (.+)$/gm, '</p><h3 style="font-family:\'Montserrat\',sans-serif;font-weight:700;font-size:0.95rem;color:#fff;text-transform:uppercase;letter-spacing:0.06em;margin:18px 0 6px;">$1</h3><p style="margin-bottom:14px;">')
-        .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-family:\'Montserrat\',sans-serif;">$1</strong>')
-        .replace(/^- (.+)$/gm, '<li style="margin-bottom:6px;">$1</li>')
-        .replace(/(<li[\s\S]*?<\/li>)+/g, '<ul style="padding-left:18px;margin:10px 0;">$&</ul>')
-        .replace(/\n\n/g, '</p><p style="margin-bottom:14px;">')
-        .replace(/\n/g, '<br>');
-      const guideHtml = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(_guideRaw) : _guideRaw;
+      const guideHtml = renderGuideHtml(data.guide).replace(/^<p[^>]*>/, '').replace(/<\/p>$/, '');
 
       // Build static map image
       let mapImg = '';
