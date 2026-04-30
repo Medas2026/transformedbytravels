@@ -333,6 +333,7 @@ const AUTH0_CLIENT_ID = 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd';
 let auth0Client       = null;
 let userEmail         = null;
 let portalProfile     = null;
+let partnerProfile    = null;
 let currentTripId     = null;
 let currentTripStart  = '';
 let currentTripEnd    = '';
@@ -418,6 +419,12 @@ async function loadSchedule() {
     const dnaData     = await dnaResp.json();
     const profileData = await profileResp.json();
     portalProfile = profileData.fields || profileData.record?.fields || null;
+    partnerProfile = null;
+    if (portalProfile?.['Partner Status'] === 'Linked' && portalProfile?.['Travel Partner Email']) {
+      fetch('/api/airtable-traveler?email=' + encodeURIComponent(portalProfile['Travel Partner Email']))
+        .then(r => r.json()).then(d => { partnerProfile = d.record?.fields || d.fields || null; })
+        .catch(() => {});
+    }
 
     const tf = tripData.fields || tripData.record?.fields || {};
     currentTripStart       = tf['Start Date'] || '';
@@ -1611,7 +1618,7 @@ async function generateAndLinkGuide() {
   const dayF    = (_dnaPickerIdx !== null && _scheduleRecords[_dnaPickerIdx]?.fields) || {};
   const country = dayF['Ending Country'] || dayF['Starting Country'] || currentTripCountry || '';
 
-  const params = '?destination='  + encodeURIComponent(destination)
+  let params = '?destination='  + encodeURIComponent(destination)
     + '&country='      + encodeURIComponent(country)
     + '&travelerName=' + encodeURIComponent(p['Traveler Name'] || '')
     + '&archetype='    + encodeURIComponent(p['Archetype'] || '')
@@ -1624,6 +1631,19 @@ async function generateAndLinkGuide() {
     + '&passions='     + encodeURIComponent(passions)
     + '&lifeStage='    + encodeURIComponent(p['Life Stage']   || '')
     + '&travelStyle='  + encodeURIComponent(p['Travel Style'] || '');
+
+  if (partnerProfile) {
+    const pp = partnerProfile;
+    const pPassions = (pp['Passions'] || '').split(',').map(s => s.trim()).filter(Boolean).join('|');
+    params += '&partnerName='       + encodeURIComponent(pp['Traveler Name'] || 'Partner')
+            + '&partnerArchetype='  + encodeURIComponent(pp['Archetype'] || '')
+            + '&partnerCuriosity='  + (pp['DS-1 Curiosity']  || 0)
+            + '&partnerAdventure='  + (pp['DS-2 Adventure']  || 0)
+            + '&partnerReflection=' + (pp['DS-3 Reflection'] || 0)
+            + '&partnerConnection=' + (pp['DS-4 Connection'] || 0)
+            + '&partnerIntention='  + (pp['DS-5 Intention']  || 0)
+            + '&partnerPassions='   + encodeURIComponent(pPassions);
+  }
 
   status.style.display = 'block';
   status.style.color   = 'var(--muted)';
