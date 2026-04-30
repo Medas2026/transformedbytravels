@@ -210,6 +210,40 @@ function sendMonthlyEmail(to, subject, html) {
   return sendEmail(to, subject, html);
 }
 
+function getTipNumber(dayNum, totalDays, tripId, isLastDay) {
+  if (!dayNum) return 1;
+  if (dayNum === 1) return 20;       // Set Your Intention — always Day 1
+  if (isLastDay)   return 15;        // The Return — always last day
+
+  // Seeded shuffle so each trip gets a unique but consistent tip sequence
+  let seed = 0;
+  for (let i = 0; i < (tripId || '').length; i++) {
+    seed = (seed * 31 + tripId.charCodeAt(i)) >>> 0;
+  }
+  function rand() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 0x100000000; }
+
+  // Shuffle the free tips (all except pinned 15, 20 and positioned 9, 10, 13, 24)
+  const free = [1,2,3,4,5,6,7,8,11,12,14,16,17,18,19,21,22,23];
+  for (let i = free.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [free[i], free[j]] = [free[j], free[i]];
+  }
+
+  // 22-slot sequence: positioned tips at natural points, gaps filled with shuffled free tips
+  const seq = new Array(22).fill(null);
+  seq[0]  = 9;   // What You're Carrying — Day 2 (home still loud)
+  seq[1]  = 24;  // Create a Ritual — Day 3 (days left to practice it)
+  seq[11] = 10;  // Gift of Perspective — mid-trip
+  seq[19] = 13;  // What Would You Change? — near the end
+  let fi = 0;
+  for (let i = 0; i < 22; i++) {
+    if (seq[i] === null) seq[i] = free[fi++];
+  }
+
+  const middleDayIdx = dayNum - 2; // 0-based index into middle days
+  return seq[middleDayIdx % 22];
+}
+
 async function getDailyTip(archetype, tipNum, location, country) {
   try {
     if (!archetype || !tipNum) return null;
@@ -493,15 +527,14 @@ module.exports = async function handler(req, res) {
           const tomorrowDate = new Date(localDate + 'T12:00:00');
           tomorrowDate.setDate(tomorrowDate.getDate() + 1);
           const weatherPlace = currentPlace !== tripName ? currentPlace : (destination || tripName);
-          const tipNum = dayNum ? ((dayNum - 1) % 19) + 1 : 1;
+          const isLastDay  = !!(endDate && localDate >= endDate);
+          const isFirstDay = dayNum === 1;
+          const tipNum = getTipNumber(dayNum, null, tripId, isLastDay);
           const [weather, lunar, tipText] = await Promise.all([
             getWeatherForecast(weatherPlace, country),
             Promise.resolve(getLunarPhase(tomorrowDate)),
             getDailyTip(archetype, tipNum, tomorrowPlace, country)
           ]);
-
-          const isLastDay  = endDate && localDate >= endDate;
-          const isFirstDay = dayNum === 1;
           const dayType    = isLastDay ? 'LAST' : isFirstDay ? 'FIRST' : 'MIDDLE';
           const dayLabel   = dayNum ? `Day ${dayNum}` : 'Today';
           const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(email)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}&daytype=${dayType}`;
