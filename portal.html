@@ -9337,7 +9337,6 @@ async function renderScheduleMap(includeHome) {
   const status = document.getElementById('schedule-map-status');
   wrap.style.display = 'block';
   status.textContent = '';
-  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // Build ordered list of unique locations from the day records
   const seen   = new Set();
