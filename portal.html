@@ -920,6 +920,12 @@
             </div>
             <div id="tm-partner-hint" style="display:none;font-size:0.78rem;color:var(--muted);margin-top:6px;line-height:1.5;"></div>
             <div id="tm-msg" style="display:none;font-size:0.8rem;margin-top:8px;"></div>
+            <!-- Compatibility Survey -->
+            <div id="survey-section" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.07);">
+              <div id="survey-owner-controls"></div>
+              <div id="survey-pending-banner"></div>
+              <div id="survey-results-area"></div>
+            </div>
           </div>
 
           <!-- Box 3: Trip Schedule -->
@@ -2321,6 +2327,39 @@
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button onclick="downloadTripCalendarDirect()" style="flex:1;padding:11px 16px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;cursor:pointer;">⬇ Download for Me</button>
         <button id="calendar-send-btn" onclick="sendCalendarToMembers()" style="flex:1;padding:11px 16px;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:none;border-radius:8px;cursor:pointer;">Send Selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compatibility Question Picker Modal -->
+  <div id="survey-picker-modal" style="display:none;position:fixed;inset:0;z-index:1010;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;">
+    <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;padding:28px;max-width:520px;width:100%;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,0.7);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;">📋 Compatibility Survey Setup</div>
+        <button onclick="closeSurveyPicker()" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <p style="font-size:0.83rem;color:var(--muted);margin:0 0 18px;line-height:1.6;">Choose which questions your group will answer. Select the ones most relevant to this trip.</p>
+      <div id="survey-picker-questions" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button onclick="saveQuestionSelection()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:10px 22px;cursor:pointer;">Save Questions</button>
+        <button onclick="closeSurveyPicker()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;border-radius:8px;padding:10px 22px;cursor:pointer;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compatibility Survey Answer Modal -->
+  <div id="survey-form-modal" style="display:none;position:fixed;inset:0;z-index:1010;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;">
+    <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;padding:28px;max-width:520px;width:100%;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,0.7);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;">✈ Travel Compatibility Survey</div>
+        <button onclick="closeSurveyForm()" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <p style="font-size:0.83rem;color:var(--muted);margin:0 0 20px;line-height:1.6;">Your answers stay private until all travelers complete the survey.</p>
+      <div id="survey-form-questions" style="display:flex;flex-direction:column;gap:18px;margin-bottom:16px;"></div>
+      <div id="survey-form-msg" style="display:none;font-size:0.82rem;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button onclick="saveSurveyAnswers()" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:10px 22px;cursor:pointer;">Submit My Answers</button>
+        <button onclick="closeSurveyForm()" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.88rem;border-radius:8px;padding:10px 22px;cursor:pointer;">Cancel</button>
       </div>
     </div>
   </div>
@@ -4941,6 +4980,8 @@ let tripsLoaded        = false;
 let _returnToHistory   = false;
 let _isHistoryTrip     = false;
 let _tripReadOnly      = false;
+let _tripIsOwner       = false;
+let _surveyData        = null;
 let _tripMembersData   = []; // accepted members for the current trip
 const _tripRecordsMap  = {}; // id → record, avoids JSON-in-HTML apostrophe bug
 
@@ -5612,6 +5653,8 @@ function openTrip(record) {
   const _editRoles = ['Partner', 'Trip Planner'];
   const memberRole = record._memberRole || null;
   _tripReadOnly = record._shared && !_editRoles.includes(memberRole);
+  _tripIsOwner  = !record._shared;
+  _surveyData   = null;
   const roleBadge = document.getElementById('trip-role-badge');
   if (record._shared && memberRole) {
     roleBadge.textContent = _tripReadOnly ? memberRole + ' · View Only' : memberRole + ' · Can Edit';
@@ -7239,6 +7282,7 @@ async function loadTripMembers(tripId) {
     _tripMembersData = records.filter(r => r.fields['Status'] === 'Accepted');
     if (!records.length) {
       list.innerHTML = '<div style="font-size:0.8rem;color:var(--muted);">No members yet.</div>';
+      loadCompatibilitySurvey(tripId);
       return;
     }
     list.innerHTML = records.map(r => {
@@ -7257,6 +7301,7 @@ async function loadTripMembers(tripId) {
         <button onclick="removeTripMember('${r.id}')" style="background:none;border:1px solid rgba(244,63,94,0.4);color:#f43f5e;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;">Remove</button>
       </div>`;
     }).join('');
+    loadCompatibilitySurvey(tripId);
   } catch(e) {
     list.innerHTML = '<div style="font-size:0.8rem;color:#ef4444;">Error loading members.</div>';
   }
@@ -7398,6 +7443,243 @@ async function resendTripInvite(id, email) {
     console.error('[resend invite]', e.message);
   }
 }
+
+// ── Compatibility Survey ─────────────────────────────────────────────────────
+
+async function loadCompatibilitySurvey(tripId) {
+  const surveySection = document.getElementById('survey-section');
+  if (!surveySection || !tripId) return;
+
+  // Need at least one accepted member to make a survey meaningful
+  const hasAcceptedMembers = _tripMembersData.length > 0;
+  if (!hasAcceptedMembers) {
+    surveySection.style.display = 'none';
+    return;
+  }
+
+  try {
+    const resp = await fetch(`/api/compatibility?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(userEmail)}`);
+    const data = await resp.json();
+    _surveyData = data;
+
+    const { selectedIds, members, myAnswers } = data;
+    const hasSelectedQuestions = selectedIds && selectedIds.length > 0;
+
+    if (!hasSelectedQuestions && !_tripIsOwner) {
+      surveySection.style.display = 'none';
+      return;
+    }
+    surveySection.style.display = 'block';
+
+    // Owner controls
+    const ownerControls = document.getElementById('survey-owner-controls');
+    ownerControls.innerHTML = '';
+    if (_tripIsOwner) {
+      if (!hasSelectedQuestions) {
+        ownerControls.innerHTML = `<button onclick="openQuestionPicker()" style="display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 16px;cursor:pointer;margin-bottom:4px;">📋 Enable Compatibility Survey</button>`;
+      } else {
+        ownerControls.innerHTML = `<button onclick="openQuestionPicker()" style="display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid rgba(255,255,255,0.12);color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.78rem;border-radius:6px;padding:5px 12px;cursor:pointer;margin-bottom:8px;">✎ Edit Survey Questions (${selectedIds.length} selected)</button>`;
+      }
+    }
+
+    if (!hasSelectedQuestions) return;
+
+    // Pending banner for current user
+    const pendingBanner = document.getElementById('survey-pending-banner');
+    const myAnsweredCount = myAnswers ? Object.keys(myAnswers).length : 0;
+    const iHaveAnswered = myAnsweredCount >= selectedIds.length;
+    if (!iHaveAnswered) {
+      pendingBanner.innerHTML = `<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:10px 14px;margin-top:4px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-size:0.82rem;color:#fbbf24;">⚠ Your compatibility survey is pending</span>
+        <button onclick="openSurveyForm()" style="background:#fbbf24;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;white-space:nowrap;">Take Survey →</button>
+      </div>`;
+    } else {
+      pendingBanner.innerHTML = '';
+    }
+
+    // Results — 2+ people fully answered
+    const answeredMembers = members.filter(m => selectedIds.every(id => m.answers[id] !== undefined));
+    const resultsArea = document.getElementById('survey-results-area');
+    if (answeredMembers.length >= 2) {
+      resultsArea.style.display = 'block';
+      renderCompatibilityResults(data, answeredMembers);
+    } else if (iHaveAnswered) {
+      resultsArea.style.display = 'block';
+      const waitingCount = (hasAcceptedMembers ? _tripMembersData.length : 0) + (members.find(m => m.email === userEmail.toLowerCase()) ? 0 : 1) - answeredMembers.length;
+      resultsArea.innerHTML = `<div style="font-size:0.82rem;color:var(--muted);margin-top:10px;font-style:italic;">Waiting for ${waitingCount > 0 ? waitingCount + ' other traveler' + (waitingCount > 1 ? 's' : '') : 'other travelers'} to complete the survey…</div>`;
+    } else {
+      resultsArea.style.display = 'none';
+    }
+  } catch(e) {
+    console.error('[compatibility survey]', e.message);
+  }
+}
+
+function openQuestionPicker() {
+  if (!_surveyData) return;
+  const modal     = document.getElementById('survey-picker-modal');
+  const container = document.getElementById('survey-picker-questions');
+  const { questions, selectedIds } = _surveyData;
+  container.innerHTML = questions.map(q => `
+    <label style="display:flex;align-items:flex-start;gap:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;cursor:pointer;">
+      <input type="checkbox" value="${q.id}" ${(selectedIds||[]).includes(q.id) ? 'checked' : ''} style="accent-color:var(--teal);margin-top:2px;flex-shrink:0;width:15px;height:15px;">
+      <span style="font-size:0.85rem;color:var(--text);line-height:1.5;">${q.text}</span>
+    </label>`).join('');
+  modal.style.display = 'flex';
+}
+
+function closeSurveyPicker() {
+  document.getElementById('survey-picker-modal').style.display = 'none';
+}
+
+async function saveQuestionSelection() {
+  const checkboxes  = document.querySelectorAll('#survey-picker-questions input[type=checkbox]');
+  const questionIds = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+  try {
+    const resp = await fetch('/api/compatibility?action=save-questions', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ tripId: currentTripId, questionIds })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      closeSurveyPicker();
+      loadCompatibilitySurvey(currentTripId);
+    }
+  } catch(e) {
+    console.error('[save survey questions]', e.message);
+  }
+}
+
+function openSurveyForm() {
+  if (!_surveyData) return;
+  const modal     = document.getElementById('survey-form-modal');
+  const container = document.getElementById('survey-form-questions');
+  const { questions, selectedIds, myAnswers } = _surveyData;
+  const selected  = questions.filter(q => (selectedIds || []).includes(q.id));
+  container.innerHTML = selected.map(q => `
+    <div>
+      <div style="font-size:0.85rem;color:var(--text);margin-bottom:8px;font-weight:600;line-height:1.4;">${q.text}</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        ${q.options.map(opt => `
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:7px 11px;border-radius:7px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);">
+            <input type="radio" name="sq-${q.id}" value="${opt.replace(/"/g,'&quot;')}" ${(myAnswers||{})[q.id] === opt ? 'checked' : ''} style="accent-color:var(--teal);flex-shrink:0;">
+            <span style="font-size:0.82rem;color:var(--text);">${opt}</span>
+          </label>`).join('')}
+      </div>
+    </div>`).join('');
+  document.getElementById('survey-form-msg').style.display = 'none';
+  modal.style.display = 'flex';
+}
+
+function closeSurveyForm() {
+  document.getElementById('survey-form-modal').style.display = 'none';
+}
+
+async function saveSurveyAnswers() {
+  const { questions, selectedIds } = _surveyData || {};
+  const selected = (questions || []).filter(q => (selectedIds || []).includes(q.id));
+  const answers  = {};
+  let allAnswered = true;
+  for (const q of selected) {
+    const radio = document.querySelector(`input[name="sq-${q.id}"]:checked`);
+    if (!radio) { allAnswered = false; break; }
+    answers[q.id] = radio.value;
+  }
+  const msgEl = document.getElementById('survey-form-msg');
+  if (!allAnswered) {
+    msgEl.textContent = 'Please answer all questions before submitting.';
+    msgEl.style.color = '#ef4444';
+    msgEl.style.display = 'block';
+    return;
+  }
+  try {
+    const resp = await fetch('/api/compatibility?action=save-answers', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ tripId: currentTripId, email: userEmail, answers })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      closeSurveyForm();
+      loadCompatibilitySurvey(currentTripId);
+    } else {
+      msgEl.textContent = 'Error: ' + (data.error || 'Could not save answers.');
+      msgEl.style.color = '#ef4444';
+      msgEl.style.display = 'block';
+    }
+  } catch(e) {
+    msgEl.textContent = 'Error: ' + e.message;
+    msgEl.style.color = '#ef4444';
+    msgEl.style.display = 'block';
+  }
+}
+
+function renderCompatibilityResults(data, answeredMembers) {
+  const { questions, selectedIds } = data;
+  const resultsArea = document.getElementById('survey-results-area');
+
+  const pairs = [];
+  for (let i = 0; i < answeredMembers.length; i++) {
+    for (let j = i + 1; j < answeredMembers.length; j++) {
+      const a = answeredMembers[i];
+      const b = answeredMembers[j];
+      let total = 0;
+      const details = [];
+      for (const qid of selectedIds) {
+        const q = questions.find(q => q.id === qid);
+        if (!q) continue;
+        const aIdx = q.options.indexOf(a.answers[qid]);
+        const bIdx = q.options.indexOf(b.answers[qid]);
+        if (aIdx === -1 || bIdx === -1) continue;
+        const diff  = Math.abs(aIdx - bIdx);
+        const score = diff === 0 ? 1 : diff === 1 ? 0.5 : 0;
+        total += score;
+        details.push({ q, aAnswer: a.answers[qid], bAnswer: b.answers[qid], score, same: diff === 0 });
+      }
+      const avg = details.length > 0 ? total / details.length : 0;
+      pairs.push({ a, b, avg, details });
+    }
+  }
+
+  const pairsHtml = pairs.map(pair => {
+    const pct   = Math.round(pair.avg * 100);
+    const color = pct >= 70 ? '#4ade80' : pct >= 40 ? '#fbbf24' : '#f87171';
+    const label = pct >= 70 ? 'Great match' : pct >= 40 ? 'Some differences' : 'Significant differences';
+    const emailA = pair.a.email.split('@')[0];
+    const emailB = pair.b.email.split('@')[0];
+    return `
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 16px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+          <div style="font-size:0.82rem;color:var(--soft);">${emailA} × ${emailB}</div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+            <div style="width:9px;height:9px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+            <div style="font-family:'Montserrat',sans-serif;font-size:0.8rem;font-weight:700;color:${color};">${pct}% — ${label}</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          ${pair.details.map(d => {
+            const dc = d.score === 1 ? '#4ade80' : d.score === 0.5 ? '#fbbf24' : '#f87171';
+            const labelA = `<span style="font-size:0.77rem;color:var(--soft);">${d.aAnswer}</span>`;
+            const labelB = `<span style="font-size:0.77rem;color:var(--soft);text-align:right;">${d.bAnswer}</span>`;
+            return `<div style="display:grid;grid-template-columns:1fr 14px 1fr;gap:6px;align-items:center;">
+              ${labelA}
+              <div style="text-align:center;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${dc};"></span></div>
+              ${labelB}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  resultsArea.innerHTML = `
+    <div style="margin-top:14px;">
+      <div style="font-family:'Montserrat',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--teal);margin-bottom:10px;">Compatibility Results</div>
+      ${pairsHtml}
+    </div>`;
+}
+
+// ── End Compatibility Survey ─────────────────────────────────────────────────
 
 async function _handleAcceptTripInvite() {
   const token = sessionStorage.getItem('acceptTripToken');

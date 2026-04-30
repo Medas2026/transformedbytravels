@@ -37,6 +37,7 @@
     "api/trip-members.js": { "maxDuration": 30 },
     "api/parse-email.js":  { "maxDuration": 30 },
     "api/itinerary.js":    { "maxDuration": 60 },
+    "api/compatibility.js": { "maxDuration": 20 },
     "api/ics.js":          { "maxDuration": 20 },
     "api/blog.js":         { "maxDuration": 15 },
     "api/blog-post.js":    { "maxDuration": 15 }
