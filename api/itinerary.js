@@ -142,7 +142,8 @@ module.exports = async function handler(req, res) {
     }).filter(Boolean);
 
     let lodgingParagraph = '';
-    let lodgingName = '';
+    let lodgingName      = '';
+    let lodgingImageUrl  = '';
     if (lodgingRec) {
       const lf = lodgingRec;
       lodgingName = lf['Name'] || '';
@@ -156,19 +157,21 @@ module.exports = async function handler(req, res) {
         if (lf['Description']) parts.push(lf['Description']);
         if (lf['Amenities'])   parts.push('Amenities include: ' + lf['Amenities'] + '.');
         lodgingParagraph = parts.join(' ');
+        lodgingImageUrl  = lf['Image URL'] || '';
       }
     }
 
     return {
-      dayNum:       d['Day Number'] || 0,
-      date:         dateRaw,
+      dayNum:         d['Day Number'] || 0,
+      date:           dateRaw,
       dateLabel,
-      startLoc:     d['Starting Location'] || '',
-      endLoc:       d['Ending Location']   || '',
-      lodging:      lodgingParagraph,
+      startLoc:       d['Starting Location'] || '',
+      endLoc:         d['Ending Location']   || '',
+      lodging:        lodgingParagraph,
       lodgingName,
-      slotLabels:   slots.map(slotLabel).filter(Boolean),
-      reservations: reservationsByDate[dateRaw] || []
+      lodgingImageUrl,
+      slotLabels:     slots.map(slotLabel).filter(Boolean),
+      reservations:   reservationsByDate[dateRaw] || []
     };
   });
 
