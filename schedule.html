@@ -1615,6 +1615,7 @@ function toggleDnaGenerate() {
     const destInput = document.getElementById('dna-gen-dest');
     destInput.value = dayF['Ending Location'] || dayF['Starting Location'] || currentTripDestination;
     document.getElementById('dna-gen-status').style.display = 'none';
+    document.getElementById('dna-gen-btn').disabled = false;
   }
 }
 
