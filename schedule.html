@@ -248,13 +248,13 @@
       <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;">
         <div>
           <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Check-in Date</div>
-          <input id="lm-checkin" type="date" onchange="updateLodgingNights()"
+          <input id="lm-checkin" type="date" onchange="updateLodgingNights();onLodgingTypeChange();"
             style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
         </div>
         <div id="lm-nights" style="text-align:center;padding-bottom:10px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;white-space:nowrap;"></div>
         <div>
           <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Check-out Date</div>
-          <input id="lm-checkout" type="date" onchange="updateLodgingNights()"
+          <input id="lm-checkout" type="date" onchange="updateLodgingNights();onLodgingTypeChange();"
             style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
         </div>
       </div>
@@ -1777,11 +1777,17 @@ function onLodgingTypeChange() {
   if (searchLink && searchTypes.includes(type)) {
     const location = (document.getElementById('lm-location').value || currentTripDestination || '').trim();
     const encoded  = encodeURIComponent(location);
+    const checkIn  = document.getElementById('lm-checkin').value  || '';
+    const checkOut = document.getElementById('lm-checkout').value || '';
     if (type === 'AirBnb') {
-      searchLink.href = 'https://www.airbnb.com/s/' + encoded + '/homes';
+      let url = 'https://www.airbnb.com/s/' + encoded + '/homes';
+      if (checkIn && checkOut) url += '?checkin=' + checkIn + '&checkout=' + checkOut;
+      searchLink.href = url;
       searchLink.textContent = 'Search on Airbnb →';
     } else {
-      searchLink.href = 'https://www.vrbo.com/search/keywords:' + encoded;
+      let url = 'https://www.vrbo.com/search/keywords:' + encoded;
+      if (checkIn && checkOut) url += '?arrival=' + checkIn + '&departure=' + checkOut;
+      searchLink.href = url;
       searchLink.textContent = 'Search on VRBO →';
     }
   }
