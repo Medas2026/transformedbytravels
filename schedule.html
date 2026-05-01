@@ -1555,6 +1555,16 @@ function openDnaPicker(idx) {
   const linked   = f['DNA Guide ID'] || '';
   unlinkBtn.style.display = linked ? 'inline-block' : 'none';
 
+  // Always reset the generate area so a new day always gets fresh destination
+  const genArea = document.getElementById('dna-gen-area');
+  if (genArea) genArea.style.display = 'none';
+  const genToggleBtn = document.getElementById('dna-gen-toggle-btn');
+  if (genToggleBtn) genToggleBtn.textContent = '✦ Generate New Guide';
+  const genBtn = document.getElementById('dna-gen-btn');
+  if (genBtn) genBtn.disabled = false;
+  const genStatus = document.getElementById('dna-gen-status');
+  if (genStatus) genStatus.style.display = 'none';
+
   if (!_dnaGuideRecords.length) {
     list.innerHTML = '<div style="font-size:0.83rem;color:var(--muted);padding:8px 0;">No saved DNA Guides found. Generate one from the DNA Guide page first.</div>';
   } else {
