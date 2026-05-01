@@ -1213,16 +1213,48 @@ async function _smPassionPick(n, passion) {
     loading.style.display='none';
     const acts = data.items||data.activities||[];
     if (!acts.length) { list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">No activities found.</div>'; return; }
-    list.innerHTML = acts.map(a => `<button data-name="${(a.name||'').replace(/"/g,'&quot;')}" data-desc="${(a.detail||a.highlights||a.description||'').replace(/"/g,'&quot;')}" data-passion="${passion.replace(/"/g,'&quot;')}" style="text-align:left;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--text);width:100%;"><div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${a.name||''}</div>${(a.highlights||a.description||'')?`<div style="font-size:0.82rem;color:var(--muted);margin-top:3px;line-height:1.5;">${(a.highlights||a.description||'').slice(0,100)}…</div>`:''}</button>`).join('');
-    list.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => _smActivitySelect(n, btn)));
+    const pas = passion.replace(/"/g,'&quot;');
+    list.innerHTML = acts.map(a => {
+      const nm  = (a.name||'').replace(/"/g,'&quot;');
+      const hl  = a.highlights||a.description||'';
+      const det = (a.detail||hl||'').replace(/"/g,'&quot;');
+      return `<div class="sm-act-card" onclick="_smActCardClick(event,${n},this)"
+        style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${a.name||''}</div>
+        ${hl?`<div class="sm-act-hl" style="font-size:0.82rem;color:var(--muted);margin-top:3px;line-height:1.5;">${hl.slice(0,110)}${hl.length>110?'…':''}</div>`:''}
+        <div class="sm-act-det" data-name="${nm}" data-desc="${det}" data-passion="${pas}"
+          style="display:none;font-size:0.82rem;color:#94a3b8;margin-top:8px;line-height:1.6;">${a.detail||hl||''}</div>
+        <button class="sm-act-sel" style="display:none;margin-top:10px;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:6px;padding:7px 14px;cursor:pointer;width:100%;">✓ Select this activity</button>
+      </div>`;
+    }).join('');
     requestAnimationFrame(()=>list.scrollIntoView({behavior:'smooth',block:'nearest'}));
   } catch(e) {
     loading.style.display='none'; list.innerHTML='<div style="font-size:0.82rem;color:#f43f5e;">Error loading activities.</div>';
   }
 }
 
-function _smActivitySelect(n, btn) {
-  const name = btn.dataset.name||'', description = btn.dataset.desc||'', passion = btn.dataset.passion||'';
+function _smActCardClick(e, n, card) {
+  if (e.target.classList.contains('sm-act-sel')) {
+    const det = card.querySelector('.sm-act-det');
+    _smActivitySelect(n, det.dataset.name||'', det.dataset.desc||'', det.dataset.passion||'');
+    return;
+  }
+  const list = card.closest('[id$="-act-list"]');
+  const isExpanded = card.querySelector('.sm-act-det').style.display !== 'none';
+  list.querySelectorAll('.sm-act-card').forEach(c => {
+    c.querySelector('.sm-act-det').style.display = 'none';
+    c.querySelector('.sm-act-sel').style.display = 'none';
+    c.style.borderColor = 'rgba(255,255,255,0.1)';
+  });
+  if (!isExpanded) {
+    card.querySelector('.sm-act-det').style.display = 'block';
+    card.querySelector('.sm-act-sel').style.display = 'block';
+    card.style.borderColor = 'rgba(45,212,191,0.4)';
+    requestAnimationFrame(()=>card.scrollIntoView({behavior:'smooth',block:'nearest'}));
+  }
+}
+
+function _smActivitySelect(n, name, description, passion) {
   _smSelectedActivity[n] = { name, description, passion };
   const nameEl = document.getElementById('sm-s'+n+'-name');
   if (nameEl) { nameEl.value=name; nameEl.dataset.userEdited='true'; }
