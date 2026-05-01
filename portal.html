@@ -5687,6 +5687,7 @@ function openTrip(record) {
   _scheduleRecords = [];
   _lodgingRecords  = [];
   _lodgingMap      = {};
+  if (_scheduleMap) { _scheduleMap.remove(); _scheduleMap = null; }
   const f = record.fields;
 
   // Determine access level
@@ -8353,16 +8354,20 @@ async function saveTrip() {
       currentTripStatus = payload['Status of Trip'] || currentTripStatus;
       msg.style.display = 'none';
       renderTripMap();
-      // For new trips with dates, offer itinerary creation
       const isNew = !payload.id;
-      if (isNew && payload.startDate && payload.endDate && !_isHistoryTrip) {
-        const start = new Date(payload.startDate + 'T00:00:00Z');
-        const end   = new Date(payload.endDate   + 'T00:00:00Z');
-        const days  = Math.round((end - start) / 86400000) + 1;
-        document.getElementById('create-itinerary-days').textContent = days + ' day' + (days !== 1 ? 's' : '') + ' · ' + payload.startDate + ' – ' + payload.endDate;
-        document.getElementById('create-itinerary-status').style.display = 'none';
-        document.getElementById('create-itinerary-btns').style.display = 'flex';
-        document.getElementById('create-itinerary-modal').style.display = 'flex';
+      if (isNew) {
+        // Open the trip detail the same way as clicking an existing trip
+        openTrip(data.record);
+        // If dates are set, offer itinerary creation as an overlay
+        if (payload.startDate && payload.endDate && !_isHistoryTrip) {
+          const start = new Date(payload.startDate + 'T00:00:00Z');
+          const end   = new Date(payload.endDate   + 'T00:00:00Z');
+          const days  = Math.round((end - start) / 86400000) + 1;
+          document.getElementById('create-itinerary-days').textContent = days + ' day' + (days !== 1 ? 's' : '') + ' · ' + payload.startDate + ' – ' + payload.endDate;
+          document.getElementById('create-itinerary-status').style.display = 'none';
+          document.getElementById('create-itinerary-btns').style.display = 'flex';
+          document.getElementById('create-itinerary-modal').style.display = 'flex';
+        }
       } else {
         document.getElementById('trip-saved-modal').style.display = 'flex';
       }
@@ -9815,6 +9820,9 @@ async function renderScheduleMap(includeHome) {
     }
   }
 
+  // Clear any stale map immediately before async work begins
+  if (_scheduleMap) { _scheduleMap.remove(); _scheduleMap = null; }
+
   // For any points without coords, geocode via API
   const needsGeocode = points.filter(p => p.lat == null);
   if (needsGeocode.length) {
@@ -9850,8 +9858,6 @@ async function renderScheduleMap(includeHome) {
       window._mapboxToken = d.token || '';
     } catch(e) { status.textContent = 'Could not load map.'; return; }
   }
-
-  if (_scheduleMap) { _scheduleMap.remove(); _scheduleMap = null; }
 
   mapboxgl.accessToken = window._mapboxToken;
   _scheduleMap = new mapboxgl.Map({
@@ -9931,7 +9937,6 @@ async function renderScheduleMap(includeHome) {
 // ═══════════════════════════════════════════════
 function skipItineraryCreate() {
   document.getElementById('create-itinerary-modal').style.display = 'none';
-  document.getElementById('trip-saved-modal').style.display = 'flex';
 }
 
 async function doCreateItinerary() {

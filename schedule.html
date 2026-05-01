@@ -137,6 +137,7 @@
   <div class="section-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="section-title" style="margin-bottom:0;">Day-by-Day Schedule</div>
+      <button onclick="openDraftRouteModal()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;border-radius:8px;padding:5px 12px;cursor:pointer;">✦ Draft Route</button>
     </div>
     <div id="trip-schedule-status" style="display:none;font-size:0.85rem;margin-bottom:10px;"></div>
     <div id="trip-schedule-list" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -161,6 +162,29 @@
     <div style="display:flex;gap:10px;">
       <button id="confirm-modal-cancel" style="flex:1;padding:11px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Cancel</button>
       <button id="confirm-modal-ok" style="flex:1;padding:11px;border:none;border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Draft Route Modal -->
+<div id="draft-route-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0f172a;border:1px solid rgba(45,212,191,0.3);border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,0.7);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1rem;color:#fff;">✦ Draft Route</div>
+      <button onclick="closeDraftRouteModal()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1;">×</button>
+    </div>
+    <div style="padding:16px 24px 24px;display:flex;flex-direction:column;gap:14px;">
+      <div style="color:var(--soft);font-size:0.85rem;line-height:1.6;">Claude will suggest locations for any days that don't have destinations yet. Days you've already filled in won't be changed.</div>
+      <div style="background:rgba(45,212,191,0.07);border:1px solid rgba(45,212,191,0.2);border-radius:8px;padding:10px 12px;font-size:0.82rem;color:var(--soft);line-height:1.55;">Tip: Set your arrival on Day 1 and departure on your last day first — Claude will use those as anchors for the route.</div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;">Any preferences? (optional)</div>
+        <textarea id="draft-route-instructions" rows="3" placeholder="e.g. Focus on the south coast, avoid big cities, include a glacier day…" style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--text);font-size:0.88rem;resize:vertical;box-sizing:border-box;font-family:'Open Sans',sans-serif;"></textarea>
+      </div>
+      <div id="draft-route-status" style="display:none;font-size:0.84rem;color:var(--teal);"></div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="closeDraftRouteModal()" style="flex:1;padding:11px;background:none;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;">Cancel</button>
+        <button id="draft-route-btn" onclick="draftRoute()" style="flex:2;padding:11px;background:var(--teal);border:none;border-radius:10px;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.88rem;cursor:pointer;">Generate Draft</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1712,6 +1736,117 @@ function showConfirm(icon, title, msg, okLabel, okColor, callback) {
   okBtn.onclick = () => { document.getElementById('confirm-modal').style.display='none'; if(_confirmCallback){_confirmCallback();_confirmCallback=null;} };
   _confirmCallback = callback;
   document.getElementById('confirm-modal').style.display='flex';
+}
+
+// ── Draft Route ──────────────────────────────────────────────────────────────
+function openDraftRouteModal() {
+  document.getElementById('draft-route-instructions').value = '';
+  document.getElementById('draft-route-status').style.display = 'none';
+  document.getElementById('draft-route-btn').disabled = false;
+  document.getElementById('draft-route-btn').textContent = 'Generate Draft';
+  document.getElementById('draft-route-modal').style.display = 'flex';
+}
+
+function closeDraftRouteModal() {
+  document.getElementById('draft-route-modal').style.display = 'none';
+}
+
+async function draftRoute() {
+  const btn    = document.getElementById('draft-route-btn');
+  const status = document.getElementById('draft-route-status');
+  const instructions = document.getElementById('draft-route-instructions').value.trim();
+
+  const emptyDays = _scheduleRecords.filter(r =>
+    !r.fields['Starting Location'] && !r.fields['Ending Location']
+  );
+  if (!emptyDays.length) {
+    status.style.display = 'block';
+    status.style.color   = '#f59e0b';
+    status.textContent   = 'All days already have locations — nothing to fill in.';
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Generating…';
+  status.style.display  = 'block';
+  status.style.color    = 'var(--teal)';
+  status.textContent    = `Asking Claude to suggest locations for ${emptyDays.length} day${emptyDays.length !== 1 ? 's' : ''}…`;
+
+  const passions = (portalProfile && portalProfile['Passions'])
+    ? portalProfile['Passions'].split(',').map(s => s.trim()).filter(Boolean).join(', ')
+    : '';
+
+  const totalDays = _scheduleTripDays();
+
+  const dayPayload = _scheduleRecords.map(r => ({
+    dayNum:           r.fields['Day Number'],
+    startingLocation: r.fields['Starting Location'] || '',
+    endingLocation:   r.fields['Ending Location']   || ''
+  }));
+
+  try {
+    const resp = await fetch('/api/draft-schedule', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        destination: currentTripDestination,
+        country:     currentTripCountry,
+        totalDays,
+        days:        dayPayload,
+        passions,
+        instructions
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.error) throw new Error(data.error || 'Draft failed');
+
+    const suggestions = data.suggestions || [];
+    if (!suggestions.length) {
+      status.textContent = 'Claude returned no suggestions. Try again.';
+      btn.disabled = false; btn.textContent = 'Generate Draft';
+      return;
+    }
+
+    // Apply suggestions to _scheduleRecords in memory and save to Airtable
+    let saved = 0;
+    for (const s of suggestions) {
+      const rec = _scheduleRecords.find(r => r.fields['Day Number'] === s.dayNum);
+      if (!rec || rec.fields['Starting Location'] || rec.fields['Ending Location']) continue;
+      rec.fields['Starting Location'] = s.startingLocation || '';
+      rec.fields['Starting Country']  = s.startingCountry  || currentTripCountry;
+      rec.fields['Ending Location']   = s.endingLocation   || '';
+      rec.fields['Ending Country']    = s.endingCountry    || currentTripCountry;
+      try {
+        await fetch('/api/trip-days', {
+          method:  'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: rec.id,
+            'Starting Location': rec.fields['Starting Location'],
+            'Starting Country':  rec.fields['Starting Country'],
+            'Ending Location':   rec.fields['Ending Location'],
+            'Ending Country':    rec.fields['Ending Country']
+          })
+        });
+        saved++;
+      } catch(e) { /* non-fatal — in-memory already updated */ }
+    }
+
+    closeDraftRouteModal();
+    renderScheduleList();
+    const schedStatus = document.getElementById('trip-schedule-status');
+    if (schedStatus) {
+      schedStatus.style.display = 'block';
+      schedStatus.style.color   = 'var(--teal)';
+      schedStatus.textContent   = `Route draft applied to ${saved} day${saved !== 1 ? 's' : ''}. Review and adjust as needed.`;
+      setTimeout(() => { schedStatus.style.display = 'none'; }, 5000);
+    }
+  } catch(e) {
+    status.style.color  = '#f43f5e';
+    status.textContent  = 'Error: ' + e.message;
+    btn.disabled = false;
+    btn.textContent = 'Generate Draft';
+  }
 }
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
