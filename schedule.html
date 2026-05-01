@@ -211,7 +211,7 @@
         </div>
         <div>
           <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">Type</div>
-          <select id="lm-type" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;">
+          <select id="lm-type" onchange="onLodgingTypeChange()" style="background:var(--s2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;">
             <option value="">— Select —</option>
             <option value="Hotel">Hotel</option>
             <option value="Lodge">Lodge</option>
@@ -221,6 +221,11 @@
             <option value="Other">Other</option>
           </select>
         </div>
+      </div>
+      <div id="lm-suggest-row" style="display:none;">
+        <button onclick="suggestLodging()" id="lm-suggest-btn" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border-radius:8px;padding:6px 14px;cursor:pointer;width:100%;">✦ Suggest options for this location</button>
+        <div id="lm-suggest-results" style="display:none;margin-top:8px;display:none;flex-direction:column;gap:6px;"></div>
+        <div id="lm-suggest-status" style="display:none;font-size:0.8rem;color:var(--muted);margin-top:6px;"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
         <div>
@@ -1406,7 +1411,11 @@ function showLodgingForm(existing, dayFields) {
   const f=existing?existing.fields:{};
   document.getElementById('lm-name').value=f['Name']||'';
   document.getElementById('lm-type').value=f['Type']||'';
-  document.getElementById('lm-location').value=f['Location']||'';
+  document.getElementById('lm-location').value=f['Location']||(existing?'':(dayFields['Ending Location']||dayFields['Starting Location']||''));
+  document.getElementById('lm-suggest-row').style.display='none';
+  document.getElementById('lm-suggest-results').style.display='none';
+  document.getElementById('lm-suggest-status').style.display='none';
+  onLodgingTypeChange();
   const ciVal=f['Check-in Date']||(dayFields&&dayFields['Date'])||'';
   document.getElementById('lm-checkin').value=ciVal;
   let coVal=f['Check-out Date']||'';
@@ -1746,6 +1755,65 @@ function showConfirm(icon, title, msg, okLabel, okColor, callback) {
   okBtn.onclick = () => { document.getElementById('confirm-modal').style.display='none'; if(_confirmCallback){_confirmCallback();_confirmCallback=null;} };
   _confirmCallback = callback;
   document.getElementById('confirm-modal').style.display='flex';
+}
+
+// ── Lodging AI Suggest ───────────────────────────────────────────────────────
+function onLodgingTypeChange() {
+  const type = document.getElementById('lm-type').value;
+  const aiTypes = ['Hotel', 'Lodge', 'Glamping'];
+  const row = document.getElementById('lm-suggest-row');
+  if (row) row.style.display = aiTypes.includes(type) ? 'block' : 'none';
+}
+
+async function suggestLodging() {
+  const btn    = document.getElementById('lm-suggest-btn');
+  const status = document.getElementById('lm-suggest-status');
+  const results = document.getElementById('lm-suggest-results');
+  const location = document.getElementById('lm-location').value.trim() || currentTripDestination;
+  const type     = document.getElementById('lm-type').value;
+  const country  = currentTripCountry;
+  const passions = (portalProfile && portalProfile['Passions'])
+    ? portalProfile['Passions'].split(',').map(s => s.trim()).filter(Boolean).join(', ')
+    : '';
+
+  btn.disabled = true;
+  btn.textContent = 'Asking Claude…';
+  status.style.display = 'block';
+  status.textContent = '';
+  results.style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/suggest-lodging', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ location, country, type, passions })
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.error) throw new Error(data.error || 'Suggestion failed');
+
+    const suggestions = data.suggestions || [];
+    if (!suggestions.length) { status.textContent = 'No suggestions found. Try updating the location field first.'; btn.disabled = false; btn.textContent = '✦ Suggest options for this location'; return; }
+
+    results.style.display = 'flex';
+    results.innerHTML = suggestions.map(s =>
+      `<div onclick="pickLodgingSuggestion(${JSON.stringify(s).replace(/"/g,'&quot;')})"
+        style="cursor:pointer;background:rgba(45,212,191,0.06);border:1px solid rgba(45,212,191,0.2);border-radius:8px;padding:10px 12px;"
+        onmouseover="this.style.background='rgba(45,212,191,0.12)'" onmouseout="this.style.background='rgba(45,212,191,0.06)'">
+        <div style="font-size:0.87rem;font-weight:700;color:var(--text);">${s.name}</div>
+        ${s.note ? `<div style="font-size:0.77rem;color:var(--muted);margin-top:3px;">${s.note}</div>` : ''}
+      </div>`
+    ).join('');
+    status.style.display = 'none';
+  } catch(e) {
+    status.textContent = 'Error: ' + e.message;
+  }
+  btn.disabled = false;
+  btn.textContent = '✦ Suggest options for this location';
+}
+
+function pickLodgingSuggestion(s) {
+  document.getElementById('lm-name').value = s.name || '';
+  document.getElementById('lm-suggest-results').style.display = 'none';
 }
 
 // ── Draft Route ──────────────────────────────────────────────────────────────

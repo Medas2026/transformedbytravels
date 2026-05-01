@@ -41,7 +41,8 @@
     "api/ics.js":          { "maxDuration": 20 },
     "api/blog.js":         { "maxDuration": 15 },
     "api/blog-post.js":    { "maxDuration": 15 },
-    "api/draft-schedule.js": { "maxDuration": 30 }
+    "api/draft-schedule.js":  { "maxDuration": 30 },
+    "api/suggest-lodging.js": { "maxDuration": 20 }
   },
   "crons": [
     {
