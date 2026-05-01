@@ -9962,11 +9962,12 @@ async function doCreateItinerary() {
     const data = await resp.json();
     if (data.success) {
       status.style.color = 'var(--teal)';
-      status.textContent = data.count + ' day' + (data.count !== 1 ? 's' : '') + ' created!';
+      status.textContent = data.count + ' day' + (data.count !== 1 ? 's' : '') + ' created! Opening schedule…';
       setTimeout(() => {
         document.getElementById('create-itinerary-modal').style.display = 'none';
-        document.getElementById('trip-saved-modal').style.display = 'flex';
-      }, 1200);
+        sessionStorage.setItem('returnToTripId', currentTripId);
+        window.location.href = '/schedule.html?trip=' + encodeURIComponent(currentTripId);
+      }, 800);
     } else {
       status.style.color = '#f43f5e';
       status.textContent = 'Error: ' + (data.error || 'Could not create days');
