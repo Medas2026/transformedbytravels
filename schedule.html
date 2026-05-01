@@ -1845,6 +1845,7 @@ async function suggestLodging() {
 
 function pickLodgingSuggestion(s) {
   document.getElementById('lm-name').value = s.name || '';
+  if (s.note) document.getElementById('lm-description').value = s.note;
   document.getElementById('lm-suggest-results').style.display = 'none';
 }
 
