@@ -40,16 +40,17 @@ module.exports = async (req, res) => {
   if (!location) return res.status(400).json({ error: 'Missing location' });
 
   const passionLine = passions ? `Traveler interests: ${passions}.` : '';
-  const prompt = `Suggest 3 well-regarded ${type || 'hotel'}s in ${location}${country ? ', ' + country : ''}. ${passionLine}
+  const prompt = `Suggest 5 well-regarded ${type || 'hotel'}s in ${location}${country ? ', ' + country : ''}. ${passionLine}
 
 Rules:
 - Only suggest real, established properties you are confident exist
 - Prefer properties that match the traveler's interests where possible
 - Do not invent or guess property names
-- Keep notes brief (one short phrase)
+- Include a realistic nightly cost estimate in USD (use a range if it varies by season)
+- Include 1-2 sentences describing what makes the property distinctive
 
 Respond with ONLY a JSON array, no explanation:
-[{ "name": "Property Name", "note": "one brief descriptor" }]`;
+[{ "name": "Property Name", "note": "1-2 sentence description", "cost": "approx. $X–$Y/night" }]`;
 
   try {
     const text = await callClaude(prompt);

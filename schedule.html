@@ -1825,10 +1825,14 @@ async function suggestLodging() {
     results.style.display = 'flex';
     results.innerHTML = suggestions.map(s =>
       `<div onclick="pickLodgingSuggestion(${JSON.stringify(s).replace(/"/g,'&quot;')})"
-        style="cursor:pointer;background:rgba(45,212,191,0.06);border:1px solid rgba(45,212,191,0.2);border-radius:8px;padding:10px 12px;"
+        style="cursor:pointer;background:rgba(45,212,191,0.06);border:1px solid rgba(45,212,191,0.2);border-radius:8px;padding:11px 13px;"
         onmouseover="this.style.background='rgba(45,212,191,0.12)'" onmouseout="this.style.background='rgba(45,212,191,0.06)'">
-        <div style="font-size:0.87rem;font-weight:700;color:var(--text);">${s.name}</div>
-        ${s.note ? `<div style="font-size:0.77rem;color:var(--muted);margin-top:3px;">${s.note}</div>` : ''}
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+          <div style="font-size:0.87rem;font-weight:700;color:var(--text);">${s.name}</div>
+          ${s.cost ? `<div style="font-size:0.75rem;color:var(--teal);white-space:nowrap;font-family:'Montserrat',sans-serif;font-weight:700;">${s.cost}</div>` : ''}
+        </div>
+        ${s.note ? `<div style="font-size:0.78rem;color:var(--soft);margin-top:4px;line-height:1.5;">${s.note}</div>` : ''}
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:5px;font-family:'Montserrat',sans-serif;">Tap to select</div>
       </div>`
     ).join('');
     status.style.display = 'none';
