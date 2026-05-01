@@ -1872,6 +1872,7 @@
 
           <!-- Archetype card -->
           <div class="archetype-card" id="archetype-card"></div>
+          <div id="archetype-connections"></div>
 
           <!-- TGI -->
           <div class="result-section" style="text-align:center;" id="tgi-section">
@@ -12034,6 +12035,39 @@ const REPORT_ARCHETYPES = {
     trips:"Relaxing destinations where you can enjoy the atmosphere without a demanding schedule will appeal to you. Beach towns, scenic regions, charming cities, and comfortable resorts often provide the kind of travel experience you enjoy. The best trips are the ones that feel effortless and allow you to simply enjoy being there." }
 };
 
+const ARCHETYPE_CONNECTIONS = {
+  TT: {
+    psychology:   ['Transformation', 'Integration', 'Wonder & Awe', 'Human Connection'],
+    destinations: ['Local Village & Community', 'Sacred & Spiritual Sites', 'National Parks & Wilderness', 'Wildlife & Safari'],
+    dimensions:   ['Curiosity', 'Adventure', 'Reflection', 'Connection', 'Travel Purpose'],
+    outcomes:     ['Personal Growth', 'Story & Identity', 'Clarified Purpose', 'Expanded Empathy'],
+  },
+  PDT: {
+    psychology:   ['Integration', 'Mindfulness & Presence', 'Identity Exploration'],
+    destinations: ['Sacred & Spiritual Sites', 'Local Village & Community', 'Ancient History & Archaeology'],
+    dimensions:   ['Reflection', 'Travel Purpose'],
+    outcomes:     ['Clarified Purpose', 'Story & Identity', 'Personal Growth'],
+  },
+  AOT: {
+    psychology:   ['Risk & Growth Edge', 'Flow States', 'Wonder & Awe'],
+    destinations: ['Mountains & High Places', 'Adventure & Active Routes', 'National Parks & Wilderness', 'Rainforests & Jungles'],
+    dimensions:   ['Adventure'],
+    outcomes:     ['Personal Growth', 'Joy & Renewal', 'Lasting Memories'],
+  },
+  CE: {
+    psychology:   ['Human Connection', 'Wonder & Awe', 'Identity Exploration', 'Memory & Narrative'],
+    destinations: ['Ancient History & Archaeology', 'Culinary & Food Culture', 'Urban Cultural Centers', 'Local Village & Community'],
+    dimensions:   ['Curiosity', 'Connection'],
+    outcomes:     ['Expanded Empathy', 'Lasting Memories', 'Story & Identity'],
+  },
+  EGT: {
+    psychology:   ['Memory & Narrative', 'Escape vs. Engagement', 'Flow States'],
+    destinations: ['Oceans & Coastlines', 'Culinary & Food Culture', 'Urban Cultural Centers'],
+    dimensions:   ['Curiosity'],
+    outcomes:     ['Joy & Renewal', 'Lasting Memories'],
+  },
+};
+
 const REPORT_PASSION_LABELS = {
   // Environments
   "Open Spaces":"Open Spaces Explorer",
@@ -12511,6 +12545,26 @@ function loadReportPage() {
     <p class="archetype-desc">${arch.desc}</p>
     <div class="archetype-photos">${arch.photos.map(url=>`<img src="${url}" alt="${arch.name}" class="archetype-photo" />`).join('')}</div>
   `;
+
+  // Archetype connections panel
+  const archKey = Object.keys(REPORT_ARCHETYPES).find(k => REPORT_ARCHETYPES[k] === arch) || 'EGT';
+  const conn = ARCHETYPE_CONNECTIONS[archKey] || {};
+  const _connRow = (title, items, color) => !items||!items.length ? '' : `
+    <div style="margin-bottom:16px;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:${color};margin-bottom:8px;">${title}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${items.map(item=>`<span style="background:${color}1a;border:1px solid ${color}44;color:${color};border-radius:20px;padding:4px 12px;font-size:0.82rem;">${item}</span>`).join('')}
+      </div>
+    </div>`;
+  document.getElementById('archetype-connections').innerHTML = `
+    <div class="result-section">
+      <div class="result-section-title">Your Archetype Connections</div>
+      <p class="result-section-sub">The psychology, destinations, and outcomes most aligned with your archetype.</p>
+      ${_connRow('Psychology Drivers', conn.psychology, '#a78bfa')}
+      ${_connRow('Destination Affinities', conn.destinations, '#f59e0b')}
+      ${_connRow('DNA Dimensions', conn.dimensions, '#60a5fa')}
+      ${_connRow('Likely Outcomes', conn.outcomes, '#fb7185')}
+    </div>`;
 
   // Spider chart
   _rptBuildSpider(raw);
