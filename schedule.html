@@ -970,7 +970,8 @@ function _slotFieldsHtml(n, slot) {
   }
   if (type === 'gyg') return `
     <div style="display:flex;flex-direction:column;gap:6px;">
-      <input id="sm-s${n}-gyg-url" type="url" placeholder="Get Your Guide link" value="${((slot&&slot.url)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+      <button onclick="_smOpenGyg(${n})" style="width:100%;background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:7px;padding:8px;cursor:pointer;">🎟 Search GetYourGuide</button>
+      <input id="sm-s${n}-gyg-url" type="url" placeholder="Paste GetYourGuide booking link here" value="${((slot&&slot.url)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
       <input id="sm-s${n}-gyg-ref" type="text" placeholder="Booking reference (optional)" value="${((slot&&slot.bookingRef)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
     </div>`;
   if (type === 'passion') {
@@ -1102,6 +1103,14 @@ function _smOpenMaps(n) {
   const to   = (document.getElementById(`sm-s${n}-to`)?.value||'').trim();
   if (!from && !to) return;
   const url = 'https://www.google.com/maps/dir/?api=1' + (from?'&origin='+encodeURIComponent(from):'') + (to?'&destination='+encodeURIComponent(to):'') + '&travelmode=driving';
+  window.open(url, '_blank', 'noopener');
+}
+
+function _smOpenGyg(n) {
+  const loc = (document.getElementById(`sm-s${n}-loc`)?.value || '').trim();
+  const url = loc
+    ? `https://www.getyourguide.com/s/?q=${encodeURIComponent(loc)}`
+    : 'https://www.getyourguide.com';
   window.open(url, '_blank', 'noopener');
 }
 
