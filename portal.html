@@ -12035,6 +12035,45 @@ const REPORT_ARCHETYPES = {
     trips:"Relaxing destinations where you can enjoy the atmosphere without a demanding schedule will appeal to you. Beach towns, scenic regions, charming cities, and comfortable resorts often provide the kind of travel experience you enjoy. The best trips are the ones that feel effortless and allow you to simply enjoy being there." }
 };
 
+const CONN_DESCRIPTIONS = {
+  // Psychology
+  'Transformation':          'Travel that permanently changes beliefs, values, or self-concept. Requires challenge, reflection, and integration — not just novelty.',
+  'Integration':             'The process of making meaning from what was experienced and bringing it home. Without integration, transformation is temporary.',
+  'Wonder & Awe':            'Encounters with scale, beauty, or strangeness that temporarily dissolve the self. A primary driver of why people seek out national parks, wildlife, and natural wonders.',
+  'Human Connection':        'Encounters with strangers that crack open assumptions about how people live. Often the most recalled part of any trip years later.',
+  'Mindfulness & Presence':  'Being fully present in an unfamiliar place — without the autopilot of routine. Travel naturally induces this; intentional travelers cultivate it.',
+  'Identity Exploration':    'Travel as a space to try on different versions of oneself, away from role obligations at home. Especially strong in solo travelers and major life transitions.',
+  'Risk & Growth Edge':      'Mild fear activates attention and signals that something important is happening. Navigating it successfully builds self-efficacy and confidence.',
+  'Flow States':             'Deep absorption in an activity where skill meets challenge. Common in hiking, diving, photography, cooking classes. Produces peak satisfaction.',
+  'Memory & Narrative':      'Travel produces episodic memories of unusual intensity. Humans organize identity through narrative — the traveler\'s story becomes part of who they are.',
+  'Escape vs. Engagement':   'The tension between using travel to flee ordinary life versus using it as a tool for deeper engagement with the world.',
+  // Destinations
+  'Local Village & Community':         'Immersion in how ordinary people live. The strongest activator of connection and cultural understanding — often the most transformative destination type.',
+  'Sacred & Spiritual Sites':          'Places of pilgrimage, ritual, and spiritual gravity. Draws Purpose-Driven and Transformational travelers. Varanasi, Jerusalem, Machu Picchu, Lalibela.',
+  'National Parks & Wilderness':       'Vast protected landscapes that produce awe at scale. Induces presence and perspective. Bwindi, Serengeti, Yellowstone, Patagonia.',
+  'Wildlife & Safari':                 'Encounters with animals in their natural habitat. Activates wonder, humility, and connection to the non-human world. Uganda, Kenya, Botswana, Galápagos.',
+  'Ancient History & Archaeology':     'Ruins, temples, and sites where time collapses. Activates curiosity and connection to deep human story. Egypt, Peru, Greece, Cambodia.',
+  'Mountains & High Places':           'Physical challenge meets transcendence. Activates both adventure and reflection. Kilimanjaro, Himalayas, Andes, Alps.',
+  'Adventure & Active Routes':         'Trekking, climbing, cycling, kayaking. The journey is the destination. Activates flow, risk edge, and physical confidence.',
+  'Rainforests & Jungles':             'Overwhelming biological complexity. Produces awe and humility at the density of life. Amazon, Congo, Borneo, Uganda.',
+  'Culinary & Food Culture':           'Food as portal to culture. Markets, street food, farm visits, cooking classes. Strong overlap with curiosity and connection.',
+  'Urban Cultural Centers':            'Cities as museums of human possibility — art, architecture, neighborhoods, nightlife. Primarily for Cultural Explorers.',
+  'Oceans & Coastlines':              'Water as mirror and medium. Diving, sailing, beachcombing. From adrenaline to stillness.',
+  // Dimensions
+  'Curiosity':       'Drive to explore, learn, and understand new ideas, cultures, and places. The intellectual hunger of travel.',
+  'Adventure':       'Appetite for risk, physical challenge, and leaving comfort zones. How much the traveler needs to be tested.',
+  'Reflection':      'Tendency to turn experiences inward — to find personal meaning, journal, and sit with what travel is doing to them.',
+  'Connection':      'Desire for meaningful human connection — with locals, guides, communities, and travel companions.',
+  'Travel Purpose':  'The depth of intentionality behind travel. How much the traveler is seeking growth versus escape.',
+  // Outcomes
+  'Personal Growth':    'Expansion of self-concept, capacity, and confidence. The most commonly sought and reported outcome of transformational travel.',
+  'Expanded Empathy':   'Reduced othering; increased capacity to understand perspectives unlike one\'s own. A core product of cultural immersion.',
+  'Clarified Purpose':  'Travel as a space to step back and ask what matters. Major life decisions frequently follow significant journeys.',
+  'Lasting Memories':   'Episodic memories from travel persist longer and are recalled more vividly than routine experiences. The traveler carries the trip.',
+  'Joy & Renewal':      'Rest, pleasure, and delight. A legitimate and important outcome — not everything needs to be hard to be valuable.',
+  'Story & Identity':   'The traveler becomes someone who went somewhere. The trip becomes part of how they introduce themselves and understand their life.',
+};
+
 const ARCHETYPE_CONNECTIONS = {
   TT: {
     psychology:   ['Transformation', 'Integration', 'Wonder & Awe', 'Human Connection'],
@@ -12186,6 +12225,21 @@ function _rptZone(s) {
 function _rptZoneColor(z) {
   return {sb:'#f43f5e',b:'#fb923c',a:'#34d399',sa:'#2dd4bf'}[z];
 }
+function _connPillClick(pill, sectionId, item) {
+  const box = document.getElementById(sectionId);
+  if (!box) return;
+  const desc = CONN_DESCRIPTIONS[item] || '';
+  const section = pill.closest('div[style]');
+  const pills = section ? section.querySelectorAll('span[onclick]') : [];
+  const wasActive = pill.classList.contains('conn-active');
+  pills.forEach(p => { p.classList.remove('conn-active'); p.style.background = p.style.background.replace(/33$/, '1a'); });
+  if (wasActive) { box.style.display = 'none'; return; }
+  pill.classList.add('conn-active');
+  pill.style.background = pill.style.background.replace(/1a$/, '33');
+  box.textContent = desc;
+  box.style.display = 'block';
+}
+
 function _rptGetArchetype(raw) {
   const C=raw.Curiosity, Adv=raw.Adventure, Ref=raw.Reflection, Con=raw.Connection, TP=raw['Travel Purpose'];
   const GS=(Ref+TP)/2;
@@ -12549,21 +12603,22 @@ function loadReportPage() {
   // Archetype connections panel
   const archKey = Object.keys(REPORT_ARCHETYPES).find(k => REPORT_ARCHETYPES[k] === arch) || 'EGT';
   const conn = ARCHETYPE_CONNECTIONS[archKey] || {};
-  const _connRow = (title, items, color) => !items||!items.length ? '' : `
+  const _connRow = (title, items, color, sectionId) => !items||!items.length ? '' : `
     <div style="margin-bottom:16px;">
       <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:${color};margin-bottom:8px;">${title}</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">
-        ${items.map(item=>`<span style="background:${color}1a;border:1px solid ${color}44;color:${color};border-radius:20px;padding:4px 12px;font-size:0.82rem;">${item}</span>`).join('')}
+        ${items.map(item=>`<span onclick="_connPillClick(this,'${sectionId}','${item.replace(/'/g,"\\'")}')" style="background:${color}1a;border:1px solid ${color}44;color:${color};border-radius:20px;padding:4px 12px;font-size:0.82rem;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='${color}33'" onmouseout="if(!this.classList.contains('conn-active'))this.style.background='${color}1a'">${item}</span>`).join('')}
       </div>
+      <div id="${sectionId}" style="display:none;margin-top:10px;background:rgba(255,255,255,0.04);border-left:3px solid ${color};border-radius:0 8px 8px 0;padding:10px 14px;font-size:0.84rem;color:var(--soft);line-height:1.65;"></div>
     </div>`;
   document.getElementById('archetype-connections').innerHTML = `
     <div class="result-section">
       <div class="result-section-title">Your Archetype Connections</div>
       <p class="result-section-sub">The psychology, destinations, and outcomes most aligned with your archetype.</p>
-      ${_connRow('Psychology Drivers', conn.psychology, '#a78bfa')}
-      ${_connRow('Destination Affinities', conn.destinations, '#f59e0b')}
-      ${_connRow('DNA Dimensions', conn.dimensions, '#60a5fa')}
-      ${_connRow('Likely Outcomes', conn.outcomes, '#fb7185')}
+      ${_connRow('Psychology Drivers', conn.psychology, '#a78bfa', 'conn-desc-psych')}
+      ${_connRow('Destination Affinities', conn.destinations, '#f59e0b', 'conn-desc-dest')}
+      ${_connRow('DNA Dimensions', conn.dimensions, '#60a5fa', 'conn-desc-dim')}
+      ${_connRow('Likely Outcomes', conn.outcomes, '#fb7185', 'conn-desc-out')}
     </div>`;
 
   // Spider chart
