@@ -1107,11 +1107,15 @@ function _smOpenMaps(n) {
 }
 
 function _smOpenGyg(n) {
-  const loc = (document.getElementById(`sm-s${n}-loc`)?.value || '').trim();
-  const url = loc
-    ? `https://www.getyourguide.com/s/?q=${encodeURIComponent(loc)}`
-    : 'https://www.getyourguide.com';
-  window.open(url, '_blank', 'noopener');
+  const loc       = (document.getElementById(`sm-s${n}-loc`)?.value || '').trim();
+  const dayFields = _scheduleRecords[_dayModalIdx]?.fields || {};
+  const fallback  = dayFields['Ending Location'] || dayFields['Starting Location'] || '';
+  const q         = loc || fallback;
+  const date      = dayFields['Date'] || '';
+  const params    = new URLSearchParams({ partner_id: 'RXYXYWV' });
+  if (q)    params.set('q', q);
+  if (date) { params.set('date_from', date); params.set('date_to', date); }
+  window.open('https://www.getyourguide.com/s/?' + params.toString(), '_blank', 'noopener');
 }
 
 function _smOpenFlightsSearch(n) {
