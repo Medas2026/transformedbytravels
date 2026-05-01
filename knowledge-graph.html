@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Travel Knowledge Graph · Transformed by Travels</title>
+<script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/dist/vis-network.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/dist/dist/vis-network.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1520; color: #e2e8f0; font-family: 'Open Sans', sans-serif; height: 100vh; display: flex; flex-direction: column; }
+  header { background: rgba(13,21,32,0.97); border-bottom: 1px solid rgba(255,255,255,0.07); padding: 14px 24px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+  header h1 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: #fff; }
+  header p  { font-size: 0.78rem; color: #64748b; }
+  .legend { display: flex; gap: 20px; margin-left: auto; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #94a3b8; font-family: 'Montserrat', sans-serif; font-weight: 600; }
+  .legend-dot  { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  #graph { flex: 1; }
+  #tooltip {
+    position: fixed; display: none; max-width: 280px;
+    background: #0f172a; border: 1px solid rgba(45,212,191,0.35);
+    border-radius: 12px; padding: 14px 16px; z-index: 100;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    pointer-events: none;
+  }
+  #tooltip h3 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.9rem; color: #fff; margin-bottom: 6px; }
+  #tooltip p  { font-size: 0.8rem; color: #94a3b8; line-height: 1.6; }
+  #tooltip .tag { display: inline-block; margin-top: 8px; font-size: 0.7rem; font-family: 'Montserrat', sans-serif; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Travel Knowledge Graph</h1>
+    <p>Psychology · Destination Types · Archetypes · Dimensions</p>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#2dd4bf;"></div>Archetypes</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a78bfa;"></div>Psychology</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div>Destinations</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#60a5fa;"></div>DNA Dimensions</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fb7185;"></div>Outcomes</div>
+  </div>
+</header>
+
+<div id="graph"></div>
+<div id="tooltip"></div>
+
+<script>
+const COLORS = {
+  archetype:   { bg: '#0d2e2b', border: '#2dd4bf', font: '#2dd4bf' },
+  psychology:  { bg: '#1e1535', border: '#a78bfa', font: '#a78bfa' },
+  destination: { bg: '#2d1f06', border: '#f59e0b', font: '#f59e0b' },
+  dimension:   { bg: '#0d1f36', border: '#60a5fa', font: '#60a5fa' },
+  outcome:     { bg: '#2d0f1a', border: '#fb7185', font: '#fb7185' },
+  hub:         { bg: '#131f30', border: '#475569', font: '#94a3b8' },
+};
+
+function node(id, label, type, info, size = 20) {
+  const c = COLORS[type];
+  return {
+    id, label,
+    title: label,
+    _info: info,
+    _type: type,
+    color: { background: c.bg, border: c.border, highlight: { background: c.bg, border: '#fff' } },
+    font:  { color: c.font, face: 'Montserrat', size: size > 20 ? 14 : 12, bold: size > 22 },
+    borderWidth: 2,
+    size,
+    shape: 'dot',
+  };
+}
+
+function edge(from, to, label = '', dashes = false) {
+  return { from, to, label, dashes, color: { color: 'rgba(255,255,255,0.1)', highlight: 'rgba(255,255,255,0.4)' }, font: { color: '#475569', size: 10, face: 'Open Sans' }, smooth: { type: 'continuous' } };
+}
+
+const nodes = [
+
+  // ── Hub nodes ────────────────────────────────────────────────────────────
+  node('h_arch', 'ARCHETYPES',   'hub', 'The five traveler personality types defined by DNA dimension scores.', 28),
+  node('h_psych','PSYCHOLOGY',   'hub', 'Core psychological drivers and motivations behind why people travel.', 28),
+  node('h_dest', 'DESTINATIONS', 'hub', 'Categories of places that attract different traveler types.', 28),
+  node('h_dim',  'DNA DIMENSIONS','hub','The five scored dimensions that define a traveler\'s DNA profile.', 28),
+  node('h_out',  'OUTCOMES',     'hub', 'What transformational travel produces in the traveler.', 28),
+
+  // ── Archetypes ───────────────────────────────────────────────────────────
+  node('a_tt',  'Transformational\nTraveler', 'archetype',
+    'The most fully integrated traveler. High across all five dimensions. Seeks deep meaning, growth, and connection simultaneously. Travel is a practice, not a pastime.', 24),
+  node('a_pdt', 'Purpose-Driven\nTraveler', 'archetype',
+    'Led by Reflection and Travel Purpose. Travels to understand — themselves, the world, their role in it. Prefers depth over pace. Drawn to sacred sites, communities, and slow travel.', 22),
+  node('a_aot', 'Adventure-Oriented\nTraveler', 'archetype',
+    'High Adventure score. Energized by physical challenge, risk, and the edge of the map. Needs active, outdoor, high-sensation experiences to feel fully alive.', 22),
+  node('a_ce',  'Cultural\nExplorer', 'archetype',
+    'High Curiosity and Connection. Travels to learn — history, language, art, food, local life. Finds meaning in understanding how other people live and why.', 22),
+  node('a_egt', 'Easygoing\nTraveler', 'archetype',
+    'Balanced across dimensions without strong peaks. Values comfort, enjoyment, and ease. Still open to transformation — but through pleasure rather than challenge.', 22),
+
+  // ── DNA Dimensions ───────────────────────────────────────────────────────
+  node('d_cur', 'Curiosity',      'dimension', 'Drive to explore, learn, and understand new ideas, cultures, and places. The intellectual hunger of travel.'),
+  node('d_adv', 'Adventure',      'dimension', 'Appetite for risk, physical challenge, and leaving comfort zones. How much the traveler needs to be tested.'),
+  node('d_ref', 'Reflection',     'dimension', 'Tendency to turn experiences inward — to find personal meaning, journal, and sit with what travel is doing to them.'),
+  node('d_con', 'Connection',     'dimension', 'Desire for meaningful human connection — with locals, guides, communities, and travel companions.'),
+  node('d_int', 'Travel Purpose', 'dimension', 'The depth of intentionality behind travel. How much the traveler is seeking growth versus escape.'),
+
+  // ── Psychology of Travel ─────────────────────────────────────────────────
+  node('p_awe',   'Wonder & Awe',       'psychology', 'Encounters with scale, beauty, or strangeness that temporarily dissolve the self. A primary driver of why people seek out national parks, wildlife, and natural wonders.'),
+  node('p_ident', 'Identity\nExploration','psychology','Travel as a space to try on different versions of oneself, away from role obligations at home. Especially strong in solo travelers and major life transitions.'),
+  node('p_escape','Escape vs.\nEngagement','psychology','The tension between using travel to flee ordinary life (escape) versus using it as a tool for deeper engagement with the world.'),
+  node('p_trans', 'Transformation',    'psychology', 'Travel that permanently changes beliefs, values, or self-concept. Requires challenge, reflection, and integration — not just novelty.'),
+  node('p_memry', 'Memory &\nNarrative', 'psychology', 'Travel produces episodic memories of unusual intensity. Humans organize identity through narrative — the traveler\'s story becomes part of who they are.'),
+  node('p_flow',  'Flow States',       'psychology', 'Deep absorption in an activity where skill meets challenge. Common in hiking, diving, photography, cooking classes. Produces peak satisfaction.'),
+  node('p_conn',  'Human\nConnection', 'psychology', 'Encounters with strangers that crack open assumptions about how people live. Often the most recalled part of any trip years later.'),
+  node('p_fear',  'Risk & Growth\nEdge','psychology','Mild fear activates attention and signals that something important is happening. Navigating it successfully builds self-efficacy and confidence.'),
+  node('p_mind',  'Mindfulness\n& Presence','psychology','Being fully present in an unfamiliar place — without the autopilot of routine. Travel naturally induces this; intentional travelers cultivate it.'),
+  node('p_integ', 'Integration',       'psychology', 'The process of making meaning from what was experienced and bringing it home. Without integration, transformation is temporary.'),
+
+  // ── Destination Types ────────────────────────────────────────────────────
+  node('dt_wild',  'Wildlife &\nSafari',     'destination', 'Encounters with animals in their natural habitat. Activates wonder, humility, and connection to the non-human world. Uganda, Kenya, Botswana, Galápagos.'),
+  node('dt_np',    'National Parks &\nWilderness','destination','Vast protected landscapes that produce awe at scale. Induces presence and perspective. Bwindi, Serengeti, Yellowstone, Patagonia.'),
+  node('dt_hist',  'Ancient History &\nArchaeology','destination','Ruins, temples, and sites where time collapses. Activates curiosity and connection to deep human story. Egypt, Peru, Greece, Cambodia.'),
+  node('dt_sacred','Sacred &\nSpiritual Sites','destination','Places of pilgrimage, ritual, and spiritual gravity. Draws Purpose-Driven and Transformational travelers. Varanasi, Jerusalem, Machu Picchu, Lalibela.'),
+  node('dt_mtn',   'Mountains &\nHigh Places', 'destination','Physical challenge meets transcendence. Activates both adventure and reflection. Kilimanjaro, Himalayas, Andes, Alps.'),
+  node('dt_ocean', 'Oceans &\nCoastlines',   'destination','Water as mirror and medium. Diving, sailing, beachcombing. From adrenaline to stillness.'),
+  node('dt_rain',  'Rainforests\n& Jungles',  'destination','Overwhelming biological complexity. Produces awe and humility at the density of life. Amazon, Congo, Borneo, Uganda.'),
+  node('dt_village','Local Village\n& Community','destination','Immersion in how ordinary people live. Strongest activator of connection and cultural understanding. Often the most transformative destination type.'),
+  node('dt_culinary','Culinary &\nFood Culture','destination','Food as portal to culture. Markets, street food, farm visits, cooking classes. Strong overlap with curiosity and connection.'),
+  node('dt_urban', 'Urban Cultural\nCenters',  'destination','Cities as museums of human possibility — art, architecture, neighborhoods, nightlife. Primarily for Cultural Explorers.'),
+  node('dt_active','Adventure &\nActive Routes','destination','Trekking, climbing, cycling, kayaking. The journey is the destination. Activates flow, risk edge, and physical confidence.'),
+
+  // ── Outcomes ─────────────────────────────────────────────────────────────
+  node('o_growth',  'Personal\nGrowth',      'outcome', 'Expansion of self-concept, capacity, and confidence. The most commonly sought and reported outcome of transformational travel.'),
+  node('o_empathy', 'Expanded\nEmpathy',     'outcome', 'Reduced othering; increased capacity to understand perspectives unlike one\'s own. A core product of cultural immersion.'),
+  node('o_purpose', 'Clarified\nPurpose',    'outcome', 'Travel as a space to step back and ask what matters. Major life decisions frequently follow significant journeys.'),
+  node('o_memory',  'Lasting\nMemories',     'outcome', 'Episodic memories from travel persist longer and are recalled more vividly than routine experiences. The traveler carries the trip.'),
+  node('o_joy',     'Joy &\nRenewal',        'outcome', 'Rest, pleasure, and delight. A legitimate and important outcome — not everything needs to be hard to be valuable.'),
+  node('o_story',   'Story &\nIdentity',     'outcome', 'The traveler becomes someone who went somewhere. The trip becomes part of how they introduce themselves and how they understand their life.'),
+
+];
+
+const edges = [
+
+  // Hub connections
+  edge('h_arch', 'h_dim'),
+  edge('h_arch', 'h_dest'),
+  edge('h_psych', 'h_dest'),
+  edge('h_psych', 'h_dim'),
+  edge('h_psych', 'h_out'),
+  edge('h_dest', 'h_out'),
+
+  // Archetypes → dimensions (defining traits)
+  edge('a_tt',  'd_cur'), edge('a_tt',  'd_adv'), edge('a_tt',  'd_ref'), edge('a_tt',  'd_con'), edge('a_tt',  'd_int'),
+  edge('a_pdt', 'd_ref'), edge('a_pdt', 'd_int'),
+  edge('a_aot', 'd_adv'),
+  edge('a_ce',  'd_cur'), edge('a_ce',  'd_con'),
+  edge('a_egt', 'd_cur', 'moderate'),
+
+  // Archetypes → destinations (natural affinities)
+  edge('a_tt',  'dt_village'), edge('a_tt',  'dt_sacred'), edge('a_tt',  'dt_np'),
+  edge('a_pdt', 'dt_sacred'),  edge('a_pdt', 'dt_village'), edge('a_pdt', 'dt_hist'),
+  edge('a_aot', 'dt_mtn'),     edge('a_aot', 'dt_active'),  edge('a_aot', 'dt_np'),
+  edge('a_ce',  'dt_hist'),    edge('a_ce',  'dt_culinary'), edge('a_ce',  'dt_urban'), edge('a_ce', 'dt_village'),
+  edge('a_egt', 'dt_ocean'),   edge('a_egt', 'dt_culinary'),
+
+  // Archetypes → psychology
+  edge('a_tt',  'p_trans'),  edge('a_tt',  'p_integ'),
+  edge('a_pdt', 'p_integ'),  edge('a_pdt', 'p_mind'),
+  edge('a_aot', 'p_fear'),   edge('a_aot', 'p_flow'),
+  edge('a_ce',  'p_conn'),   edge('a_ce',  'p_awe'),
+  edge('a_egt', 'p_memry'),
+
+  // Psychology → outcomes
+  edge('p_trans',  'o_growth'),  edge('p_trans',  'o_story'),
+  edge('p_ident',  'o_growth'),  edge('p_ident',  'o_purpose'),
+  edge('p_conn',   'o_empathy'),
+  edge('p_fear',   'o_growth'),
+  edge('p_integ',  'o_purpose'), edge('p_integ',  'o_story'),
+  edge('p_memry',  'o_memory'),  edge('p_memry',  'o_story'),
+  edge('p_flow',   'o_joy'),     edge('p_flow',   'o_growth'),
+  edge('p_mind',   'o_joy'),     edge('p_mind',   'o_memory'),
+  edge('p_awe',    'o_joy'),     edge('p_awe',    'o_memory'),
+  edge('p_escape', 'o_joy'),
+
+  // Destinations → psychology
+  edge('dt_wild',   'p_awe'),   edge('dt_wild',   'p_conn'),
+  edge('dt_np',     'p_awe'),   edge('dt_np',     'p_mind'),
+  edge('dt_hist',   'p_awe'),   edge('dt_hist',   'p_ident'),
+  edge('dt_sacred', 'p_mind'),  edge('dt_sacred', 'p_trans'),
+  edge('dt_mtn',    'p_fear'),  edge('dt_mtn',    'p_awe'),
+  edge('dt_village','p_conn'),  edge('dt_village','p_trans'),
+  edge('dt_culinary','p_conn'),
+  edge('dt_active', 'p_flow'),  edge('dt_active', 'p_fear'),
+  edge('dt_rain',   'p_awe'),
+  edge('dt_ocean',  'p_mind'),  edge('dt_ocean',  'p_flow'),
+
+  // Dimensions → psychology
+  edge('d_ref', 'p_integ'), edge('d_ref', 'p_mind'),
+  edge('d_con', 'p_conn'),
+  edge('d_adv', 'p_fear'),  edge('d_adv', 'p_flow'),
+  edge('d_cur', 'p_awe'),
+  edge('d_int', 'p_trans'), edge('d_int', 'p_integ'),
+
+  // Psychology linkages
+  edge('p_escape', 'p_trans', '', true),
+  edge('p_trans',  'p_integ'),
+  edge('p_fear',   'p_flow',  '', true),
+  edge('p_awe',    'p_mind'),
+];
+
+const container = document.getElementById('graph');
+const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+
+const options = {
+  physics: {
+    solver: 'forceAtlas2Based',
+    forceAtlas2Based: { gravitationalConstant: -60, centralGravity: 0.005, springLength: 140, springConstant: 0.08, damping: 0.4 },
+    stabilization: { iterations: 200 }
+  },
+  interaction: { hover: true, tooltipDelay: 0, hideEdgesOnDrag: true },
+  nodes: { borderWidthSelected: 3 },
+  edges: { width: 1.2, selectionWidth: 2, arrows: { to: { enabled: true, scaleFactor: 0.5 } } },
+};
+
+const network = new vis.Network(container, data, options);
+
+// Tooltip
+const tooltip = document.getElementById('tooltip');
+const TYPE_LABELS = { archetype: 'Archetype', psychology: 'Psychology', destination: 'Destination', dimension: 'DNA Dimension', outcome: 'Outcome', hub: 'Category' };
+const TYPE_COLORS = { archetype: '#2dd4bf', psychology: '#a78bfa', destination: '#f59e0b', dimension: '#60a5fa', outcome: '#fb7185', hub: '#475569' };
+
+network.on('hoverNode', params => {
+  const n = nodes.find(x => x.id === params.node);
+  if (!n || n._type === 'hub') { tooltip.style.display = 'none'; return; }
+  const c = TYPE_COLORS[n._type];
+  tooltip.innerHTML = `
+    <h3>${n.label.replace(/\n/g,' ')}</h3>
+    <p>${n._info}</p>
+    <span class="tag" style="background:${c}22;color:${c};border:1px solid ${c}44;">${TYPE_LABELS[n._type]}</span>`;
+  tooltip.style.display = 'block';
+});
+
+network.on('blurNode', () => { tooltip.style.display = 'none'; });
+
+document.addEventListener('mousemove', e => {
+  if (tooltip.style.display === 'none') return;
+  const x = e.clientX + 16, y = e.clientY + 16;
+  const r = tooltip.getBoundingClientRect();
+  tooltip.style.left = (x + r.width > window.innerWidth ? e.clientX - r.width - 10 : x) + 'px';
+  tooltip.style.top  = (y + r.height > window.innerHeight ? e.clientY - r.height - 10 : y) + 'px';
+});
+
+network.on('click', params => {
+  if (!params.nodes.length) return;
+  const n = nodes.find(x => x.id === params.nodes[0]);
+  if (n && n._type !== 'hub') {
+    const c = TYPE_COLORS[n._type];
+    tooltip.innerHTML = `
+      <h3>${n.label.replace(/\n/g,' ')}</h3>
+      <p>${n._info}</p>
+      <span class="tag" style="background:${c}22;color:${c};border:1px solid ${c}44;">${TYPE_LABELS[n._type]}</span>`;
+    tooltip.style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>
