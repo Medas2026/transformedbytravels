@@ -43,7 +43,7 @@ module.exports = async function handler(req, res) {
   // ── POST — create a new book ────────────────────────────────────────────
   if (req.method === 'POST') {
     const { tripId, travelerEmail, sessionId, coverTitle, coverSubtitle, coverPhotoUrl,
-            openingText, daysData, closingText, closingPhotoUrl, bookStatus } = req.body || {};
+            openingText, daysData, closingText, closingPhotoUrl, portraitPhotoUrl, bookStatus } = req.body || {};
     if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
 
     try {
@@ -57,18 +57,19 @@ module.exports = async function handler(req, res) {
       }
 
       const rec = await at(BOOKS, '', 'POST', { fields: {
-        'Trip ID':          tripId          || '',
-        'Traveler Email':   travelerEmail   || '',
-        'Session ID':       sessionId,
-        'Cover Title':      coverTitle      || '',
-        'Cover Subtitle':   coverSubtitle   || '',
-        'Cover Photo URL':  coverPhotoUrl   || '',
-        'Opening Text':     openingText     || '',
-        'Days Data':        daysData        || '',
-        'Closing Text':     closingText     || '',
-        'Closing Photo URL':closingPhotoUrl || '',
-        'Book Status':      bookStatus      || 'Draft',
-        'Create Date':      new Date().toISOString()
+        'Trip ID':            tripId            || '',
+        'Traveler Email':     travelerEmail     || '',
+        'Session ID':         sessionId,
+        'Cover Title':        coverTitle        || '',
+        'Cover Subtitle':     coverSubtitle     || '',
+        'Cover Photo URL':    coverPhotoUrl     || '',
+        'Opening Text':       openingText       || '',
+        'Days Data':          daysData          || '',
+        'Closing Text':       closingText       || '',
+        'Closing Photo URL':  closingPhotoUrl   || '',
+        'Portrait Photo URL': portraitPhotoUrl  || '',
+        'Book Status':        bookStatus        || 'Draft',
+        'Create Date':        new Date().toISOString()
       }});
       if (rec.error) return res.status(500).json({ error: rec.error.message || JSON.stringify(rec.error) });
       return res.status(200).json({ ok: true, id: rec.id, record: rec });
@@ -83,17 +84,18 @@ module.exports = async function handler(req, res) {
     if (!id) return res.status(400).json({ error: 'id required' });
 
     const { coverTitle, coverSubtitle, coverPhotoUrl, openingText, daysData,
-            closingText, closingPhotoUrl, bookStatus } = req.body || {};
+            closingText, closingPhotoUrl, portraitPhotoUrl, bookStatus } = req.body || {};
 
     const fields = {};
-    if (coverTitle      !== undefined) fields['Cover Title']       = coverTitle;
-    if (coverSubtitle   !== undefined) fields['Cover Subtitle']    = coverSubtitle;
-    if (coverPhotoUrl   !== undefined) fields['Cover Photo URL']   = coverPhotoUrl;
-    if (openingText     !== undefined) fields['Opening Text']      = openingText;
-    if (daysData        !== undefined) fields['Days Data']         = daysData;
-    if (closingText     !== undefined) fields['Closing Text']      = closingText;
-    if (closingPhotoUrl !== undefined) fields['Closing Photo URL'] = closingPhotoUrl;
-    if (bookStatus      !== undefined) fields['Book Status']       = bookStatus;
+    if (coverTitle        !== undefined) fields['Cover Title']         = coverTitle;
+    if (coverSubtitle     !== undefined) fields['Cover Subtitle']      = coverSubtitle;
+    if (coverPhotoUrl     !== undefined) fields['Cover Photo URL']     = coverPhotoUrl;
+    if (openingText       !== undefined) fields['Opening Text']        = openingText;
+    if (daysData          !== undefined) fields['Days Data']           = daysData;
+    if (closingText       !== undefined) fields['Closing Text']        = closingText;
+    if (closingPhotoUrl   !== undefined) fields['Closing Photo URL']   = closingPhotoUrl;
+    if (portraitPhotoUrl  !== undefined) fields['Portrait Photo URL']  = portraitPhotoUrl;
+    if (bookStatus        !== undefined) fields['Book Status']         = bookStatus;
 
     try {
       const rec = await at(BOOKS, `/${id}`, 'PATCH', { fields });

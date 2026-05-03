@@ -738,8 +738,9 @@ async function saveProgress() {
     coverPhotoUrl:   STATE.cover.photoUrl   || '',
     openingText:     STATE.opening.introText || '',
     daysData:        JSON.stringify(STATE.days),
-    closingText:     STATE.closing.text      || '',
-    closingPhotoUrl: STATE.closing.photoUrl  || '',
+    closingText:      STATE.closing.text       || '',
+    closingPhotoUrl:  STATE.closing.photoUrl  || '',
+    portraitPhotoUrl: STATE.closing.portraitUrl || '',
     bookStatus:      'Draft'
   };
 
@@ -785,8 +786,9 @@ async function loadProgress() {
         STATE.cover.subtitle   = f['Cover Subtitle']   || '';
         STATE.cover.photoUrl   = f['Cover Photo URL']  || null;
         STATE.opening.introText= f['Opening Text']     || '';
-        STATE.closing.text     = f['Closing Text']     || '';
-        STATE.closing.photoUrl = f['Closing Photo URL']|| null;
+        STATE.closing.text        = f['Closing Text']        || '';
+        STATE.closing.photoUrl    = f['Closing Photo URL']   || null;
+        STATE.closing.portraitUrl = f['Portrait Photo URL']  || null;
         if (f['Days Data']) {
           try {
             const days = JSON.parse(f['Days Data']);
