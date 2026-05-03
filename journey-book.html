@@ -359,30 +359,52 @@ function photoSlotHtml(id, cls, label, existingUrl, roleTag) {
   </div>`;
 }
 
-function handlePhoto(e, id) {
+async function handlePhoto(e, id) {
   const file = e.target.files[0];
   if (!file) return;
-  const url  = URL.createObjectURL(file);
   const slot = document.getElementById('slot-' + id);
 
-  // store in state
+  // Show loading state
+  slot.innerHTML = `<div class="photo-slot-inner"><div class="icon" style="font-size:1.2rem;">⏳</div><div class="label">Uploading…</div></div>`;
+
+  try {
+    const folder = 'journey-books/' + SESSION_ID;
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', 'Trip Image');
+    fd.append('folder', folder);
+    const resp = await fetch('https://api.cloudinary.com/v1_1/dporenlvw/image/upload', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (!data.secure_url) throw new Error('Upload failed');
+    const url = data.secure_url;
+
+    // Store in state
+    storePhotoUrl(id, url);
+
+    // Update slot UI
+    slot.innerHTML = `
+      <input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />
+      <img src="${url}" alt="" />
+      <button class="remove-btn" onclick="removePhoto(event,'${id}')">✕</button>`;
+
+    saveProgress();
+  } catch(err) {
+    slot.innerHTML = `<div class="photo-slot-inner"><div class="icon">⚠️</div><div class="label" style="color:#f43f5e;">Upload failed — tap to retry</div></div><input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />`;
+  }
+}
+
+function storePhotoUrl(id, url) {
   if      (id === 'cover')   STATE.cover.photoUrl = url;
   else if (id === 'closing') STATE.closing.photoUrl = url;
   else {
     const m = id.match(/^day(\d+)-(hero|p2|p3)$/);
     if (m) {
       const di = parseInt(m[1]), role = m[2];
-      if (role === 'hero') STATE.days[di].heroUrl  = url;
+      if (role === 'hero') STATE.days[di].heroUrl   = url;
       if (role === 'p2')   STATE.days[di].photo2Url = url;
       if (role === 'p3')   STATE.days[di].photo3Url = url;
     }
   }
-
-  // update slot UI without full re-render
-  slot.innerHTML = `
-    <input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />
-    <img src="${url}" alt="" />
-    <button class="remove-btn" onclick="removePhoto(event,'${id}')">✕</button>`;
 }
 
 function removePhoto(e, id) {
@@ -630,17 +652,39 @@ function showWizard() {
   renderStep();
 }
 
-// ── SAVE ───────────────────────────────────────────────────────────────────
+// ── SESSION ID (stable per browser/trip for Cloudinary folder) ─────────────
+const SESSION_ID = (() => {
+  let id = localStorage.getItem('jb_session');
+  if (!id) { id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7); localStorage.setItem('jb_session', id); }
+  return id;
+})();
+
+// ── SAVE / LOAD ─────────────────────────────────────────────────────────────
 function saveProgress() {
   try {
-    const save = { ...STATE, cover: { ...STATE.cover, photoUrl: null }, closing: { ...STATE.closing, photoUrl: null }, days: STATE.days.map(d => ({ ...d, heroUrl: null, photo2Url: null, photo3Url: null })) };
-    localStorage.setItem('jb_progress', JSON.stringify(save));
+    localStorage.setItem('jb_progress', JSON.stringify(STATE));
     const btn = document.querySelector('.topbar-save');
-    btn.textContent = '✓ Saved'; setTimeout(() => { btn.textContent = 'Save Progress'; }, 2000);
+    btn.textContent = '✓ Saved';
+    setTimeout(() => { btn.textContent = 'Save Progress'; }, 2000);
+  } catch(e) {}
+}
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('jb_progress');
+    if (!saved) return;
+    const s = JSON.parse(saved);
+    if (s.cover)   Object.assign(STATE.cover,   s.cover);
+    if (s.opening) Object.assign(STATE.opening, s.opening);
+    if (s.closing) Object.assign(STATE.closing, s.closing);
+    if (s.days && s.days.length === STATE.days.length) {
+      s.days.forEach((d, i) => Object.assign(STATE.days[i], d));
+    }
   } catch(e) {}
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
+loadProgress();
 goToStep(0);
 </script>
 </body>
