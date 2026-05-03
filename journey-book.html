@@ -147,8 +147,25 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 /* ══════════════════════════════════════════
    BOOK PREVIEW
    ══════════════════════════════════════════ */
+:root { --texture-url: none; }
 #preview-view { display: none; }
 .book-wrap { max-width: 700px; margin: 0 auto; }
+
+/* Blurred photo texture — applied to text pages only */
+.book-text-bg {
+  position: relative; overflow: hidden;
+  border-radius: 12px; padding: 28px 28px 24px; margin-bottom: 20px;
+  background: var(--navy2);
+}
+.book-text-bg::before {
+  content: '';
+  position: absolute; inset: -80px;
+  background: var(--texture-url) center / cover no-repeat;
+  filter: blur(56px) saturate(0.5);
+  opacity: 0.13;
+  z-index: 0;
+}
+.book-text-bg > * { position: relative; z-index: 1; }
 
 .book-cover {
   position: relative; border-radius: 16px; overflow: hidden;
@@ -572,6 +589,13 @@ function showPreview() {
   const title = STATE.cover.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year);
   const sub   = STATE.cover.subtitle || 'A Journey Book';
 
+  // Set texture from cover photo
+  if (STATE.cover.photoUrl) {
+    document.documentElement.style.setProperty('--texture-url', `url(${STATE.cover.photoUrl})`);
+  } else {
+    document.documentElement.style.setProperty('--texture-url', 'none');
+  }
+
   let html = '';
 
   // Cover
@@ -586,16 +610,18 @@ function showPreview() {
     <div class="book-cover-logo">Transformed by Travels</div>
   </div>`;
 
-  // Opening
+  // Opening — text page gets texture
   if (STATE.opening.introText) {
     html += `<div class="book-section">
-      <div class="book-chapter-label">Opening</div>
-      <div class="book-chapter-title">Before Uganda</div>
-      <div class="book-narrative"><p>${STATE.opening.introText}</p></div>
+      <div class="book-text-bg">
+        <div class="book-chapter-label">Opening</div>
+        <div class="book-chapter-title">Before Uganda</div>
+        <div class="book-narrative" style="margin-top:12px;"><p>${STATE.opening.introText}</p></div>
+      </div>
     </div><hr class="book-divider">`;
   }
 
-  // Days
+  // Days — photos stay clean, reflection gets texture
   TRIP.days.forEach((d, i) => {
     const st = STATE.days[i];
     const hasPhotos = st.heroUrl || st.photo2Url || st.photo3Url;
@@ -621,22 +647,24 @@ function showPreview() {
     }
 
     if (st.reflection) {
-      html += `<div class="book-pullquote">${st.reflection}</div>`;
+      html += `<div class="book-text-bg"><div class="book-pullquote" style="margin:0;">${st.reflection}</div></div>`;
     }
 
     html += `</div><hr class="book-divider">`;
   });
 
-  // Closing
+  // Closing — photo clean, text gets texture
   if (STATE.closing.text || STATE.closing.photoUrl) {
-    html += `<div class="book-section">
-      <div class="book-chapter-label">Closing</div>
-      <div class="book-chapter-title">What I'm Carrying Home</div>`;
+    html += `<div class="book-section">`;
     if (STATE.closing.photoUrl) {
       html += `<img src="${STATE.closing.photoUrl}" class="book-hero-photo" alt="closing" />`;
     }
     if (STATE.closing.text) {
-      html += `<div class="book-narrative"><p>${STATE.closing.text}</p></div>`;
+      html += `<div class="book-text-bg">
+        <div class="book-chapter-label">Closing</div>
+        <div class="book-chapter-title">What I'm Carrying Home</div>
+        <div class="book-narrative" style="margin-top:12px;"><p>${STATE.closing.text}</p></div>
+      </div>`;
     }
     html += `</div>`;
   }
