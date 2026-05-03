@@ -310,7 +310,7 @@ function updateProgress() {
   const pct   = Math.round(((STATE.currentStep + 1) / total) * 100);
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-label').textContent = 'Step ' + (STATE.currentStep + 1) + ' of ' + total + ' — ' + STEPS[STATE.currentStep].label;
-  document.getElementById('topbar-title').textContent = TRIP.traveler + ''s Journey Book';
+  document.getElementById('topbar-title').textContent = TRIP.traveler + "'s Journey Book";
 }
 
 // ── NAVIGATION ─────────────────────────────────────────────────────────────
