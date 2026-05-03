@@ -192,6 +192,11 @@
 <script>
 // Minimal markdown renderer — no external dependency
 function renderMarkdown(md) {
+  if (!md) return '';
+  // Normalize line endings (\r\n from Airtable/Windows → \n)
+  md = md.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  // Unescape Airtable-escaped markdown characters (\* → *)
+  md = md.replace(/\\\*/g, '*').replace(/\\\[/g, '[').replace(/\\\]/g, ']');
   return md
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     // Headings
