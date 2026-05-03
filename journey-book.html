@@ -200,6 +200,10 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 
 .book-divider { border: none; border-top: 1px solid var(--bd); margin: 40px 0; }
 
+.book-map { width: 100%; border-radius: 10px; overflow: hidden; margin: 18px 0 4px; }
+.book-map img { width: 100%; display: block; border-radius: 10px; }
+.book-map-caption { font-size: 0.72rem; color: var(--muted); text-align: center; margin-bottom: 18px; font-style: italic; letter-spacing: 0.03em; }
+
 .preview-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--bd); }
 .btn-order { background: var(--gold); color: #0d1520; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; border: none; border-radius: 10px; padding: 13px 32px; cursor: pointer; transition: background 0.2s; }
 .btn-order:hover { background: #fbbf24; }
@@ -258,14 +262,17 @@ const TRIP = {
   year:        '2026',
   destination: 'Uganda',
   days: [
-    { num: 1, date: 'Saturday, May 16',  location: 'Entebbe → Bwindi',          park: 'Bwindi Impenetrable National Park' },
-    { num: 2, date: 'Sunday, May 17',    location: 'Bwindi Impenetrable Forest', park: 'Bwindi Impenetrable National Park' },
-    { num: 3, date: 'Monday, May 18',    location: 'Bwindi Impenetrable Forest', park: 'Bwindi Impenetrable National Park' },
-    { num: 4, date: 'Tuesday, May 19',   location: 'Bwindi → Queen Elizabeth NP',park: 'Queen Elizabeth National Park' },
-    { num: 5, date: 'Wednesday, May 20', location: 'Queen Elizabeth NP',         park: 'Queen Elizabeth National Park' },
-    { num: 6, date: 'Thursday, May 21',  location: 'Queen Elizabeth → Murchison',park: 'Murchison Falls National Park' },
-    { num: 7, date: 'Friday, May 22',    location: 'Murchison Falls NP',         park: 'Murchison Falls National Park' },
-    { num: 8, date: 'Saturday, May 23',  location: 'Murchison → Entebbe',        park: '' },
+    { num:  1, date: 'Saturday, May 16',  location: 'Entebbe → Ziwa Rhino',       park: 'Ziwa Rhino Sanctuary',          lon: 32.93, lat:  1.52, zoom: 10 },
+    { num:  2, date: 'Sunday, May 17',    location: 'Ziwa → Murchison Falls',      park: 'Murchison Falls National Park', lon: 31.69, lat:  2.27, zoom:  9 },
+    { num:  3, date: 'Monday, May 18',    location: 'Murchison Falls NP',          park: 'Murchison Falls National Park', lon: 31.69, lat:  2.27, zoom:  9 },
+    { num:  4, date: 'Tuesday, May 19',   location: 'Murchison Falls → Kibale',    park: 'Kibale National Park',          lon: 30.40, lat:  0.48, zoom: 10 },
+    { num:  5, date: 'Wednesday, May 20', location: 'Kibale Forest',               park: 'Kibale National Park',          lon: 30.40, lat:  0.48, zoom: 10 },
+    { num:  6, date: 'Thursday, May 21',  location: 'Kibale → Queen Elizabeth NP', park: 'Queen Elizabeth National Park', lon: 30.00, lat: -0.12, zoom:  9 },
+    { num:  7, date: 'Friday, May 22',    location: 'Queen Elizabeth NP',          park: 'Queen Elizabeth National Park', lon: 30.00, lat: -0.12, zoom:  9 },
+    { num:  8, date: 'Saturday, May 23',  location: 'Queen Elizabeth → Bwindi',    park: 'Bwindi Impenetrable NP',        lon: 29.68, lat: -1.05, zoom: 10 },
+    { num:  9, date: 'Sunday, May 24',    location: 'Bwindi Impenetrable Forest',  park: 'Bwindi Impenetrable NP',        lon: 29.68, lat: -1.05, zoom: 10 },
+    { num: 10, date: 'Monday, May 25',    location: 'Bwindi → Lake Mburo',         park: 'Lake Mburo National Park',      lon: 30.95, lat: -0.62, zoom: 10 },
+    { num: 11, date: 'Tuesday, May 26',   location: 'Lake Mburo → Entebbe',        park: 'Lake Mburo National Park',      lon: 30.95, lat: -0.62, zoom: 10 },
   ]
 };
 
@@ -633,6 +640,12 @@ function showPreview() {
       <div class="book-chapter-title">${d.location.split(' → ').pop()}</div>
       <div class="book-chapter-date">${d.date}${d.park ? ' · ' + d.park : ''}</div>`;
 
+    if (d.lon && window._mapboxToken) {
+      const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${d.lon},${d.lat},${d.zoom}/700x260@2x?access_token=${window._mapboxToken}`;
+      html += `<div class="book-map"><img src="${mapUrl}" alt="Map of ${d.park || d.location}" /></div>
+               <div class="book-map-caption">${d.park || d.location}</div>`;
+    }
+
     if (st.heroUrl) {
       html += `<img src="${st.heroUrl}" class="book-hero-photo" alt="Day ${d.num}" />`;
     } else {
@@ -679,6 +692,12 @@ function showWizard() {
   STATE.currentStep = STEPS.length - 2;
   renderStep();
 }
+
+// ── MAPBOX TOKEN ───────────────────────────────────────────────────────────
+(async () => {
+  try { const r = await fetch('/api/mapbox-token'); const d = await r.json(); window._mapboxToken = d.token || ''; }
+  catch(e) {}
+})();
 
 // ── SESSION ID (stable per browser/trip for Cloudinary folder) ─────────────
 const SESSION_ID = (() => {
