@@ -706,17 +706,88 @@ const SESSION_ID = (() => {
   return id;
 })();
 
-// ── SAVE / LOAD ─────────────────────────────────────────────────────────────
-function saveProgress() {
+// ── AIRTABLE BOOK ID ───────────────────────────────────────────────────────
+let _bookId = localStorage.getItem('jb_book_id') || null;
+
+// ── SAVE ───────────────────────────────────────────────────────────────────
+async function saveProgress() {
+  const btn = document.querySelector('.topbar-save');
+  btn.textContent = 'Saving…';
+  btn.disabled = true;
+
+  // Always keep localStorage in sync as fallback
+  try { localStorage.setItem('jb_progress', JSON.stringify(STATE)); } catch(e) {}
+
+  const payload = {
+    sessionId:       SESSION_ID,
+    coverTitle:      STATE.cover.title,
+    coverSubtitle:   STATE.cover.subtitle,
+    coverPhotoUrl:   STATE.cover.photoUrl   || '',
+    openingText:     STATE.opening.introText || '',
+    daysData:        JSON.stringify(STATE.days),
+    closingText:     STATE.closing.text      || '',
+    closingPhotoUrl: STATE.closing.photoUrl  || '',
+    bookStatus:      'Draft'
+  };
+
   try {
-    localStorage.setItem('jb_progress', JSON.stringify(STATE));
-    const btn = document.querySelector('.topbar-save');
-    btn.textContent = '✓ Saved';
-    setTimeout(() => { btn.textContent = 'Save Progress'; }, 2000);
-  } catch(e) {}
+    let resp, data;
+    if (_bookId) {
+      resp = await fetch('/api/journey-book?id=' + encodeURIComponent(_bookId),
+        { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      data = await resp.json();
+    } else {
+      resp = await fetch('/api/journey-book',
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      data = await resp.json();
+      if (data.id) { _bookId = data.id; localStorage.setItem('jb_book_id', _bookId); }
+      // Handle duplicate session — use existing record
+      if (resp.status === 409 && data.id) { _bookId = data.id; localStorage.setItem('jb_book_id', _bookId); }
+    }
+    btn.textContent = data.ok || data.id ? '✓ Saved' : '⚠ Save failed';
+  } catch(e) {
+    btn.textContent = '⚠ Save failed';
+  }
+
+  btn.disabled = false;
+  setTimeout(() => { btn.textContent = 'Save Progress'; }, 2500);
 }
 
-function loadProgress() {
+// ── LOAD ───────────────────────────────────────────────────────────────────
+async function loadProgress() {
+  // Try Airtable first (by bookId or sessionId)
+  const idToTry = _bookId || null;
+  try {
+    const url = idToTry
+      ? '/api/journey-book?sessionId=' + encodeURIComponent(SESSION_ID)
+      : '/api/journey-book?sessionId=' + encodeURIComponent(SESSION_ID);
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.book) {
+        const f = data.book.fields;
+        _bookId = data.book.id;
+        localStorage.setItem('jb_book_id', _bookId);
+        STATE.cover.title      = f['Cover Title']      || '';
+        STATE.cover.subtitle   = f['Cover Subtitle']   || '';
+        STATE.cover.photoUrl   = f['Cover Photo URL']  || null;
+        STATE.opening.introText= f['Opening Text']     || '';
+        STATE.closing.text     = f['Closing Text']     || '';
+        STATE.closing.photoUrl = f['Closing Photo URL']|| null;
+        if (f['Days Data']) {
+          try {
+            const days = JSON.parse(f['Days Data']);
+            if (Array.isArray(days) && days.length === STATE.days.length) {
+              days.forEach((d, i) => Object.assign(STATE.days[i], d));
+            }
+          } catch(e) {}
+        }
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // Fallback to localStorage
   try {
     const saved = localStorage.getItem('jb_progress');
     if (!saved) return;
@@ -731,8 +802,7 @@ function loadProgress() {
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
-loadProgress();
-goToStep(0);
+loadProgress().then(() => goToStep(0));
 </script>
 </body>
 </html>

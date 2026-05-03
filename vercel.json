@@ -43,7 +43,8 @@
     "api/blog-post.js":    { "maxDuration": 15 },
     "api/draft-schedule.js":  { "maxDuration": 30 },
     "api/suggest-lodging.js": { "maxDuration": 20 },
-    "api/uganda-lead.js":     { "maxDuration": 10 }
+    "api/uganda-lead.js":     { "maxDuration": 10 },
+    "api/journey-book.js":   { "maxDuration": 20 }
   },
   "crons": [
     {
