@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Journey Book Builder · Transformed by Travels</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:ital,wght@0,300;0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap" rel="stylesheet" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy:  #0d1520; --navy2: #121e2d; --navy3: #1a2840;
+  --teal:  #2dd4bf; --gold: #f59e0b;
+  --text:  #e2e8f0; --soft: #94a3b8; --muted: #64748b;
+  --bd:    rgba(255,255,255,0.08);
+}
+html { scroll-behavior: smooth; }
+body { background: var(--navy); color: var(--text); font-family: 'Open Sans', sans-serif; min-height: 100vh; }
+h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
+
+/* ── TOP BAR ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(13,21,32,0.96); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--bd);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 60px;
+}
+.topbar-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.88rem; color: #fff; }
+.topbar-logo span { color: var(--teal); }
+.topbar-title { font-size: 0.82rem; color: var(--soft); font-weight: 600; }
+.topbar-save { background: none; border: 1px solid rgba(45,212,191,0.35); color: var(--teal); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; border-radius: 7px; padding: 7px 16px; cursor: pointer; }
+.topbar-save:hover { background: rgba(45,212,191,0.08); }
+
+/* ── LAYOUT ── */
+.layout { display: flex; min-height: 100vh; padding-top: 60px; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  background: var(--navy2); border-right: 1px solid var(--bd);
+  padding: 28px 0; position: sticky; top: 60px; height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+.sidebar-section { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 20px; margin: 20px 0 8px; }
+.sidebar-step {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 20px; cursor: pointer; transition: background 0.15s;
+  font-size: 0.83rem; color: var(--soft); border-left: 3px solid transparent;
+}
+.sidebar-step:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+.sidebar-step.active { background: rgba(45,212,191,0.08); color: var(--teal); border-left-color: var(--teal); }
+.sidebar-step.done { color: var(--text); }
+.step-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--bd); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-family: 'Montserrat', sans-serif; font-weight: 700; flex-shrink: 0; }
+.sidebar-step.active .step-dot { border-color: var(--teal); color: var(--teal); }
+.sidebar-step.done   .step-dot { background: rgba(45,212,191,0.15); border-color: rgba(45,212,191,0.4); color: var(--teal); }
+.step-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media(max-width:700px){ .sidebar { display: none; } }
+
+/* ── MAIN ── */
+.main { flex: 1; padding: 36px 32px 80px; max-width: 760px; }
+@media(max-width:700px){ .main { padding: 24px 16px 80px; } }
+
+/* ── MOBILE PROGRESS ── */
+.mobile-progress { display: none; padding: 14px 16px; border-bottom: 1px solid var(--bd); }
+.progress-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--teal); border-radius: 2px; transition: width 0.3s; }
+.progress-label { font-size: 0.78rem; color: var(--soft); margin-bottom: 8px; }
+@media(max-width:700px){ .mobile-progress { display: block; } }
+
+/* ── STEP HEADER ── */
+.step-header { margin-bottom: 28px; }
+.step-eyebrow { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 8px; }
+.step-header h2 { font-size: 1.5rem; color: #fff; margin-bottom: 8px; }
+.step-header p { font-size: 0.88rem; color: var(--soft); line-height: 1.7; }
+
+/* ── CARDS ── */
+.card { background: var(--navy2); border: 1px solid var(--bd); border-radius: 14px; padding: 22px 20px; margin-bottom: 18px; }
+.card-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; color: var(--soft); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+
+/* ── PHOTO UPLOAD ── */
+.photo-grid { display: grid; gap: 12px; }
+.photo-grid-1 { grid-template-columns: 1fr; }
+.photo-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+@media(max-width:500px){ .photo-grid-3 { grid-template-columns: 1fr 1fr; } }
+
+.photo-slot {
+  position: relative; border-radius: 10px; overflow: hidden;
+  background: rgba(255,255,255,0.04); border: 2px dashed rgba(255,255,255,0.12);
+  cursor: pointer; transition: border-color 0.2s;
+}
+.photo-slot:hover { border-color: rgba(45,212,191,0.4); }
+.photo-slot.hero  { aspect-ratio: 3/2; }
+.photo-slot.thumb { aspect-ratio: 1/1; }
+.photo-slot.cover-slot { aspect-ratio: 2/3; max-width: 280px; }
+.photo-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.photo-slot-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; height: 100%; padding: 16px; pointer-events: none; }
+.photo-slot-inner .icon { font-size: 1.4rem; color: var(--muted); }
+.photo-slot-inner .label { font-size: 0.75rem; color: var(--muted); text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 600; }
+.photo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.photo-slot .remove-btn {
+  position: absolute; top: 6px; right: 6px; width: 24px; height: 24px;
+  background: rgba(0,0,0,0.7); border: none; border-radius: 50%; color: #fff;
+  font-size: 0.7rem; cursor: pointer; display: none; align-items: center; justify-content: center;
+  z-index: 2;
+}
+.photo-slot:hover .remove-btn { display: flex; }
+.photo-slot .role-tag {
+  position: absolute; bottom: 6px; left: 6px;
+  background: rgba(0,0,0,0.65); color: rgba(255,255,255,0.8);
+  font-size: 0.65rem; font-family: 'Montserrat', sans-serif; font-weight: 700;
+  padding: 2px 7px; border-radius: 4px; pointer-events: none;
+}
+
+/* ── FIELDS ── */
+.field { margin-bottom: 16px; }
+.field label { display: block; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.72rem; color: var(--soft); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.field input, .field textarea, .field select {
+  width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9px; padding: 10px 14px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s;
+}
+.field input:focus, .field textarea:focus, .field select:focus { border-color: rgba(45,212,191,0.45); }
+.field textarea { resize: vertical; min-height: 90px; line-height: 1.65; }
+.field .hint { font-size: 0.75rem; color: var(--muted); margin-top: 5px; }
+
+/* ── DAY HEADER ── */
+.day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--bd); }
+.day-num { width: 44px; height: 44px; border-radius: 10px; background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.25); display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.85rem; color: var(--teal); flex-shrink: 0; }
+.day-info h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1rem; color: #fff; }
+.day-info p  { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+/* ── CONTRIBUTOR ROW ── */
+.contrib-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.contrib-pill { font-size: 0.72rem; font-family: 'Montserrat', sans-serif; font-weight: 700; padding: 4px 12px; border-radius: 20px; border: 1px solid; cursor: pointer; transition: background 0.15s; }
+.contrib-pill.traveler { border-color: rgba(45,212,191,0.35); color: var(--teal); background: rgba(45,212,191,0.06); }
+.contrib-pill.guide    { border-color: rgba(245,158,11,0.35); color: var(--gold); background: rgba(245,158,11,0.06); }
+.contrib-pill.lodge    { border-color: rgba(167,139,250,0.35); color: #a78bfa; background: rgba(167,139,250,0.06); }
+.contrib-pill.active   { background: rgba(45,212,191,0.18) !important; border-color: var(--teal) !important; }
+
+/* ── NAV BUTTONS ── */
+.step-nav { display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--bd); }
+.btn-back { background: none; border: 1px solid rgba(255,255,255,0.15); color: var(--soft); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; border-radius: 9px; padding: 11px 24px; cursor: pointer; transition: border-color 0.2s; }
+.btn-back:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+.btn-next { background: var(--teal); color: #0d1520; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; border: none; border-radius: 9px; padding: 11px 28px; cursor: pointer; transition: background 0.2s; }
+.btn-next:hover { background: #5eead4; }
+.btn-preview { background: linear-gradient(135deg, var(--teal), #5eead4); color: #0d1520; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; border: none; border-radius: 9px; padding: 12px 32px; cursor: pointer; }
+
+/* ══════════════════════════════════════════
+   BOOK PREVIEW
+   ══════════════════════════════════════════ */
+#preview-view { display: none; }
+.book-wrap { max-width: 700px; margin: 0 auto; }
+
+.book-cover {
+  position: relative; border-radius: 16px; overflow: hidden;
+  aspect-ratio: 2/3; max-width: 360px; margin: 0 auto 48px;
+  background: linear-gradient(160deg, #0c1e0d, #1a1208, #0d1520);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+}
+.book-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.75; }
+.book-cover-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%); }
+.book-cover-text { position: absolute; bottom: 0; left: 0; right: 0; padding: 32px 28px; }
+.book-cover-eyebrow { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); margin-bottom: 8px; }
+.book-cover-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 2rem; color: #fff; line-height: 1.2; margin-bottom: 8px; }
+.book-cover-sub { font-family: 'Open Sans', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.6); }
+.book-cover-logo { position: absolute; top: 20px; right: 20px; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.68rem; color: rgba(255,255,255,0.5); }
+
+.book-section { margin-bottom: 52px; }
+.book-chapter-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
+.book-chapter-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.6rem; color: #fff; margin-bottom: 6px; }
+.book-chapter-date  { font-size: 0.78rem; color: var(--muted); margin-bottom: 20px; }
+
+.book-hero-photo { width: 100%; aspect-ratio: 3/2; object-fit: cover; border-radius: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.05); }
+.book-hero-empty { width: 100%; aspect-ratio: 3/2; border-radius: 12px; background: linear-gradient(160deg, #1a2e10, #0d1520); border: 1px dashed rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.book-hero-empty span { font-size: 0.78rem; color: var(--muted); font-style: italic; }
+
+.book-photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.book-photo-grid img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 8px; }
+.book-photo-grid .empty-ph { width: 100%; aspect-ratio: 4/3; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.08); }
+
+.book-narrative { font-family: 'Open Sans', sans-serif; font-size: 0.92rem; color: var(--soft); line-height: 1.85; }
+.book-narrative p { margin-bottom: 12px; }
+.book-pullquote { border-left: 3px solid var(--teal); padding: 12px 20px; margin: 20px 0; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: var(--text); line-height: 1.65; }
+
+.book-divider { border: none; border-top: 1px solid var(--bd); margin: 40px 0; }
+
+.preview-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--bd); }
+.btn-order { background: var(--gold); color: #0d1520; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; border: none; border-radius: 10px; padding: 13px 32px; cursor: pointer; transition: background 0.2s; }
+.btn-order:hover { background: #fbbf24; }
+.btn-share { background: none; border: 1px solid rgba(45,212,191,0.4); color: var(--teal); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; border-radius: 10px; padding: 12px 24px; cursor: pointer; }
+.btn-edit  { background: none; border: 1px solid rgba(255,255,255,0.15); color: var(--soft); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; border-radius: 10px; padding: 12px 24px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">Transformed <span>by Travels</span></div>
+  <div class="topbar-title" id="topbar-title">Journey Book Builder</div>
+  <button class="topbar-save" onclick="saveProgress()">Save Progress</button>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar"></div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="mobile-progress">
+      <div class="progress-label" id="progress-label">Step 1 of 8</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:12%;"></div></div>
+    </div>
+
+    <!-- WIZARD STEPS -->
+    <div id="wizard-view">
+      <div id="step-content"></div>
+    </div>
+
+    <!-- BOOK PREVIEW -->
+    <div id="preview-view">
+      <div class="step-header">
+        <div class="step-eyebrow">Your Journey Book</div>
+        <h2>Preview</h2>
+        <p>This is how your Journey Book will look. Review each chapter, then order your printed copy or share the digital version.</p>
+      </div>
+      <div class="book-wrap" id="book-preview-content"></div>
+      <div class="preview-actions">
+        <button class="btn-edit" onclick="showWizard()">← Edit Book</button>
+        <button class="btn-share" onclick="alert('Shareable link — coming soon!')">🔗 Share Digital Copy</button>
+        <button class="btn-order" onclick="alert('Print ordering — coming soon! We will integrate with your preferred print lab.')">📦 Order Printed Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DEMO TRIP DATA (replace with real trip data via URL param) ──────────────
+const TRIP = {
+  title:       'Uganda Safari',
+  traveler:    'Michael',
+  year:        '2026',
+  destination: 'Uganda',
+  days: [
+    { num: 1, date: 'Saturday, May 16',  location: 'Entebbe → Bwindi',          park: 'Bwindi Impenetrable National Park' },
+    { num: 2, date: 'Sunday, May 17',    location: 'Bwindi Impenetrable Forest', park: 'Bwindi Impenetrable National Park' },
+    { num: 3, date: 'Monday, May 18',    location: 'Bwindi Impenetrable Forest', park: 'Bwindi Impenetrable National Park' },
+    { num: 4, date: 'Tuesday, May 19',   location: 'Bwindi → Queen Elizabeth NP',park: 'Queen Elizabeth National Park' },
+    { num: 5, date: 'Wednesday, May 20', location: 'Queen Elizabeth NP',         park: 'Queen Elizabeth National Park' },
+    { num: 6, date: 'Thursday, May 21',  location: 'Queen Elizabeth → Murchison',park: 'Murchison Falls National Park' },
+    { num: 7, date: 'Friday, May 22',    location: 'Murchison Falls NP',         park: 'Murchison Falls National Park' },
+    { num: 8, date: 'Saturday, May 23',  location: 'Murchison → Entebbe',        park: '' },
+  ]
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+const STATE = {
+  currentStep: 0,
+  cover: { photoUrl: null, title: '', subtitle: '' },
+  opening: { introText: '', mapIncluded: true },
+  days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, reflection: '', narrative: '' })),
+  closing: { photoUrl: null, text: '' },
+};
+
+// ── STEPS LIST ─────────────────────────────────────────────────────────────
+function buildSteps() {
+  const steps = [];
+  steps.push({ id: 'cover',   label: 'Cover',        section: 'Front Matter', render: renderCover });
+  steps.push({ id: 'opening', label: 'Opening Pages', section: null,          render: renderOpening });
+  TRIP.days.forEach((d, i) => {
+    steps.push({ id: 'day-' + i, label: 'Day ' + d.num + ' — ' + d.location.split(' → ')[0], section: i === 0 ? 'Day Chapters' : null, render: () => renderDay(i) });
+  });
+  steps.push({ id: 'closing', label: 'Closing Chapter', section: 'Final Pages', render: renderClosing });
+  steps.push({ id: 'preview', label: 'Preview & Order', section: null,          render: renderPreviewStep });
+  return steps;
+}
+const STEPS = buildSteps();
+
+// ── SIDEBAR ────────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const sb = document.getElementById('sidebar');
+  let lastSection = null;
+  sb.innerHTML = STEPS.map((s, i) => {
+    let html = '';
+    if (s.section && s.section !== lastSection) {
+      html += `<div class="sidebar-section">${s.section}</div>`;
+      lastSection = s.section;
+    }
+    const cls = i === STATE.currentStep ? 'active' : (isStepDone(i) ? 'done' : '');
+    html += `<div class="sidebar-step ${cls}" onclick="goToStep(${i})">
+      <div class="step-dot">${isStepDone(i) && i !== STATE.currentStep ? '✓' : (i + 1)}</div>
+      <div class="step-label">${s.label}</div>
+    </div>`;
+    return html;
+  }).join('');
+}
+
+function isStepDone(i) {
+  if (i === 0) return !!STATE.cover.photoUrl || !!STATE.cover.title;
+  if (i === 1) return !!STATE.opening.introText;
+  if (i >= 2 && i <= 2 + TRIP.days.length - 1) {
+    const d = STATE.days[i - 2];
+    return !!d.heroUrl || !!d.reflection;
+  }
+  return false;
+}
+
+// ── PROGRESS BAR (mobile) ──────────────────────────────────────────────────
+function updateProgress() {
+  const total = STEPS.length;
+  const pct   = Math.round(((STATE.currentStep + 1) / total) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = 'Step ' + (STATE.currentStep + 1) + ' of ' + total + ' — ' + STEPS[STATE.currentStep].label;
+  document.getElementById('topbar-title').textContent = TRIP.traveler + ''s Journey Book';
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────
+function goToStep(i) {
+  STATE.currentStep = Math.max(0, Math.min(STEPS.length - 1, i));
+  document.getElementById('wizard-view').style.display  = 'block';
+  document.getElementById('preview-view').style.display = 'none';
+  renderStep();
+}
+
+function nextStep() {
+  if (STATE.currentStep < STEPS.length - 1) goToStep(STATE.currentStep + 1);
+}
+function prevStep() {
+  if (STATE.currentStep > 0) goToStep(STATE.currentStep - 1);
+}
+
+function renderStep() {
+  renderSidebar();
+  updateProgress();
+  const content = document.getElementById('step-content');
+  content.innerHTML = '';
+  STEPS[STATE.currentStep].render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── NAV HTML ───────────────────────────────────────────────────────────────
+function navHtml(isLast) {
+  const back = STATE.currentStep > 0
+    ? `<button class="btn-back" onclick="prevStep()">← Back</button>` : '';
+  const next = isLast
+    ? `<button class="btn-preview" onclick="showPreview()">Preview My Journey Book →</button>`
+    : `<button class="btn-next" onclick="nextStep()">Next →</button>`;
+  return `<div class="step-nav">${back}${next}</div>`;
+}
+
+// ── PHOTO SLOT ─────────────────────────────────────────────────────────────
+function photoSlotHtml(id, cls, label, existingUrl, roleTag) {
+  const img     = existingUrl ? `<img src="${existingUrl}" alt="" />` : '';
+  const remove  = existingUrl ? `<button class="remove-btn" onclick="removePhoto(event,'${id}')">✕</button>` : '';
+  const tag     = roleTag ? `<div class="role-tag">${roleTag}</div>` : '';
+  const inner   = !existingUrl ? `<div class="photo-slot-inner"><div class="icon">📷</div><div class="label">${label}</div></div>` : '';
+  return `<div class="photo-slot ${cls}" id="slot-${id}">
+    <input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />
+    ${inner}${img}${remove}${tag}
+  </div>`;
+}
+
+function handlePhoto(e, id) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url  = URL.createObjectURL(file);
+  const slot = document.getElementById('slot-' + id);
+
+  // store in state
+  if      (id === 'cover')   STATE.cover.photoUrl = url;
+  else if (id === 'closing') STATE.closing.photoUrl = url;
+  else {
+    const m = id.match(/^day(\d+)-(hero|p2|p3)$/);
+    if (m) {
+      const di = parseInt(m[1]), role = m[2];
+      if (role === 'hero') STATE.days[di].heroUrl  = url;
+      if (role === 'p2')   STATE.days[di].photo2Url = url;
+      if (role === 'p3')   STATE.days[di].photo3Url = url;
+    }
+  }
+
+  // update slot UI without full re-render
+  slot.innerHTML = `
+    <input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />
+    <img src="${url}" alt="" />
+    <button class="remove-btn" onclick="removePhoto(event,'${id}')">✕</button>`;
+}
+
+function removePhoto(e, id) {
+  e.stopPropagation();
+  if      (id === 'cover')   STATE.cover.photoUrl = null;
+  else if (id === 'closing') STATE.closing.photoUrl = null;
+  else {
+    const m = id.match(/^day(\d+)-(hero|p2|p3)$/);
+    if (m) {
+      const di = parseInt(m[1]), role = m[2];
+      if (role === 'hero') STATE.days[di].heroUrl   = null;
+      if (role === 'p2')   STATE.days[di].photo2Url = null;
+      if (role === 'p3')   STATE.days[di].photo3Url = null;
+    }
+  }
+  renderStep();
+}
+
+// ── STEP: COVER ────────────────────────────────────────────────────────────
+function renderCover() {
+  const c = STATE.cover;
+  document.getElementById('step-content').innerHTML = `
+    <div class="step-header">
+      <div class="step-eyebrow">Step 1 of ${STEPS.length}</div>
+      <h2>Cover Photo &amp; Title</h2>
+      <p>Choose the single image that defines your Uganda journey. This becomes the cover of your Journey Book.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Cover Photo</div>
+      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+        ${photoSlotHtml('cover', 'cover-slot', 'Upload Cover Photo', c.photoUrl, null)}
+        <div style="flex:1;min-width:200px;">
+          <div class="field">
+            <label>Book Title</label>
+            <input type="text" id="cover-title" value="${c.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year)}" placeholder="Uganda · ${TRIP.traveler} · ${TRIP.year}" oninput="STATE.cover.title=this.value" />
+          </div>
+          <div class="field">
+            <label>Subtitle (optional)</label>
+            <input type="text" id="cover-sub" value="${c.subtitle||''}" placeholder="A Journey Book" oninput="STATE.cover.subtitle=this.value" />
+            <div class="hint">Appears below the title on the cover</div>
+          </div>
+          <div style="background:rgba(45,212,191,0.06);border:1px solid rgba(45,212,191,0.2);border-radius:10px;padding:14px;font-size:0.82rem;color:var(--soft);line-height:1.65;">
+            💡 Choose a photo that captures the essence of your trip — a gorilla in the mist, a sunset over the Kazinga Channel, or a moment that surprised you.
+          </div>
+        </div>
+      </div>
+    </div>
+    ${navHtml(false)}`;
+}
+
+// ── STEP: OPENING ──────────────────────────────────────────────────────────
+function renderOpening() {
+  const o = STATE.opening;
+  document.getElementById('step-content').innerHTML = `
+    <div class="step-header">
+      <div class="step-eyebrow">Step 2 of ${STEPS.length}</div>
+      <h2>Opening Pages</h2>
+      <p>The opening of your Journey Book sets the scene — who you are, what drew you to Uganda, and what you were hoping to find.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Your Opening</div>
+      <div class="field">
+        <label>Your Introduction</label>
+        <textarea id="opening-text" rows="5" placeholder="Tell us who you are as a traveler and what drew you to Uganda. This becomes the opening paragraph of your Journey Book." oninput="STATE.opening.introText=this.value">${o.introText}</textarea>
+        <div class="hint">3–5 sentences is perfect. Your travel archetype and passions will also appear here from your profile.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Trip Overview</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${TRIP.days.map(d => `
+          <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:rgba(255,255,255,0.03);border-radius:8px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.2);display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;color:var(--teal);flex-shrink:0;">${d.num}</div>
+            <div>
+              <div style="font-size:0.85rem;color:var(--text);font-weight:600;">${d.location}</div>
+              <div style="font-size:0.75rem;color:var(--muted);">${d.date}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div style="margin-top:14px;font-size:0.8rem;color:var(--muted);">A route map of your journey will be automatically generated for the opening pages.</div>
+    </div>
+    ${navHtml(false)}`;
+}
+
+// ── STEP: DAY ──────────────────────────────────────────────────────────────
+function renderDay(dayIndex) {
+  const d  = TRIP.days[dayIndex];
+  const st = STATE.days[dayIndex];
+  const stepNum = dayIndex + 3;
+  document.getElementById('step-content').innerHTML = `
+    <div class="step-header">
+      <div class="step-eyebrow">Step ${stepNum} of ${STEPS.length}</div>
+      <h2>Day ${d.num} Photos &amp; Reflection</h2>
+      <p>Select up to 3 photos for this day and add your reflection. Photos can come from you, your guide, or your lodge.</p>
+    </div>
+
+    <div class="card">
+      <div class="day-header">
+        <div class="day-num">D${d.num}</div>
+        <div class="day-info">
+          <h3>${d.location}</h3>
+          <p>${d.date}${d.park ? ' · ' + d.park : ''}</p>
+        </div>
+      </div>
+
+      <div class="card-title">Photos for This Day</div>
+      <div class="contrib-row">
+        <div class="contrib-pill traveler active">📷 Your Photos</div>
+        <div class="contrib-pill guide">🔭 Guide Photos</div>
+        <div class="contrib-pill lodge">🏕️ Lodge Photos</div>
+      </div>
+      <div class="photo-grid photo-grid-3" style="margin-bottom:18px;">
+        ${photoSlotHtml('day' + dayIndex + '-hero', 'hero', 'Hero Photo\n(main image)', st.heroUrl, st.heroUrl ? 'Hero' : null)}
+        ${photoSlotHtml('day' + dayIndex + '-p2',   'thumb','Supporting\nPhoto', st.photo2Url, null)}
+        ${photoSlotHtml('day' + dayIndex + '-p3',   'thumb','Supporting\nPhoto', st.photo3Url, null)}
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:16px;">The hero photo leads the chapter. Supporting photos appear in a grid below it.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Your Reflection</div>
+      <div class="field">
+        <label>What stood out about this day?</label>
+        <textarea rows="4" placeholder="A moment, a feeling, something you saw or heard that you want to remember…" oninput="STATE.days[${dayIndex}].reflection=this.value">${st.reflection}</textarea>
+        <div class="hint">This becomes the heart of your day chapter. 2–4 sentences is all you need.</div>
+      </div>
+    </div>
+    ${navHtml(false)}`;
+}
+
+// ── STEP: CLOSING ──────────────────────────────────────────────────────────
+function renderClosing() {
+  const c = STATE.closing;
+  document.getElementById('step-content').innerHTML = `
+    <div class="step-header">
+      <div class="step-eyebrow">Step ${STEPS.length - 1} of ${STEPS.length}</div>
+      <h2>Closing Chapter</h2>
+      <p>The final pages of your Journey Book. What are you carrying home from Uganda?</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Closing Photo</div>
+      ${photoSlotHtml('closing', 'hero', 'Your final image', c.photoUrl, null)}
+    </div>
+    <div class="card">
+      <div class="card-title">What You're Carrying Home</div>
+      <div class="field">
+        <label>Your Closing Reflection</label>
+        <textarea rows="6" placeholder="What did Uganda change in you? What do you see differently now? What are you taking into the next chapter of your life?" oninput="STATE.closing.text=this.value">${c.text}</textarea>
+        <div class="hint">This is the most personal part of your Journey Book. There are no wrong answers.</div>
+      </div>
+    </div>
+    ${navHtml(true)}`;
+}
+
+// ── STEP: PREVIEW TRIGGER ──────────────────────────────────────────────────
+function renderPreviewStep() { showPreview(); }
+
+// ── SHOW PREVIEW ───────────────────────────────────────────────────────────
+function showPreview() {
+  document.getElementById('wizard-view').style.display  = 'none';
+  document.getElementById('preview-view').style.display = 'block';
+  STATE.currentStep = STEPS.length - 1;
+  renderSidebar(); updateProgress();
+
+  const title = STATE.cover.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year);
+  const sub   = STATE.cover.subtitle || 'A Journey Book';
+
+  let html = '';
+
+  // Cover
+  html += `<div class="book-cover">
+    ${STATE.cover.photoUrl ? `<img src="${STATE.cover.photoUrl}" alt="cover" />` : ''}
+    <div class="book-cover-overlay"></div>
+    <div class="book-cover-text">
+      <div class="book-cover-eyebrow">Journey Book · Uganda</div>
+      <div class="book-cover-title">${title}</div>
+      <div class="book-cover-sub">${sub}</div>
+    </div>
+    <div class="book-cover-logo">Transformed by Travels</div>
+  </div>`;
+
+  // Opening
+  if (STATE.opening.introText) {
+    html += `<div class="book-section">
+      <div class="book-chapter-label">Opening</div>
+      <div class="book-chapter-title">Before Uganda</div>
+      <div class="book-narrative"><p>${STATE.opening.introText}</p></div>
+    </div><hr class="book-divider">`;
+  }
+
+  // Days
+  TRIP.days.forEach((d, i) => {
+    const st = STATE.days[i];
+    const hasPhotos = st.heroUrl || st.photo2Url || st.photo3Url;
+    const hasText   = st.reflection;
+    if (!hasPhotos && !hasText) return;
+
+    html += `<div class="book-section">
+      <div class="book-chapter-label">Day ${d.num}</div>
+      <div class="book-chapter-title">${d.location.split(' → ').pop()}</div>
+      <div class="book-chapter-date">${d.date}${d.park ? ' · ' + d.park : ''}</div>`;
+
+    if (st.heroUrl) {
+      html += `<img src="${st.heroUrl}" class="book-hero-photo" alt="Day ${d.num}" />`;
+    } else {
+      html += `<div class="book-hero-empty"><span>Hero photo for Day ${d.num}</span></div>`;
+    }
+
+    if (st.photo2Url || st.photo3Url) {
+      html += `<div class="book-photo-grid">
+        ${st.photo2Url ? `<img src="${st.photo2Url}" alt="" />` : '<div class="empty-ph"></div>'}
+        ${st.photo3Url ? `<img src="${st.photo3Url}" alt="" />` : '<div class="empty-ph"></div>'}
+      </div>`;
+    }
+
+    if (st.reflection) {
+      html += `<div class="book-pullquote">${st.reflection}</div>`;
+    }
+
+    html += `</div><hr class="book-divider">`;
+  });
+
+  // Closing
+  if (STATE.closing.text || STATE.closing.photoUrl) {
+    html += `<div class="book-section">
+      <div class="book-chapter-label">Closing</div>
+      <div class="book-chapter-title">What I'm Carrying Home</div>`;
+    if (STATE.closing.photoUrl) {
+      html += `<img src="${STATE.closing.photoUrl}" class="book-hero-photo" alt="closing" />`;
+    }
+    if (STATE.closing.text) {
+      html += `<div class="book-narrative"><p>${STATE.closing.text}</p></div>`;
+    }
+    html += `</div>`;
+  }
+
+  document.getElementById('book-preview-content').innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showWizard() {
+  document.getElementById('wizard-view').style.display  = 'block';
+  document.getElementById('preview-view').style.display = 'none';
+  STATE.currentStep = STEPS.length - 2;
+  renderStep();
+}
+
+// ── SAVE ───────────────────────────────────────────────────────────────────
+function saveProgress() {
+  try {
+    const save = { ...STATE, cover: { ...STATE.cover, photoUrl: null }, closing: { ...STATE.closing, photoUrl: null }, days: STATE.days.map(d => ({ ...d, heroUrl: null, photo2Url: null, photo3Url: null })) };
+    localStorage.setItem('jb_progress', JSON.stringify(save));
+    const btn = document.querySelector('.topbar-save');
+    btn.textContent = '✓ Saved'; setTimeout(() => { btn.textContent = 'Save Progress'; }, 2000);
+  } catch(e) {}
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+goToStep(0);
+</script>
+</body>
+</html>
