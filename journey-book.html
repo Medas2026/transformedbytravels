@@ -282,7 +282,7 @@ const STATE = {
   cover: { photoUrl: null, title: '', subtitle: '' },
   opening: { introText: '', mapIncluded: true },
   days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, reflection: '', narrative: '' })),
-  closing: { photoUrl: null, text: '' },
+  closing: { photoUrl: null, portraitUrl: null, text: '' },
 };
 
 // ── STEPS LIST ─────────────────────────────────────────────────────────────
@@ -418,8 +418,9 @@ async function handlePhoto(e, id) {
 }
 
 function storePhotoUrl(id, url) {
-  if      (id === 'cover')   STATE.cover.photoUrl = url;
-  else if (id === 'closing') STATE.closing.photoUrl = url;
+  if      (id === 'cover')            STATE.cover.photoUrl    = url;
+  else if (id === 'closing')          STATE.closing.photoUrl  = url;
+  else if (id === 'closing-portrait') STATE.closing.portraitUrl = url;
   else {
     const m = id.match(/^day(\d+)-(hero|p2|p3)$/);
     if (m) {
@@ -433,8 +434,9 @@ function storePhotoUrl(id, url) {
 
 function removePhoto(e, id) {
   e.stopPropagation();
-  if      (id === 'cover')   STATE.cover.photoUrl = null;
-  else if (id === 'closing') STATE.closing.photoUrl = null;
+  if      (id === 'cover')            STATE.cover.photoUrl    = null;
+  else if (id === 'closing')          STATE.closing.photoUrl  = null;
+  else if (id === 'closing-portrait') STATE.closing.portraitUrl = null;
   else {
     const m = id.match(/^day(\d+)-(hero|p2|p3)$/);
     if (m) {
@@ -570,7 +572,12 @@ function renderClosing() {
     </div>
     <div class="card">
       <div class="card-title">Closing Photo</div>
-      ${photoSlotHtml('closing', 'hero', 'Your final image', c.photoUrl, null)}
+      ${photoSlotHtml('closing', 'hero', 'Your final landscape or wildlife image', c.photoUrl, null)}
+    </div>
+    <div class="card">
+      <div class="card-title">Traveler Portrait</div>
+      <div class="hint" style="margin-bottom:12px;">A photo of you from the trip — standing at the falls, with your guide, or just in the moment. This is your story.</div>
+      ${photoSlotHtml('closing-portrait', 'portrait', 'A photo of you on this trip', c.portraitUrl, 'Traveler')}
     </div>
     <div class="card">
       <div class="card-title">What You're Carrying Home</div>
@@ -666,8 +673,8 @@ function showPreview() {
     html += `</div><hr class="book-divider">`;
   });
 
-  // Closing — photo clean, text gets texture
-  if (STATE.closing.text || STATE.closing.photoUrl) {
+  // Closing — photos clean, text gets texture
+  if (STATE.closing.text || STATE.closing.photoUrl || STATE.closing.portraitUrl) {
     html += `<div class="book-section">`;
     if (STATE.closing.photoUrl) {
       html += `<img src="${STATE.closing.photoUrl}" class="book-hero-photo" alt="closing" />`;
@@ -677,6 +684,12 @@ function showPreview() {
         <div class="book-chapter-label">Closing</div>
         <div class="book-chapter-title">What I'm Carrying Home</div>
         <div class="book-narrative" style="margin-top:12px;"><p>${STATE.closing.text}</p></div>
+      </div>`;
+    }
+    if (STATE.closing.portraitUrl) {
+      html += `<div style="display:flex;justify-content:center;margin-top:20px;">
+        <img src="${STATE.closing.portraitUrl}" alt="Traveler portrait"
+          style="width:260px;height:320px;object-fit:cover;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4);" />
       </div>`;
     }
     html += `</div>`;
