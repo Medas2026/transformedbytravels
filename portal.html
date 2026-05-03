@@ -9333,6 +9333,41 @@ function _smEventSelect(n, btn) {
 
 // ── Lodging ──────────────────────────────────────────────────────────────────
 
+// Open the lodging edit form directly by record ID (used from timeline)
+function editLodgingDirect(id) {
+  const existing = (_lodgingRecords || []).find(r => r.id === id);
+  if (!existing) return;
+  _lodgingModalIdx = -1;
+  _lodgingEditId   = existing.id;
+  document.getElementById('lm-title').textContent        = 'Edit Lodging';
+  document.getElementById('lm-delete-btn').style.display = 'block';
+  const f = existing.fields;
+  document.getElementById('lm-name').value         = f['Name']           || '';
+  document.getElementById('lm-type').value         = f['Type']           || '';
+  document.getElementById('lm-location').value     = f['Location']       || '';
+  document.getElementById('lm-checkin').value      = f['Check-in Date']  || '';
+  document.getElementById('lm-checkout').value     = f['Check-out Date'] || '';
+  updateLodgingNights();
+  document.getElementById('lm-description').value  = f['Description']    || '';
+  document.getElementById('lm-amenities').value    = f['Amenities']      || '';
+  document.getElementById('lm-phone').value        = f['Phone']          || '';
+  document.getElementById('lm-confirmation').value = f['Confirmation #'] || '';
+  document.getElementById('lm-site-url').value     = f['Site URL']       || '';
+  const imageUrl = f['Image URL'] || '';
+  document.getElementById('lm-image').value = imageUrl;
+  if (imageUrl) {
+    document.getElementById('lm-photo-preview').src = imageUrl;
+    document.getElementById('lm-photo-wrap').style.display = 'block';
+    document.getElementById('lm-photo-btn').textContent = '📷 Change Photo';
+  } else {
+    document.getElementById('lm-photo-wrap').style.display = 'none';
+    document.getElementById('lm-photo-btn').textContent = '📷 Add Property Photo';
+  }
+  document.getElementById('lm-photo-status').textContent = '';
+  document.getElementById('lm-status').style.display = 'none';
+  document.getElementById('lodging-form-modal').style.display = 'flex';
+}
+
 function openLodgingModal(idx) {
   _lodgingModalIdx = idx;
   const dayFields  = _scheduleRecords[idx]?.fields || {};
@@ -9455,7 +9490,10 @@ function renderLodgingTimeline(tripStart, tripEnd) {
 
     return `
       <div style="margin-bottom:10px;">
-        <div style="font-size:0.75rem;color:var(--soft);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${label}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div style="font-size:0.75rem;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">${label}</div>
+          <button onclick="editLodgingDirect('${r.id}')" style="background:none;border:1px solid rgba(255,255,255,0.12);color:var(--muted);font-size:0.68rem;border-radius:5px;padding:2px 8px;cursor:pointer;margin-left:8px;flex-shrink:0;">Edit</button>
+        </div>
         <div style="position:relative;height:28px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden;">
           <div title="${tooltip}" style="position:absolute;left:${left}%;width:${width}%;height:100%;background:${color};border-radius:5px;opacity:0.85;cursor:default;display:flex;align-items:center;padding:0 8px;box-sizing:border-box;overflow:hidden;">
             <span style="font-size:0.72rem;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nights}n</span>
@@ -9464,7 +9502,19 @@ function renderLodgingTimeline(tripStart, tripEnd) {
       </div>`;
   }).join('');
 
-  content.innerHTML = rulerHtml + barsHtml;
+  // Show any lodging records missing dates so they can be edited
+  const incomplete = (_lodgingRecords || []).filter(r => !r.fields['Check-in Date'] || !r.fields['Check-out Date']);
+  const incompleteHtml = incomplete.length ? `
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bd);">
+      <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Needs dates</div>
+      ${incomplete.map(r => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);">
+          <div style="font-size:0.83rem;color:var(--soft);">🏨 ${r.fields['Name'] || 'Unnamed property'}</div>
+          <button onclick="editLodgingDirect('${r.id}')" style="background:none;border:1px solid rgba(45,212,191,0.35);color:var(--teal);font-size:0.72rem;border-radius:5px;padding:3px 10px;cursor:pointer;">Edit</button>
+        </div>`).join('')}
+    </div>` : '';
+
+  content.innerHTML = rulerHtml + barsHtml + incompleteHtml;
   // Keep card in its current state (open/closed) — button controls visibility
 }
 
