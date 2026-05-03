@@ -275,14 +275,18 @@ async function matchAndStore(fromEmail, parsed, existingReservationId) {
         lodgingId = newLodging.id || null;
       }
 
-      // Link lodging to the matching trip day if not already linked
-      if (lodgingId) {
-        const daysData = await airtableFetch('Trip Days',
-          `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Date}="${parsed.check_in_date}")`)}`, 'GET');
-        const dayRec = (daysData.records || [])[0];
-        if (dayRec && !dayRec.fields['Lodging ID']) {
-          await airtableFetch('Trip Days', `/${dayRec.id}`, 'PATCH', {
-            fields: { 'Lodging ID': lodgingId }
+      // Link lodging to all Trip Days in the check-in → check-out range
+      if (lodgingId && parsed.check_out_date) {
+        const allDaysData = await airtableFetch('Trip Days',
+          `?filterByFormula=${encodeURIComponent(`({Trip ID}="${tripId}")`)}`, 'GET');
+        const daysToLink = (allDaysData.records || []).filter(rec => {
+          const date = (rec.fields['Date'] || '').slice(0, 10);
+          return date >= parsed.check_in_date && date < parsed.check_out_date;
+        });
+        for (let i = 0; i < daysToLink.length; i += 10) {
+          const chunk = daysToLink.slice(i, i + 10);
+          await airtableFetch('Trip Days', '', 'PATCH', {
+            records: chunk.map(d => ({ id: d.id, fields: { 'Lodging ID': lodgingId } }))
           });
         }
       }
@@ -483,10 +487,18 @@ For round-trip flights, populate both the outbound fields (departure_date, from_
       return res.status(200).json({ ok: true, note: 'parse failed' });
     }
 
-    // 3. Save raw email to Reservations table (before trip match so we always capture it)
+    // 3. Save raw email to Reservations table — skip if already processed (same conf# + email)
     const keyDate = parsed.departure_date || parsed.check_in_date || parsed.pickup_date || null;
     let reservationId = null;
     try {
+      if (parsed.confirmation_number) {
+        const dupCheck = await airtableFetch('Reservations',
+          `?filterByFormula=${encodeURIComponent(`AND({Confirmation Number}="${parsed.confirmation_number}",{From Email}="${fromEmail}")`)}`, 'GET');
+        if ((dupCheck.records || []).length > 0) {
+          console.log('parse-email: duplicate reservation, skipping:', parsed.confirmation_number);
+          return res.status(200).json({ ok: true, note: 'duplicate reservation' });
+        }
+      }
       const resRec = await airtableFetch('Reservations', '', 'POST', {
         fields: {
           'Type':                parsed.type || 'other',
