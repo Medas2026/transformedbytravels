@@ -113,6 +113,10 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
   font-size: 0.65rem; font-family: 'Montserrat', sans-serif; font-weight: 700;
   padding: 2px 7px; border-radius: 4px; pointer-events: none;
 }
+.pos-btns { position: absolute; bottom: 6px; left: 6px; display: flex; gap: 2px; z-index: 11; pointer-events: all; }
+.pos-btns button { width: 20px; height: 20px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; color: rgba(255,255,255,0.8); font-size: 0.6rem; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.pos-btns button:hover { background: rgba(45,212,191,0.4); }
+.pos-btns button.pos-active { background: var(--teal); color: #0d1520; border-color: var(--teal); }
 
 /* ── FIELDS ── */
 .field { margin-bottom: 16px; }
@@ -336,6 +340,7 @@ const STATE = {
   closing: { photoUrl: null, portraitUrl: null, text: '' },
   company: { photoUrl: null, photo2Url: null, guideNote: '' },
   teasers: {},
+  positions: {},
 };
 
 // ── STEPS LIST ─────────────────────────────────────────────────────────────
@@ -427,15 +432,41 @@ function navHtml(isLast) {
 }
 
 // ── PHOTO SLOT ─────────────────────────────────────────────────────────────
+function photoPos(id) { return (STATE.positions && STATE.positions[id]) || 'center center'; }
+
+function posButtons(id) {
+  const cur = photoPos(id);
+  return `<div class="pos-btns" onclick="event.stopPropagation()">` +
+    [['left center','◀'],['center top','▲'],['center center','⊙'],['center bottom','▼'],['right center','▶']]
+    .map(([v,l]) => `<button class="${cur===v?'pos-active':''}" onclick="setPhotoPos('${id}','${v}')" title="${v}">${l}</button>`)
+    .join('') + `</div>`;
+}
+
+function setPhotoPos(id, pos) {
+  STATE.positions[id] = pos;
+  const slot = document.getElementById('slot-' + id);
+  if (slot) {
+    const img = slot.querySelector('img');
+    if (img) img.style.objectPosition = pos;
+    slot.querySelectorAll('.pos-btns button').forEach(btn => {
+      btn.className = btn.getAttribute('title') === pos ? 'pos-active' : '';
+    });
+  }
+  const pi = document.getElementById('pgimg-' + id);
+  if (pi) pi.style.objectPosition = pos;
+  saveProgress();
+}
+
 function photoSlotHtml(id, cls, label, existingUrl, roleTag) {
-  const img     = existingUrl ? `<img src="${existingUrl}" alt="" />` : '';
+  const pos     = photoPos(id);
+  const img     = existingUrl ? `<img src="${existingUrl}" alt="" style="object-position:${pos};" />` : '';
   const remove  = existingUrl ? `<button class="remove-btn" onclick="removePhoto(event,'${id}')" title="Remove photo">✕</button>` : '';
   const tag     = roleTag ? `<div class="role-tag">${roleTag}</div>` : '';
-  const change  = existingUrl ? `<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.55) 0%,transparent 100%);padding:6px 8px 5px;pointer-events:none;font-size:0.58rem;color:rgba(255,255,255,0.7);font-family:'Montserrat';font-weight:600;text-align:center;">Click to change</div>` : '';
+  const pos_btns = existingUrl ? posButtons(id) : '';
   const inner   = !existingUrl ? `<div class="photo-slot-inner"><div class="icon">📷</div><div class="label">${label}</div></div>` : '';
   return `<div class="photo-slot ${cls}" id="slot-${id}">
     <input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />
-    ${inner}${img}${change}${remove}${tag}
+    ${inner}${img}${remove}${tag}${pos_btns}
   </div>`;
 }
 
@@ -752,7 +783,8 @@ function showPreview() {
     // Use the first day that has a hero photo as the destination opener photo
     const bestHeroDay = dest.days.find(d => STATE.days[d.index].heroUrl);
     const destSt = bestHeroDay ? STATE.days[bestHeroDay.index] : STATE.days[dest.days[0].index];
-    pages.push({ type: 'dest-title', dest, st: destSt });
+    const heroSlotId = bestHeroDay ? 'day' + bestHeroDay.index + '-hero' : 'day' + dest.days[0].index + '-hero';
+    pages.push({ type: 'dest-title', dest, st: destSt, heroSlotId });
     pages.push({ type: 'dest-map', dest });
     dest.days.forEach((day, di) => {
       const st = STATE.days[day.index];
@@ -887,13 +919,13 @@ function showPreview() {
       }
 
       case 'dest-title': {
-        const { dest, st } = p;
+        const { dest, st, heroSlotId } = p;
         const d0 = dest.days[0], dZ = dest.days[dest.days.length - 1];
         const lodge = d0.lodge || '';
         const heroUrl = st && st.heroUrl;
         return `<div class="pg">
           ${heroUrl
-            ? `<img src="${heroUrl}" class="pg-photo-abs" alt="${dest.park}" />
+            ? `<img src="${heroUrl}" class="pg-photo-abs" id="pgimg-${heroSlotId}" style="object-position:${photoPos(heroSlotId)};" alt="${dest.park}" />
                <div class="pg-overlay" style="background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.15) 65%,transparent 100%);"></div>`
             : texHtml(texUrl)}
           <div class="pg-body" style="justify-content:flex-end;">
@@ -931,8 +963,9 @@ function showPreview() {
 
       case 'day-photo': {
         const { day, st } = p;
+        const heroId = 'day' + day.index + '-hero';
         return `<div class="pg">
-          <img src="${st.heroUrl}" class="pg-photo-abs" alt="Day ${day.num}" />
+          <img src="${st.heroUrl}" class="pg-photo-abs" id="pgimg-${heroId}" style="object-position:${photoPos(heroId)};" alt="Day ${day.num}" />
           <div class="pg-overlay"></div>
           <div class="pg-overlay-text">
             <div class="pg-eyebrow">Day ${day.num}</div>
@@ -946,8 +979,8 @@ function showPreview() {
         return `<div class="pg">${texHtml(st.heroUrl || texUrl)}<div class="pg-body">
           <div class="pg-eyebrow">Day ${day.num} · ${day.location.split(' → ').pop()}</div>
           ${hasSupport ? `<div class="pg-photo-pair" style="height:42%;margin-top:6px;">
-            ${st.photo2Url ? `<img src="${st.photo2Url}" style="height:100%;object-fit:cover;" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
-            ${st.photo3Url ? `<img src="${st.photo3Url}" style="height:100%;object-fit:cover;" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
+            ${st.photo2Url ? `<img src="${st.photo2Url}" id="pgimg-day${day.index}-p2" style="height:100%;object-fit:cover;object-position:${photoPos('day'+day.index+'-p2')};" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
+            ${st.photo3Url ? `<img src="${st.photo3Url}" id="pgimg-day${day.index}-p3" style="height:100%;object-fit:cover;object-position:${photoPos('day'+day.index+'-p3')};" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
           </div>` : ''}
           ${st.reflection ? `<div class="pg-quote" style="margin-top:${hasSupport ? '8px' : 'auto'};">${st.reflection}</div>` : ''}
           </div>${num}</div>`;
@@ -956,7 +989,7 @@ function showPreview() {
       case 'safari-co-L': {
         const g = TRIP.guide || {};
         return `<div class="pg">${STATE.company.photoUrl
-          ? `<img src="${STATE.company.photoUrl}" class="pg-photo-abs" alt="Safari company" />
+          ? `<img src="${STATE.company.photoUrl}" class="pg-photo-abs" id="pgimg-company-1" style="object-position:${photoPos('company-1')};" alt="Safari company" />
              <div class="pg-overlay"></div>
              <div class="pg-overlay-text">
                <div class="pg-eyebrow">Your Safari</div>
@@ -970,7 +1003,7 @@ function showPreview() {
       case 'safari-co-R': {
         const g = TRIP.guide || {};
         return `<div class="pg">${STATE.company.photo2Url
-          ? `<img src="${STATE.company.photo2Url}" class="pg-photo-abs" alt="${g.name || 'Guide'}" />
+          ? `<img src="${STATE.company.photo2Url}" class="pg-photo-abs" id="pgimg-company-2" style="object-position:${photoPos('company-2')};" alt="${g.name || 'Guide'}" />
              <div class="pg-overlay" style="background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,rgba(0,0,0,0.1) 55%,transparent 100%);"></div>`
           : texHtml(texUrl)}
           <div class="pg-body" style="justify-content:flex-end;">
@@ -984,7 +1017,7 @@ function showPreview() {
 
       case 'closing-photo':
         return `<div class="pg">
-          <img src="${STATE.closing.photoUrl}" class="pg-photo-abs" alt="closing" />
+          <img src="${STATE.closing.photoUrl}" class="pg-photo-abs" id="pgimg-closing" style="object-position:${photoPos('closing')};" alt="closing" />
           <div class="pg-overlay"></div>${num}</div>`;
 
       case 'closing-text':
@@ -1158,7 +1191,7 @@ async function saveProgress() {
     coverTitle:      STATE.cover.title,
     coverSubtitle:   STATE.cover.subtitle,
     coverPhotoUrl:   STATE.cover.photoUrl   || '',
-    openingText:     JSON.stringify({ text: STATE.opening.introText || '', spreadPhotoUrl: STATE.cover.spreadPhotoUrl || '', teasers: STATE.teasers }),
+    openingText:     JSON.stringify({ text: STATE.opening.introText || '', spreadPhotoUrl: STATE.cover.spreadPhotoUrl || '', teasers: STATE.teasers, positions: STATE.positions }),
     daysData:        JSON.stringify(STATE.days),
     closingText:      STATE.closing.text        || '',
     closingPhotoUrl:  STATE.closing.photoUrl    || '',
@@ -1213,7 +1246,8 @@ async function loadProgress() {
             const od = JSON.parse(f['Opening Text']);
             STATE.opening.introText     = od.text           || '';
             STATE.cover.spreadPhotoUrl  = od.spreadPhotoUrl || null;
-            if (od.teasers) Object.assign(STATE.teasers, od.teasers);
+            if (od.teasers)    Object.assign(STATE.teasers,    od.teasers);
+            if (od.positions)  Object.assign(STATE.positions,  od.positions);
           } catch(e) { STATE.opening.introText = f['Opening Text']; }
         }
         STATE.closing.text        = f['Closing Text']        || '';
@@ -1247,7 +1281,8 @@ async function loadProgress() {
     if (s.days && s.days.length === STATE.days.length) {
       s.days.forEach((d, i) => Object.assign(STATE.days[i], d));
     }
-    if (s.teasers) Object.assign(STATE.teasers, s.teasers);
+    if (s.teasers)    Object.assign(STATE.teasers,    s.teasers);
+    if (s.positions)  Object.assign(STATE.positions,  s.positions);
   } catch(e) {}
 }
 
