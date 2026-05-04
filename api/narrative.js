@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
 
   if (type === 'opening') {
     const parks = (allParks || []).join(', ');
-    prompt = `Write a 3–4 sentence opening paragraph for a personal travel memoir book.
+    prompt = `Write a 2 sentence opening paragraph for a personal travel memoir book.
 
 Traveler: ${traveler || 'the traveler'}
 Destination: ${destination || 'Africa'}
@@ -23,7 +23,7 @@ Write in first person. Capture the anticipation, what drew them here, and the fe
 
   } else if (type === 'day') {
     const { num, location, park, lodge, date } = day || {};
-    prompt = `Write a 2–3 sentence day journal entry for a travel memoir.
+    prompt = `Write 1–2 sentences as a day journal entry for a travel memoir.
 
 Traveler: ${traveler || 'the traveler'}
 Day ${num || ''}: ${date || ''}
@@ -35,7 +35,7 @@ Write in first person. Be specific to what ${park || location} is known for — 
 
   } else if (type === 'closing') {
     const parks = (allParks || []).join(', ');
-    prompt = `Write a 3–4 sentence closing reflection for a personal travel memoir book.
+    prompt = `Write a 2 sentence closing reflection for a personal travel memoir book.
 
 Traveler: ${traveler || 'the traveler'}
 Destination: ${destination || 'Africa'}
@@ -57,7 +57,7 @@ Write in first person. Reflect on what the journey revealed or changed. Be speci
       },
       body: JSON.stringify({
         model:      'claude-haiku-4-5-20251001',
-        max_tokens: 300,
+        max_tokens: 150,
         messages:   [{ role: 'user', content: prompt }],
       }),
     });
