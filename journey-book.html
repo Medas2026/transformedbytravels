@@ -92,7 +92,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 .photo-slot.hero  { aspect-ratio: 3/2; }
 .photo-slot.thumb { aspect-ratio: 1/1; }
 .photo-slot.cover-slot { aspect-ratio: 2/3; max-width: 280px; }
-.photo-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.photo-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 5; }
 .photo-slot-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; height: 100%; padding: 16px; pointer-events: none; }
 .photo-slot-inner .icon { font-size: 1.4rem; color: var(--muted); }
 .photo-slot-inner .label { font-size: 0.75rem; color: var(--muted); text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 600; }
