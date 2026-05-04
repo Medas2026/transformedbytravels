@@ -1019,35 +1019,53 @@ function showWizard() {
     const r = await fetch('/api/mapbox-token');
     const d = await r.json();
     window._mapboxToken = d.token || '';
-    // If preview is already showing, inject the route map src
-    if (window._mapboxToken) {
-      const el = document.getElementById('route-map-img');
-      if (el) {
-        const seen = new Set();
-        const pts = [];
-        TRIP.days.forEach(d => {
-          if (d.park && !seen.has(d.park) && d.lon && d.lat) { seen.add(d.park); pts.push(d); }
-        });
-        if (pts.length) {
-          const pinStr = pts.map((d, i) => `pin-s-${i + 1}+2dd4bf(${d.lon},${d.lat})`).join(',');
-          el.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pinStr}/auto/600x600@2x?padding=50&access_token=${window._mapboxToken}`;
-          el.style.display = '';
-        }
-      }
-      // Inject destination-specific maps
-      const seen2 = new Set();
-      TRIP.days.forEach(d => {
-        if (!d.park || seen2.has(d.park) || !d.lon || !d.lat) return;
-        seen2.add(d.park);
-        const mapId = 'dest-map-' + d.park.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-        const img = document.getElementById(mapId);
-        if (img) {
-          const pin = `pin-s+2dd4bf(${d.lon},${d.lat})`;
-          img.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pin}/${d.lon},${d.lat},${d.zoom || 9}/600x600@2x?access_token=${window._mapboxToken}`;
-          img.style.display = '';
-        }
-      });
+    if (!window._mapboxToken) return;
+
+    // Geocode any parks that are missing coordinates
+    const country = TRIP.country || TRIP.destination || '';
+    const needsGeo = [...new Set(TRIP.days.map(d => d.park).filter(p => p && !TRIP.days.find(d => d.park === p && d.lon)))];
+    if (needsGeo.length) {
+      await Promise.all(needsGeo.map(async park => {
+        try {
+          const q = encodeURIComponent(park + (country ? ', ' + country : ''));
+          const gr = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?types=poi,park,place,region&limit=1&access_token=${window._mapboxToken}`);
+          const gd = await gr.json();
+          const ft = gd.features?.[0];
+          if (ft) {
+            const [lon, lat] = ft.center;
+            TRIP.days.forEach(day => { if (day.park === park) { day.lon = lon; day.lat = lat; } });
+          }
+        } catch(e) {}
+      }));
     }
+
+    // Inject route map
+    const el = document.getElementById('route-map-img');
+    if (el) {
+      const seen = new Set(); const pts = [];
+      TRIP.days.forEach(d => {
+        if (d.park && !seen.has(d.park) && d.lon && d.lat) { seen.add(d.park); pts.push(d); }
+      });
+      if (pts.length) {
+        const pinStr = pts.map((d, i) => `pin-s-${i + 1}+2dd4bf(${d.lon},${d.lat})`).join(',');
+        el.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pinStr}/auto/600x600@2x?padding=50&access_token=${window._mapboxToken}`;
+        el.style.display = '';
+      }
+    }
+
+    // Inject destination-specific maps
+    const seen2 = new Set();
+    TRIP.days.forEach(d => {
+      if (!d.park || seen2.has(d.park) || !d.lon || !d.lat) return;
+      seen2.add(d.park);
+      const mapId = 'dest-map-' + d.park.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      const img = document.getElementById(mapId);
+      if (img) {
+        const pin = `pin-s+2dd4bf(${d.lon},${d.lat})`;
+        img.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pin}/${d.lon},${d.lat},${d.zoom || 9}/600x600@2x?access_token=${window._mapboxToken}`;
+        img.style.display = '';
+      }
+    });
   } catch(e) {}
 })();
 
