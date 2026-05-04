@@ -78,26 +78,45 @@ module.exports = async function handler(req, res) {
       };
     });
 
-    // 4. Geocode unique parks via Mapbox
-    const uniqueParks = [...new Set(builtDays.map(d => d.park).filter(Boolean))];
-    if (process.env.MAPBOX_TOKEN && uniqueParks.length) {
-      const country = tf['Country'] || tf['Destination'] || '';
-      await Promise.all(uniqueParks.map(async park => {
-        try {
-          const q   = encodeURIComponent(park + (country ? ', ' + country : ''));
-          const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?types=poi,park,place,region&limit=1&access_token=${process.env.MAPBOX_TOKEN}`;
-          const r   = await fetch(url);
-          const d   = await r.json();
-          const ft  = d.features?.[0];
-          if (ft) {
-            const [lon, lat] = ft.center;
-            builtDays.forEach(day => {
-              if (day.park === park) { day.lon = lon; day.lat = lat; }
-            });
-          }
-        } catch(e) {}
-      }));
+    // 4. Geocode unique parks — known lookup first, Mapbox fallback
+    const PARK_COORDS = {
+      'ziwa': [32.93, 1.52], 'murchison': [31.69, 2.27], 'kibale': [30.40, 0.48],
+      'queen elizabeth': [30.00, -0.12], 'bwindi': [29.68, -1.05],
+      'mburo': [30.95, -0.62], 'entebbe': [32.47, 0.06], 'kidepo': [33.87, 3.82],
+      'rwenzori': [29.97, 0.38], 'mgahinga': [29.63, -1.37],
+      'serengeti': [34.83, -2.33], 'ngorongoro': [35.50, -3.20], 'masai mara': [35.17, -1.42],
+      'amboseli': [37.25, -2.65], 'tsavo': [38.47, -2.98], 'samburu': [37.53, 0.62],
+      'kruger': [31.50, -23.99], 'etosha': [16.32, -18.86], 'okavango': [22.83, -19.33],
+      'chobe': [24.50, -17.80], 'hwange': [26.50, -18.90], 'victoria falls': [25.84, -17.92],
+      'ruaha': [34.47, -7.78], 'selous': [38.00, -9.00], 'tarangire': [36.00, -3.83],
+    };
+    function lookupPark(name) {
+      const l = name.toLowerCase();
+      for (const [k, c] of Object.entries(PARK_COORDS)) { if (l.includes(k)) return c; }
+      return null;
     }
+    const uniqueParks = [...new Set(builtDays.map(d => d.park).filter(Boolean))];
+    const country = tf['Country'] || tf['Destination'] || '';
+    await Promise.all(uniqueParks.map(async park => {
+      const known = lookupPark(park);
+      if (known) {
+        const [lon, lat] = known;
+        builtDays.forEach(day => { if (day.park === park) { day.lon = lon; day.lat = lat; } });
+        return;
+      }
+      if (!process.env.MAPBOX_TOKEN) return;
+      try {
+        const q   = encodeURIComponent(park + (country ? ', ' + country : ''));
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?types=place,region,locality&limit=1&access_token=${process.env.MAPBOX_TOKEN}`;
+        const r   = await fetch(url);
+        const d   = await r.json();
+        const ft  = d.features?.[0];
+        if (ft) {
+          const [lon, lat] = ft.center;
+          builtDays.forEach(day => { if (day.park === park) { day.lon = lon; day.lat = lat; } });
+        }
+      } catch(e) {}
+    }));
 
     return res.status(200).json({
       trip: {
