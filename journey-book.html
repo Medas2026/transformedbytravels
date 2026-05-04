@@ -629,6 +629,20 @@ function renderDay(dayIndex) {
         <div class="hint">This becomes the heart of your day chapter. 2–4 sentences is all you need.</div>
       </div>
     </div>
+    ${(() => {
+      if (dayIndex === 0) return '';
+      const prev = TRIP.days[dayIndex - 1];
+      if (!prev || prev.park === d.park) return '';
+      const slug = d.park.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      const slotId = 'teaser-' + slug;
+      return `<div class="card">
+        <div class="card-title">Transition Photo — ${d.park} <span style="font-weight:400;color:var(--muted);font-size:0.75rem;">(optional)</span></div>
+        <p style="font-size:0.78rem;color:var(--soft);margin-bottom:14px;">Appears as a full-page photo with "${d.park}" overlaid at the bottom, bridging the two destinations.</p>
+        <div style="max-width:220px;">
+          ${photoSlotHtml(slotId, 'hero', 'Transition Photo', STATE.teasers[slug] || null, null)}
+        </div>
+      </div>`;
+    })()}
     ${navHtml(false)}`;
 }
 
