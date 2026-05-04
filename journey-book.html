@@ -327,7 +327,7 @@ const TRIP = {
 // ── STATE ──────────────────────────────────────────────────────────────────
 const STATE = {
   currentStep: 0,
-  cover: { photoUrl: null, title: '', subtitle: '' },
+  cover: { photoUrl: null, spreadPhotoUrl: null, title: '', subtitle: '' },
   opening: { introText: '', mapIncluded: true },
   days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, reflection: '', narrative: '' })),
   closing: { photoUrl: null, portraitUrl: null, text: '' },
@@ -470,8 +470,9 @@ async function handlePhoto(e, id) {
 }
 
 function storePhotoUrl(id, url) {
-  if      (id === 'cover')            STATE.cover.photoUrl      = url;
-  else if (id === 'closing')          STATE.closing.photoUrl    = url;
+  if      (id === 'cover')            STATE.cover.photoUrl       = url;
+  else if (id === 'cover-spread')     STATE.cover.spreadPhotoUrl = url;
+  else if (id === 'closing')          STATE.closing.photoUrl     = url;
   else if (id === 'closing-portrait') STATE.closing.portraitUrl = url;
   else if (id === 'company-1')        STATE.company.photoUrl    = url;
   else if (id === 'company-2')        STATE.company.photo2Url   = url;
@@ -488,8 +489,9 @@ function storePhotoUrl(id, url) {
 
 function removePhoto(e, id) {
   e.stopPropagation();
-  if      (id === 'cover')            STATE.cover.photoUrl      = null;
-  else if (id === 'closing')          STATE.closing.photoUrl    = null;
+  if      (id === 'cover')            STATE.cover.photoUrl       = null;
+  else if (id === 'cover-spread')     STATE.cover.spreadPhotoUrl = null;
+  else if (id === 'closing')          STATE.closing.photoUrl     = null;
   else if (id === 'closing-portrait') STATE.closing.portraitUrl = null;
   else if (id === 'company-1')        STATE.company.photoUrl    = null;
   else if (id === 'company-2')        STATE.company.photo2Url   = null;
@@ -533,6 +535,11 @@ function renderCover() {
           </div>
         </div>
       </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Opening Spread Photo <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(pages 2–3)</span></div>
+      <p style="font-size:0.82rem;color:var(--soft);margin-bottom:14px;">This wide landscape photo spans the first two-page spread inside the book. Choose something different from your cover — a wide vista, a dramatic sky, or a panoramic wildlife shot.</p>
+      ${photoSlotHtml('cover-spread', 'hero', 'Upload Opening Spread Photo', c.spreadPhotoUrl, null)}
     </div>
     ${navHtml(false)}`;
 }
@@ -763,17 +770,21 @@ function showPreview() {
       case 'blank':
         return `<div class="pg pg-blank">${num}</div>`;
 
-      case 'spread-L':
-        return `<div class="pg">${STATE.cover.photoUrl
-          ? `<img src="${STATE.cover.photoUrl}" class="pg-photo-abs" style="object-position:0% center;" alt="" />`
+      case 'spread-L': {
+        const sp = STATE.cover.spreadPhotoUrl || STATE.cover.photoUrl;
+        return `<div class="pg">${sp
+          ? `<img src="${sp}" class="pg-photo-abs" style="object-position:0% center;" alt="" />`
           : ''}</div>`;
+      }
 
-      case 'spread-R':
-        return `<div class="pg">${STATE.cover.photoUrl
-          ? `<img src="${STATE.cover.photoUrl}" class="pg-photo-abs" style="object-position:100% center;" alt="" />`
+      case 'spread-R': {
+        const sp = STATE.cover.spreadPhotoUrl || STATE.cover.photoUrl;
+        return `<div class="pg">${sp
+          ? `<img src="${sp}" class="pg-photo-abs" style="object-position:100% center;" alt="" />`
             + `<div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.4) 0%,transparent 100%);"></div>`
             + `<div style="position:absolute;top:12px;right:12px;z-index:2;"><div class="pg-eyebrow">${TRIP.year}</div></div>`
           : ''}</div>`;
+      }
 
       case 'intro': {
         const rows = TRIP.days.map((d, i) =>
@@ -1066,7 +1077,7 @@ async function saveProgress() {
     coverTitle:      STATE.cover.title,
     coverSubtitle:   STATE.cover.subtitle,
     coverPhotoUrl:   STATE.cover.photoUrl   || '',
-    openingText:     STATE.opening.introText || '',
+    openingText:     JSON.stringify({ text: STATE.opening.introText || '', spreadPhotoUrl: STATE.cover.spreadPhotoUrl || '' }),
     daysData:        JSON.stringify(STATE.days),
     closingText:      STATE.closing.text        || '',
     closingPhotoUrl:  STATE.closing.photoUrl    || '',
@@ -1116,7 +1127,13 @@ async function loadProgress() {
         STATE.cover.title      = f['Cover Title']      || '';
         STATE.cover.subtitle   = f['Cover Subtitle']   || '';
         STATE.cover.photoUrl   = f['Cover Photo URL']  || null;
-        STATE.opening.introText= f['Opening Text']     || '';
+        if (f['Opening Text']) {
+          try {
+            const od = JSON.parse(f['Opening Text']);
+            STATE.opening.introText     = od.text           || '';
+            STATE.cover.spreadPhotoUrl  = od.spreadPhotoUrl || null;
+          } catch(e) { STATE.opening.introText = f['Opening Text']; }
+        }
         STATE.closing.text        = f['Closing Text']        || '';
         STATE.closing.photoUrl    = f['Closing Photo URL']   || null;
         STATE.closing.portraitUrl = f['Portrait Photo URL']  || null;
