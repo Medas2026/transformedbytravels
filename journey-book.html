@@ -113,6 +113,9 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
   font-size: 0.65rem; font-family: 'Montserrat', sans-serif; font-weight: 700;
   padding: 2px 7px; border-radius: 4px; pointer-events: none;
 }
+.btn-generate { background: none; border: 1px solid rgba(45,212,191,0.35); color: var(--teal); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; border-radius: 7px; padding: 6px 14px; cursor: pointer; transition: background 0.15s, border-color 0.15s; margin-top: 8px; }
+.btn-generate:hover { background: rgba(45,212,191,0.1); border-color: var(--teal); }
+.btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
 .pos-btns { position: absolute; bottom: 6px; left: 6px; display: flex; gap: 2px; z-index: 11; pointer-events: all; }
 .pos-btns button { width: 20px; height: 20px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; color: rgba(255,255,255,0.8); font-size: 0.6rem; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
 .pos-btns button:hover { background: rgba(45,212,191,0.4); }
@@ -596,8 +599,9 @@ function renderOpening() {
       <div class="card-title">Your Opening</div>
       <div class="field">
         <label>Your Introduction</label>
-        <textarea id="opening-text" rows="5" placeholder="Tell us who you are as a traveler and what drew you to Uganda. This becomes the opening paragraph of your Journey Book." oninput="STATE.opening.introText=this.value">${o.introText}</textarea>
-        <div class="hint">3–5 sentences is perfect. Your travel archetype and passions will also appear here from your profile.</div>
+        <textarea id="gen-ta-opening" rows="5" placeholder="Tell us who you are as a traveler and what drew you to Uganda. This becomes the opening paragraph of your Journey Book." oninput="STATE.opening.introText=this.value">${o.introText}</textarea>
+        <button class="btn-generate" id="gen-btn-opening" onclick="generateNarrative('opening')">${o.introText ? '✦ Regenerate' : '✦ Write with AI'}</button>
+        <div class="hint" style="margin-top:8px;">3–5 sentences is perfect. Edit freely after generating.</div>
       </div>
     </div>
     <div class="card">
@@ -656,8 +660,9 @@ function renderDay(dayIndex) {
       <div class="card-title">Your Reflection</div>
       <div class="field">
         <label>What stood out about this day?</label>
-        <textarea rows="4" placeholder="A moment, a feeling, something you saw or heard that you want to remember…" oninput="STATE.days[${dayIndex}].reflection=this.value">${st.reflection}</textarea>
-        <div class="hint">This becomes the heart of your day chapter. 2–4 sentences is all you need.</div>
+        <textarea id="gen-ta-day-${dayIndex}" rows="4" placeholder="A moment, a feeling, something you saw or heard that you want to remember…" oninput="STATE.days[${dayIndex}].reflection=this.value">${st.reflection}</textarea>
+        <button class="btn-generate" id="gen-btn-day-${dayIndex}" onclick="generateNarrative('day',${dayIndex})">${st.reflection ? '✦ Regenerate' : '✦ Write with AI'}</button>
+        <div class="hint" style="margin-top:8px;">2–4 sentences is all you need. Edit freely after generating.</div>
       </div>
     </div>
     ${(() => {
@@ -699,8 +704,9 @@ function renderClosing() {
       <div class="card-title">What You're Carrying Home</div>
       <div class="field">
         <label>Your Closing Reflection</label>
-        <textarea rows="6" placeholder="What did Uganda change in you? What do you see differently now? What are you taking into the next chapter of your life?" oninput="STATE.closing.text=this.value">${c.text}</textarea>
-        <div class="hint">This is the most personal part of your Journey Book. There are no wrong answers.</div>
+        <textarea id="gen-ta-closing" rows="6" placeholder="What did Uganda change in you? What do you see differently now? What are you taking into the next chapter of your life?" oninput="STATE.closing.text=this.value">${c.text}</textarea>
+        <button class="btn-generate" id="gen-btn-closing" onclick="generateNarrative('closing')">${c.text ? '✦ Regenerate' : '✦ Write with AI'}</button>
+        <div class="hint" style="margin-top:8px;">This is the most personal part of your Journey Book. Edit freely after generating.</div>
       </div>
     </div>
     ${navHtml(true)}`;
@@ -1178,6 +1184,53 @@ const SESSION_ID = (() => {
 let _bookId = localStorage.getItem('jb_book_id') || null;
 
 // ── SAVE ───────────────────────────────────────────────────────────────────
+async function generateNarrative(type, dayIndex) {
+  const btnId = type === 'day' ? 'gen-btn-day-' + dayIndex : 'gen-btn-' + type;
+  const taId  = type === 'day' ? 'gen-ta-day-' + dayIndex  : 'gen-ta-' + type;
+  const btn = document.getElementById(btnId);
+  const ta  = document.getElementById(taId);
+  if (!btn || !ta) return;
+
+  btn.disabled = true;
+  btn.textContent = '✦ Writing…';
+
+  const allParks = [...new Set(TRIP.days.map(d => d.park).filter(Boolean))];
+  const payload = {
+    type,
+    traveler:    TRIP.traveler,
+    destination: TRIP.destination,
+    year:        TRIP.year,
+    allParks,
+  };
+  if (type === 'day') {
+    const d = TRIP.days[dayIndex];
+    payload.day = { num: d.num, location: d.location, park: d.park, lodge: d.lodge, date: d.date };
+  }
+
+  try {
+    const resp = await fetch('/api/narrative', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    if (data.text) {
+      ta.value = data.text;
+      if (type === 'day')     STATE.days[dayIndex].reflection = data.text;
+      if (type === 'opening') STATE.opening.introText = data.text;
+      if (type === 'closing') STATE.closing.text = data.text;
+      btn.textContent = '✓ Generated';
+      setTimeout(() => { btn.textContent = '✦ Regenerate'; btn.disabled = false; }, 1500);
+    } else {
+      btn.textContent = '⚠ Try again';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    btn.textContent = '⚠ Try again';
+    btn.disabled = false;
+  }
+}
+
 async function saveProgress() {
   const btn = document.querySelector('.topbar-save');
   btn.textContent = 'Saving…';
