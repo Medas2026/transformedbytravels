@@ -59,6 +59,11 @@ module.exports = async function handler(req, res) {
     const travelerName = profile?.fields?.['Traveler Name'] || email.split('@')[0] || 'Traveler';
 
     // 3. Build days array
+    // Locations that are departure hubs, not safari destinations
+    const GATEWAYS = ['entebbe', 'kampala', 'nairobi', 'dar es salaam', 'johannesburg',
+                      'cape town', 'kigali', 'addis ababa', 'airport', 'international'];
+    const isGateway = loc => GATEWAYS.some(g => loc.toLowerCase().includes(g));
+
     const builtDays = days.map((rec, i) => {
       const df       = rec.fields;
       const startLoc = (df['Starting Location'] || '').trim();
@@ -66,11 +71,13 @@ module.exports = async function handler(req, res) {
       const location = (startLoc && endLoc && startLoc !== endLoc)
         ? startLoc + ' → ' + endLoc
         : (endLoc || startLoc || ('Day ' + (df['Day Number'] || i + 1)));
+      // Use startLoc as the park on departure days so photos stay with the safari destination
+      const park = (endLoc && !isGateway(endLoc)) ? endLoc : (startLoc || endLoc || location);
       return {
         num:      df['Day Number'] || (i + 1),
         date:     formatDate(df['Date']),
         location: location,
-        park:     endLoc || location,
+        park,
         lodge:    getLodgeForDate(df['Date'], lodging),
         lon:      null,
         lat:      null,
