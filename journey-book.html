@@ -254,8 +254,16 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 }
 
 @media(max-width:580px) {
-  .pg-pair { grid-template-columns: 1fr; }
-  .pg-cover { width: 72%; }
+  .pg-pair { grid-template-columns: 1fr; gap: 6px; margin-bottom: 6px; }
+  .pg-pair::after { display: none; }
+  .pg-cover { width: 88%; }
+  .pg-cover-wrap { margin-bottom: 6px; }
+  .pg-eyebrow  { font-size: 0.55rem !important; }
+  .pg-title    { font-size: 1.3rem  !important; }
+  .pg-text     { font-size: 0.62rem !important; }
+  .pg-quote    { font-size: 0.62rem !important; }
+  .pg-num      { font-size: 0.52rem !important; }
+  .pg-overlay-text { padding: 10px 12px !important; }
 }
 
 .preview-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--bd); }
