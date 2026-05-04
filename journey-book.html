@@ -152,57 +152,100 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 .book-wrap { max-width: 700px; margin: 0 auto; }
 
 /* Blurred photo texture — applied to text pages only */
-.book-text-bg {
-  position: relative; overflow: hidden;
-  border-radius: 12px; padding: 28px 28px 24px; margin-bottom: 20px;
-  background: var(--navy2);
+/* ── BOOK PREVIEW — Page Model ─────────────────────────────────────────── */
+.book-preview { max-width: 680px; margin: 0 auto; }
+
+/* Cover: portrait (2:3), right-hand only */
+.pg-cover-wrap { display: flex; justify-content: center; margin-bottom: 4px; }
+.pg-cover {
+  position: relative; aspect-ratio: 2/3; width: 50%; overflow: hidden;
+  background: #0a1018; border-radius: 3px;
+  box-shadow: 6px 0 28px rgba(0,0,0,0.6), -2px 0 8px rgba(0,0,0,0.3);
 }
-.book-text-bg::before {
-  content: '';
-  position: absolute; inset: -80px;
-  background: var(--texture-url) center / cover no-repeat;
-  filter: blur(56px) saturate(0.5);
-  opacity: 0.13;
-  z-index: 0;
+
+/* Spread pair */
+.pg-pair {
+  position: relative; display: grid; grid-template-columns: 1fr 1fr;
+  gap: 3px; margin-bottom: 3px;
 }
-.book-text-bg > * { position: relative; z-index: 1; }
-
-.book-cover {
-  position: relative; border-radius: 16px; overflow: hidden;
-  aspect-ratio: 2/3; max-width: 360px; margin: 0 auto 48px;
-  background: linear-gradient(160deg, #0c1e0d, #1a1208, #0d1520);
-  box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+.pg-pair::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: calc(50% - 1px);
+  width: 2px; background: rgba(0,0,0,0.55); z-index: 10; pointer-events: none;
 }
-.book-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.75; }
-.book-cover-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%); }
-.book-cover-text { position: absolute; bottom: 0; left: 0; right: 0; padding: 32px 28px; }
-.book-cover-eyebrow { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); margin-bottom: 8px; }
-.book-cover-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 2rem; color: #fff; line-height: 1.2; margin-bottom: 8px; }
-.book-cover-sub { font-family: 'Open Sans', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.6); }
-.book-cover-logo { position: absolute; top: 20px; right: 20px; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.68rem; color: rgba(255,255,255,0.5); }
 
-.book-section { margin-bottom: 52px; }
-.book-chapter-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
-.book-chapter-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.6rem; color: #fff; margin-bottom: 6px; }
-.book-chapter-date  { font-size: 0.78rem; color: var(--muted); margin-bottom: 20px; }
+/* Single page — square */
+.pg {
+  position: relative; aspect-ratio: 1/1; overflow: hidden;
+  background: #0f1924; border-radius: 2px;
+}
 
-.book-hero-photo { width: 100%; aspect-ratio: 3/2; object-fit: cover; border-radius: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.05); }
-.book-hero-empty { width: 100%; aspect-ratio: 3/2; border-radius: 12px; background: linear-gradient(160deg, #1a2e10, #0d1520); border: 1px dashed rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
-.book-hero-empty span { font-size: 0.78rem; color: var(--muted); font-style: italic; }
+/* Blurred texture background */
+.pg-tex {
+  position: absolute; inset: -28px; z-index: 0; pointer-events: none;
+}
+.pg-tex img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  filter: blur(28px) saturate(0.3) brightness(0.6);
+  opacity: 0.38;
+}
 
-.book-photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
-.book-photo-grid img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 8px; }
-.book-photo-grid .empty-ph { width: 100%; aspect-ratio: 4/3; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.08); }
+/* Content layer */
+.pg-body {
+  position: absolute; inset: 0; z-index: 1;
+  padding: 14px; display: flex; flex-direction: column; overflow: hidden;
+}
 
-.book-narrative { font-family: 'Open Sans', sans-serif; font-size: 0.92rem; color: var(--soft); line-height: 1.85; }
-.book-narrative p { margin-bottom: 12px; }
-.book-pullquote { border-left: 3px solid var(--teal); padding: 12px 20px; margin: 20px 0; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: var(--text); line-height: 1.65; }
+/* Gradient overlay for photo pages */
+.pg-overlay {
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.12) 55%, transparent 100%);
+}
+.pg-overlay-text {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 14px; z-index: 2;
+}
 
-.book-divider { border: none; border-top: 1px solid var(--bd); margin: 40px 0; }
+/* Typography */
+.pg-eyebrow {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 0.52rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 3px;
+}
+.pg-title {
+  font-family: 'Playfair Display', serif; font-weight: 700;
+  font-size: 1rem; color: #fff; line-height: 1.2; margin-bottom: 5px;
+}
+.pg-text {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.6rem; color: var(--soft); line-height: 1.7; flex: 1; overflow: hidden;
+}
+.pg-quote {
+  font-family: 'Playfair Display', serif; font-style: italic;
+  font-size: 0.68rem; color: var(--text); line-height: 1.6;
+  border-left: 2px solid var(--teal); padding-left: 8px; margin-top: 6px;
+  overflow: hidden;
+}
 
-.book-map { width: 100%; border-radius: 10px; overflow: hidden; margin: 18px 0 4px; }
-.book-map img { width: 100%; display: block; border-radius: 10px; }
-.book-map-caption { font-size: 0.72rem; color: var(--muted); text-align: center; margin-bottom: 18px; font-style: italic; letter-spacing: 0.03em; }
+/* Photo fills */
+.pg-photo-abs { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+.pg-photo-top { width: 100%; object-fit: cover; border-radius: 2px; flex-shrink: 0; display: block; }
+.pg-photo-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; flex-shrink: 0; margin-top: 2px; }
+.pg-photo-pair img { width: 100%; object-fit: cover; border-radius: 2px; display: block; }
+
+/* Blank page */
+.pg-blank { background: #0c1520; }
+
+/* Page number */
+.pg-num {
+  position: absolute; bottom: 7px; right: 9px; z-index: 5;
+  font-family: 'Montserrat', sans-serif; font-size: 0.5rem;
+  color: rgba(255,255,255,0.22); font-weight: 600; letter-spacing: 0.05em;
+}
+
+@media(max-width:580px) {
+  .pg-pair { grid-template-columns: 1fr; }
+  .pg-cover { width: 72%; }
+}
 
 .preview-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--bd); }
 .btn-order { background: var(--gold); color: #0d1520; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; border: none; border-radius: 10px; padding: 13px 32px; cursor: pointer; transition: background 0.2s; }
@@ -261,18 +304,23 @@ const TRIP = {
   traveler:    'Michael',
   year:        '2026',
   destination: 'Uganda',
+  guide: {
+    name:    'Moses Kasozi',
+    title:   'Senior Safari Guide',
+    company: 'Wild Frontiers Uganda',
+  },
   days: [
-    { num:  1, date: 'Saturday, May 16',  location: 'Entebbe → Ziwa Rhino',       park: 'Ziwa Rhino Sanctuary',          lon: 32.93, lat:  1.52, zoom: 10 },
-    { num:  2, date: 'Sunday, May 17',    location: 'Ziwa → Murchison Falls',      park: 'Murchison Falls National Park', lon: 31.69, lat:  2.27, zoom:  9 },
-    { num:  3, date: 'Monday, May 18',    location: 'Murchison Falls NP',          park: 'Murchison Falls National Park', lon: 31.69, lat:  2.27, zoom:  9 },
-    { num:  4, date: 'Tuesday, May 19',   location: 'Murchison Falls → Kibale',    park: 'Kibale National Park',          lon: 30.40, lat:  0.48, zoom: 10 },
-    { num:  5, date: 'Wednesday, May 20', location: 'Kibale Forest',               park: 'Kibale National Park',          lon: 30.40, lat:  0.48, zoom: 10 },
-    { num:  6, date: 'Thursday, May 21',  location: 'Kibale → Queen Elizabeth NP', park: 'Queen Elizabeth National Park', lon: 30.00, lat: -0.12, zoom:  9 },
-    { num:  7, date: 'Friday, May 22',    location: 'Queen Elizabeth NP',          park: 'Queen Elizabeth National Park', lon: 30.00, lat: -0.12, zoom:  9 },
-    { num:  8, date: 'Saturday, May 23',  location: 'Queen Elizabeth → Bwindi',    park: 'Bwindi Impenetrable NP',        lon: 29.68, lat: -1.05, zoom: 10 },
-    { num:  9, date: 'Sunday, May 24',    location: 'Bwindi Impenetrable Forest',  park: 'Bwindi Impenetrable NP',        lon: 29.68, lat: -1.05, zoom: 10 },
-    { num: 10, date: 'Monday, May 25',    location: 'Bwindi → Lake Mburo',         park: 'Lake Mburo National Park',      lon: 30.95, lat: -0.62, zoom: 10 },
-    { num: 11, date: 'Tuesday, May 26',   location: 'Lake Mburo → Entebbe',        park: 'Lake Mburo National Park',      lon: 30.95, lat: -0.62, zoom: 10 },
+    { num:  1, date: 'Saturday, May 16',  location: 'Entebbe → Ziwa Rhino',       park: 'Ziwa Rhino Sanctuary',          lon: 32.93, lat:  1.52, zoom: 10, lodge: 'Amuka Safari Lodge' },
+    { num:  2, date: 'Sunday, May 17',    location: 'Ziwa → Murchison Falls',      park: 'Murchison Falls National Park', lon: 31.69, lat:  2.27, zoom:  9, lodge: 'Paraa Safari Lodge' },
+    { num:  3, date: 'Monday, May 18',    location: 'Murchison Falls NP',          park: 'Murchison Falls National Park', lon: 31.69, lat:  2.27, zoom:  9, lodge: 'Paraa Safari Lodge' },
+    { num:  4, date: 'Tuesday, May 19',   location: 'Murchison Falls → Kibale',    park: 'Kibale National Park',          lon: 30.40, lat:  0.48, zoom: 10, lodge: 'Primate Lodge Kibale' },
+    { num:  5, date: 'Wednesday, May 20', location: 'Kibale Forest',               park: 'Kibale National Park',          lon: 30.40, lat:  0.48, zoom: 10, lodge: 'Primate Lodge Kibale' },
+    { num:  6, date: 'Thursday, May 21',  location: 'Kibale → Queen Elizabeth NP', park: 'Queen Elizabeth National Park', lon: 30.00, lat: -0.12, zoom:  9, lodge: 'Mweya Safari Lodge' },
+    { num:  7, date: 'Friday, May 22',    location: 'Queen Elizabeth NP',          park: 'Queen Elizabeth National Park', lon: 30.00, lat: -0.12, zoom:  9, lodge: 'Mweya Safari Lodge' },
+    { num:  8, date: 'Saturday, May 23',  location: 'Queen Elizabeth → Bwindi',    park: 'Bwindi Impenetrable NP',        lon: 29.68, lat: -1.05, zoom: 10, lodge: 'Mahogany Springs Lodge' },
+    { num:  9, date: 'Sunday, May 24',    location: 'Bwindi Impenetrable Forest',  park: 'Bwindi Impenetrable NP',        lon: 29.68, lat: -1.05, zoom: 10, lodge: 'Mahogany Springs Lodge' },
+    { num: 10, date: 'Monday, May 25',    location: 'Bwindi → Lake Mburo',         park: 'Lake Mburo National Park',      lon: 30.95, lat: -0.62, zoom: 10, lodge: 'Mihingo Lodge' },
+    { num: 11, date: 'Tuesday, May 26',   location: 'Lake Mburo → Entebbe',        park: 'Lake Mburo National Park',      lon: 30.95, lat: -0.62, zoom: 10, lodge: 'Mihingo Lodge' },
   ]
 };
 
@@ -283,6 +331,7 @@ const STATE = {
   opening: { introText: '', mapIncluded: true },
   days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, reflection: '', narrative: '' })),
   closing: { photoUrl: null, portraitUrl: null, text: '' },
+  company: { photoUrl: null, photo2Url: null, guideNote: '' },
 };
 
 // ── STEPS LIST ─────────────────────────────────────────────────────────────
@@ -293,8 +342,9 @@ function buildSteps() {
   TRIP.days.forEach((d, i) => {
     steps.push({ id: 'day-' + i, label: 'Day ' + d.num + ' — ' + d.location.split(' → ')[0], section: i === 0 ? 'Day Chapters' : null, render: () => renderDay(i) });
   });
-  steps.push({ id: 'closing', label: 'Closing Chapter', section: 'Final Pages', render: renderClosing });
-  steps.push({ id: 'preview', label: 'Preview & Order', section: null,          render: renderPreviewStep });
+  steps.push({ id: 'closing', label: 'Closing Chapter',    section: 'Final Pages', render: renderClosing });
+  steps.push({ id: 'company', label: 'Guide & Company',   section: null,          render: renderCompany });
+  steps.push({ id: 'preview', label: 'Preview & Order',   section: null,          render: renderPreviewStep });
   return steps;
 }
 const STEPS = buildSteps();
@@ -325,6 +375,7 @@ function isStepDone(i) {
     const d = STATE.days[i - 2];
     return !!d.heroUrl || !!d.reflection;
   }
+  if (i === 2 + TRIP.days.length + 1) return !!STATE.company.photoUrl || !!STATE.company.guideNote;
   return false;
 }
 
@@ -418,9 +469,11 @@ async function handlePhoto(e, id) {
 }
 
 function storePhotoUrl(id, url) {
-  if      (id === 'cover')            STATE.cover.photoUrl    = url;
-  else if (id === 'closing')          STATE.closing.photoUrl  = url;
+  if      (id === 'cover')            STATE.cover.photoUrl      = url;
+  else if (id === 'closing')          STATE.closing.photoUrl    = url;
   else if (id === 'closing-portrait') STATE.closing.portraitUrl = url;
+  else if (id === 'company-1')        STATE.company.photoUrl    = url;
+  else if (id === 'company-2')        STATE.company.photo2Url   = url;
   else {
     const m = id.match(/^day(\d+)-(hero|p2|p3)$/);
     if (m) {
@@ -434,9 +487,11 @@ function storePhotoUrl(id, url) {
 
 function removePhoto(e, id) {
   e.stopPropagation();
-  if      (id === 'cover')            STATE.cover.photoUrl    = null;
-  else if (id === 'closing')          STATE.closing.photoUrl  = null;
+  if      (id === 'cover')            STATE.cover.photoUrl      = null;
+  else if (id === 'closing')          STATE.closing.photoUrl    = null;
   else if (id === 'closing-portrait') STATE.closing.portraitUrl = null;
+  else if (id === 'company-1')        STATE.company.photoUrl    = null;
+  else if (id === 'company-2')        STATE.company.photo2Url   = null;
   else {
     const m = id.match(/^day(\d+)-(hero|p2|p3)$/);
     if (m) {
@@ -590,6 +645,42 @@ function renderClosing() {
     ${navHtml(true)}`;
 }
 
+// ── STEP: GUIDE & COMPANY ──────────────────────────────────────────────────
+function renderCompany() {
+  const c = STATE.company;
+  const g = TRIP.guide || {};
+  document.getElementById('step-content').innerHTML = `
+    <div class="step-header">
+      <div class="step-eyebrow">Step ${STEPS.length - 1} of ${STEPS.length}</div>
+      <h2>Your Guide &amp; Safari Company</h2>
+      <p>Two pages in your Journey Book are reserved for your safari company and guide — their best photos and your personal tribute to the people who made this trip possible.</p>
+    </div>
+    <div class="card">
+      ${g.name ? `<div style="display:flex;align-items:center;gap:14px;padding:12px;background:rgba(45,212,191,0.05);border:1px solid rgba(45,212,191,0.15);border-radius:10px;margin-bottom:18px;">
+        <div style="width:42px;height:42px;border-radius:50%;background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.25);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">🦁</div>
+        <div>
+          <div style="font-size:0.9rem;color:#fff;font-weight:600;">${g.name}</div>
+          <div style="font-size:0.78rem;color:var(--muted);">${g.title || ''}${g.title && g.company ? ' · ' : ''}${g.company || ''}</div>
+        </div>
+      </div>` : ''}
+      <div class="card-title">Photos (Left &amp; Right Pages)</div>
+      <div class="photo-grid photo-grid-3" style="margin-bottom:14px;">
+        ${photoSlotHtml('company-1', 'hero', 'Wildlife or Action Shot\n(left page, full bleed)', c.photoUrl, null)}
+        ${photoSlotHtml('company-2', 'hero', 'Guide Portrait\n(right page)', c.photo2Url, null)}
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);">Ask your guide or lodge to share their best shots from your trip — they often have stunning images you never saw.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">A Personal Note</div>
+      <div class="field">
+        <label>What will you remember most about ${g.name ? g.name : 'your guide'}?</label>
+        <textarea rows="5" placeholder="A moment they created for you, their knowledge of the animals, their humor around the fire at night…" oninput="STATE.company.guideNote=this.value">${c.guideNote}</textarea>
+        <div class="hint">This appears alongside their photo on the right page.</div>
+      </div>
+    </div>
+    ${navHtml(false)}`;
+}
+
 // ── STEP: PREVIEW TRIGGER ──────────────────────────────────────────────────
 function renderPreviewStep() { showPreview(); }
 
@@ -600,101 +691,269 @@ function showPreview() {
   STATE.currentStep = STEPS.length - 1;
   renderSidebar(); updateProgress();
 
-  const title = STATE.cover.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year);
-  const sub   = STATE.cover.subtitle || 'A Journey Book';
+  const title  = STATE.cover.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year);
+  const sub    = STATE.cover.subtitle || 'A Journey Book';
+  const texUrl = STATE.cover.photoUrl || ((STATE.days.find(d => d.heroUrl) || {}).heroUrl) || '';
 
-  // Set texture from cover photo
-  if (STATE.cover.photoUrl) {
-    document.documentElement.style.setProperty('--texture-url', `url(${STATE.cover.photoUrl})`);
-  } else {
-    document.documentElement.style.setProperty('--texture-url', 'none');
+  function texHtml(url) {
+    if (!url) return '';
+    return `<div class="pg-tex"><img src="${url}" alt="" /></div>`;
   }
 
-  let html = '';
-
-  // Cover
-  html += `<div class="book-cover">
-    ${STATE.cover.photoUrl ? `<img src="${STATE.cover.photoUrl}" alt="cover" />` : ''}
-    <div class="book-cover-overlay"></div>
-    <div class="book-cover-text">
-      <div class="book-cover-eyebrow">Journey Book · Uganda</div>
-      <div class="book-cover-title">${title}</div>
-      <div class="book-cover-sub">${sub}</div>
-    </div>
-    <div class="book-cover-logo">Transformed by Travels</div>
-  </div>`;
-
-  // Opening — text page gets texture
-  if (STATE.opening.introText) {
-    html += `<div class="book-section">
-      <div class="book-text-bg">
-        <div class="book-chapter-label">Opening</div>
-        <div class="book-chapter-title">Before Uganda</div>
-        <div class="book-narrative" style="margin-top:12px;"><p>${STATE.opening.introText}</p></div>
-      </div>
-    </div><hr class="book-divider">`;
+  // Group consecutive same-park days into destinations
+  function groupDests() {
+    const dests = []; let cur = null;
+    TRIP.days.forEach((d, i) => {
+      if (!cur || cur.park !== d.park) { cur = { park: d.park, days: [] }; dests.push(cur); }
+      cur.days.push(Object.assign({}, d, { index: i }));
+    });
+    return dests;
   }
 
-  // Days — photos stay clean, reflection gets texture
-  TRIP.days.forEach((d, i) => {
-    const st = STATE.days[i];
-    const hasPhotos = st.heroUrl || st.photo2Url || st.photo3Url;
-    const hasText   = st.reflection;
-    if (!hasPhotos && !hasText) return;
+  // Build flat page list (cover rendered separately)
+  const pages = [];
+  pages.push({ type: 'spread-L' });
+  pages.push({ type: 'spread-R' });
+  pages.push({ type: 'intro' });
+  pages.push({ type: 'route-map' });
 
-    html += `<div class="book-section">
-      <div class="book-chapter-label">Day ${d.num}</div>
-      <div class="book-chapter-title">${d.location.split(' → ').pop()}</div>
-      <div class="book-chapter-date">${d.date}${d.park ? ' · ' + d.park : ''}</div>`;
-
-    if (d.lon && window._mapboxToken) {
-      const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${d.lon},${d.lat},${d.zoom}/700x260@2x?access_token=${window._mapboxToken}`;
-      html += `<div class="book-map"><img src="${mapUrl}" alt="Map of ${d.park || d.location}" /></div>
-               <div class="book-map-caption">${d.park || d.location}</div>`;
-    }
-
-    if (st.heroUrl) {
-      html += `<img src="${st.heroUrl}" class="book-hero-photo" alt="Day ${d.num}" />`;
-    } else {
-      html += `<div class="book-hero-empty"><span>Hero photo for Day ${d.num}</span></div>`;
-    }
-
-    if (st.photo2Url || st.photo3Url) {
-      html += `<div class="book-photo-grid">
-        ${st.photo2Url ? `<img src="${st.photo2Url}" alt="" />` : '<div class="empty-ph"></div>'}
-        ${st.photo3Url ? `<img src="${st.photo3Url}" alt="" />` : '<div class="empty-ph"></div>'}
-      </div>`;
-    }
-
-    if (st.reflection) {
-      html += `<div class="book-text-bg"><div class="book-pullquote" style="margin:0;">${st.reflection}</div></div>`;
-    }
-
-    html += `</div><hr class="book-divider">`;
+  groupDests().forEach(dest => {
+    if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
+    const firstSt = STATE.days[dest.days[0].index];
+    pages.push({ type: 'dest-title', dest });
+    pages.push({ type: 'dest-photo', dest, st: firstSt });
+    dest.days.forEach((day, di) => {
+      const st = STATE.days[day.index];
+      if (di > 0 && st.heroUrl) pages.push({ type: 'day-photo', day, st });
+      if (st.reflection || st.photo2Url || st.photo3Url) pages.push({ type: 'day-text', day, st });
+    });
   });
 
-  // Closing — photos clean, text gets texture
-  if (STATE.closing.text || STATE.closing.photoUrl || STATE.closing.portraitUrl) {
-    html += `<div class="book-section">`;
-    if (STATE.closing.photoUrl) {
-      html += `<img src="${STATE.closing.photoUrl}" class="book-hero-photo" alt="closing" />`;
-    }
-    if (STATE.closing.text) {
-      html += `<div class="book-text-bg">
-        <div class="book-chapter-label">Closing</div>
-        <div class="book-chapter-title">What I'm Carrying Home</div>
-        <div class="book-narrative" style="margin-top:12px;"><p>${STATE.closing.text}</p></div>
-      </div>`;
-    }
-    if (STATE.closing.portraitUrl) {
-      html += `<div style="display:flex;justify-content:center;margin-top:20px;">
-        <img src="${STATE.closing.portraitUrl}" alt="Traveler portrait"
-          style="width:260px;height:320px;object-fit:cover;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4);" />
-      </div>`;
-    }
-    html += `</div>`;
+  // Safari company / guide spread (before closing)
+  if (STATE.company.photoUrl || STATE.company.photo2Url || STATE.company.guideNote) {
+    if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
+    pages.push({ type: 'safari-co-L' });
+    pages.push({ type: 'safari-co-R' });
   }
 
+  if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
+  if (STATE.closing.photoUrl) {
+    pages.push({ type: 'closing-photo' });
+    pages.push({ type: 'closing-text' });
+  } else {
+    pages.push({ type: 'closing-text' });
+    pages.push({ type: 'blank' });
+  }
+  if (STATE.closing.portraitUrl) {
+    if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
+    pages.push({ type: 'portrait' });
+    if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
+  }
+
+  // Render a single page
+  function renderPage(p, idx) {
+    const num = `<div class="pg-num">${idx + 2}</div>`;
+
+    switch (p.type) {
+      case 'blank':
+        return `<div class="pg pg-blank">${num}</div>`;
+
+      case 'spread-L':
+        return `<div class="pg">${STATE.cover.photoUrl
+          ? `<img src="${STATE.cover.photoUrl}" class="pg-photo-abs" style="object-position:0% center;" alt="" />`
+          : ''}</div>`;
+
+      case 'spread-R':
+        return `<div class="pg">${STATE.cover.photoUrl
+          ? `<img src="${STATE.cover.photoUrl}" class="pg-photo-abs" style="object-position:100% center;" alt="" />`
+            + `<div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.4) 0%,transparent 100%);"></div>`
+            + `<div style="position:absolute;top:12px;right:12px;z-index:2;"><div class="pg-eyebrow">${TRIP.year}</div></div>`
+          : ''}</div>`;
+
+      case 'intro': {
+        const rows = TRIP.days.map((d, i) =>
+          `<tr style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.025)' : 'transparent'};">` +
+          `<td style="font-family:'Montserrat';font-weight:700;font-size:0.42rem;color:var(--teal);padding:2px 4px 2px 4px;">${d.num}</td>` +
+          `<td style="font-size:0.42rem;color:var(--soft);padding:2px 4px 2px 0;font-family:'Open Sans';white-space:nowrap;">${d.date.split(', ').pop()}</td>` +
+          `<td style="font-size:0.42rem;color:var(--text);padding:2px 4px 2px 0;font-family:'Open Sans';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.location.split(' → ').pop()}</td>` +
+          `<td style="font-size:0.42rem;color:var(--soft);padding:2px 4px 2px 0;font-family:'Open Sans';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic;">${d.lodge || ''}</td>` +
+          `</tr>`
+        ).join('');
+        const thStyle = `font-family:'Montserrat';font-weight:700;font-size:0.37rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.09em;padding:0 4px 3px;text-align:left;`;
+        const table = `<table style="width:100%;border-collapse:collapse;margin-top:auto;table-layout:fixed;">
+          <colgroup><col style="width:10%;"><col style="width:18%;"><col style="width:36%;"><col style="width:36%;"></colgroup>
+          <thead><tr style="border-bottom:1px solid rgba(45,212,191,0.3);">
+            <th style="${thStyle}">Day</th>
+            <th style="${thStyle}">Date</th>
+            <th style="${thStyle}">Destination</th>
+            <th style="${thStyle}">Lodge</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+        return `<div class="pg">${texHtml(texUrl)}<div class="pg-body">
+          <div class="pg-eyebrow">${TRIP.destination} · ${TRIP.year}</div>
+          <div class="pg-title">${title}</div>
+          ${STATE.opening.introText
+            ? `<div class="pg-text" style="margin-top:8px;">${STATE.opening.introText.slice(0, 220)}</div>`
+            : '<div style="flex:1;"></div>'}
+          <div style="margin-top:auto;padding-top:8px;">${table}</div>
+          </div>${num}</div>`;
+      }
+
+      case 'route-map': {
+        const pins = [[32.93,1.52],[31.69,2.27],[30.40,0.48],[30.00,-0.12],[29.68,-1.05],[30.95,-0.62]]
+          .map(([ln,lt]) => `pin-s+2dd4bf(${ln},${lt})`).join(',');
+        const mapSrc = window._mapboxToken
+          ? `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pins}/31.0,0.5,6.2/600x600@2x?access_token=${window._mapboxToken}`
+          : '';
+        const parks = [...new Set(TRIP.days.map(d => d.park))];
+        return `<div class="pg">
+          <img id="route-map-img" src="${mapSrc}" class="pg-photo-abs" alt="Route map" style="${mapSrc ? '' : 'display:none;'}" />
+          ${!mapSrc ? texHtml(texUrl) : ''}
+          <div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,transparent 45%,transparent 55%,rgba(0,0,0,0.65) 100%);"></div>
+          <div style="position:absolute;top:10px;left:12px;z-index:2;"><div class="pg-eyebrow">Uganda Circuit</div></div>
+          <div class="pg-overlay-text">
+            ${parks.slice(0,5).map(pk =>
+              `<div style="font-size:0.42rem;color:rgba(255,255,255,0.7);font-family:'Montserrat';font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:2px;">${pk}</div>`
+            ).join('')}
+          </div>${num}</div>`;
+      }
+
+      case 'dest-title': {
+        const { dest } = p;
+        const d0 = dest.days[0], dZ = dest.days[dest.days.length - 1];
+        const lodge = d0.lodge || '';
+        return `<div class="pg">${texHtml(texUrl)}<div class="pg-body" style="justify-content:flex-end;">
+          <div style="flex:1;"></div>
+          <div class="pg-eyebrow">${d0.date.split(', ').pop()} – ${dZ.date.split(', ').pop()}</div>
+          <div class="pg-title" style="font-size:1.05rem;line-height:1.2;">${dest.park}</div>
+          <div style="margin-top:5px;font-size:0.48rem;color:var(--muted);font-family:'Open Sans';">Day${dest.days.length > 1 ? 's' : ''} ${d0.num}–${dZ.num} · ${dest.days.length} night${dest.days.length > 1 ? 's' : ''}</div>
+          ${lodge ? `<div style="margin-top:4px;font-size:0.46rem;color:rgba(45,212,191,0.75);font-family:'Open Sans';font-style:italic;">${lodge}</div>` : ''}
+          </div>${num}</div>`;
+      }
+
+      case 'dest-photo': {
+        const { dest, st } = p;
+        return `<div class="pg">${st.heroUrl
+          ? `<img src="${st.heroUrl}" class="pg-photo-abs" alt="${dest.park}" />
+             <div class="pg-overlay"></div>
+             <div class="pg-overlay-text">
+               <div class="pg-eyebrow">Day ${dest.days[0].num}</div>
+               <div style="font-size:0.48rem;color:rgba(255,255,255,0.7);font-family:'Open Sans';">${dest.days[0].location}</div>
+             </div>`
+          : `${texHtml(texUrl)}<div class="pg-body" style="align-items:center;justify-content:center;"><div style="font-size:0.6rem;color:var(--muted);font-style:italic;">Add a photo for Day ${dest.days[0].num}</div></div>`}${num}</div>`;
+      }
+
+      case 'day-photo': {
+        const { day, st } = p;
+        return `<div class="pg">
+          <img src="${st.heroUrl}" class="pg-photo-abs" alt="Day ${day.num}" />
+          <div class="pg-overlay"></div>
+          <div class="pg-overlay-text">
+            <div class="pg-eyebrow">Day ${day.num}</div>
+            <div style="font-size:0.48rem;color:rgba(255,255,255,0.7);font-family:'Open Sans';">${day.location}</div>
+          </div>${num}</div>`;
+      }
+
+      case 'day-text': {
+        const { day, st } = p;
+        const hasSupport = st.photo2Url || st.photo3Url;
+        return `<div class="pg">${texHtml(st.heroUrl || texUrl)}<div class="pg-body">
+          <div class="pg-eyebrow">Day ${day.num} · ${day.location.split(' → ').pop()}</div>
+          ${hasSupport ? `<div class="pg-photo-pair" style="height:42%;margin-top:6px;">
+            ${st.photo2Url ? `<img src="${st.photo2Url}" style="height:100%;object-fit:cover;" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
+            ${st.photo3Url ? `<img src="${st.photo3Url}" style="height:100%;object-fit:cover;" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
+          </div>` : ''}
+          ${st.reflection ? `<div class="pg-quote" style="margin-top:${hasSupport ? '8px' : 'auto'};">${st.reflection}</div>` : ''}
+          </div>${num}</div>`;
+      }
+
+      case 'safari-co-L': {
+        const g = TRIP.guide || {};
+        return `<div class="pg">${STATE.company.photoUrl
+          ? `<img src="${STATE.company.photoUrl}" class="pg-photo-abs" alt="Safari company" />
+             <div class="pg-overlay"></div>
+             <div class="pg-overlay-text">
+               <div class="pg-eyebrow">Your Safari</div>
+               <div style="font-size:0.5rem;color:rgba(255,255,255,0.7);font-family:'Open Sans';">${g.company || ''}</div>
+             </div>`
+          : `${texHtml(texUrl)}<div class="pg-body" style="align-items:center;justify-content:center;">
+               <div style="font-size:0.6rem;color:var(--muted);font-style:italic;">Add a photo from your guide</div>
+             </div>`}${num}</div>`;
+      }
+
+      case 'safari-co-R': {
+        const g = TRIP.guide || {};
+        return `<div class="pg">${STATE.company.photo2Url
+          ? `<img src="${STATE.company.photo2Url}" class="pg-photo-abs" alt="${g.name || 'Guide'}" />
+             <div class="pg-overlay" style="background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,rgba(0,0,0,0.1) 55%,transparent 100%);"></div>`
+          : texHtml(texUrl)}
+          <div class="pg-body" style="justify-content:flex-end;">
+            <div style="flex:1;"></div>
+            ${g.name ? `<div class="pg-eyebrow">Your Guide</div>
+            <div class="pg-title" style="font-size:1rem;">${g.name}</div>
+            ${g.title ? `<div style="font-size:0.46rem;color:var(--muted);font-family:'Open Sans';margin-top:3px;">${g.title}</div>` : ''}` : ''}
+            ${STATE.company.guideNote ? `<div class="pg-quote" style="margin-top:8px;">${STATE.company.guideNote}</div>` : ''}
+          </div>${num}</div>`;
+      }
+
+      case 'closing-photo':
+        return `<div class="pg">
+          <img src="${STATE.closing.photoUrl}" class="pg-photo-abs" alt="closing" />
+          <div class="pg-overlay"></div>${num}</div>`;
+
+      case 'closing-text':
+        return `<div class="pg">${texHtml(STATE.closing.photoUrl || texUrl)}<div class="pg-body" style="justify-content:flex-end;">
+          <div style="flex:1;"></div>
+          <div class="pg-eyebrow">Closing</div>
+          <div class="pg-title">What I'm Carrying Home</div>
+          ${STATE.closing.text
+            ? `<div class="pg-text" style="margin-top:8px;">${STATE.closing.text.slice(0, 420)}</div>`
+            : `<div style="font-size:0.55rem;color:var(--muted);margin-top:8px;font-style:italic;">Your closing reflection will appear here.</div>`}
+          </div></div>`;
+
+      case 'portrait':
+        return `<div class="pg">${texHtml(texUrl)}<div class="pg-body" style="align-items:center;justify-content:center;gap:10px;">
+          <div style="width:62%;aspect-ratio:3/4;overflow:hidden;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,0.5);">
+            <img src="${STATE.closing.portraitUrl}" style="width:100%;height:100%;object-fit:cover;" alt="Traveler portrait" />
+          </div>
+          <div style="text-align:center;">
+            <div class="pg-eyebrow" style="display:flex;justify-content:center;">${TRIP.traveler}</div>
+            <div style="font-size:0.48rem;color:var(--muted);margin-top:2px;">${TRIP.destination} · ${TRIP.year}</div>
+          </div>
+          </div></div>`;
+
+      default:
+        return `<div class="pg pg-blank">${num}</div>`;
+    }
+  }
+
+  // Assemble full book HTML
+  let html = '<div class="book-preview">';
+
+  // Cover (standalone portrait, right-hand)
+  html += `<div class="pg-cover-wrap">
+    <div class="pg-cover">
+      ${STATE.cover.photoUrl ? `<img src="${STATE.cover.photoUrl}" class="pg-photo-abs" alt="cover" />` : ''}
+      <div class="pg-overlay"></div>
+      <div class="pg-overlay-text" style="padding:20px;">
+        <div class="pg-eyebrow">Journey Book · ${TRIP.destination}</div>
+        <div class="pg-title" style="font-size:1.25rem;">${title}</div>
+        <div style="font-size:0.55rem;color:rgba(255,255,255,0.6);margin-top:4px;">${sub}</div>
+      </div>
+      <div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;z-index:2;font-family:'Montserrat';font-weight:700;font-size:0.42rem;color:rgba(255,255,255,0.28);letter-spacing:0.18em;text-transform:uppercase;">Transformed by Travels</div>
+    </div>
+  </div>`;
+
+  // Pair pages into spreads
+  for (let i = 0; i < pages.length; i += 2) {
+    html += `<div class="pg-pair">
+      ${renderPage(pages[i], i)}
+      ${pages[i + 1] ? renderPage(pages[i + 1], i + 1) : '<div class="pg pg-blank"></div>'}
+    </div>`;
+  }
+
+  html += '</div>';
   document.getElementById('book-preview-content').innerHTML = html;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -708,12 +967,27 @@ function showWizard() {
 
 // ── MAPBOX TOKEN ───────────────────────────────────────────────────────────
 (async () => {
-  try { const r = await fetch('/api/mapbox-token'); const d = await r.json(); window._mapboxToken = d.token || ''; }
-  catch(e) {}
+  try {
+    const r = await fetch('/api/mapbox-token');
+    const d = await r.json();
+    window._mapboxToken = d.token || '';
+    // If preview is already showing, inject the route map src
+    if (window._mapboxToken) {
+      const el = document.getElementById('route-map-img');
+      if (el) {
+        const pins = [[32.93,1.52],[31.69,2.27],[30.40,0.48],[30.00,-0.12],[29.68,-1.05],[30.95,-0.62]]
+          .map(([ln,lt]) => `pin-s+2dd4bf(${ln},${lt})`).join(',');
+        el.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pins}/31.0,0.5,6.2/600x600@2x?access_token=${window._mapboxToken}`;
+        el.style.display = '';
+      }
+    }
+  } catch(e) {}
 })();
 
 // ── SESSION ID (stable per browser/trip for Cloudinary folder) ─────────────
 const SESSION_ID = (() => {
+  const urlTripId = new URLSearchParams(window.location.search).get('tripId');
+  if (urlTripId) return 'trip-' + urlTripId;   // trip-specific, stable across visits
   let id = localStorage.getItem('jb_session');
   if (!id) { id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7); localStorage.setItem('jb_session', id); }
   return id;
@@ -738,9 +1012,10 @@ async function saveProgress() {
     coverPhotoUrl:   STATE.cover.photoUrl   || '',
     openingText:     STATE.opening.introText || '',
     daysData:        JSON.stringify(STATE.days),
-    closingText:      STATE.closing.text       || '',
-    closingPhotoUrl:  STATE.closing.photoUrl  || '',
+    closingText:      STATE.closing.text        || '',
+    closingPhotoUrl:  STATE.closing.photoUrl    || '',
     portraitPhotoUrl: STATE.closing.portraitUrl || '',
+    guideData:        JSON.stringify(STATE.company),
     bookStatus:      'Draft'
   };
 
@@ -797,6 +1072,9 @@ async function loadProgress() {
             }
           } catch(e) {}
         }
+        if (f['Guide Data']) {
+          try { Object.assign(STATE.company, JSON.parse(f['Guide Data'])); } catch(e) {}
+        }
         return;
       }
     }
@@ -810,6 +1088,7 @@ async function loadProgress() {
     if (s.cover)   Object.assign(STATE.cover,   s.cover);
     if (s.opening) Object.assign(STATE.opening, s.opening);
     if (s.closing) Object.assign(STATE.closing, s.closing);
+    if (s.company) Object.assign(STATE.company, s.company);
     if (s.days && s.days.length === STATE.days.length) {
       s.days.forEach((d, i) => Object.assign(STATE.days[i], d));
     }
@@ -817,7 +1096,29 @@ async function loadProgress() {
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
-loadProgress().then(() => goToStep(0));
+(async () => {
+  const urlTripId = new URLSearchParams(window.location.search).get('tripId');
+  if (urlTripId) {
+    try {
+      const r = await fetch('/api/load-trip?tripId=' + encodeURIComponent(urlTripId));
+      if (r.ok) {
+        const d = await r.json();
+        if (d.trip) {
+          // Overwrite TRIP with live data, rebuild steps
+          Object.assign(TRIP, d.trip);
+          // Re-init STATE.days to match loaded day count
+          STATE.days = TRIP.days.map(() => ({ heroUrl: null, photo2Url: null, photo3Url: null, reflection: '', narrative: '' }));
+          // Rebuild steps with new day list
+          STEPS.length = 0;
+          buildSteps().forEach(s => STEPS.push(s));
+          // SESSION_ID already uses 'trip-' + urlTripId when param is present
+        }
+      }
+    } catch(e) {}
+  }
+  await loadProgress();
+  goToStep(0);
+})();
 </script>
 </body>
 </html>

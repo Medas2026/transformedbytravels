@@ -43,7 +43,7 @@ module.exports = async function handler(req, res) {
   // ── POST — create a new book ────────────────────────────────────────────
   if (req.method === 'POST') {
     const { tripId, travelerEmail, sessionId, coverTitle, coverSubtitle, coverPhotoUrl,
-            openingText, daysData, closingText, closingPhotoUrl, portraitPhotoUrl, bookStatus } = req.body || {};
+            openingText, daysData, closingText, closingPhotoUrl, portraitPhotoUrl, guideData, bookStatus } = req.body || {};
     if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
 
     try {
@@ -68,6 +68,7 @@ module.exports = async function handler(req, res) {
         'Closing Text':       closingText       || '',
         'Closing Photo URL':  closingPhotoUrl   || '',
         'Portrait Photo URL': portraitPhotoUrl  || '',
+        'Guide Data':         guideData         || '',
         'Book Status':        bookStatus        || 'Draft',
         'Create Date':        new Date().toISOString()
       }});
@@ -84,7 +85,7 @@ module.exports = async function handler(req, res) {
     if (!id) return res.status(400).json({ error: 'id required' });
 
     const { coverTitle, coverSubtitle, coverPhotoUrl, openingText, daysData,
-            closingText, closingPhotoUrl, portraitPhotoUrl, bookStatus } = req.body || {};
+            closingText, closingPhotoUrl, portraitPhotoUrl, guideData, bookStatus } = req.body || {};
 
     const fields = {};
     if (coverTitle        !== undefined) fields['Cover Title']         = coverTitle;
@@ -95,6 +96,7 @@ module.exports = async function handler(req, res) {
     if (closingText       !== undefined) fields['Closing Text']        = closingText;
     if (closingPhotoUrl   !== undefined) fields['Closing Photo URL']   = closingPhotoUrl;
     if (portraitPhotoUrl  !== undefined) fields['Portrait Photo URL']  = portraitPhotoUrl;
+    if (guideData         !== undefined) fields['Guide Data']          = guideData;
     if (bookStatus        !== undefined) fields['Book Status']         = bookStatus;
 
     try {

@@ -2724,11 +2724,12 @@ async function loadProfile(email) {
       const returnTripId = sessionStorage.getItem('returnToTripId');
       if (returnTripId) {
         sessionStorage.removeItem('returnToTripId');
-        fetch('/api/trips?email=' + encodeURIComponent(userEmail))
+        showPage('planning');
+        fetch('/api/trips?id=' + encodeURIComponent(returnTripId))
           .then(r => r.json())
           .then(d => {
-            const rec = (d.records || []).find(r => r.id === returnTripId);
-            if (rec) { showPage('planning'); openTrip(rec); }
+            const rec = d.record || (d.records || [])[0];
+            if (rec) openTrip(rec);
           }).catch(() => {});
       }
 
