@@ -801,22 +801,35 @@ function showPreview() {
       }
 
       case 'route-map': {
-        const pins = [[32.93,1.52],[31.69,2.27],[30.40,0.48],[30.00,-0.12],[29.68,-1.05],[30.95,-0.62]]
-          .map(([ln,lt]) => `pin-s+2dd4bf(${ln},${lt})`).join(',');
-        const mapSrc = window._mapboxToken
-          ? `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pins}/31.0,0.5,6.2/600x600@2x?access_token=${window._mapboxToken}`
-          : '';
-        const parks = [...new Set(TRIP.days.map(d => d.park))];
+        // Build unique parks with coordinates from TRIP.days
+        const seen = new Set();
+        const parkList = [];
+        TRIP.days.forEach(d => {
+          if (d.park && !seen.has(d.park)) {
+            seen.add(d.park);
+            parkList.push({ park: d.park, lon: d.lon, lat: d.lat });
+          }
+        });
+        const pinsWithCoords = parkList.filter(p => p.lon && p.lat);
+        const pinStr = pinsWithCoords.map((p, i) => `pin-s-${i + 1}+2dd4bf(${p.lon},${p.lat})`).join(',');
+        const mapSrc = window._mapboxToken && pinStr
+          ? `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pinStr}/auto/600x600@2x?padding=50&access_token=${window._mapboxToken}`
+          : (window._mapboxToken
+            ? `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/31.0,0.5,6.2/600x600@2x?access_token=${window._mapboxToken}`
+            : '');
+        const legend = parkList.map((p, i) =>
+          `<div style="display:flex;align-items:baseline;gap:4px;margin-bottom:2px;">
+            <span style="font-family:'Montserrat';font-weight:700;font-size:0.42rem;color:var(--teal);flex-shrink:0;">${i + 1}</span>
+            <span style="font-size:0.42rem;color:rgba(255,255,255,0.8);font-family:'Montserrat';font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">${p.park}</span>
+          </div>`
+        ).join('');
         return `<div class="pg">
           <img id="route-map-img" src="${mapSrc}" class="pg-photo-abs" alt="Route map" style="${mapSrc ? '' : 'display:none;'}" />
           ${!mapSrc ? texHtml(texUrl) : ''}
-          <div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,transparent 45%,transparent 55%,rgba(0,0,0,0.65) 100%);"></div>
-          <div style="position:absolute;top:10px;left:12px;z-index:2;"><div class="pg-eyebrow">Uganda Circuit</div></div>
-          <div class="pg-overlay-text">
-            ${parks.slice(0,5).map(pk =>
-              `<div style="font-size:0.42rem;color:rgba(255,255,255,0.7);font-family:'Montserrat';font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:2px;">${pk}</div>`
-            ).join('')}
-          </div>${num}</div>`;
+          <div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.5) 0%,transparent 40%,transparent 50%,rgba(0,0,0,0.75) 100%);"></div>
+          <div style="position:absolute;top:10px;left:12px;z-index:2;"><div class="pg-eyebrow">${TRIP.destination} Circuit</div></div>
+          <div class="pg-overlay-text" style="padding:10px 12px;">${legend}</div>
+          ${num}</div>`;
       }
 
       case 'dest-title': {
@@ -975,10 +988,16 @@ function showWizard() {
     if (window._mapboxToken) {
       const el = document.getElementById('route-map-img');
       if (el) {
-        const pins = [[32.93,1.52],[31.69,2.27],[30.40,0.48],[30.00,-0.12],[29.68,-1.05],[30.95,-0.62]]
-          .map(([ln,lt]) => `pin-s+2dd4bf(${ln},${lt})`).join(',');
-        el.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pins}/31.0,0.5,6.2/600x600@2x?access_token=${window._mapboxToken}`;
-        el.style.display = '';
+        const seen = new Set();
+        const pts = [];
+        TRIP.days.forEach(d => {
+          if (d.park && !seen.has(d.park) && d.lon && d.lat) { seen.add(d.park); pts.push(d); }
+        });
+        if (pts.length) {
+          const pinStr = pts.map((d, i) => `pin-s-${i + 1}+2dd4bf(${d.lon},${d.lat})`).join(',');
+          el.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pinStr}/auto/600x600@2x?padding=50&access_token=${window._mapboxToken}`;
+          el.style.display = '';
+        }
       }
     }
   } catch(e) {}
