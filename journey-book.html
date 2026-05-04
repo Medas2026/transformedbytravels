@@ -98,12 +98,12 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 .photo-slot-inner .label { font-size: 0.75rem; color: var(--muted); text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 600; }
 .photo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .photo-slot .remove-btn {
-  position: absolute; top: 6px; right: 6px; width: 24px; height: 24px;
-  background: rgba(0,0,0,0.7); border: none; border-radius: 50%; color: #fff;
-  font-size: 0.7rem; cursor: pointer; display: none; align-items: center; justify-content: center;
-  z-index: 2;
+  position: absolute; top: 6px; right: 6px; width: 26px; height: 26px;
+  background: rgba(0,0,0,0.75); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; color: #fff;
+  font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  z-index: 10;
 }
-.photo-slot:hover .remove-btn { display: flex; }
+.photo-slot .remove-btn:hover { background: rgba(244,63,94,0.85); }
 .photo-slot .role-tag {
   position: absolute; bottom: 6px; left: 6px;
   background: rgba(0,0,0,0.65); color: rgba(255,255,255,0.8);
@@ -425,12 +425,13 @@ function navHtml(isLast) {
 // ── PHOTO SLOT ─────────────────────────────────────────────────────────────
 function photoSlotHtml(id, cls, label, existingUrl, roleTag) {
   const img     = existingUrl ? `<img src="${existingUrl}" alt="" />` : '';
-  const remove  = existingUrl ? `<button class="remove-btn" onclick="removePhoto(event,'${id}')">✕</button>` : '';
+  const remove  = existingUrl ? `<button class="remove-btn" onclick="removePhoto(event,'${id}')" title="Remove photo">✕</button>` : '';
   const tag     = roleTag ? `<div class="role-tag">${roleTag}</div>` : '';
+  const change  = existingUrl ? `<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.55) 0%,transparent 100%);padding:6px 8px 5px;pointer-events:none;font-size:0.58rem;color:rgba(255,255,255,0.7);font-family:'Montserrat';font-weight:600;text-align:center;">Click to change</div>` : '';
   const inner   = !existingUrl ? `<div class="photo-slot-inner"><div class="icon">📷</div><div class="label">${label}</div></div>` : '';
   return `<div class="photo-slot ${cls}" id="slot-${id}">
     <input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />
-    ${inner}${img}${remove}${tag}
+    ${inner}${img}${change}${remove}${tag}
   </div>`;
 }
 
