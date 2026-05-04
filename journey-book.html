@@ -1004,6 +1004,8 @@ function showPreview() {
   html += '</div>';
   document.getElementById('book-preview-content').innerHTML = html;
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Geocode and inject maps now that preview DOM exists and TRIP data is final
+  if (window._mapboxToken) injectMaps();
 }
 
 function showWizard() {
@@ -1013,19 +1015,15 @@ function showWizard() {
   renderStep();
 }
 
-// ── MAPBOX TOKEN ───────────────────────────────────────────────────────────
-(async () => {
+// ── MAP INJECTION (geocodes missing coords, then injects route + dest maps) ──
+async function injectMaps() {
+  if (!window._mapboxToken) return;
   try {
-    const r = await fetch('/api/mapbox-token');
-    const d = await r.json();
-    window._mapboxToken = d.token || '';
-    if (!window._mapboxToken) return;
-
-    // Geocode any parks that are missing coordinates
+    // Geocode parks that are missing coordinates against the current TRIP.days
     const country = TRIP.country || TRIP.destination || '';
-    const needsGeo = [...new Set(TRIP.days.map(d => d.park).filter(p => p && !TRIP.days.find(d => d.park === p && d.lon)))];
-    if (needsGeo.length) {
-      await Promise.all(needsGeo.map(async park => {
+    const missing = [...new Set(TRIP.days.map(d => d.park).filter(p => p && !TRIP.days.find(d2 => d2.park === p && d2.lon)))];
+    if (missing.length) {
+      await Promise.all(missing.map(async park => {
         try {
           const q = encodeURIComponent(park + (country ? ', ' + country : ''));
           const gr = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?types=poi,park,place,region&limit=1&access_token=${window._mapboxToken}`);
@@ -1038,34 +1036,39 @@ function showWizard() {
         } catch(e) {}
       }));
     }
-
-    // Inject route map
+    // Route map
     const el = document.getElementById('route-map-img');
     if (el) {
       const seen = new Set(); const pts = [];
-      TRIP.days.forEach(d => {
-        if (d.park && !seen.has(d.park) && d.lon && d.lat) { seen.add(d.park); pts.push(d); }
-      });
+      TRIP.days.forEach(d => { if (d.park && !seen.has(d.park) && d.lon && d.lat) { seen.add(d.park); pts.push(d); } });
       if (pts.length) {
-        const pinStr = pts.map((d, i) => `pin-s-${i + 1}+2dd4bf(${d.lon},${d.lat})`).join(',');
+        const pinStr = pts.map((d, i) => `pin-s-${i+1}+2dd4bf(${d.lon},${d.lat})`).join(',');
         el.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pinStr}/auto/600x600@2x?padding=50&access_token=${window._mapboxToken}`;
         el.style.display = '';
       }
     }
-
-    // Inject destination-specific maps
+    // Destination maps
     const seen2 = new Set();
     TRIP.days.forEach(d => {
       if (!d.park || seen2.has(d.park) || !d.lon || !d.lat) return;
       seen2.add(d.park);
-      const mapId = 'dest-map-' + d.park.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-      const img = document.getElementById(mapId);
+      const img = document.getElementById('dest-map-' + d.park.replace(/[^a-z0-9]/gi, '-').toLowerCase());
       if (img) {
-        const pin = `pin-s+2dd4bf(${d.lon},${d.lat})`;
-        img.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pin}/${d.lon},${d.lat},${d.zoom || 9}/600x600@2x?access_token=${window._mapboxToken}`;
+        img.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/pin-s+2dd4bf(${d.lon},${d.lat})/${d.lon},${d.lat},${d.zoom||9}/600x600@2x?access_token=${window._mapboxToken}`;
         img.style.display = '';
       }
     });
+  } catch(e) {}
+}
+
+// ── MAPBOX TOKEN ───────────────────────────────────────────────────────────
+(async () => {
+  try {
+    const r = await fetch('/api/mapbox-token');
+    const d = await r.json();
+    window._mapboxToken = d.token || '';
+    // Token arrived — inject maps if preview is already showing
+    if (window._mapboxToken) injectMaps();
   } catch(e) {}
 })();
 
