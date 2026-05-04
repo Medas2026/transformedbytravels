@@ -475,37 +475,62 @@ function photoSlotHtml(id, cls, label, existingUrl, roleTag) {
   </div>`;
 }
 
+async function uploadToCloudinary(file) {
+  const folder = 'journey-books/' + SESSION_ID;
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', 'Trip Image');
+  fd.append('folder', folder);
+  const resp = await fetch('https://api.cloudinary.com/v1_1/dporenlvw/image/upload', { method: 'POST', body: fd });
+  const data = await resp.json();
+  if (!data.secure_url) throw new Error('Upload failed');
+  return data.secure_url;
+}
+
+async function handleMultiPhoto(e, dayIndex) {
+  const files = Array.from(e.target.files).slice(0, 3);
+  if (!files.length) return;
+  const slots = ['hero', 'p2', 'p3'];
+  const btn = document.getElementById('multi-upload-btn-' + dayIndex);
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
+
+  await Promise.all(files.map(async (file, i) => {
+    const id = 'day' + dayIndex + '-' + slots[i];
+    const slot = document.getElementById('slot-' + id);
+    if (slot) slot.innerHTML = `<div class="photo-slot-inner"><div class="icon" style="font-size:1.2rem;">⏳</div><div class="label">Uploading…</div></div>`;
+    try {
+      const url = await uploadToCloudinary(file);
+      storePhotoUrl(id, url);
+      if (slot) slot.innerHTML = `
+        <input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />
+        <img src="${url}" alt="" style="object-position:${photoPos(id)};" />
+        <button class="remove-btn" onclick="removePhoto(event,'${id}')">✕</button>
+        ${posButtons(id)}`;
+    } catch(err) {
+      if (slot) slot.innerHTML = `<div class="photo-slot-inner"><div class="icon">⚠️</div><div class="label" style="color:#f43f5e;">Failed</div></div><input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />`;
+    }
+  }));
+
+  if (btn) { btn.disabled = false; btn.textContent = '📷 Upload Day Photos'; }
+  saveProgress();
+}
+
 async function handlePhoto(e, id) {
   const file = e.target.files[0];
   if (!file) return;
   const slot = document.getElementById('slot-' + id);
-
-  // Show loading state
-  slot.innerHTML = `<div class="photo-slot-inner"><div class="icon" style="font-size:1.2rem;">⏳</div><div class="label">Uploading…</div></div>`;
-
+  if (slot) slot.innerHTML = `<div class="photo-slot-inner"><div class="icon" style="font-size:1.2rem;">⏳</div><div class="label">Uploading…</div></div>`;
   try {
-    const folder = 'journey-books/' + SESSION_ID;
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', 'Trip Image');
-    fd.append('folder', folder);
-    const resp = await fetch('https://api.cloudinary.com/v1_1/dporenlvw/image/upload', { method: 'POST', body: fd });
-    const data = await resp.json();
-    if (!data.secure_url) throw new Error('Upload failed');
-    const url = data.secure_url;
-
-    // Store in state
+    const url = await uploadToCloudinary(file);
     storePhotoUrl(id, url);
-
-    // Update slot UI
-    slot.innerHTML = `
+    if (slot) slot.innerHTML = `
       <input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />
-      <img src="${url}" alt="" />
-      <button class="remove-btn" onclick="removePhoto(event,'${id}')">✕</button>`;
-
+      <img src="${url}" alt="" style="object-position:${photoPos(id)};" />
+      <button class="remove-btn" onclick="removePhoto(event,'${id}')">✕</button>
+      ${posButtons(id)}`;
     saveProgress();
   } catch(err) {
-    slot.innerHTML = `<div class="photo-slot-inner"><div class="icon">⚠️</div><div class="label" style="color:#f43f5e;">Upload failed — tap to retry</div></div><input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />`;
+    if (slot) slot.innerHTML = `<div class="photo-slot-inner"><div class="icon">⚠️</div><div class="label" style="color:#f43f5e;">Upload failed — tap to retry</div></div><input type="file" accept="image/*" onchange="handlePhoto(event,'${id}')" />`;
   }
 }
 
@@ -642,17 +667,16 @@ function renderDay(dayIndex) {
       </div>
 
       <div class="card-title">Photos for This Day</div>
-      <div class="contrib-row">
-        <div class="contrib-pill traveler active">📷 Your Photos</div>
-        <div class="contrib-pill guide">🔭 Guide Photos</div>
-        <div class="contrib-pill lodge">🏕️ Lodge Photos</div>
-      </div>
+      <label id="multi-upload-btn-${dayIndex}" class="btn-generate" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:16px;">
+        📷 Upload Day Photos
+        <input type="file" accept="image/*" multiple style="display:none;" onchange="handleMultiPhoto(event,${dayIndex})" />
+      </label>
       <div class="photo-grid photo-grid-3" style="margin-bottom:18px;">
-        ${photoSlotHtml('day' + dayIndex + '-hero', 'hero', 'Hero Photo\n(main image)', st.heroUrl, st.heroUrl ? 'Hero' : null)}
-        ${photoSlotHtml('day' + dayIndex + '-p2',   'thumb','Supporting\nPhoto', st.photo2Url, null)}
-        ${photoSlotHtml('day' + dayIndex + '-p3',   'thumb','Supporting\nPhoto', st.photo3Url, null)}
+        ${photoSlotHtml('day' + dayIndex + '-hero', 'hero', 'Hero', st.heroUrl, st.heroUrl ? 'Hero' : null)}
+        ${photoSlotHtml('day' + dayIndex + '-p2',   'thumb','Photo 2', st.photo2Url, null)}
+        ${photoSlotHtml('day' + dayIndex + '-p3',   'thumb','Photo 3', st.photo3Url, null)}
       </div>
-      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:16px;">The hero photo leads the chapter. Supporting photos appear in a grid below it.</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:16px;">Select up to 3 photos at once, or tap individual slots to swap. The first photo leads the chapter.</div>
     </div>
 
     <div class="card">
