@@ -945,10 +945,8 @@ function showPreview() {
     }
   }
 
-  // Debug: log page structure to console
-  console.log('Journey Book — ' + pages.length + ' pages:\n' + pages.map((p, i) =>
-    `  p${i+2}: ${p.type}${p.dest ? ' ['+p.dest.park+' '+p.dest.days.length+'d]' : ''}${p.day ? ' day'+p.day.num : ''}`
-  ).join('\n'));
+  // Debug: build visible page list to prepend to preview
+  const _debugHtml = `<div style="background:#1a2840;border:1px solid rgba(45,212,191,0.3);border-radius:10px;padding:16px;margin-bottom:24px;font-family:monospace;font-size:0.75rem;color:#94a3b8;line-height:1.7;"><strong style="color:#2dd4bf;">Page structure (${pages.length} pages):</strong><br>${pages.map((p,i)=>`p${i+2}: ${p.type}${p.dest?' ['+p.dest.park+']':''}${p.day?' day'+p.day.num:''}`).join('<br>')}</div>`;
 
   // Assemble full book HTML
   let html = '<div class="book-preview">';
@@ -976,7 +974,7 @@ function showPreview() {
   }
 
   html += '</div>';
-  document.getElementById('book-preview-content').innerHTML = html;
+  document.getElementById('book-preview-content').innerHTML = _debugHtml + html;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
