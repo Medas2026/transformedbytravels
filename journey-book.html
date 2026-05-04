@@ -722,8 +722,8 @@ function showPreview() {
     // Use the first day that has a hero photo as the destination opener photo
     const bestHeroDay = dest.days.find(d => STATE.days[d.index].heroUrl);
     const destSt = bestHeroDay ? STATE.days[bestHeroDay.index] : STATE.days[dest.days[0].index];
-    pages.push({ type: 'dest-title', dest });
-    pages.push({ type: 'dest-photo', dest, st: destSt });
+    pages.push({ type: 'dest-title', dest, st: destSt });
+    pages.push({ type: 'dest-map', dest });
     dest.days.forEach((day, di) => {
       const st = STATE.days[day.index];
       // Skip day-photo for the day already used as the destination opener
@@ -837,28 +837,46 @@ function showPreview() {
       }
 
       case 'dest-title': {
-        const { dest } = p;
+        const { dest, st } = p;
         const d0 = dest.days[0], dZ = dest.days[dest.days.length - 1];
         const lodge = d0.lodge || '';
-        return `<div class="pg">${texHtml(texUrl)}<div class="pg-body" style="justify-content:flex-end;">
-          <div style="flex:1;"></div>
-          <div class="pg-eyebrow">${d0.date.split(', ').pop()} – ${dZ.date.split(', ').pop()}</div>
-          <div class="pg-title" style="font-size:1.05rem;line-height:1.2;">${dest.park}</div>
-          <div style="margin-top:5px;font-size:0.48rem;color:var(--muted);font-family:'Open Sans';">Day${dest.days.length > 1 ? 's' : ''} ${d0.num}–${dZ.num} · ${dest.days.length} night${dest.days.length > 1 ? 's' : ''}</div>
-          ${lodge ? `<div style="margin-top:4px;font-size:0.46rem;color:rgba(45,212,191,0.75);font-family:'Open Sans';font-style:italic;">${lodge}</div>` : ''}
+        const heroUrl = st && st.heroUrl;
+        return `<div class="pg">
+          ${heroUrl
+            ? `<img src="${heroUrl}" class="pg-photo-abs" alt="${dest.park}" />
+               <div class="pg-overlay" style="background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.15) 65%,transparent 100%);"></div>`
+            : texHtml(texUrl)}
+          <div class="pg-body" style="justify-content:flex-end;">
+            <div style="flex:1;"></div>
+            <div class="pg-eyebrow">${d0.date.split(', ').pop()}${dZ !== d0 ? ' – ' + dZ.date.split(', ').pop() : ''}</div>
+            <div class="pg-title" style="font-size:1.05rem;line-height:1.2;">${dest.park}</div>
+            <div style="margin-top:5px;font-size:0.48rem;color:rgba(255,255,255,0.55);font-family:'Open Sans';">Day${dest.days.length > 1 ? 's' : ''} ${d0.num}${dest.days.length > 1 ? '–' + dZ.num : ''} · ${dest.days.length} night${dest.days.length > 1 ? 's' : ''}</div>
+            ${lodge ? `<div style="margin-top:4px;font-size:0.46rem;color:rgba(45,212,191,0.8);font-family:'Open Sans';font-style:italic;">${lodge}</div>` : ''}
           </div>${num}</div>`;
       }
 
-      case 'dest-photo': {
-        const { dest, st } = p;
-        return `<div class="pg">${st.heroUrl
-          ? `<img src="${st.heroUrl}" class="pg-photo-abs" alt="${dest.park}" />
-             <div class="pg-overlay"></div>
-             <div class="pg-overlay-text">
-               <div class="pg-eyebrow">Day ${dest.days[0].num}</div>
-               <div style="font-size:0.48rem;color:rgba(255,255,255,0.7);font-family:'Open Sans';">${dest.days[0].location}</div>
-             </div>`
-          : `${texHtml(texUrl)}<div class="pg-body" style="align-items:center;justify-content:center;"><div style="font-size:0.6rem;color:var(--muted);font-style:italic;">Add a photo for Day ${dest.days[0].num}</div></div>`}${num}</div>`;
+      case 'dest-map': {
+        const { dest } = p;
+        const d0 = dest.days[0];
+        const mapId = 'dest-map-' + dest.park.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+        let mapSrc = '';
+        if (window._mapboxToken && d0.lon && d0.lat) {
+          const pin = `pin-s+2dd4bf(${d0.lon},${d0.lat})`;
+          mapSrc = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pin}/${d0.lon},${d0.lat},${d0.zoom || 9}/600x600@2x?access_token=${window._mapboxToken}`;
+        }
+        return `<div class="pg" style="background:#0d1c2e;">
+          ${mapSrc
+            ? `<img id="${mapId}" src="${mapSrc}" class="pg-photo-abs" style="object-fit:cover;" alt="Map of ${dest.park}" />`
+            : `<div class="pg-body" style="align-items:center;justify-content:center;flex-direction:column;gap:6px;">
+                 <img id="${mapId}" src="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" alt="" />
+                 <div style="font-size:1.2rem;">📍</div>
+                 <div style="font-size:0.5rem;color:var(--soft);font-family:'Montserrat';font-weight:700;">${dest.park}</div>
+                 <div style="font-size:0.4rem;color:var(--muted);font-style:italic;">Map loading…</div>
+               </div>`}
+          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 60%);padding:8px 8px 6px;z-index:2;">
+            <div style="font-family:'Montserrat';font-weight:700;font-size:0.38rem;color:rgba(45,212,191,0.9);text-transform:uppercase;letter-spacing:0.1em;">${dest.park}</div>
+          </div>
+          ${num}</div>`;
       }
 
       case 'day-photo': {
@@ -1004,6 +1022,19 @@ function showWizard() {
           el.style.display = '';
         }
       }
+      // Inject destination-specific maps
+      const seen2 = new Set();
+      TRIP.days.forEach(d => {
+        if (!d.park || seen2.has(d.park) || !d.lon || !d.lat) return;
+        seen2.add(d.park);
+        const mapId = 'dest-map-' + d.park.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+        const img = document.getElementById(mapId);
+        if (img) {
+          const pin = `pin-s+2dd4bf(${d.lon},${d.lat})`;
+          img.src = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pin}/${d.lon},${d.lat},${d.zoom || 9}/600x600@2x?access_token=${window._mapboxToken}`;
+          img.style.display = '';
+        }
+      });
     }
   } catch(e) {}
 })();
