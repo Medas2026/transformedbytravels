@@ -719,12 +719,16 @@ function showPreview() {
 
   groupDests().forEach(dest => {
     if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
-    const firstSt = STATE.days[dest.days[0].index];
+    // Use the first day that has a hero photo as the destination opener photo
+    const bestHeroDay = dest.days.find(d => STATE.days[d.index].heroUrl);
+    const destSt = bestHeroDay ? STATE.days[bestHeroDay.index] : STATE.days[dest.days[0].index];
     pages.push({ type: 'dest-title', dest });
-    pages.push({ type: 'dest-photo', dest, st: firstSt });
+    pages.push({ type: 'dest-photo', dest, st: destSt });
     dest.days.forEach((day, di) => {
       const st = STATE.days[day.index];
-      if (di > 0 && st.heroUrl) pages.push({ type: 'day-photo', day, st });
+      // Skip day-photo for the day already used as the destination opener
+      const usedAsOpener = bestHeroDay && day.index === bestHeroDay.index;
+      if (!usedAsOpener && st.heroUrl) pages.push({ type: 'day-photo', day, st });
       if (st.reflection || st.photo2Url || st.photo3Url) pages.push({ type: 'day-text', day, st });
     });
   });
@@ -940,6 +944,11 @@ function showPreview() {
         return `<div class="pg pg-blank">${num}</div>`;
     }
   }
+
+  // Debug: log page structure to console
+  console.log('Journey Book — ' + pages.length + ' pages:\n' + pages.map((p, i) =>
+    `  p${i+2}: ${p.type}${p.dest ? ' ['+p.dest.park+' '+p.dest.days.length+'d]' : ''}${p.day ? ' day'+p.day.num : ''}`
+  ).join('\n'));
 
   // Assemble full book HTML
   let html = '<div class="book-preview">';
