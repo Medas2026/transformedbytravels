@@ -1063,6 +1063,17 @@
             <div id="integration-report-actions"></div>
           </div>
 
+          <!-- Journey Book -->
+          <div id="journey-book-section" class="profile-section" style="display:none;">
+            <div class="profile-section-title" style="margin-bottom:12px;padding-bottom:10px;">📖 Journey Book</div>
+            <p style="font-size:0.85rem;color:var(--soft);line-height:1.7;margin-bottom:14px;">Send the traveler a personalized link to build their Journey Book — a photo book of their trip with AI-assisted narratives.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <button onclick="sendJourneyBookLink()" id="jb-send-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 24px;cursor:pointer;">✉ Send Journey Book Link</button>
+              <button onclick="openJourneyBook()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 24px;cursor:pointer;">👁 Preview Book</button>
+            </div>
+            <div id="jb-send-msg" style="display:none;font-size:0.82rem;margin-top:10px;"></div>
+          </div>
+
           <!-- Save / Cancel row -->
           <div id="trip-save-msg" style="font-size:0.85rem;color:var(--teal);display:none;margin-bottom:10px;"></div>
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:24px;">
@@ -2949,6 +2960,50 @@ async function generateIntegrationReport() {
 }
 
 // ═══════════════════════════════════════════════
+// JOURNEY BOOK
+// ═══════════════════════════════════════════════
+function openJourneyBook() {
+  if (!currentTripId) return;
+  window.open('https://app.transformedbytravels.com/journey-book.html?tripId=' + currentTripId, '_blank');
+}
+
+async function sendJourneyBookLink() {
+  if (!currentTripId) return;
+  const btn = document.getElementById('jb-send-btn');
+  const msg = document.getElementById('jb-send-msg');
+  const email = currentTripEmail;
+  if (!email) {
+    msg.textContent = '⚠ No traveler email on this trip record.';
+    msg.style.color = '#f43f5e';
+    msg.style.display = 'block';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  msg.style.display = 'none';
+  try {
+    const resp = await fetch('/api/trip-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'journey-book', tripId: currentTripId, email }),
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      msg.textContent = '✓ Sent to ' + email;
+      msg.style.color = '#2dd4bf';
+    } else {
+      msg.textContent = '⚠ ' + (data.error || 'Send failed');
+      msg.style.color = '#f43f5e';
+    }
+  } catch(e) {
+    msg.textContent = '⚠ Network error';
+    msg.style.color = '#f43f5e';
+  }
+  msg.style.display = 'block';
+  btn.disabled = false;
+  btn.textContent = '✉ Send Journey Book Link';
+}
+
 // BUILD ITINERARY
 // ═══════════════════════════════════════════════
 async function buildItinerary(force) {
@@ -5074,6 +5129,7 @@ let currentTripStart       = '';
 let currentTripEnd         = '';
 let currentTripStatus      = '';
 let currentTripPhotoUrl    = '';
+let currentTripEmail       = '';
 let tripsLoaded        = false;
 let _returnToHistory   = false;
 let _isHistoryTrip     = false;
@@ -5742,6 +5798,7 @@ function openTrip(record) {
   currentTripId          = record.id;
   currentTripDestination = record.fields['Destination'] || '';
   currentTripCountry     = record.fields['Country']     || '';
+  currentTripEmail       = record.fields['Traveler Email'] || '';
   _scheduleRecords = [];
   _lodgingRecords  = [];
   _lodgingMap      = {};
@@ -5842,6 +5899,8 @@ function openTrip(record) {
   document.getElementById('trip-flights-card').style.display = 'block';
   document.getElementById('trip-reservations-card').style.display = 'block';
   document.getElementById('itinerary-section').style.display = 'block';
+  const _jbSection = document.getElementById('journey-book-section');
+  if (_jbSection) _jbSection.style.display = currentTripId ? 'block' : 'none';
   // Auto-load itinerary from cache if available
   const _iBtn = document.getElementById('build-itinerary-btn');
   document.getElementById('itinerary-panel').innerHTML = '';

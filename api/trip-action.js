@@ -528,6 +528,29 @@ module.exports = function handler(req, res) {
 
   if (!action || !tripId || !email) return res.status(400).json({ error: 'action, tripId, email required' });
 
+  // ── Journey Book link email ───────────────────────────────────────────────
+  if (action === 'journey-book') {
+    const bookUrl  = `${PORTAL_URL}/journey-book.html?tripId=${tripId}`;
+    const subject  = 'Your Journey Book is ready to build';
+    const html     = emailHTML(
+      subject,
+      'Build Your Journey Book',
+      `<p>Your trip photos, reflections, and memories are ready to be turned into a beautiful 10×10 Journey Book.</p>
+       <p>Click the button below to start building — add your photos, adjust the layout, and let AI help you capture your story in words. It only takes a few minutes per day.</p>
+       <p style="font-size:13px;color:#94a3b8;">You can return to this link anytime — your progress is saved automatically.</p>`,
+      'Build My Journey Book →',
+      bookUrl,
+      null
+    );
+    return new Promise(resolve => {
+      sendEmail(email, email, subject, html, (err) => {
+        if (err) { res.status(500).json({ error: err.message }); }
+        else     { res.status(200).json({ ok: true }); }
+        resolve();
+      });
+    });
+  }
+
   const today  = new Date().toISOString().split('T')[0];
   const status = action === 'start' ? 'Active' : 'Completed';
 
