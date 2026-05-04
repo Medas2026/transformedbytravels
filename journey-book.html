@@ -92,6 +92,9 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 .photo-slot.hero  { aspect-ratio: 3/2; }
 .photo-slot.thumb { aspect-ratio: 1/1; }
 .photo-slot.cover-slot { aspect-ratio: 2/3; max-width: 280px; }
+.photo-slot.teaser-slot { position: absolute; inset: 0; border-radius: 0; border: none; background: transparent; z-index: 1; }
+.photo-slot.teaser-slot:hover { border-color: transparent; }
+.photo-slot.teaser-slot .photo-slot-inner { justify-content: center; font-size: 0.42rem; }
 .photo-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 5; }
 .photo-slot-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; height: 100%; padding: 16px; pointer-events: none; }
 .photo-slot-inner .icon { font-size: 1.4rem; color: var(--muted); }
@@ -332,6 +335,7 @@ const STATE = {
   days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, reflection: '', narrative: '' })),
   closing: { photoUrl: null, portraitUrl: null, text: '' },
   company: { photoUrl: null, photo2Url: null, guideNote: '' },
+  teasers: {},
 };
 
 // ── STEPS LIST ─────────────────────────────────────────────────────────────
@@ -484,6 +488,8 @@ function storePhotoUrl(id, url) {
       if (role === 'p2')   STATE.days[di].photo2Url = url;
       if (role === 'p3')   STATE.days[di].photo3Url = url;
     }
+    const mt = id.match(/^teaser-(.+)$/);
+    if (mt) STATE.teasers[mt[1]] = url;
   }
 }
 
@@ -503,6 +509,8 @@ function removePhoto(e, id) {
       if (role === 'p2')   STATE.days[di].photo2Url = null;
       if (role === 'p3')   STATE.days[di].photo3Url = null;
     }
+    const mt = id.match(/^teaser-(.+)$/);
+    if (mt) STATE.teasers[mt[1]] = null;
   }
   renderStep();
 }
@@ -726,7 +734,7 @@ function showPreview() {
   pages.push({ type: 'route-map' });
 
   groupDests().forEach(dest => {
-    if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
+    if (pages.length % 2 !== 0) pages.push({ type: 'dest-teaser', dest });
     // Use the first day that has a hero photo as the destination opener photo
     const bestHeroDay = dest.days.find(d => STATE.days[d.index].heroUrl);
     const destSt = bestHeroDay ? STATE.days[bestHeroDay.index] : STATE.days[dest.days[0].index];
@@ -769,6 +777,22 @@ function showPreview() {
     switch (p.type) {
       case 'blank':
         return `<div class="pg pg-blank">${num}</div>`;
+
+      case 'dest-teaser': {
+        const { dest } = p;
+        const slug = dest.park.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+        const slotId = 'teaser-' + slug;
+        const photoUrl = STATE.teasers[slug];
+        return `<div class="pg" style="position:relative;overflow:hidden;">
+          ${texHtml(texUrl)}
+          ${photoSlotHtml(slotId, 'teaser-slot', '＋ Add Photo', photoUrl, null)}
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.1) 55%,transparent 100%);pointer-events:none;z-index:3;"></div>
+          <div class="pg-body" style="justify-content:flex-end;z-index:6;pointer-events:none;">
+            <div class="pg-eyebrow" style="font-size:0.36rem;letter-spacing:0.18em;">UP NEXT</div>
+            <div class="pg-title" style="font-size:0.95rem;line-height:1.2;">${dest.park}</div>
+          </div>
+          ${num}</div>`;
+      }
 
       case 'spread-L': {
         const sp = STATE.cover.spreadPhotoUrl || STATE.cover.photoUrl;
@@ -1120,7 +1144,7 @@ async function saveProgress() {
     coverTitle:      STATE.cover.title,
     coverSubtitle:   STATE.cover.subtitle,
     coverPhotoUrl:   STATE.cover.photoUrl   || '',
-    openingText:     JSON.stringify({ text: STATE.opening.introText || '', spreadPhotoUrl: STATE.cover.spreadPhotoUrl || '' }),
+    openingText:     JSON.stringify({ text: STATE.opening.introText || '', spreadPhotoUrl: STATE.cover.spreadPhotoUrl || '', teasers: STATE.teasers }),
     daysData:        JSON.stringify(STATE.days),
     closingText:      STATE.closing.text        || '',
     closingPhotoUrl:  STATE.closing.photoUrl    || '',
@@ -1175,6 +1199,7 @@ async function loadProgress() {
             const od = JSON.parse(f['Opening Text']);
             STATE.opening.introText     = od.text           || '';
             STATE.cover.spreadPhotoUrl  = od.spreadPhotoUrl || null;
+            if (od.teasers) Object.assign(STATE.teasers, od.teasers);
           } catch(e) { STATE.opening.introText = f['Opening Text']; }
         }
         STATE.closing.text        = f['Closing Text']        || '';
@@ -1208,6 +1233,7 @@ async function loadProgress() {
     if (s.days && s.days.length === STATE.days.length) {
       s.days.forEach((d, i) => Object.assign(STATE.days[i], d));
     }
+    if (s.teasers) Object.assign(STATE.teasers, s.teasers);
   } catch(e) {}
 }
 
