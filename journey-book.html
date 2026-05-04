@@ -91,7 +91,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 .photo-slot:hover { border-color: rgba(45,212,191,0.4); }
 .photo-slot.hero  { aspect-ratio: 3/2; }
 .photo-slot.thumb { aspect-ratio: 1/1; }
-.photo-slot.cover-slot { aspect-ratio: 2/3; max-width: 280px; }
+.photo-slot.cover-slot { aspect-ratio: 1/1; max-width: 340px; width: 100%; }
 .photo-slot.teaser-slot { position: absolute; inset: 0; border-radius: 0; border: none; background: transparent; z-index: 1; }
 .photo-slot.teaser-slot:hover { border-color: transparent; }
 .photo-slot.teaser-slot .photo-slot-inner { justify-content: center; font-size: 0.42rem; }
@@ -168,9 +168,9 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 /* Cover: portrait (2:3), right-hand only */
 .pg-cover-wrap { display: flex; justify-content: center; margin-bottom: 4px; }
 .pg-cover {
-  position: relative; aspect-ratio: 2/3; width: 50%; overflow: hidden;
+  position: relative; aspect-ratio: 1/1; width: 50%; overflow: hidden;
   background: #0a1018; border-radius: 3px;
-  box-shadow: 6px 0 28px rgba(0,0,0,0.6), -2px 0 8px rgba(0,0,0,0.3);
+  box-shadow: 4px 4px 24px rgba(0,0,0,0.6);
 }
 
 /* Spread pair */
@@ -562,21 +562,15 @@ function renderCover() {
     </div>
     <div class="card">
       <div class="card-title">Cover Photo</div>
-      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
-        ${photoSlotHtml('cover', 'cover-slot', 'Upload Cover Photo', c.photoUrl, null)}
-        <div style="flex:1;min-width:200px;">
-          <div class="field">
-            <label>Book Title</label>
-            <input type="text" id="cover-title" value="${c.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year)}" placeholder="Uganda · ${TRIP.traveler} · ${TRIP.year}" oninput="STATE.cover.title=this.value" />
-          </div>
-          <div class="field">
-            <label>Subtitle (optional)</label>
-            <input type="text" id="cover-sub" value="${c.subtitle||''}" placeholder="A Journey Book" oninput="STATE.cover.subtitle=this.value" />
-            <div class="hint">Appears below the title on the cover</div>
-          </div>
-          <div style="background:rgba(45,212,191,0.06);border:1px solid rgba(45,212,191,0.2);border-radius:10px;padding:14px;font-size:0.82rem;color:var(--soft);line-height:1.65;">
-            💡 Choose a photo that captures the essence of your trip — a gorilla in the mist, a sunset over the Kazinga Channel, or a moment that surprised you.
-          </div>
+      ${photoSlotHtml('cover', 'cover-slot', 'Upload Cover Photo', c.photoUrl, null)}
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;">
+        <div class="field" style="margin-bottom:0;">
+          <label>Book Title</label>
+          <input type="text" id="cover-title" value="${c.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year)}" placeholder="Uganda · ${TRIP.traveler} · ${TRIP.year}" oninput="STATE.cover.title=this.value" />
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Subtitle (optional)</label>
+          <input type="text" id="cover-sub" value="${c.subtitle||''}" placeholder="A Journey Book" oninput="STATE.cover.subtitle=this.value" />
         </div>
       </div>
     </div>
@@ -1064,7 +1058,7 @@ function showPreview() {
   // Cover (standalone portrait, right-hand)
   html += `<div class="pg-cover-wrap">
     <div class="pg-cover">
-      ${STATE.cover.photoUrl ? `<img src="${STATE.cover.photoUrl}" class="pg-photo-abs" alt="cover" />` : ''}
+      ${STATE.cover.photoUrl ? `<img src="${STATE.cover.photoUrl}" class="pg-photo-abs" id="pgimg-cover" style="object-position:${photoPos('cover')};" alt="cover" />` : ''}
       <div class="pg-overlay"></div>
       <div class="pg-overlay-text" style="padding:20px;">
         <div class="pg-eyebrow">Journey Book · ${TRIP.destination}</div>
