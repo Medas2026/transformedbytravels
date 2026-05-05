@@ -218,22 +218,22 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 /* Typography */
 .pg-eyebrow {
   font-family: 'Montserrat', sans-serif; font-weight: 700;
-  font-size: 0.52rem; letter-spacing: 0.15em; text-transform: uppercase;
+  font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase;
   color: var(--teal); margin-bottom: 3px;
 }
 .pg-title {
   font-family: 'Playfair Display', serif; font-weight: 700;
-  font-size: 1rem; color: #fff; line-height: 1.2; margin-bottom: 5px;
+  font-size: 1.5rem; color: #fff; line-height: 1.2; margin-bottom: 5px;
 }
 .pg-text {
   font-family: 'Open Sans', sans-serif;
-  font-size: 0.6rem; color: var(--soft); line-height: 1.7; flex: 1; overflow: hidden;
+  font-size: 0.67rem; color: var(--soft); line-height: 1.7; flex: 1; min-height: 0; overflow: hidden;
 }
 .pg-quote {
   font-family: 'Playfair Display', serif; font-style: italic;
-  font-size: 0.68rem; color: var(--text); line-height: 1.6;
+  font-size: 0.75rem; color: var(--text); line-height: 1.6;
   border-left: 2px solid var(--teal); padding-left: 8px; margin-top: 6px;
-  overflow: hidden;
+  min-height: 0; overflow: hidden;
 }
 
 /* Photo fills */
@@ -271,6 +271,121 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 .btn-order:hover { background: #fbbf24; }
 .btn-share { background: none; border: 1px solid rgba(45,212,191,0.4); color: var(--teal); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; border-radius: 10px; padding: 12px 24px; cursor: pointer; }
 .btn-edit  { background: none; border: 1px solid rgba(255,255,255,0.15); color: var(--soft); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; border-radius: 10px; padding: 12px 24px; cursor: pointer; }
+.btn-read  { background: none; border: 1px solid rgba(45,212,191,0.4); color: var(--teal); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; border-radius: 10px; padding: 12px 24px; cursor: pointer; }
+
+/* ── Photo Mode ── */
+body.photo-mode .topbar-save { display: none; }
+body.photo-mode #sidebar     { display: none !important; }
+body.photo-mode .main        { max-width: none; padding: 0; }
+#photo-mode { display: none; padding-top: 60px; min-height: 100vh; padding-bottom: 90px; }
+.pm-subhead {
+  position: sticky; top: 60px; z-index: 50;
+  background: rgba(13,21,32,0.97); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--bd);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px;
+}
+.pm-trip-name { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.85rem; color:var(--teal); }
+.pm-count     { font-family:'Montserrat',sans-serif; font-weight:600; font-size:0.78rem; color:var(--soft); }
+.pm-section   { padding: 18px 16px 0; }
+.pm-section-title {
+  font-family:'Montserrat',sans-serif; font-weight:700;
+  font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--soft); margin-bottom:10px;
+  padding-bottom:6px; border-bottom:1px solid var(--bd);
+}
+.pm-slots-row    { display:grid; grid-template-columns:2fr 1fr 1fr; gap:8px; }
+.pm-slots-single { max-width:260px; }
+.pm-done-bar {
+  position:fixed; bottom:0; left:0; right:0;
+  background:rgba(13,21,32,0.97); border-top:1px solid var(--bd);
+  padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.pm-done-note { font-size:0.78rem; color:var(--muted); }
+.pm-done-btn  {
+  background:var(--teal); color:#0d1520;
+  font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.88rem;
+  border:none; border-radius:8px; padding:11px 22px; cursor:pointer; white-space:nowrap;
+}
+
+/* ── Read-only mode ── */
+body.read-mode .topbar-save,
+body.read-mode #sidebar,
+body.read-mode .step-header,
+body.read-mode .btn-edit,
+body.read-mode .btn-order,
+body.read-mode #pdf-hint { display: none !important; }
+body.read-mode .preview-actions { border-top: none; margin-top: 20px; padding-top: 0; }
+
+/* ── Full-screen reader ── */
+#reader-overlay {
+  display: none; position: fixed; inset: 0; background: #070d14; z-index: 1000;
+  flex-direction: column; align-items: center; justify-content: center;
+}
+#reader-overlay.open { display: flex; }
+#reader-spread {
+  display: flex; gap: 3px; max-height: calc(100vh - 90px);
+  align-items: center; justify-content: center;
+}
+#reader-spread .pg { flex: 0 0 auto; height: min(calc(100vh - 90px), 90vw); width: min(calc(100vh - 90px), 90vw); }
+@media(min-width:700px) {
+  #reader-spread .pg { height: min(calc(100vh - 90px), 45vw); width: min(calc(100vh - 90px), 45vw); }
+}
+#reader-spread .pg-cover { height: min(calc(100vh - 90px), 90vw); width: min(calc(100vh - 90px), 90vw); }
+@media(min-width:700px) {
+  #reader-spread .pg-cover { height: min(calc(100vh - 90px), 45vw); width: min(calc(100vh - 90px), 45vw); }
+}
+.reader-controls {
+  display: flex; align-items: center; gap: 20px; padding: 14px 0 0;
+}
+.reader-btn {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+  color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 1.1rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.reader-btn:hover { background: rgba(45,212,191,0.2); border-color: var(--teal); }
+.reader-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+.reader-page-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.75rem; color: var(--muted); min-width: 80px; text-align: center; }
+.reader-close { position: fixed; top: 16px; right: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 1rem; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1001; }
+
+/* ── PDF print ── */
+#pdf-hint { display:none; }
+
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  html { font-size: 40px; }
+  body { background: #000 !important; margin: 0 !important; padding: 0 !important; }
+
+  .topbar, #sidebar, .mobile-progress, #wizard-view,
+  .step-header, .preview-actions, #reader-overlay, #pdf-hint { display: none !important; }
+
+  .layout { display: block !important; padding: 0 !important; }
+  .main   { padding: 0 !important; max-width: none !important; }
+  #preview-view { display: block !important; padding: 0 !important; }
+
+  .book-wrap, .book-preview { max-width: none !important; margin: 0 !important; padding: 0 !important; }
+
+  /* Cover: centered on its spread */
+  .pg-cover-wrap {
+    display: flex !important; justify-content: center !important; align-items: center !important;
+    margin: 0 !important; background: #000 !important;
+    page-break-after: always; break-after: page;
+  }
+  .pg-cover {
+    width: 10in !important; height: 10in !important;
+    aspect-ratio: unset !important; border-radius: 0 !important; box-shadow: none !important;
+  }
+
+  .pg-pair { margin: 0 !important; gap: 0 !important; }
+  .pg-pair::after { display: none !important; }
+
+  .pg {
+    width: 10in !important; height: 10in !important;
+    aspect-ratio: unset !important; border-radius: 0 !important; margin: 0 !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -309,10 +424,37 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
       <div class="book-wrap" id="book-preview-content"></div>
       <div class="preview-actions">
         <button class="btn-edit" onclick="showWizard()">← Edit Book</button>
-        <button class="btn-share" onclick="alert('Shareable link — coming soon!')">🔗 Share Digital Copy</button>
-        <button class="btn-order" onclick="alert('Print ordering — coming soon! We will integrate with your preferred print lab.')">📦 Order Printed Copy</button>
+        <button class="btn-read" onclick="openReader()">📖 Read Book</button>
+        <button class="btn-share" id="btn-share" onclick="shareDigitalCopy()">🔗 Share Digital Copy</button>
+        <button class="btn-order" onclick="downloadPDF('spread')" title="Two pages side-by-side — best for desktop viewing and print labs">⬇ PDF — Spreads</button>
+        <button class="btn-order" onclick="downloadPDF('single')" style="background:var(--teal);color:#0d1520;" title="One page at a time — best for mobile viewing">⬇ PDF — Mobile</button>
       </div>
+      <div id="pdf-hint" style="text-align:center;margin-top:16px;font-size:0.8rem;color:var(--soft);line-height:1.6;"></div>
     </div>
+  </div>
+</div>
+
+<!-- PHOTO MODE -->
+<div id="photo-mode">
+  <div class="pm-subhead">
+    <div class="pm-trip-name" id="pm-trip-name"></div>
+    <div class="pm-count" id="pm-count">0 photos added</div>
+  </div>
+  <div id="pm-slots"></div>
+  <div class="pm-done-bar">
+    <div class="pm-done-note">Photos save automatically after each upload.</div>
+    <button class="pm-done-btn" id="pm-done-btn" onclick="pmDone()">All Done ✓</button>
+  </div>
+</div>
+
+<!-- ── Full-screen reader overlay ── -->
+<div id="reader-overlay">
+  <button class="reader-close" onclick="closeReader()" title="Close (Esc)">✕</button>
+  <div id="reader-spread"></div>
+  <div class="reader-controls">
+    <button class="reader-btn" id="reader-prev" onclick="readerNav(-1)">&#8592;</button>
+    <div class="reader-page-label" id="reader-label"></div>
+    <button class="reader-btn" id="reader-next" onclick="readerNav(1)">&#8594;</button>
   </div>
 </div>
 
@@ -349,7 +491,7 @@ const STATE = {
   cover: { photoUrl: null, spreadPhotoUrl: null, title: '', subtitle: '' },
   opening: { introText: '', mapIncluded: true },
   days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, reflection: '', narrative: '' })),
-  closing: { photoUrl: null, portraitUrl: null, text: '' },
+  closing: { photoUrl: null, portraitUrl: null, portrait2Url: null, text: '', backCoverUrl: null, backCoverText: '' },
   company: { photoUrl: null, photo2Url: null, guideNote: '' },
   teasers: {},
   positions: {},
@@ -483,15 +625,36 @@ function photoSlotHtml(id, cls, label, existingUrl, roleTag) {
   </div>`;
 }
 
+async function compressImage(file, maxDim = 2048, quality = 0.85) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width <= maxDim && height <= maxDim) { resolve(file); return; }
+      const scale = maxDim / Math.max(width, height);
+      width = Math.round(width * scale); height = Math.round(height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
 async function uploadToCloudinary(file) {
+  const compressed = await compressImage(file);
   const folder = 'journey-books/' + SESSION_ID;
   const fd = new FormData();
-  fd.append('file', file);
+  fd.append('file', compressed, 'photo.jpg');
   fd.append('upload_preset', 'Trip Image');
   fd.append('folder', folder);
   const resp = await fetch('https://api.cloudinary.com/v1_1/dporenlvw/image/upload', { method: 'POST', body: fd });
   const data = await resp.json();
-  if (!data.secure_url) throw new Error('Upload failed');
+  if (!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
   return data.secure_url;
 }
 
@@ -543,10 +706,13 @@ async function handlePhoto(e, id) {
 }
 
 function storePhotoUrl(id, url) {
+  if (document.body.classList.contains('photo-mode')) updatePhotoCount();
   if      (id === 'cover')            STATE.cover.photoUrl       = url;
   else if (id === 'cover-spread')     STATE.cover.spreadPhotoUrl = url;
-  else if (id === 'closing')          STATE.closing.photoUrl     = url;
-  else if (id === 'closing-portrait') STATE.closing.portraitUrl = url;
+  else if (id === 'closing')           STATE.closing.photoUrl    = url;
+  else if (id === 'closing-portrait')  STATE.closing.portraitUrl  = url;
+  else if (id === 'closing-portrait2') STATE.closing.portrait2Url = url;
+  else if (id === 'closing-backcover') STATE.closing.backCoverUrl = url;
   else if (id === 'company-1')        STATE.company.photoUrl    = url;
   else if (id === 'company-2')        STATE.company.photo2Url   = url;
   else {
@@ -566,8 +732,10 @@ function removePhoto(e, id) {
   e.stopPropagation();
   if      (id === 'cover')            STATE.cover.photoUrl       = null;
   else if (id === 'cover-spread')     STATE.cover.spreadPhotoUrl = null;
-  else if (id === 'closing')          STATE.closing.photoUrl     = null;
-  else if (id === 'closing-portrait') STATE.closing.portraitUrl = null;
+  else if (id === 'closing')           STATE.closing.photoUrl    = null;
+  else if (id === 'closing-portrait')  STATE.closing.portraitUrl  = null;
+  else if (id === 'closing-portrait2') STATE.closing.portrait2Url = null;
+  else if (id === 'closing-backcover') STATE.closing.backCoverUrl = null;
   else if (id === 'company-1')        STATE.company.photoUrl    = null;
   else if (id === 'company-2')        STATE.company.photo2Url   = null;
   else {
@@ -629,7 +797,7 @@ function renderOpening() {
       <div class="field">
         <label>Your Introduction</label>
         <textarea id="gen-ta-opening" rows="5" placeholder="Tell us who you are as a traveler and what drew you to Uganda. This becomes the opening paragraph of your Journey Book." oninput="STATE.opening.introText=this.value">${o.introText}</textarea>
-        <button class="btn-generate" id="gen-btn-opening" onclick="generateNarrative('opening')">${o.introText ? '✦ Regenerate' : '✦ Write with AI'}</button>
+        <button class="btn-generate" id="gen-btn-opening" onclick="generateNarrative('opening')">${o.introText ? '✦ Regenerate' : '✦ Let us write it'}</button>
         <div class="hint" style="margin-top:8px;">3–5 sentences is perfect. Edit freely after generating.</div>
       </div>
     </div>
@@ -692,7 +860,7 @@ function renderDay(dayIndex) {
       <div class="field">
         <label>What stood out about this day?</label>
         <textarea id="gen-ta-day-${dayIndex}" rows="4" placeholder="A moment, a feeling, something you saw or heard that you want to remember…" oninput="STATE.days[${dayIndex}].reflection=this.value">${st.reflection}</textarea>
-        <button class="btn-generate" id="gen-btn-day-${dayIndex}" onclick="generateNarrative('day',${dayIndex})">${st.reflection ? '✦ Regenerate' : '✦ Write with AI'}</button>
+        <button class="btn-generate" id="gen-btn-day-${dayIndex}" onclick="generateNarrative('day',${dayIndex})">${st.reflection ? '✦ Regenerate' : '✦ Let us write it'}</button>
         <div class="hint" style="margin-top:8px;">2–4 sentences is all you need. Edit freely after generating.</div>
       </div>
     </div>
@@ -720,27 +888,44 @@ function renderClosing() {
     <div class="step-header">
       <div class="step-eyebrow">Step ${STEPS.length - 1} of ${STEPS.length}</div>
       <h2>Closing Chapter</h2>
-      <p>The final pages of your Journey Book. What are you carrying home from Uganda?</p>
+      <p>The final pages of your Journey Book.</p>
     </div>
+
     <div class="card">
-      <div class="card-title">Closing Photo</div>
-      ${photoSlotHtml('closing', 'hero', 'Your final landscape or wildlife image', c.photoUrl, null)}
+      <div class="card-title">Closing Panorama</div>
+      <div class="hint" style="margin-bottom:12px;">This photo spans both pages as a dramatic full-width spread.</div>
+      ${photoSlotHtml('closing', 'hero', 'Final landscape or wildlife image', c.photoUrl, null)}
     </div>
-    <div class="card">
-      <div class="card-title">Traveler Portrait</div>
-      <div class="hint" style="margin-bottom:12px;">A photo of you from the trip — standing at the falls, with your guide, or just in the moment. This is your story.</div>
-      ${photoSlotHtml('closing-portrait', 'portrait', 'A photo of you on this trip', c.portraitUrl, 'Traveler')}
-    </div>
+
     <div class="card">
       <div class="card-title">What You're Carrying Home</div>
       <div class="field">
         <label>Your Closing Reflection</label>
-        <textarea id="gen-ta-closing" rows="6" placeholder="What did Uganda change in you? What do you see differently now? What are you taking into the next chapter of your life?" oninput="STATE.closing.text=this.value">${c.text}</textarea>
-        <button class="btn-generate" id="gen-btn-closing" onclick="generateNarrative('closing')">${c.text ? '✦ Regenerate' : '✦ Write with AI'}</button>
-        <div class="hint" style="margin-top:8px;">This is the most personal part of your Journey Book. Edit freely after generating.</div>
+        <textarea id="gen-ta-closing" rows="5" placeholder="What did this trip change in you? What do you see differently now?" oninput="STATE.closing.text=this.value">${c.text}</textarea>
+        <button class="btn-generate" id="gen-btn-closing" onclick="generateNarrative('closing')">${c.text ? '✦ Regenerate' : '✦ Let us write it'}</button>
       </div>
     </div>
-    ${navHtml(true)}`;
+
+    <div class="card">
+      <div class="card-title">Traveler Portraits</div>
+      <div class="hint" style="margin-bottom:12px;">Two photos — you and your travel partner — shown side by side on the right page.</div>
+      <div class="photo-grid photo-grid-2" style="gap:12px;">
+        ${photoSlotHtml('closing-portrait',  'hero', TRIP.traveler || 'Traveler', c.portraitUrl,  TRIP.traveler || 'Traveler')}
+        ${photoSlotHtml('closing-portrait2', 'hero', 'Travel Partner',            c.portrait2Url, c.portrait2Url ? 'Partner' : null)}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Back Cover</div>
+      <div class="hint" style="margin-bottom:12px;">A final photo with a closing crescendo from Claude.</div>
+      ${photoSlotHtml('closing-backcover', 'hero', 'Back cover photo', c.backCoverUrl, null)}
+      <div class="field" style="margin-top:14px;">
+        <textarea id="gen-ta-back-cover" rows="4" placeholder="A closing crescendo will appear here…" oninput="STATE.closing.backCoverText=this.value">${c.backCoverText}</textarea>
+        <button class="btn-generate" id="gen-btn-back-cover" onclick="generateNarrative('back-cover')">${c.backCoverText ? '✦ Regenerate' : '✦ Write Crescendo'}</button>
+      </div>
+    </div>
+
+    ${navHtml(false)}`;
 }
 
 // ── STEP: GUIDE & COMPANY ──────────────────────────────────────────────────
@@ -776,7 +961,7 @@ function renderCompany() {
         <div class="hint">This appears alongside their photo on the right page.</div>
       </div>
     </div>
-    ${navHtml(false)}`;
+    ${navHtml(true)}`;
 }
 
 // ── STEP: PREVIEW TRIGGER ──────────────────────────────────────────────────
@@ -832,25 +1017,25 @@ function showPreview() {
     });
   });
 
-  // Safari company / guide spread (before closing)
-  if (STATE.company.photoUrl || STATE.company.photo2Url || STATE.company.guideNote) {
-    if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
-    pages.push({ type: 'safari-co-L' });
-    pages.push({ type: 'safari-co-R' });
-  }
-
+  // Safari company / guide spread (always included)
   if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
+  pages.push({ type: 'safari-co-L' });
+  pages.push({ type: 'safari-co-R' });
+
+  // Closing section
+  if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
+  // Spread 1: panoramic photo across both pages
   if (STATE.closing.photoUrl) {
-    pages.push({ type: 'closing-photo' });
-    pages.push({ type: 'closing-text' });
-  } else {
-    pages.push({ type: 'closing-text' });
-    pages.push({ type: 'blank' });
+    pages.push({ type: 'closing-panorama-L' });
+    pages.push({ type: 'closing-panorama-R' });
   }
-  if (STATE.closing.portraitUrl) {
+  // Spread 2: text (left) + dual portraits (right)
+  pages.push({ type: 'closing-text' });
+  pages.push({ type: 'closing-portraits' });
+  // Back cover (standalone right-hand page)
+  if (STATE.closing.backCoverUrl || STATE.closing.backCoverText) {
     if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
-    pages.push({ type: 'portrait' });
-    if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
+    pages.push({ type: 'back-cover' });
   }
 
   // Render a single page
@@ -871,7 +1056,7 @@ function showPreview() {
           ${photoSlotHtml(slotId, 'teaser-slot', '＋ Add Photo', photoUrl, null)}
           <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.1) 55%,transparent 100%);pointer-events:none;z-index:3;"></div>
           <div class="pg-body" style="justify-content:flex-end;z-index:6;pointer-events:none;">
-            <div class="pg-eyebrow" style="font-size:0.36rem;letter-spacing:0.18em;">UP NEXT</div>
+            <div class="pg-eyebrow" style="font-size:0.52rem;letter-spacing:0.18em;">UP NEXT</div>
             <div class="pg-title" style="font-size:0.95rem;line-height:1.2;">${dest.park}</div>
           </div>
           ${num}</div>`;
@@ -879,30 +1064,34 @@ function showPreview() {
 
       case 'spread-L': {
         const sp = STATE.cover.spreadPhotoUrl || STATE.cover.photoUrl;
-        return `<div class="pg">${sp
-          ? `<img src="${sp}" class="pg-photo-abs" style="object-position:0% center;" alt="" />`
-          : ''}</div>`;
+        if (!sp) return `<div class="pg"></div>`;
+        return `<div class="pg"><div style="position:absolute;top:0;left:0;width:200%;height:100%;background:url('${sp}') center/cover no-repeat;"></div></div>`;
       }
 
       case 'spread-R': {
         const sp = STATE.cover.spreadPhotoUrl || STATE.cover.photoUrl;
-        return `<div class="pg">${sp
-          ? `<img src="${sp}" class="pg-photo-abs" style="object-position:100% center;" alt="" />`
-            + `<div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.4) 0%,transparent 100%);"></div>`
-            + `<div style="position:absolute;top:12px;right:12px;z-index:2;"><div class="pg-eyebrow">${TRIP.year}</div></div>`
-          : ''}</div>`;
+        if (!sp) return `<div class="pg"></div>`;
+        return `<div class="pg">
+          <div style="position:absolute;top:0;right:0;width:200%;height:100%;background:url('${sp}') center/cover no-repeat;"></div>
+          <div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.4) 0%,transparent 100%);"></div>
+          <div style="position:absolute;top:12px;right:12px;z-index:2;"><div class="pg-eyebrow">${TRIP.year}</div></div>
+        </div>`;
       }
 
       case 'intro': {
+        const n = TRIP.days.length;
+        const tf  = n <= 8  ? '0.72rem' : n <= 13 ? '0.56rem' : '0.42rem';
+        const thf = n <= 8  ? '0.62rem' : n <= 13 ? '0.48rem' : '0.36rem';
+        const rp  = n <= 8  ? '3px 4px' : n <= 13 ? '2px 4px' : '1px 4px';
         const rows = TRIP.days.map((d, i) =>
           `<tr style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.025)' : 'transparent'};">` +
-          `<td style="font-family:'Montserrat';font-weight:700;font-size:0.42rem;color:var(--teal);padding:2px 4px 2px 4px;">${d.num}</td>` +
-          `<td style="font-size:0.42rem;color:var(--soft);padding:2px 4px 2px 0;font-family:'Open Sans';white-space:nowrap;">${d.date.split(', ').pop()}</td>` +
-          `<td style="font-size:0.42rem;color:var(--text);padding:2px 4px 2px 0;font-family:'Open Sans';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.location.split(' → ').pop()}</td>` +
-          `<td style="font-size:0.42rem;color:var(--soft);padding:2px 4px 2px 0;font-family:'Open Sans';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic;">${d.lodge || ''}</td>` +
+          `<td style="font-family:'Montserrat';font-weight:700;font-size:${tf};color:var(--teal);padding:${rp};">${d.num}</td>` +
+          `<td style="font-size:${tf};color:var(--soft);padding:${rp};font-family:'Open Sans';white-space:nowrap;">${d.date.split(', ').pop()}</td>` +
+          `<td style="font-size:${tf};color:var(--text);padding:${rp};font-family:'Open Sans';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.location.split(' → ').pop()}</td>` +
+          `<td style="font-size:${tf};color:var(--soft);padding:${rp};font-family:'Open Sans';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic;">${d.lodge || ''}</td>` +
           `</tr>`
         ).join('');
-        const thStyle = `font-family:'Montserrat';font-weight:700;font-size:0.37rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.09em;padding:0 4px 3px;text-align:left;`;
+        const thStyle = `font-family:'Montserrat';font-weight:700;font-size:${thf};color:var(--teal);text-transform:uppercase;letter-spacing:0.09em;padding:0 4px 5px;text-align:left;`;
         const table = `<table style="width:100%;border-collapse:collapse;margin-top:auto;table-layout:fixed;">
           <colgroup><col style="width:10%;"><col style="width:18%;"><col style="width:36%;"><col style="width:36%;"></colgroup>
           <thead><tr style="border-bottom:1px solid rgba(45,212,191,0.3);">
@@ -917,7 +1106,7 @@ function showPreview() {
           <div class="pg-eyebrow">${TRIP.destination} · ${TRIP.year}</div>
           <div class="pg-title">${title}</div>
           ${STATE.opening.introText
-            ? `<div class="pg-text" style="margin-top:8px;">${STATE.opening.introText.slice(0, 220)}</div>`
+            ? `<div class="pg-text" style="margin-top:8px;">${STATE.opening.introText}</div>`
             : '<div style="flex:1;"></div>'}
           <div style="margin-top:auto;padding-top:8px;">${table}</div>
           </div>${num}</div>`;
@@ -934,7 +1123,7 @@ function showPreview() {
           }
         });
         const pinsWithCoords = parkList.filter(p => p.lon && p.lat);
-        const pinStr = pinsWithCoords.map((p, i) => `pin-s-${i + 1}+2dd4bf(${p.lon},${p.lat})`).join(',');
+        const pinStr = pinsWithCoords.map((p, i) => `pin-s-${i + 1}+000000(${p.lon},${p.lat})`).join(',');
         const mapSrc = window._mapboxToken && pinStr
           ? `https://api.mapbox.com/styles/v1/${mapboxStyle()}/static/${pinStr}/auto/600x600@2x?padding=50&access_token=${window._mapboxToken}`
           : (window._mapboxToken
@@ -980,7 +1169,7 @@ function showPreview() {
         const mapId = 'dest-map-' + dest.park.replace(/[^a-z0-9]/gi, '-').toLowerCase();
         let mapSrc = '';
         if (window._mapboxToken && d0.lon && d0.lat) {
-          const pin = `pin-s+2dd4bf(${d0.lon},${d0.lat})`;
+          const pin = `pin-s+000000(${d0.lon},${d0.lat})`;
           mapSrc = `https://api.mapbox.com/styles/v1/${mapboxStyle()}/static/${pin}/${d0.lon},${d0.lat},${d0.zoom || 7}/600x600@2x?access_token=${window._mapboxToken}`;
         }
         return `<div class="pg" style="background:#0d1c2e;">
@@ -1052,10 +1241,16 @@ function showPreview() {
           </div>${num}</div>`;
       }
 
-      case 'closing-photo':
+      case 'closing-panorama-L':
         return `<div class="pg">
-          <img src="${STATE.closing.photoUrl}" class="pg-photo-abs" id="pgimg-closing" style="object-position:${photoPos('closing')};" alt="closing" />
-          <div class="pg-overlay"></div>${num}</div>`;
+          <div style="position:absolute;top:0;left:0;width:200%;height:100%;background:url('${STATE.closing.photoUrl}') center/cover no-repeat;"></div>
+          <div class="pg-overlay" style="background:linear-gradient(to right,rgba(0,0,0,0.35) 0%,transparent 60%);"></div>
+          ${num}</div>`;
+
+      case 'closing-panorama-R':
+        return `<div class="pg">
+          <div style="position:absolute;top:0;right:0;width:200%;height:100%;background:url('${STATE.closing.photoUrl}') center/cover no-repeat;"></div>
+          ${num}</div>`;
 
       case 'closing-text':
         return `<div class="pg">${texHtml(STATE.closing.photoUrl || texUrl)}<div class="pg-body" style="justify-content:flex-end;">
@@ -1065,18 +1260,42 @@ function showPreview() {
           ${STATE.closing.text
             ? `<div class="pg-text" style="margin-top:8px;">${STATE.closing.text.slice(0, 420)}</div>`
             : `<div style="font-size:0.55rem;color:var(--muted);margin-top:8px;font-style:italic;">Your closing reflection will appear here.</div>`}
-          </div></div>`;
+          </div>${num}</div>`;
 
-      case 'portrait':
-        return `<div class="pg">${texHtml(texUrl)}<div class="pg-body" style="align-items:center;justify-content:center;gap:10px;">
-          <div style="width:62%;aspect-ratio:3/4;overflow:hidden;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,0.5);">
-            <img src="${STATE.closing.portraitUrl}" style="width:100%;height:100%;object-fit:cover;" alt="Traveler portrait" />
+      case 'closing-portraits': {
+        const p1 = STATE.closing.portraitUrl;
+        const p2 = STATE.closing.portrait2Url;
+        function portraitBox(url, name, slotId) {
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;">
+            <div style="width:100%;aspect-ratio:3/4;overflow:hidden;border-radius:4px;box-shadow:0 3px 14px rgba(0,0,0,0.5);background:#0d1520;">
+              ${url ? `<img src="${url}" id="pgimg-${slotId}" style="width:100%;height:100%;object-fit:cover;object-position:${photoPos(slotId)};" alt="${name}" />` : ''}
+            </div>
+            <div style="font-family:'Montserrat';font-weight:700;font-size:0.42rem;color:var(--soft);letter-spacing:0.06em;text-transform:uppercase;">${name}</div>
+          </div>`;
+        }
+        return `<div class="pg">${texHtml(texUrl)}<div class="pg-body" style="justify-content:center;gap:10px;">
+          <div style="flex:1;"></div>
+          <div style="display:flex;gap:8px;width:100%;">
+            ${portraitBox(p1, TRIP.traveler || 'Traveler', 'closing-portrait')}
+            ${portraitBox(p2, 'Travel Partner', 'closing-portrait2')}
           </div>
-          <div style="text-align:center;">
-            <div class="pg-eyebrow" style="display:flex;justify-content:center;">${TRIP.traveler}</div>
-            <div style="font-size:0.48rem;color:var(--muted);margin-top:2px;">${TRIP.destination} · ${TRIP.year}</div>
-          </div>
-          </div></div>`;
+          <div style="font-size:0.42rem;color:var(--muted);text-align:center;padding-top:4px;">${TRIP.destination} · ${TRIP.year}</div>
+          </div>${num}</div>`;
+      }
+
+      case 'back-cover':
+        return `<div class="pg">
+          ${STATE.closing.backCoverUrl
+            ? `<img src="${STATE.closing.backCoverUrl}" class="pg-photo-abs" id="pgimg-closing-backcover" style="object-position:${photoPos('closing-backcover')};" alt="" />`
+            : texHtml(texUrl)}
+          <div class="pg-overlay" style="background:linear-gradient(to top,rgba(0,0,0,0.92) 0%,rgba(0,0,0,0.3) 55%,rgba(0,0,0,0.15) 100%);"></div>
+          <div class="pg-body" style="justify-content:flex-end;">
+            <div style="flex:1;"></div>
+            ${STATE.closing.backCoverText
+              ? `<div class="pg-quote" style="font-style:italic;line-height:1.55;">${STATE.closing.backCoverText}</div>`
+              : `<div style="font-size:0.48rem;color:var(--muted);font-style:italic;">Closing crescendo will appear here.</div>`}
+            <div style="margin-top:14px;font-family:'Montserrat';font-weight:700;font-size:0.38rem;color:rgba(255,255,255,0.3);letter-spacing:0.2em;text-transform:uppercase;">Transformed by Travels</div>
+          </div>${num}</div>`;
 
       default:
         return `<div class="pg pg-blank">${num}</div>`;
@@ -1122,6 +1341,236 @@ function showWizard() {
   STATE.currentStep = STEPS.length - 2;
   renderStep();
 }
+
+// ── PHOTO MODE ───────────────────────────────────────────────────────────────
+function showPhotoMode() {
+  document.body.classList.add('photo-mode');
+  document.getElementById('photo-mode').style.display = 'block';
+  document.getElementById('topbar-title').textContent = 'Photo Uploader';
+  document.getElementById('pm-trip-name').textContent =
+    TRIP.destination + (TRIP.year ? ' · ' + TRIP.year : '');
+  renderPhotoModeSlots();
+  updatePhotoCount();
+}
+
+function renderPhotoModeSlots() {
+  let html = '';
+
+  html += `<div class="pm-section">
+    <div class="pm-section-title">Cover Photo</div>
+    <div class="pm-slots-single">
+      ${photoSlotHtml('cover', 'cover-slot', 'Tap to add', STATE.cover.photoUrl)}
+    </div>
+  </div>`;
+
+  TRIP.days.forEach((day, i) => {
+    const d = STATE.days[i];
+    const label = `Day ${day.num}${day.location ? ' — ' + day.location : ''}${day.park && day.park !== day.location ? ' · ' + day.park : ''}`;
+    html += `<div class="pm-section">
+      <div class="pm-section-title">${label}</div>
+      <div class="pm-slots-row">
+        ${photoSlotHtml('day' + i + '-hero', 'hero',  'Main',    d.heroUrl)}
+        ${photoSlotHtml('day' + i + '-p2',   'thumb', 'Photo 2', d.photo2Url)}
+        ${photoSlotHtml('day' + i + '-p3',   'thumb', 'Photo 3', d.photo3Url)}
+      </div>
+    </div>`;
+  });
+
+  html += `<div class="pm-section">
+    <div class="pm-section-title">Closing Photo</div>
+    <div class="pm-slots-single">
+      ${photoSlotHtml('closing', 'cover-slot', 'Tap to add', STATE.closing.photoUrl)}
+    </div>
+  </div>`;
+
+  document.getElementById('pm-slots').innerHTML = html;
+}
+
+function updatePhotoCount() {
+  let n = 0;
+  if (STATE.cover.photoUrl)   n++;
+  if (STATE.closing.photoUrl) n++;
+  STATE.days.forEach(d => { if (d.heroUrl) n++; if (d.photo2Url) n++; if (d.photo3Url) n++; });
+  const el = document.getElementById('pm-count');
+  if (el) el.textContent = n + ' photo' + (n !== 1 ? 's' : '') + ' added';
+}
+
+function pmDone() {
+  saveProgress();
+  const btn = document.getElementById('pm-done-btn');
+  if (btn) { btn.textContent = '✓ Photos Saved!'; btn.style.background = '#10b981'; }
+  setTimeout(() => { if (btn) { btn.textContent = 'All Done ✓'; btn.style.background = ''; } }, 3000);
+}
+
+function shareDigitalCopy() {
+  const tripId = new URLSearchParams(window.location.search).get('tripId');
+  if (!tripId) { alert('Save your book first so it can be shared.'); return; }
+  const url = `${location.origin}/journey-book.html?tripId=${encodeURIComponent(tripId)}&view=1`;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('btn-share');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Link copied!';
+    setTimeout(() => btn.textContent = orig, 2500);
+  }).catch(() => {
+    prompt('Copy this link to share your Journey Book:', url);
+  });
+}
+
+function downloadPDF(mode) {
+  mode = mode || 'spread';
+  const hint = document.getElementById('pdf-hint');
+
+  // Inject page-size override so both modes work off the same base print CSS
+  const existing = document.getElementById('pdf-mode-style');
+  if (existing) existing.remove();
+  const s = document.createElement('style');
+  s.id = 'pdf-mode-style';
+  if (mode === 'single') {
+    s.textContent = `@media print {
+      @page { size: 10in 10in; margin: 0; }
+      .book-wrap, .book-preview { width: 10in !important; }
+      .pg-cover-wrap { width: 10in !important; height: 10in !important; }
+      .pg-pair { display: block !important; width: 10in !important; height: auto !important;
+                 page-break-after: unset !important; break-after: unset !important; }
+      .pg { page-break-after: always !important; break-after: page !important; }
+    }`;
+    hint.innerHTML = 'Choose <strong>Save as PDF</strong> — single 10 × 10 in pages, ideal for mobile.';
+  } else {
+    s.textContent = `@media print {
+      @page { size: 20in 10in; margin: 0; }
+      .book-wrap, .book-preview { width: 20in !important; }
+      .pg-cover-wrap { width: 20in !important; height: 10in !important; }
+      .pg-pair { display: grid !important; grid-template-columns: 1fr 1fr !important;
+                 width: 20in !important; height: 10in !important;
+                 page-break-after: always !important; break-after: page !important; }
+      .pg { page-break-after: unset !important; break-after: unset !important; }
+    }`;
+    hint.innerHTML = 'Choose <strong>Save as PDF</strong> — two-page spreads at 20 × 10 in, ideal for desktop and print labs.';
+  }
+  document.head.appendChild(s);
+  hint.style.display = 'block';
+  setTimeout(() => { window.print(); setTimeout(() => s.remove(), 2000); }, 400);
+}
+
+// ── FULL-SCREEN READER ────────────────────────────────────────────────────────
+let READER_PAGES = [];   // flat list of rendered page HTML strings
+let READER_IDX   = 0;   // current spread index (0 = cover, 1 = spread 0-1, etc.)
+
+function buildReaderPages() {
+  // Mirrors the page array built in showPreview — cover + spreads
+  const pages = [];
+  const title  = STATE.cover.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year);
+  const sub    = STATE.cover.subtitle || 'A Journey Book';
+  const texUrl = STATE.cover.photoUrl || ((STATE.days.find(d => d.heroUrl) || {}).heroUrl) || '';
+  function texHtml(url) {
+    if (!url) return '';
+    return `<div class="pg-tex"><img src="${url}" alt="" /></div>`;
+  }
+
+  // Cover (standalone)
+  const coverHtml = `<div class="pg-cover">
+    ${STATE.cover.photoUrl ? `<img src="${STATE.cover.photoUrl}" class="pg-photo-abs" style="object-position:${photoPos('cover')};" alt="" />` : texHtml(texUrl)}
+    <div class="pg-overlay"></div>
+    <div class="pg-overlay-text" style="padding:20px;">
+      <div class="pg-eyebrow">Journey Book · ${TRIP.destination}</div>
+      <div class="pg-title" style="font-size:1.25rem;">${title}</div>
+      <div style="font-size:0.55rem;color:rgba(255,255,255,0.6);margin-top:4px;">${sub}</div>
+    </div>
+    <div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;z-index:2;font-family:'Montserrat';font-weight:700;font-size:0.42rem;color:rgba(255,255,255,0.28);letter-spacing:0.18em;text-transform:uppercase;">Transformed by Travels</div>
+  </div>`;
+  pages.push({ cover: true, html: coverHtml });
+
+  // Re-use the preview page list from the DOM — grab all .pg elements
+  const previewPgs = document.querySelectorAll('#book-preview-content .pg, #book-preview-content .pg-cover');
+  previewPgs.forEach(el => {
+    if (el.classList.contains('pg-cover')) return; // already added above
+    pages.push({ cover: false, html: el.outerHTML });
+  });
+
+  return pages;
+}
+
+function openReader() {
+  READER_PAGES = buildReaderPages();
+  READER_IDX   = 0;
+  document.getElementById('reader-overlay').classList.add('open');
+  readerRender();
+}
+
+function closeReader() {
+  document.getElementById('reader-overlay').classList.remove('open');
+}
+
+function readerNav(dir) {
+  // Cover occupies one slot; rest are pairs
+  const total = readerTotalSpreads();
+  READER_IDX = Math.max(0, Math.min(total - 1, READER_IDX + dir));
+  readerRender();
+}
+
+function readerTotalSpreads() {
+  if (READER_PAGES.length === 0) return 0;
+  // Cover is 1, then pairs of remaining pages
+  const rest = READER_PAGES.length - 1;
+  return 1 + Math.ceil(rest / 2);
+}
+
+function readerRender() {
+  const spread = document.getElementById('reader-spread');
+  const label  = document.getElementById('reader-label');
+  const prev   = document.getElementById('reader-prev');
+  const next   = document.getElementById('reader-next');
+  const total  = readerTotalSpreads();
+
+  spread.innerHTML = '';
+
+  if (READER_IDX === 0) {
+    // Cover — single centered page
+    spread.innerHTML = READER_PAGES[0].html;
+    label.textContent = 'Cover';
+  } else {
+    // Spread: pages are at indices 1 + (READER_IDX-1)*2 and +1
+    const li = 1 + (READER_IDX - 1) * 2;
+    const ri = li + 1;
+    const lp = READER_PAGES[li] ? READER_PAGES[li].html : '<div class="pg pg-blank"></div>';
+    const rp = READER_PAGES[ri] ? READER_PAGES[ri].html : '<div class="pg pg-blank"></div>';
+    spread.innerHTML = lp + rp;
+    const lNum = li + 1; // page numbers start at 2 in the book (index+2 from preview)
+    const rNum = ri + 1;
+    label.textContent = READER_PAGES[ri]
+      ? `Pages ${lNum}–${rNum}`
+      : `Page ${lNum}`;
+  }
+
+  prev.disabled = READER_IDX === 0;
+  next.disabled = READER_IDX >= total - 1;
+
+  // Remove alignment button strips — they're edit-mode only
+  spread.querySelectorAll('.pos-btns').forEach(el => el.remove());
+  // Remove upload/slot overlays
+  spread.querySelectorAll('.photo-slot-inner').forEach(el => {
+    if (!el.querySelector('img')) el.closest('.photo-slot')?.remove();
+  });
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('reader-overlay').classList.contains('open')) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') readerNav(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   readerNav(-1);
+  if (e.key === 'Escape') closeReader();
+});
+
+// Touch swipe
+(function() {
+  let tx = 0;
+  const el = document.getElementById('reader-overlay');
+  el.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  el.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) readerNav(dx < 0 ? 1 : -1);
+  }, { passive: true });
+})();
 
 // ── MAP INJECTION (geocodes missing coords, then injects route + dest maps) ──
 function mapboxStyle() {
@@ -1185,7 +1634,7 @@ async function injectMaps() {
       const seen = new Set(); const pts = [];
       TRIP.days.forEach(d => { if (d.park && !seen.has(d.park) && d.lon && d.lat) { seen.add(d.park); pts.push(d); } });
       if (pts.length) {
-        const pinStr = pts.map((d, i) => `pin-s-${i+1}+2dd4bf(${d.lon},${d.lat})`).join(',');
+        const pinStr = pts.map((d, i) => `pin-s-${i+1}+000000(${d.lon},${d.lat})`).join(',');
         el.src = `https://api.mapbox.com/styles/v1/${mapboxStyle()}/static/${pinStr}/auto/600x600@2x?padding=50&access_token=${window._mapboxToken}`;
         el.style.display = '';
       }
@@ -1197,7 +1646,7 @@ async function injectMaps() {
       seen2.add(d.park);
       const img = document.getElementById('dest-map-' + d.park.replace(/[^a-z0-9]/gi, '-').toLowerCase());
       if (img) {
-        img.src = `https://api.mapbox.com/styles/v1/${mapboxStyle()}/static/pin-s+2dd4bf(${d.lon},${d.lat})/${d.lon},${d.lat},${d.zoom||7}/600x600@2x?access_token=${window._mapboxToken}`;
+        img.src = `https://api.mapbox.com/styles/v1/${mapboxStyle()}/static/pin-s+000000(${d.lon},${d.lat})/${d.lon},${d.lat},${d.zoom||7}/600x600@2x?access_token=${window._mapboxToken}`;
         img.style.display = '';
       }
     });
@@ -1248,7 +1697,8 @@ async function generateNarrative(type, dayIndex) {
   };
   if (type === 'day') {
     const d = TRIP.days[dayIndex];
-    payload.day = { num: d.num, location: d.location, park: d.park, lodge: d.lodge, date: d.date };
+    const notes = STATE.days[dayIndex].reflection || '';
+    payload.day = { num: d.num, location: d.location, park: d.park, lodge: d.lodge, date: d.date, notes };
   }
 
   try {
@@ -1260,9 +1710,10 @@ async function generateNarrative(type, dayIndex) {
     const data = await resp.json();
     if (data.text) {
       ta.value = data.text;
-      if (type === 'day')     STATE.days[dayIndex].reflection = data.text;
-      if (type === 'opening') STATE.opening.introText = data.text;
-      if (type === 'closing') STATE.closing.text = data.text;
+      if (type === 'day')        STATE.days[dayIndex].reflection = data.text;
+      if (type === 'opening')    STATE.opening.introText = data.text;
+      if (type === 'closing')    STATE.closing.text = data.text;
+      if (type === 'back-cover') STATE.closing.backCoverText = data.text;
       btn.textContent = '✓ Generated';
       setTimeout(() => { btn.textContent = '✦ Regenerate'; btn.disabled = false; }, 1500);
     } else {
@@ -1283,16 +1734,21 @@ async function saveProgress() {
   // Always keep localStorage in sync as fallback
   try { localStorage.setItem('jb_progress', JSON.stringify(STATE)); } catch(e) {}
 
+  // Strip any stray surrounding quotes from URL fields before sending
+  const sq = v => (v || '').replace(/^["']+|["']+$/g, '') || null;
+
+  const urlTripId = new URLSearchParams(window.location.search).get('tripId') || '';
   const payload = {
     sessionId:       SESSION_ID,
+    tripId:          urlTripId,
     coverTitle:      STATE.cover.title,
     coverSubtitle:   STATE.cover.subtitle,
-    coverPhotoUrl:   STATE.cover.photoUrl   || '',
-    openingText:     JSON.stringify({ text: STATE.opening.introText || '', spreadPhotoUrl: STATE.cover.spreadPhotoUrl || '', teasers: STATE.teasers, positions: STATE.positions, mapStyle: STATE.mapStyle }),
+    coverPhotoUrl:   sq(STATE.cover.photoUrl) || '',
+    openingText:     JSON.stringify({ text: STATE.opening.introText || '', coverPhotoUrl: sq(STATE.cover.photoUrl), spreadPhotoUrl: sq(STATE.cover.spreadPhotoUrl) || '', teasers: STATE.teasers, positions: STATE.positions, mapStyle: STATE.mapStyle, portrait2Url: sq(STATE.closing.portrait2Url), backCoverUrl: sq(STATE.closing.backCoverUrl), backCoverText: STATE.closing.backCoverText || '' }),
     daysData:        JSON.stringify(STATE.days),
-    closingText:      STATE.closing.text        || '',
-    closingPhotoUrl:  STATE.closing.photoUrl    || '',
-    portraitPhotoUrl: STATE.closing.portraitUrl || '',
+    closingText:      STATE.closing.text              || '',
+    closingPhotoUrl:  sq(STATE.closing.photoUrl)      || '',
+    portraitPhotoUrl: sq(STATE.closing.portraitUrl)   || '',
     guideData:        JSON.stringify(STATE.company),
     bookStatus:      'Draft'
   };
@@ -1311,8 +1767,14 @@ async function saveProgress() {
       // Handle duplicate session — use existing record
       if (resp.status === 409 && data.id) { _bookId = data.id; localStorage.setItem('jb_book_id', _bookId); }
     }
-    btn.textContent = data.ok || data.id ? '✓ Saved' : '⚠ Save failed';
+    if (data.ok || data.id) {
+      btn.textContent = '✓ Saved';
+    } else {
+      console.error('Save failed response:', JSON.stringify(data));
+      btn.textContent = '⚠ Save failed';
+    }
   } catch(e) {
+    console.error('Save exception:', e);
     btn.textContent = '⚠ Save failed';
   }
 
@@ -1321,60 +1783,95 @@ async function saveProgress() {
 }
 
 // ── LOAD ───────────────────────────────────────────────────────────────────
+function cleanUrl(v) {
+  if (!v) return null;
+  const s = v.trim().replace(/^["']+|["']+$/g, '');
+  return s || null;
+}
+
+function applyBookFields(f) {
+  STATE.cover.title      = f['Cover Title']      || '';
+  STATE.cover.subtitle   = f['Cover Subtitle']   || '';
+  STATE.cover.photoUrl   = cleanUrl(f['Cover Photo URL']);
+  if (f['Opening Text']) {
+    try {
+      const od = JSON.parse(f['Opening Text']);
+      STATE.opening.introText     = od.text           || '';
+      if (od.coverPhotoUrl)       STATE.cover.photoUrl       = cleanUrl(od.coverPhotoUrl);
+      STATE.cover.spreadPhotoUrl  = cleanUrl(od.spreadPhotoUrl);
+      if (od.teasers)      Object.assign(STATE.teasers,    od.teasers);
+      if (od.positions)    Object.assign(STATE.positions,  od.positions);
+      if (od.mapStyle)     STATE.mapStyle = od.mapStyle;
+      if (od.portrait2Url !== undefined) STATE.closing.portrait2Url = cleanUrl(od.portrait2Url);
+      if (od.backCoverUrl !== undefined) STATE.closing.backCoverUrl = cleanUrl(od.backCoverUrl);
+      if (od.backCoverText !== undefined) STATE.closing.backCoverText = od.backCoverText;
+    } catch(e) { STATE.opening.introText = f['Opening Text']; }
+  }
+  STATE.closing.text        = f['Closing Text']        || '';
+  STATE.closing.photoUrl    = cleanUrl(f['Closing Photo URL']);
+  STATE.closing.portraitUrl = cleanUrl(f['Portrait Photo URL']);
+  if (f['Days Data']) {
+    try {
+      const days = JSON.parse(f['Days Data']);
+      if (Array.isArray(days) && days.length === STATE.days.length) {
+        days.forEach((d, i) => Object.assign(STATE.days[i], d));
+      }
+    } catch(e) {}
+  }
+  if (f['Guide Data']) {
+    try { Object.assign(STATE.company, JSON.parse(f['Guide Data'])); } catch(e) {}
+  }
+}
+
 async function loadProgress() {
-  // Try Airtable first (by bookId or sessionId)
-  const idToTry = _bookId || null;
+  // 1. Try by sessionId
   try {
-    const url = idToTry
-      ? '/api/journey-book?sessionId=' + encodeURIComponent(SESSION_ID)
-      : '/api/journey-book?sessionId=' + encodeURIComponent(SESSION_ID);
-    const resp = await fetch(url);
+    const resp = await fetch('/api/journey-book?sessionId=' + encodeURIComponent(SESSION_ID));
     if (resp.ok) {
       const data = await resp.json();
       if (data.book) {
-        const f = data.book.fields;
         _bookId = data.book.id;
         localStorage.setItem('jb_book_id', _bookId);
-        STATE.cover.title      = f['Cover Title']      || '';
-        STATE.cover.subtitle   = f['Cover Subtitle']   || '';
-        STATE.cover.photoUrl   = f['Cover Photo URL']  || null;
-        if (f['Opening Text']) {
-          try {
-            const od = JSON.parse(f['Opening Text']);
-            STATE.opening.introText     = od.text           || '';
-            STATE.cover.spreadPhotoUrl  = od.spreadPhotoUrl || null;
-            if (od.teasers)    Object.assign(STATE.teasers,    od.teasers);
-            if (od.positions)  Object.assign(STATE.positions,  od.positions);
-            if (od.mapStyle)   STATE.mapStyle = od.mapStyle;
-          } catch(e) { STATE.opening.introText = f['Opening Text']; }
-        }
-        STATE.closing.text        = f['Closing Text']        || '';
-        STATE.closing.photoUrl    = f['Closing Photo URL']   || null;
-        STATE.closing.portraitUrl = f['Portrait Photo URL']  || null;
-        if (f['Days Data']) {
-          try {
-            const days = JSON.parse(f['Days Data']);
-            if (Array.isArray(days) && days.length === STATE.days.length) {
-              days.forEach((d, i) => Object.assign(STATE.days[i], d));
-            }
-          } catch(e) {}
-        }
-        if (f['Guide Data']) {
-          try { Object.assign(STATE.company, JSON.parse(f['Guide Data'])); } catch(e) {}
-        }
+        applyBookFields(data.book.fields);
         return;
       }
     }
   } catch(e) {}
 
-  // Fallback to localStorage
+  // 2. If tripId present, try by tripId (handles port changes / new devices)
+  const urlTripId = new URLSearchParams(window.location.search).get('tripId');
+  if (urlTripId) {
+    try {
+      const resp = await fetch('/api/journey-book?tripId=' + encodeURIComponent(urlTripId));
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.book) {
+          _bookId = data.book.id;
+          localStorage.setItem('jb_book_id', _bookId);
+          applyBookFields(data.book.fields);
+          return;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // 3. Fallback to localStorage
   try {
     const saved = localStorage.getItem('jb_progress');
     if (!saved) return;
     const s = JSON.parse(saved);
-    if (s.cover)   Object.assign(STATE.cover,   s.cover);
+    if (s.cover) {
+      if (s.cover.photoUrl)       s.cover.photoUrl       = cleanUrl(s.cover.photoUrl);
+      if (s.cover.spreadPhotoUrl) s.cover.spreadPhotoUrl = cleanUrl(s.cover.spreadPhotoUrl);
+      Object.assign(STATE.cover, s.cover);
+    }
     if (s.opening) Object.assign(STATE.opening, s.opening);
-    if (s.closing) Object.assign(STATE.closing, s.closing);
+    if (s.closing) {
+      ['photoUrl','portraitUrl','portrait2Url','backCoverUrl'].forEach(k => {
+        if (s.closing[k]) s.closing[k] = cleanUrl(s.closing[k]);
+      });
+      Object.assign(STATE.closing, s.closing);
+    }
     if (s.company) Object.assign(STATE.company, s.company);
     if (s.days && s.days.length === STATE.days.length) {
       s.days.forEach((d, i) => Object.assign(STATE.days[i], d));
@@ -1407,7 +1904,18 @@ async function loadProgress() {
     } catch(e) {}
   }
   await loadProgress();
-  goToStep(0);
+  const params    = new URLSearchParams(window.location.search);
+  const readMode  = params.get('view')   === '1';
+  const photoMode = params.get('photos') === '1';
+  if (photoMode) {
+    showPhotoMode();
+  } else if (readMode) {
+    document.body.classList.add('read-mode');
+    showPreview();
+    openReader();
+  } else {
+    goToStep(0);
+  }
 })();
 </script>
 </body>
