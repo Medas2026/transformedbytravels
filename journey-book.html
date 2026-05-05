@@ -53,7 +53,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
 .step-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--bd); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-family: 'Montserrat', sans-serif; font-weight: 700; flex-shrink: 0; }
 .sidebar-step.active .step-dot { border-color: var(--teal); color: var(--teal); }
 .sidebar-step.done   .step-dot { background: rgba(45,212,191,0.15); border-color: rgba(45,212,191,0.4); color: var(--teal); }
-.step-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.step-label { white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.35; font-size: 0.7rem; }
 @media(max-width:700px){ .sidebar { display: none; } }
 
 /* ── MAIN ── */
@@ -511,8 +511,12 @@ function buildSteps() {
   const steps = [];
   steps.push({ id: 'cover',   label: 'Cover',        section: 'Front Matter', render: renderCover });
   steps.push({ id: 'opening', label: 'Opening Pages', section: null,          render: renderOpening });
+  let sfDay = 0;
   TRIP.days.forEach((d, i) => {
-    steps.push({ id: 'day-' + i, label: 'Day ' + d.num + ' — ' + d.location.split(' → ')[0], section: i === 0 ? 'Day Chapters' : null, render: () => renderDay(i) });
+    const gw = isDayGateway(d);
+    if (!gw) sfDay++;
+    const prefix = gw ? '·' : String(sfDay);
+    steps.push({ id: 'day-' + i, label: prefix + ' — ' + d.location, section: i === 0 ? 'Day Chapters' : null, render: () => renderDay(i) });
   });
   steps.push({ id: 'closing', label: 'Closing Chapter',    section: 'Final Pages', render: renderClosing });
   steps.push({ id: 'company', label: 'Guide & Company',   section: null,          render: renderCompany });
