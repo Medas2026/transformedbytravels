@@ -1326,13 +1326,16 @@ function showPreview() {
 
   // Pair pages into spreads
   for (let i = 0; i < pages.length; i += 2) {
-    html += `<div class="pg-pair">
-      ${renderPage(pages[i], i)}
-      ${pages[i + 1] ? renderPage(pages[i + 1], i + 1) : '<div class="pg pg-blank"></div>'}
-    </div>`;
+    let leftHtml = '', rightHtml = '';
+    try { leftHtml  = renderPage(pages[i], i); }
+    catch(e) { console.error('[JB] renderPage crash at i='+i+' type='+pages[i]?.type, e); leftHtml = '<div class="pg pg-blank"></div>'; }
+    try { rightHtml = pages[i+1] ? renderPage(pages[i+1], i+1) : '<div class="pg pg-blank"></div>'; }
+    catch(e) { console.error('[JB] renderPage crash at i='+(i+1)+' type='+pages[i+1]?.type, e); rightHtml = '<div class="pg pg-blank"></div>'; }
+    html += `<div class="pg-pair">${leftHtml}${rightHtml}</div>`;
   }
 
   html += '</div>';
+  console.log('[JB] setting innerHTML, pages.length=', pages.length);
   document.getElementById('book-preview-content').innerHTML = html;
   window.scrollTo({ top: 0, behavior: 'smooth' });
   // Geocode and inject maps now that preview DOM exists and TRIP data is final
