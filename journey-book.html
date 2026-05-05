@@ -1335,7 +1335,8 @@ function showPreview() {
   }
 
   html += '</div>';
-  console.log('[JB] setting innerHTML, pages.length=', pages.length);
+  const guidePos = pages.findIndex(p => p.type === 'safari-co-L');
+  console.log('[JB] setting innerHTML, pages.length=', pages.length, '— guide pages at index', guidePos, '= spread', Math.floor(guidePos/2)+2, 'of', Math.ceil(pages.length/2)+1);
   document.getElementById('book-preview-content').innerHTML = html;
   window.scrollTo({ top: 0, behavior: 'smooth' });
   // Geocode and inject maps now that preview DOM exists and TRIP data is final
