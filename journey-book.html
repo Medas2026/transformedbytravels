@@ -511,12 +511,8 @@ function buildSteps() {
   const steps = [];
   steps.push({ id: 'cover',   label: 'Cover',        section: 'Front Matter', render: renderCover });
   steps.push({ id: 'opening', label: 'Opening Pages', section: null,          render: renderOpening });
-  let sfDay = 0;
   TRIP.days.forEach((d, i) => {
-    const gw = isDayGateway(d);
-    if (!gw) sfDay++;
-    const prefix = gw ? '·' : String(sfDay);
-    steps.push({ id: 'day-' + i, label: prefix + ' — ' + d.location, section: i === 0 ? 'Day Chapters' : null, render: () => renderDay(i) });
+    steps.push({ id: 'day-' + i, label: (i + 1) + ' — ' + d.location, section: i === 0 ? 'Day Chapters' : null, render: () => renderDay(i) });
   });
   steps.push({ id: 'closing', label: 'Closing Chapter',    section: 'Final Pages', render: renderClosing });
   steps.push({ id: 'company', label: 'Guide & Company',   section: null,          render: renderCompany });
@@ -1041,7 +1037,20 @@ function showPreview() {
   } catch(e) { /* day loop guard */ }
 
   // Safari company / guide spread (always included)
-  if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
+  if (pages.length % 2 !== 0) {
+    // Use last gateway day's photos instead of blank
+    let gatewayPage = null;
+    for (let gi = TRIP.days.length - 1; gi >= 0; gi--) {
+      if (isDayGateway(TRIP.days[gi]) && STATE.days[gi]) {
+        const gst = STATE.days[gi];
+        if (gst.heroUrl || gst.photo2Url) {
+          gatewayPage = { type: 'gateway-photos', day: TRIP.days[gi], st: gst, index: gi };
+          break;
+        }
+      }
+    }
+    pages.push(gatewayPage || { type: 'blank' });
+  }
   pages.push({ type: 'safari-co-L' });
   pages.push({ type: 'safari-co-R' });
 
@@ -1068,6 +1077,22 @@ function showPreview() {
     switch (p.type) {
       case 'blank':
         return `<div class="pg pg-blank">${num}</div>`;
+
+      case 'gateway-photos': {
+        const { day, st, index } = p;
+        if (st.heroUrl) {
+          return `<div class="pg">
+            <img src="${st.heroUrl}" class="pg-photo-abs" id="pgimg-gw${index}-hero" style="object-position:${photoPos('gw'+index+'-hero')};" alt="${day.location}" />
+            <div class="pg-overlay"></div>
+            <div class="pg-overlay-text">
+              <div style="font-size:0.48rem;color:rgba(255,255,255,0.7);font-family:'Open Sans';">${day.location}</div>
+            </div>${num}</div>`;
+        }
+        return `<div class="pg"><div style="display:flex;height:100%;gap:2px;">
+          ${st.photo2Url ? `<img src="${st.photo2Url}" id="pgimg-gw${index}-p2" style="flex:1;height:100%;object-fit:cover;object-position:${photoPos('gw'+index+'-p2')};" alt="" />` : '<div style="flex:1;background:rgba(255,255,255,0.03);"></div>'}
+          ${st.photo3Url ? `<img src="${st.photo3Url}" id="pgimg-gw${index}-p3" style="flex:1;height:100%;object-fit:cover;object-position:${photoPos('gw'+index+'-p3')};" alt="" />` : '<div style="flex:1;background:rgba(255,255,255,0.03);"></div>'}
+        </div>${num}</div>`;
+      }
 
       case 'dest-teaser': {
         const { dest } = p;
