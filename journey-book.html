@@ -1209,7 +1209,7 @@ function showPreview() {
           <img src="${st.heroUrl}" class="pg-photo-abs" id="pgimg-${heroId}" style="object-position:${photoPos(heroId)};" alt="Day ${day.displayNum}" />
           <div class="pg-overlay"></div>
           <div class="pg-overlay-text">
-            <div class="pg-eyebrow">Day ${day.displayNum}</div>
+            <div class="pg-eyebrow">${day.displayNum}</div>
             <div style="font-size:0.48rem;color:rgba(255,255,255,0.7);font-family:'Open Sans';">${day.location}</div>
           </div>${num}</div>`;
       }
@@ -1217,8 +1217,12 @@ function showPreview() {
       case 'day-text': {
         const { day, st } = p;
         const hasSupport = st.photo2Url || st.photo3Url;
+        const locParts = day.location.split(' → ');
+        const locLine = locParts.length > 1
+          ? `<div style="font-size:0.44rem;color:rgba(45,212,191,0.75);font-family:'Open Sans';text-transform:uppercase;letter-spacing:0.07em;line-height:1.35;margin-top:1px;margin-bottom:4px;">${locParts[0]}<br>→ ${locParts[locParts.length-1]}</div>`
+          : `<div style="font-size:0.44rem;color:rgba(45,212,191,0.75);font-family:'Open Sans';text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">${locParts[0]}</div>`;
         return `<div class="pg">${texHtml(st.heroUrl || texUrl)}<div class="pg-body">
-          <div class="pg-eyebrow">Day ${day.displayNum} · ${day.location.split(' → ').pop()}</div>
+          <div class="pg-eyebrow" style="margin-bottom:0;">${day.displayNum}</div>${locLine}
           ${hasSupport ? `<div class="pg-photo-pair" style="height:42%;margin-top:6px;">
             ${st.photo2Url ? `<img src="${st.photo2Url}" id="pgimg-day${day.index}-p2" style="height:100%;object-fit:cover;object-position:${photoPos('day'+day.index+'-p2')};" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
             ${st.photo3Url ? `<img src="${st.photo3Url}" id="pgimg-day${day.index}-p3" style="height:100%;object-fit:cover;object-position:${photoPos('day'+day.index+'-p3')};" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
