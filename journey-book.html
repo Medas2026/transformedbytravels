@@ -969,7 +969,6 @@ function renderPreviewStep() { showPreview(); }
 
 // ── SHOW PREVIEW ───────────────────────────────────────────────────────────
 function showPreview() {
-  console.log('[JB] showPreview called, STATE.days.length=', STATE.days.length, 'TRIP.days.length=', TRIP.days.length);
   document.getElementById('wizard-view').style.display  = 'none';
   document.getElementById('preview-view').style.display = 'block';
   STATE.currentStep = STEPS.length - 1;
@@ -1018,13 +1017,12 @@ function showPreview() {
       if (st.reflection || st.photo2Url || st.photo3Url) pages.push({ type: 'day-text', day, st });
     });
   });
-  } catch(e) { console.error('[JB] showPreview crash in day loop:', e); }
+  } catch(e) { /* day loop guard */ }
 
   // Safari company / guide spread (always included)
   if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
   pages.push({ type: 'safari-co-L' });
   pages.push({ type: 'safari-co-R' });
-  console.log('[JB] guide pages added, STATE.company=', JSON.stringify(STATE.company));
 
   // Closing section
   if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
@@ -1327,16 +1325,12 @@ function showPreview() {
   // Pair pages into spreads
   for (let i = 0; i < pages.length; i += 2) {
     let leftHtml = '', rightHtml = '';
-    try { leftHtml  = renderPage(pages[i], i); }
-    catch(e) { console.error('[JB] renderPage crash at i='+i+' type='+pages[i]?.type, e); leftHtml = '<div class="pg pg-blank"></div>'; }
-    try { rightHtml = pages[i+1] ? renderPage(pages[i+1], i+1) : '<div class="pg pg-blank"></div>'; }
-    catch(e) { console.error('[JB] renderPage crash at i='+(i+1)+' type='+pages[i+1]?.type, e); rightHtml = '<div class="pg pg-blank"></div>'; }
+    try { leftHtml  = renderPage(pages[i], i); } catch(e) { leftHtml = '<div class="pg pg-blank"></div>'; }
+    try { rightHtml = pages[i+1] ? renderPage(pages[i+1], i+1) : '<div class="pg pg-blank"></div>'; } catch(e) { rightHtml = '<div class="pg pg-blank"></div>'; }
     html += `<div class="pg-pair">${leftHtml}${rightHtml}</div>`;
   }
 
   html += '</div>';
-  const guidePos = pages.findIndex(p => p.type === 'safari-co-L');
-  console.log('[JB] setting innerHTML, pages.length=', pages.length, '— guide pages at index', guidePos, '= spread', Math.floor(guidePos/2)+2, 'of', Math.ceil(pages.length/2)+1);
   document.getElementById('book-preview-content').innerHTML = html;
   window.scrollTo({ top: 0, behavior: 'smooth' });
   // Geocode and inject maps now that preview DOM exists and TRIP data is final
