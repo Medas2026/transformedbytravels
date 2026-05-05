@@ -969,6 +969,7 @@ function renderPreviewStep() { showPreview(); }
 
 // ── SHOW PREVIEW ───────────────────────────────────────────────────────────
 function showPreview() {
+  console.log('[JB] showPreview called, STATE.days.length=', STATE.days.length, 'TRIP.days.length=', TRIP.days.length);
   document.getElementById('wizard-view').style.display  = 'none';
   document.getElementById('preview-view').style.display = 'block';
   STATE.currentStep = STEPS.length - 1;
@@ -1000,6 +1001,7 @@ function showPreview() {
   pages.push({ type: 'intro' });
   pages.push({ type: 'route-map' });
 
+  try {
   groupDests().forEach(dest => {
     if (pages.length % 2 !== 0) pages.push({ type: 'dest-teaser', dest });
     // Use the first day that has a hero photo as the destination opener photo
@@ -1016,6 +1018,7 @@ function showPreview() {
       if (st.reflection || st.photo2Url || st.photo3Url) pages.push({ type: 'day-text', day, st });
     });
   });
+  } catch(e) { console.error('[JB] showPreview crash in day loop:', e); }
 
   // Safari company / guide spread (always included)
   if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
