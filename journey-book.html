@@ -492,11 +492,19 @@ const STATE = {
   opening: { introText: '', mapIncluded: true },
   days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, reflection: '', narrative: '' })),
   closing: { photoUrl: null, portraitUrl: null, portrait2Url: null, text: '', backCoverUrl: null, backCoverText: '' },
-  company: { photoUrl: null, photo2Url: null, guideNote: '' },
+  company: { photoUrl: null, photo2Url: null, guideNote: '', companyName: '' },
   teasers: {},
   positions: {},
   mapStyle: 'terrain',
 };
+
+// ── GATEWAY / TRANSIT DAY FILTER ───────────────────────────────────────────
+const BOOK_GATEWAYS = ['entebbe','kampala','nairobi','dar es salaam','johannesburg',
+  'cape town','kigali','addis ababa','airport','international'];
+function isDayGateway(day) {
+  const dest = (day.location || '').split(' → ').pop().toLowerCase().trim();
+  return BOOK_GATEWAYS.some(g => dest.includes(g));
+}
 
 // ── STEPS LIST ─────────────────────────────────────────────────────────────
 function buildSteps() {
@@ -931,34 +939,32 @@ function renderClosing() {
 // ── STEP: GUIDE & COMPANY ──────────────────────────────────────────────────
 function renderCompany() {
   const c = STATE.company;
-  const g = TRIP.guide || {};
   document.getElementById('step-content').innerHTML = `
     <div class="step-header">
       <div class="step-eyebrow">Step ${STEPS.length - 1} of ${STEPS.length}</div>
-      <h2>Your Guide &amp; Safari Company</h2>
-      <p>Two pages in your Journey Book are reserved for your safari company and guide — their best photos and your personal tribute to the people who made this trip possible.</p>
+      <h2>Safari Company Pages</h2>
+      <p>Two pages reserved for your safari company — their story on the left, a photo of your party on the right.</p>
     </div>
     <div class="card">
-      ${g.name ? `<div style="display:flex;align-items:center;gap:14px;padding:12px;background:rgba(45,212,191,0.05);border:1px solid rgba(45,212,191,0.15);border-radius:10px;margin-bottom:18px;">
-        <div style="width:42px;height:42px;border-radius:50%;background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.25);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">🦁</div>
-        <div>
-          <div style="font-size:0.9rem;color:#fff;font-weight:600;">${g.name}</div>
-          <div style="font-size:0.78rem;color:var(--muted);">${g.title || ''}${g.title && g.company ? ' · ' : ''}${g.company || ''}</div>
-        </div>
-      </div>` : ''}
-      <div class="card-title">Photos (Left &amp; Right Pages)</div>
-      <div class="photo-grid photo-grid-3" style="margin-bottom:14px;">
-        ${photoSlotHtml('company-1', 'hero', 'Wildlife or Action Shot\n(left page, full bleed)', c.photoUrl, null)}
-        ${photoSlotHtml('company-2', 'hero', 'Guide Portrait\n(right page)', c.photo2Url, null)}
-      </div>
-      <div style="font-size:0.75rem;color:var(--muted);">Ask your guide or lodge to share their best shots from your trip — they often have stunning images you never saw.</div>
-    </div>
-    <div class="card">
-      <div class="card-title">A Personal Note</div>
+      <div class="card-title">Company Name</div>
       <div class="field">
-        <label>What will you remember most about ${g.name ? g.name : 'your guide'}?</label>
-        <textarea rows="5" placeholder="A moment they created for you, their knowledge of the animals, their humor around the fire at night…" oninput="STATE.company.guideNote=this.value">${c.guideNote}</textarea>
-        <div class="hint">This appears alongside their photo on the right page.</div>
+        <input type="text" value="${c.companyName}" placeholder="e.g. Wild Frontiers Uganda"
+          oninput="STATE.company.companyName=this.value"
+          style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:#fff;font-size:0.85rem;outline:none;" />
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">About the Company</div>
+      <div class="field">
+        <textarea rows="5" placeholder="Describe your safari company — their specialty, philosophy, what made them exceptional…" oninput="STATE.company.guideNote=this.value">${c.guideNote}</textarea>
+        <div class="hint">Appears on the left page alongside the company photo.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Photos</div>
+      <div class="photo-grid photo-grid-3" style="margin-bottom:14px;">
+        ${photoSlotHtml('company-1', 'hero', 'Company Photo\n(left page background)', c.photoUrl, null)}
+        ${photoSlotHtml('company-2', 'hero', 'Photo of You &amp; Your Party\n(right page)', c.photo2Url, null)}
       </div>
     </div>
     ${navHtml(true)}`;
@@ -983,12 +989,18 @@ function showPreview() {
     return `<div class="pg-tex"><img src="${url}" alt="" /></div>`;
   }
 
-  // Group consecutive same-park days into destinations
+  // Compute sequential display numbers for non-gateway safari days
+  const displayDayNum = {};
+  let dayCount = 0;
+  TRIP.days.forEach((d, i) => { if (!isDayGateway(d)) displayDayNum[i] = ++dayCount; });
+
+  // Group consecutive same-park days into destinations (skip transit/gateway days)
   function groupDests() {
     const dests = []; let cur = null;
     TRIP.days.forEach((d, i) => {
+      if (isDayGateway(d)) return;
       if (!cur || cur.park !== d.park) { cur = { park: d.park, days: [] }; dests.push(cur); }
-      cur.days.push(Object.assign({}, d, { index: i }));
+      cur.days.push(Object.assign({}, d, { index: i, displayNum: displayDayNum[i] }));
     });
     return dests;
   }
@@ -1081,13 +1093,14 @@ function showPreview() {
       }
 
       case 'intro': {
-        const n = TRIP.days.length;
+        const safariDays = TRIP.days.filter(d => !isDayGateway(d));
+        const n = safariDays.length;
         const tf  = n <= 8  ? '0.72rem' : n <= 13 ? '0.56rem' : '0.42rem';
         const thf = n <= 8  ? '0.62rem' : n <= 13 ? '0.48rem' : '0.36rem';
         const rp  = n <= 8  ? '3px 4px' : n <= 13 ? '2px 4px' : '1px 4px';
-        const rows = TRIP.days.map((d, i) =>
+        const rows = safariDays.map((d, i) =>
           `<tr style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.025)' : 'transparent'};">` +
-          `<td style="font-family:'Montserrat';font-weight:700;font-size:${tf};color:var(--teal);padding:${rp};">${d.num}</td>` +
+          `<td style="font-family:'Montserrat';font-weight:700;font-size:${tf};color:var(--teal);padding:${rp};">${i + 1}</td>` +
           `<td style="font-size:${tf};color:var(--soft);padding:${rp};font-family:'Open Sans';white-space:nowrap;">${d.date.split(', ').pop()}</td>` +
           `<td style="font-size:${tf};color:var(--text);padding:${rp};font-family:'Open Sans';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.location.split(' → ').pop()}</td>` +
           `<td style="font-size:${tf};color:var(--soft);padding:${rp};font-family:'Open Sans';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic;">${d.lodge || ''}</td>` +
@@ -1119,7 +1132,7 @@ function showPreview() {
         const seen = new Set();
         const parkList = [];
         TRIP.days.forEach(d => {
-          if (d.park && !seen.has(d.park)) {
+          if (d.park && !seen.has(d.park) && !isDayGateway(d)) {
             seen.add(d.park);
             parkList.push({ park: d.park, lon: d.lon, lat: d.lat });
           }
@@ -1160,7 +1173,7 @@ function showPreview() {
             <div style="flex:1;"></div>
             <div class="pg-eyebrow">${d0.date.split(', ').pop()}${dZ !== d0 ? ' – ' + dZ.date.split(', ').pop() : ''}</div>
             <div class="pg-title" style="font-size:1.05rem;line-height:1.2;">${dest.park}</div>
-            <div style="margin-top:5px;font-size:0.48rem;color:rgba(255,255,255,0.55);font-family:'Open Sans';">Day${dest.days.length > 1 ? 's' : ''} ${d0.num}${dest.days.length > 1 ? '–' + dZ.num : ''} · ${dest.days.length} night${dest.days.length > 1 ? 's' : ''}</div>
+            <div style="margin-top:5px;font-size:0.48rem;color:rgba(255,255,255,0.55);font-family:'Open Sans';">Day${dest.days.length > 1 ? 's' : ''} ${d0.displayNum}${dest.days.length > 1 ? '–' + dZ.displayNum : ''} · ${dest.days.length} night${dest.days.length > 1 ? 's' : ''}</div>
             ${lodge ? `<div style="margin-top:4px;font-size:0.46rem;color:rgba(45,212,191,0.8);font-family:'Open Sans';font-style:italic;">${lodge}</div>` : ''}
           </div>${num}</div>`;
       }
@@ -1193,10 +1206,10 @@ function showPreview() {
         const { day, st } = p;
         const heroId = 'day' + day.index + '-hero';
         return `<div class="pg">
-          <img src="${st.heroUrl}" class="pg-photo-abs" id="pgimg-${heroId}" style="object-position:${photoPos(heroId)};" alt="Day ${day.num}" />
+          <img src="${st.heroUrl}" class="pg-photo-abs" id="pgimg-${heroId}" style="object-position:${photoPos(heroId)};" alt="Day ${day.displayNum}" />
           <div class="pg-overlay"></div>
           <div class="pg-overlay-text">
-            <div class="pg-eyebrow">Day ${day.num}</div>
+            <div class="pg-eyebrow">Day ${day.displayNum}</div>
             <div style="font-size:0.48rem;color:rgba(255,255,255,0.7);font-family:'Open Sans';">${day.location}</div>
           </div>${num}</div>`;
       }
@@ -1205,7 +1218,7 @@ function showPreview() {
         const { day, st } = p;
         const hasSupport = st.photo2Url || st.photo3Url;
         return `<div class="pg">${texHtml(st.heroUrl || texUrl)}<div class="pg-body">
-          <div class="pg-eyebrow">Day ${day.num} · ${day.location.split(' → ').pop()}</div>
+          <div class="pg-eyebrow">Day ${day.displayNum} · ${day.location.split(' → ').pop()}</div>
           ${hasSupport ? `<div class="pg-photo-pair" style="height:42%;margin-top:6px;">
             ${st.photo2Url ? `<img src="${st.photo2Url}" id="pgimg-day${day.index}-p2" style="height:100%;object-fit:cover;object-position:${photoPos('day'+day.index+'-p2')};" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
             ${st.photo3Url ? `<img src="${st.photo3Url}" id="pgimg-day${day.index}-p3" style="height:100%;object-fit:cover;object-position:${photoPos('day'+day.index+'-p3')};" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
@@ -1215,31 +1228,27 @@ function showPreview() {
       }
 
       case 'safari-co-L': {
-        const g = TRIP.guide || {};
+        const coName = STATE.company.companyName || TRIP.destination || '';
         return `<div class="pg">${STATE.company.photoUrl
-          ? `<img src="${STATE.company.photoUrl}" class="pg-photo-abs" id="pgimg-company-1" style="object-position:${photoPos('company-1')};" alt="Safari company" />
-             <div class="pg-overlay"></div>
-             <div class="pg-overlay-text">
-               <div class="pg-eyebrow">Your Safari</div>
-               <div style="font-size:0.5rem;color:rgba(255,255,255,0.7);font-family:'Open Sans';">${g.company || ''}</div>
-             </div>`
-          : `${texHtml(texUrl)}<div class="pg-body" style="align-items:center;justify-content:center;">
-               <div style="font-size:0.6rem;color:var(--muted);font-style:italic;">Add a photo from your guide</div>
-             </div>`}${num}</div>`;
-      }
-
-      case 'safari-co-R': {
-        const g = TRIP.guide || {};
-        return `<div class="pg">${STATE.company.photo2Url
-          ? `<img src="${STATE.company.photo2Url}" class="pg-photo-abs" id="pgimg-company-2" style="object-position:${photoPos('company-2')};" alt="${g.name || 'Guide'}" />
-             <div class="pg-overlay" style="background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,rgba(0,0,0,0.1) 55%,transparent 100%);"></div>`
+          ? `<img src="${STATE.company.photoUrl}" class="pg-photo-abs" id="pgimg-company-1" style="object-position:${photoPos('company-1')};" alt="${coName}" />
+             <div class="pg-overlay" style="background:linear-gradient(to top,rgba(0,0,0,0.93) 0%,rgba(0,0,0,0.45) 55%,rgba(0,0,0,0.2) 100%);"></div>`
           : texHtml(texUrl)}
           <div class="pg-body" style="justify-content:flex-end;">
             <div style="flex:1;"></div>
-            ${g.name ? `<div class="pg-eyebrow">Your Guide</div>
-            <div class="pg-title" style="font-size:1rem;">${g.name}</div>
-            ${g.title ? `<div style="font-size:0.46rem;color:var(--muted);font-family:'Open Sans';margin-top:3px;">${g.title}</div>` : ''}` : ''}
-            ${STATE.company.guideNote ? `<div class="pg-quote" style="margin-top:8px;">${STATE.company.guideNote}</div>` : ''}
+            <div class="pg-eyebrow">Your Safari Company</div>
+            ${coName ? `<div class="pg-title" style="font-size:1rem;line-height:1.2;">${coName}</div>` : ''}
+            ${STATE.company.guideNote ? `<div class="pg-text" style="margin-top:10px;font-style:italic;line-height:1.55;">${STATE.company.guideNote}</div>` : ''}
+          </div>${num}</div>`;
+      }
+
+      case 'safari-co-R': {
+        return `<div class="pg">${STATE.company.photo2Url
+          ? `<img src="${STATE.company.photo2Url}" class="pg-photo-abs" id="pgimg-company-2" style="object-position:${photoPos('company-2')};" alt="Travelers" />
+             <div class="pg-overlay" style="background:linear-gradient(to top,rgba(0,0,0,0.55) 0%,transparent 45%);"></div>`
+          : texHtml(texUrl)}
+          <div class="pg-body" style="justify-content:flex-end;">
+            <div style="flex:1;"></div>
+            <div class="pg-eyebrow">${TRIP.destination} · ${TRIP.year}</div>
           </div>${num}</div>`;
       }
 
