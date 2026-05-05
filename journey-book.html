@@ -1021,6 +1021,7 @@ function showPreview() {
   if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
   pages.push({ type: 'safari-co-L' });
   pages.push({ type: 'safari-co-R' });
+  console.log('[JB] guide pages added, STATE.company=', JSON.stringify(STATE.company));
 
   // Closing section
   if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
