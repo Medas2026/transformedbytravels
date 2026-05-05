@@ -992,6 +992,11 @@ function showPreview() {
     if (!url) return '';
     return `<div class="pg-tex"><img src="${url}" alt="" /></div>`;
   }
+  function wordLimit(text, n) {
+    if (!text) return '';
+    const words = text.trim().split(/\s+/);
+    return words.length <= n ? text : words.slice(0, n).join(' ') + '…';
+  }
 
   // Compute sequential display numbers for non-gateway safari days
   const displayDayNum = {};
@@ -1231,7 +1236,7 @@ function showPreview() {
             ${st.photo2Url ? `<img src="${st.photo2Url}" id="pgimg-day${day.index}-p2" style="height:100%;object-fit:cover;object-position:${photoPos('day'+day.index+'-p2')};" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
             ${st.photo3Url ? `<img src="${st.photo3Url}" id="pgimg-day${day.index}-p3" style="height:100%;object-fit:cover;object-position:${photoPos('day'+day.index+'-p3')};" alt="" />` : '<div style="background:rgba(255,255,255,0.03);"></div>'}
           </div>` : ''}
-          ${st.reflection ? `<div class="pg-quote" style="margin-top:${hasSupport ? '8px' : 'auto'};">${st.reflection}</div>` : ''}
+          ${st.reflection ? `<div class="pg-quote" style="margin-top:${hasSupport ? '8px' : 'auto'};">${wordLimit(st.reflection, 63)}</div>` : ''}
           </div>${num}</div>`;
       }
 
