@@ -488,10 +488,10 @@ const TRIP = {
 // ── STATE ──────────────────────────────────────────────────────────────────
 const STATE = {
   currentStep: 0,
-  cover: { photoUrl: null, spreadPhotoUrl: null, title: '', subtitle: '' },
+  cover: { photoUrl: null, spreadPhotoUrl: null, title: '', subtitle: '', spreadTitle: '' },
   opening: { introText: '', mapIncluded: true },
   days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, photo4Url: null, reflection: '', narrative: '' })),
-  closing: { photoUrl: null, portraitUrl: null, portrait2Url: null, text: '', backCoverUrl: null, backCoverText: '' },
+  closing: { photoUrl: null, portraitUrl: null, portrait2Url: null, text: '', backCoverUrl: null, backCoverText: '', panoramaTitle: '' },
   company: { photoUrl: null, photo2Url: null, guideNote: '', companyName: '' },
   teasers: {},
   positions: {},
@@ -791,6 +791,10 @@ function renderCover() {
       <div class="card-title">Opening Spread Photo <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(pages 2–3)</span></div>
       <p style="font-size:0.82rem;color:var(--soft);margin-bottom:14px;">This wide landscape photo spans the first two-page spread inside the book. Choose something different from your cover — a wide vista, a dramatic sky, or a panoramic wildlife shot.</p>
       ${photoSlotHtml('cover-spread', 'hero', 'Upload Opening Spread Photo', c.spreadPhotoUrl, null)}
+      <div class="field" style="margin-top:14px;margin-bottom:0;">
+        <label>Spread Title <span style="font-weight:400;color:var(--muted);">(optional — shown at the bottom of the spread)</span></label>
+        <input type="text" value="${c.spreadTitle || ''}" placeholder="e.g. Into the Wild" oninput="STATE.cover.spreadTitle=this.value" />
+      </div>
     </div>
     ${navHtml(false)}`;
 }
@@ -899,6 +903,10 @@ function renderClosing() {
       <div class="card-title">Closing Panorama</div>
       <div class="hint" style="margin-bottom:12px;">This photo spans both pages as a dramatic full-width spread.</div>
       ${photoSlotHtml('closing', 'hero', 'Final landscape or wildlife image', c.photoUrl, null)}
+      <div class="field" style="margin-top:14px;margin-bottom:0;">
+        <label>Panorama Title <span style="font-weight:400;color:var(--muted);">(optional)</span></label>
+        <input type="text" value="${c.panoramaTitle || ''}" placeholder="e.g. The Land Remembers" oninput="STATE.closing.panoramaTitle=this.value" />
+      </div>
     </div>
 
     <div class="card">
@@ -1116,10 +1124,13 @@ function showPreview() {
       case 'spread-R': {
         const sp = STATE.cover.spreadPhotoUrl || STATE.cover.photoUrl;
         if (!sp) return `<div class="pg"></div>`;
+        const st = STATE.cover.spreadTitle;
         return `<div class="pg">
           <div style="position:absolute;top:0;right:0;width:200%;height:100%;background:url('${sp}') center/cover no-repeat;"></div>
-          <div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.4) 0%,transparent 100%);"></div>
+          <div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.4) 0%,transparent 40%);"></div>
+          ${st ? `<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 60%);z-index:1;"></div>` : ''}
           <div style="position:absolute;top:12px;right:12px;z-index:2;"><div class="pg-eyebrow">${TRIP.year}</div></div>
+          ${st ? `<div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;z-index:2;font-family:'Playfair Display';font-style:italic;font-size:0.82rem;color:rgba(255,255,255,0.92);letter-spacing:0.02em;">${st}</div>` : ''}
         </div>`;
       }
 
@@ -1288,11 +1299,15 @@ function showPreview() {
           </div>${num}</div>`;
       }
 
-      case 'closing-panorama-L':
+      case 'closing-panorama-L': {
+        const pt = STATE.closing.panoramaTitle;
         return `<div class="pg">
           <div style="position:absolute;top:0;left:0;width:200%;height:100%;background:url('${STATE.closing.photoUrl}') center/cover no-repeat;"></div>
           <div class="pg-overlay" style="background:linear-gradient(to right,rgba(0,0,0,0.35) 0%,transparent 60%);"></div>
+          ${pt ? `<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 60%);z-index:1;"></div>
+          <div style="position:absolute;bottom:14px;left:14px;right:14px;z-index:2;font-family:'Playfair Display';font-style:italic;font-size:0.82rem;color:rgba(255,255,255,0.92);letter-spacing:0.02em;">${pt}</div>` : ''}
           ${num}</div>`;
+      }
 
       case 'closing-panorama-R':
         return `<div class="pg">
@@ -1797,7 +1812,7 @@ async function saveProgress() {
     coverTitle:      STATE.cover.title,
     coverSubtitle:   STATE.cover.subtitle,
     coverPhotoUrl:   sq(STATE.cover.photoUrl) || '',
-    openingText:     JSON.stringify({ text: STATE.opening.introText || '', coverPhotoUrl: sq(STATE.cover.photoUrl), spreadPhotoUrl: sq(STATE.cover.spreadPhotoUrl) || '', teasers: STATE.teasers, positions: STATE.positions, mapStyle: STATE.mapStyle, portrait2Url: sq(STATE.closing.portrait2Url), backCoverUrl: sq(STATE.closing.backCoverUrl), backCoverText: STATE.closing.backCoverText || '' }),
+    openingText:     JSON.stringify({ text: STATE.opening.introText || '', coverPhotoUrl: sq(STATE.cover.photoUrl), spreadPhotoUrl: sq(STATE.cover.spreadPhotoUrl) || '', spreadTitle: STATE.cover.spreadTitle || '', panoramaTitle: STATE.closing.panoramaTitle || '', teasers: STATE.teasers, positions: STATE.positions, mapStyle: STATE.mapStyle, portrait2Url: sq(STATE.closing.portrait2Url), backCoverUrl: sq(STATE.closing.backCoverUrl), backCoverText: STATE.closing.backCoverText || '' }),
     daysData:        JSON.stringify(STATE.days),
     closingText:      STATE.closing.text              || '',
     closingPhotoUrl:  sq(STATE.closing.photoUrl)      || '',
@@ -1857,7 +1872,9 @@ function applyBookFields(f) {
       if (od.mapStyle)     STATE.mapStyle = od.mapStyle;
       if (od.portrait2Url !== undefined) STATE.closing.portrait2Url = cleanUrl(od.portrait2Url);
       if (od.backCoverUrl !== undefined) STATE.closing.backCoverUrl = cleanUrl(od.backCoverUrl);
-      if (od.backCoverText !== undefined) STATE.closing.backCoverText = od.backCoverText;
+      if (od.backCoverText !== undefined)   STATE.closing.backCoverText  = od.backCoverText;
+      if (od.spreadTitle !== undefined)     STATE.cover.spreadTitle      = od.spreadTitle;
+      if (od.panoramaTitle !== undefined)   STATE.closing.panoramaTitle  = od.panoramaTitle;
     } catch(e) { STATE.opening.introText = f['Opening Text']; }
   }
   STATE.closing.text        = f['Closing Text']        || '';
