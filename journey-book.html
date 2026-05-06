@@ -834,6 +834,14 @@ function renderOpening() {
         <button class="btn-generate" onclick="toggleMapStyle()" style="white-space:nowrap;">${STATE.mapStyle === 'satellite' ? '🛰 Satellite' : '🗺 Terrain'} — Switch</button>
       </div>
     </div>
+    <div class="card">
+      <div class="card-title">Generate All Day Entries</div>
+      <p style="font-size:0.82rem;color:var(--soft);margin-bottom:14px;">Write journal entries for all ${TRIP.days.filter(d => !isDayGateway(d)).length} safari days at once. Claude uses any notes you've already entered for each day. You can edit individual days afterwards.</p>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <button class="btn-generate" id="gen-all-days-btn" onclick="generateAllDays()">✦ Generate All Day Entries</button>
+        <span id="gen-all-days-status" style="font-size:0.8rem;color:var(--muted);"></span>
+      </div>
+    </div>
     ${navHtml(false)}`;
 }
 
@@ -1745,6 +1753,43 @@ const SESSION_ID = (() => {
 let _bookId = localStorage.getItem('jb_book_id') || null;
 
 // ── SAVE ───────────────────────────────────────────────────────────────────
+async function generateAllDays() {
+  const btn    = document.getElementById('gen-all-days-btn');
+  const status = document.getElementById('gen-all-days-status');
+  if (!btn) return;
+
+  const safariDays = TRIP.days.map((d, i) => ({ d, i })).filter(({ d }) => !isDayGateway(d));
+  if (!safariDays.length) return;
+
+  btn.disabled = true;
+  btn.textContent = '✦ Writing…';
+  const allParks = [...new Set(TRIP.days.map(d => d.park).filter(Boolean))];
+
+  for (let n = 0; n < safariDays.length; n++) {
+    const { d, i } = safariDays[n];
+    if (status) status.textContent = `Day ${n + 1} of ${safariDays.length}…`;
+    const notes = STATE.days[i].reflection || '';
+    try {
+      const resp = await fetch('/api/narrative', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'day', traveler: TRIP.traveler, destination: TRIP.destination,
+          year: TRIP.year, allParks,
+          day: { num: d.num, location: d.location, park: d.park, lodge: d.lodge, date: d.date, notes },
+        }),
+      });
+      const data = await resp.json();
+      if (data.text) STATE.days[i].reflection = data.text;
+    } catch(e) { /* continue */ }
+  }
+
+  if (status) status.textContent = `✓ ${safariDays.length} days written`;
+  btn.textContent = '✦ Regenerate All Days';
+  btn.disabled = false;
+  await saveProgress();
+}
+
 async function generateNarrative(type, dayIndex) {
   const btnId = type === 'day' ? 'gen-btn-day-' + dayIndex : 'gen-btn-' + type;
   const taId  = type === 'day' ? 'gen-ta-day-' + dayIndex  : 'gen-ta-' + type;
