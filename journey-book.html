@@ -1308,7 +1308,10 @@ function showPreview() {
             <div style="font-family:'Montserrat';font-weight:700;font-size:0.42rem;color:var(--soft);letter-spacing:0.06em;text-transform:uppercase;">${name}</div>
           </div>`;
         }
-        return `<div class="pg">${texHtml(texUrl)}<div class="pg-body" style="justify-content:center;gap:10px;">
+        const bgUrl = STATE.cover.photoUrl || texUrl;
+        return `<div class="pg">
+          ${bgUrl ? `<div class="pg-tex"><img src="${bgUrl}" alt="" style="filter:blur(22px) saturate(0.2) brightness(0.5);opacity:0.6;" /></div>` : ''}
+          <div class="pg-body" style="justify-content:center;gap:10px;">
           <div style="flex:1;"></div>
           <div style="display:flex;gap:8px;width:100%;">
             ${portraitBox(p1, TRIP.traveler || 'Traveler', 'closing-portrait')}
