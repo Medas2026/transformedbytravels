@@ -856,11 +856,11 @@ function renderDay(dayIndex) {
         <input type="file" accept="image/*" multiple style="display:none;" onchange="handleMultiPhoto(event,${dayIndex})" />
       </label>
       <div class="photo-grid photo-grid-3" style="margin-bottom:18px;">
-        ${photoSlotHtml('day' + dayIndex + '-hero', 'hero', 'Hero', st.heroUrl, st.heroUrl ? 'Hero' : null)}
-        ${photoSlotHtml('day' + dayIndex + '-p2',   'thumb','Photo 2', st.photo2Url, null)}
-        ${photoSlotHtml('day' + dayIndex + '-p3',   'thumb','Photo 3', st.photo3Url, null)}
+        ${photoSlotHtml('day' + dayIndex + '-hero', 'hero', 'Full Page', st.heroUrl, st.heroUrl ? 'Full Page' : null)}
+        ${photoSlotHtml('day' + dayIndex + '-p2',   'thumb','Support 1', st.photo2Url, null)}
+        ${photoSlotHtml('day' + dayIndex + '-p3',   'thumb','Support 2', st.photo3Url, null)}
       </div>
-      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:16px;">Select up to 3 photos at once, or tap individual slots to swap. The first photo leads the chapter.</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:16px;">The first photo fills the right page on its own. Support photos pair together on the left page alongside your text.</div>
     </div>
 
     <div class="card">
@@ -872,20 +872,6 @@ function renderDay(dayIndex) {
         <div class="hint" style="margin-top:8px;">2–4 sentences is all you need. Edit freely after generating.</div>
       </div>
     </div>
-    ${(() => {
-      if (dayIndex === 0) return '';
-      const prev = TRIP.days[dayIndex - 1];
-      if (!prev || prev.park === d.park) return '';
-      const slug = d.park.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-      const slotId = 'teaser-' + slug;
-      return `<div class="card">
-        <div class="card-title">Transition Photo — ${d.park} <span style="font-weight:400;color:var(--muted);font-size:0.75rem;">(optional)</span></div>
-        <p style="font-size:0.78rem;color:var(--soft);margin-bottom:14px;">Appears as a full-page photo with "${d.park}" overlaid at the bottom, bridging the two destinations.</p>
-        <div style="max-width:220px;">
-          ${photoSlotHtml(slotId, 'hero', 'Transition Photo', STATE.teasers[slug] || null, null)}
-        </div>
-      </div>`;
-    })()}
     ${navHtml(false)}`;
 }
 
@@ -1019,7 +1005,6 @@ function showPreview() {
 
   try {
   groupDests().forEach(dest => {
-    if (pages.length % 2 !== 0) pages.push({ type: 'dest-teaser', dest });
     // Use the first day that has a hero photo as the destination opener photo
     const bestHeroDay = dest.days.find(d => STATE.days[d.index].heroUrl);
     const destSt = bestHeroDay ? STATE.days[bestHeroDay.index] : STATE.days[dest.days[0].index];
@@ -1028,10 +1013,11 @@ function showPreview() {
     pages.push({ type: 'dest-map', dest });
     dest.days.forEach((day, di) => {
       const st = STATE.days[day.index];
-      // Skip day-photo for the day already used as the destination opener
-      const usedAsOpener = bestHeroDay && day.index === bestHeroDay.index;
-      if (!usedAsOpener && st.heroUrl) pages.push({ type: 'day-photo', day, st });
-      if (st.reflection || st.photo2Url || st.photo3Url) pages.push({ type: 'day-text', day, st });
+      if (st.reflection || st.photo2Url || st.photo3Url || st.heroUrl) {
+        // Left: text + support photos. Right: full hero photo.
+        pages.push({ type: 'day-text', day, st });
+        pages.push(st.heroUrl ? { type: 'day-photo', day, st } : { type: 'blank' });
+      }
     });
   });
   } catch(e) { /* day loop guard */ }
