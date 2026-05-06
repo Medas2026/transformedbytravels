@@ -490,7 +490,7 @@ const STATE = {
   currentStep: 0,
   cover: { photoUrl: null, spreadPhotoUrl: null, title: '', subtitle: '' },
   opening: { introText: '', mapIncluded: true },
-  days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, reflection: '', narrative: '' })),
+  days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, photo4Url: null, reflection: '', narrative: '' })),
   closing: { photoUrl: null, portraitUrl: null, portrait2Url: null, text: '', backCoverUrl: null, backCoverText: '' },
   company: { photoUrl: null, photo2Url: null, guideNote: '', companyName: '' },
   teasers: {},
@@ -667,9 +667,9 @@ async function uploadToCloudinary(file) {
 }
 
 async function handleMultiPhoto(e, dayIndex) {
-  const files = Array.from(e.target.files).slice(0, 3);
+  const files = Array.from(e.target.files).slice(0, 4);
   if (!files.length) return;
-  const slots = ['hero', 'p2', 'p3'];
+  const slots = ['hero', 'p2', 'p3', 'p4'];
   const btn = document.getElementById('multi-upload-btn-' + dayIndex);
   if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
 
@@ -730,6 +730,7 @@ function storePhotoUrl(id, url) {
       if (role === 'hero') STATE.days[di].heroUrl   = url;
       if (role === 'p2')   STATE.days[di].photo2Url = url;
       if (role === 'p3')   STATE.days[di].photo3Url = url;
+      if (role === 'p4')   STATE.days[di].photo4Url = url;
     }
     const mt = id.match(/^teaser-(.+)$/);
     if (mt) STATE.teasers[mt[1]] = url;
@@ -753,6 +754,7 @@ function removePhoto(e, id) {
       if (role === 'hero') STATE.days[di].heroUrl   = null;
       if (role === 'p2')   STATE.days[di].photo2Url = null;
       if (role === 'p3')   STATE.days[di].photo3Url = null;
+      if (role === 'p4')   STATE.days[di].photo4Url = null;
     }
     const mt = id.match(/^teaser-(.+)$/);
     if (mt) STATE.teasers[mt[1]] = null;
@@ -855,12 +857,18 @@ function renderDay(dayIndex) {
         📷 Upload Day Photos
         <input type="file" accept="image/*" multiple style="display:none;" onchange="handleMultiPhoto(event,${dayIndex})" />
       </label>
+      <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:6px;">Destination Opener</div>
+      <div style="font-size:0.72rem;color:var(--soft);margin-bottom:10px;">Fills the full destination title page when this day starts a new location.</div>
+      <div class="photo-grid photo-grid-1" style="max-width:220px;margin-bottom:16px;">
+        ${photoSlotHtml('day' + dayIndex + '-hero', 'hero', 'Opener', st.heroUrl, st.heroUrl ? 'Opener' : null)}
+      </div>
+      <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:6px;">Day Spread</div>
+      <div style="font-size:0.72rem;color:var(--soft);margin-bottom:10px;">Support photos pair with your text on the left page. Right Page fills the full right side.</div>
       <div class="photo-grid photo-grid-3" style="margin-bottom:18px;">
-        ${photoSlotHtml('day' + dayIndex + '-hero', 'hero', 'Full Page', st.heroUrl, st.heroUrl ? 'Full Page' : null)}
         ${photoSlotHtml('day' + dayIndex + '-p2',   'thumb','Support 1', st.photo2Url, null)}
         ${photoSlotHtml('day' + dayIndex + '-p3',   'thumb','Support 2', st.photo3Url, null)}
+        ${photoSlotHtml('day' + dayIndex + '-p4',   'thumb','Right Page', st.photo4Url, null)}
       </div>
-      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:16px;">The first photo fills the right page on its own. Support photos pair together on the left page alongside your text.</div>
     </div>
 
     <div class="card">
@@ -1013,10 +1021,10 @@ function showPreview() {
     pages.push({ type: 'dest-map', dest });
     dest.days.forEach((day, di) => {
       const st = STATE.days[day.index];
-      if (st.reflection || st.photo2Url || st.photo3Url || st.heroUrl) {
-        // Left: text + support photos. Right: full hero photo.
+      if (st.reflection || st.photo2Url || st.photo3Url || st.photo4Url || st.heroUrl) {
+        // Left: text + support photos. Right: photo4Url (or heroUrl fallback).
         pages.push({ type: 'day-text', day, st });
-        pages.push(st.heroUrl ? { type: 'day-photo', day, st } : { type: 'blank' });
+        pages.push((st.photo4Url || st.heroUrl) ? { type: 'day-photo', day, st } : { type: 'blank' });
       }
     });
   });
@@ -1026,7 +1034,7 @@ function showPreview() {
   TRIP.days.forEach((d, i) => {
     if (!isDayGateway(d)) return;
     const st = STATE.days[i];
-    if (!st || (!st.heroUrl && !st.photo2Url && !st.photo3Url && !st.reflection)) return;
+    if (!st || (!st.heroUrl && !st.photo2Url && !st.photo3Url && !st.photo4Url && !st.reflection)) return;
     const day = Object.assign({}, d, { index: i, displayNum: d.num });
     pages.push({ type: 'day-text', day, st });
     pages.push(st.heroUrl ? { type: 'day-photo', day, st } : { type: 'blank' });
@@ -1221,9 +1229,10 @@ function showPreview() {
 
       case 'day-photo': {
         const { day, st } = p;
-        const heroId = 'day' + day.index + '-hero';
+        const rightUrl = st.photo4Url || st.heroUrl;
+        const rightId  = st.photo4Url ? 'day' + day.index + '-p4' : 'day' + day.index + '-hero';
         return `<div class="pg">
-          <img src="${st.heroUrl}" class="pg-photo-abs" id="pgimg-${heroId}" style="object-position:${photoPos(heroId)};" alt="Day ${day.displayNum}" />
+          <img src="${rightUrl}" class="pg-photo-abs" id="pgimg-${rightId}" style="object-position:${photoPos(rightId)};" alt="Day ${day.displayNum}" />
           <div class="pg-overlay"></div>
           <div class="pg-overlay-text">
             <div class="pg-eyebrow">${day.displayNum}</div>
