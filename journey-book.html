@@ -387,7 +387,6 @@ body.read-mode .preview-actions { border-top: none; margin-top: 20px; padding-to
   }
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 </head>
 <body>
 
@@ -634,20 +633,7 @@ function photoSlotHtml(id, cls, label, existingUrl, roleTag) {
   </div>`;
 }
 
-async function maybeConvertHeic(file) {
-  const isHeic = file.type === 'image/heic' || file.type === 'image/heif'
-    || /\.(heic|heif)$/i.test(file.name);
-  if (!isHeic || typeof heic2any === 'undefined') return file;
-  try {
-    const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 });
-    return Array.isArray(blob) ? blob[0] : blob;
-  } catch(e) {
-    return file;
-  }
-}
-
 async function compressImage(file, maxDim = 2048, quality = 0.85) {
-  file = await maybeConvertHeic(file);
   return new Promise(resolve => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -668,16 +654,18 @@ async function compressImage(file, maxDim = 2048, quality = 0.85) {
 }
 
 async function uploadToCloudinary(file) {
-  const compressed = await compressImage(file);
+  const isHeic = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
+  const compressed = isHeic ? file : await compressImage(file);
   const folder = 'journey-books/' + SESSION_ID;
   const fd = new FormData();
-  fd.append('file', compressed, 'photo.jpg');
+  fd.append('file', compressed, isHeic ? 'photo.heic' : 'photo.jpg');
   fd.append('upload_preset', 'Trip Image');
   fd.append('folder', folder);
   const resp = await fetch('https://api.cloudinary.com/v1_1/dporenlvw/image/upload', { method: 'POST', body: fd });
   const data = await resp.json();
   if (!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
-  return data.secure_url;
+  // Cloudinary accepts HEIC but browsers can't display it — force JPEG delivery
+  return isHeic ? data.secure_url.replace('/image/upload/', '/image/upload/f_jpg,q_auto/') : data.secure_url;
 }
 
 async function handleMultiPhoto(e, dayIndex) {
