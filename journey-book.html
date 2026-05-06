@@ -1202,34 +1202,61 @@ function showPreview() {
       }
 
       case 'route-map': {
-        // Build unique parks with coordinates from TRIP.days
-        const seen = new Set();
-        const parkList = [];
+        // Gateway coordinate lookup
+        const RM_GW_COORDS = {
+          'entebbe':[32.47,0.06],'kampala':[32.58,0.32],'nairobi':[36.82,-1.29],
+          'dar es salaam':[39.27,-6.81],'johannesburg':[28.04,-26.20],
+          'cape town':[18.42,-33.93],'kigali':[30.06,-1.94],'addis ababa':[38.74,9.03],
+        };
+        function rmGwCoords(city) {
+          const l = (city || '').toLowerCase();
+          for (const [k, c] of Object.entries(RM_GW_COORDS)) { if (l.includes(k)) return c; }
+          return null;
+        }
+        // Find arrival and departure gateway cities
+        const rmFirstGw = TRIP.days.find(d => isDayGateway(d));
+        const rmLastGw  = [...TRIP.days].reverse().find(d => isDayGateway(d));
+        const rmArrCity = rmFirstGw ? rmFirstGw.location.split(' → ').pop().trim() : '';
+        const rmDepCity = rmLastGw  ? rmLastGw.location.split(' → ').pop().trim()  : '';
+        const rmArrC    = rmGwCoords(rmArrCity);
+        const rmDepC    = rmGwCoords(rmDepCity);
+        const rmSameGw  = rmArrCity.toLowerCase() === rmDepCity.toLowerCase();
+        // Build ordered pin list: arrival gateway → safari parks → departure (if different)
+        const allPins = [];
+        if (rmArrCity && rmArrC) allPins.push({ label: rmArrCity, lon: rmArrC[0], lat: rmArrC[1] });
+        const rmSeen = new Set();
         TRIP.days.forEach(d => {
-          if (d.park && !seen.has(d.park) && !isDayGateway(d)) {
-            seen.add(d.park);
-            parkList.push({ park: d.park, lon: d.lon, lat: d.lat });
+          if (d.park && !rmSeen.has(d.park) && !isDayGateway(d)) {
+            rmSeen.add(d.park);
+            allPins.push({ label: d.park, lon: d.lon || null, lat: d.lat || null });
           }
         });
-        const pinsWithCoords = parkList.filter(p => p.lon && p.lat);
+        if (!rmSameGw && rmDepCity && rmDepC) allPins.push({ label: rmDepCity, lon: rmDepC[0], lat: rmDepC[1] });
+        // Build pin string from pins that have coordinates
+        const pinsWithCoords = allPins.filter(p => p.lon && p.lat);
         const pinStr = pinsWithCoords.map((p, i) => `pin-s-${i + 1}+000000(${p.lon},${p.lat})`).join(',');
         const mapSrc = window._mapboxToken && pinStr
           ? `https://api.mapbox.com/styles/v1/${mapboxStyle()}/static/${pinStr}/auto/600x600@2x?padding=50&access_token=${window._mapboxToken}`
           : (window._mapboxToken
             ? `https://api.mapbox.com/styles/v1/${mapboxStyle()}/static/31.0,0.5,6.2/600x600@2x?access_token=${window._mapboxToken}`
             : '');
-        const legend = parkList.map((p, i) =>
-          `<div style="display:flex;align-items:baseline;gap:4px;margin-bottom:2px;">
-            <span style="font-family:'Montserrat';font-weight:700;font-size:0.42rem;color:var(--teal);flex-shrink:0;">${i + 1}</span>
-            <span style="font-size:0.42rem;color:rgba(255,255,255,0.8);font-family:'Montserrat';font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">${p.park}</span>
+        // Legend items (all pins in order, even those without coords)
+        const legendItems = allPins.map((p, i) =>
+          `<div style="display:flex;align-items:baseline;gap:3px;">
+            <span style="font-family:'Montserrat';font-weight:700;font-size:0.38rem;color:var(--teal);flex-shrink:0;">${i + 1}</span>
+            <span style="font-size:0.38rem;color:rgba(255,255,255,0.85);font-family:'Montserrat';font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">${p.label}</span>
           </div>`
         ).join('');
-        return `<div class="pg">
-          <img id="route-map-img" src="${mapSrc}" class="pg-map-abs" alt="Route map" style="${mapSrc ? '' : 'display:none;'}" />
-          ${!mapSrc ? texHtml(texUrl) : ''}
-          <div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.5) 0%,transparent 40%,transparent 50%,rgba(0,0,0,0.75) 100%);"></div>
-          <div style="position:absolute;top:10px;left:12px;z-index:2;"><div class="pg-eyebrow">${TRIP.destination} Circuit</div></div>
-          <div class="pg-overlay-text" style="padding:10px 12px;">${legend}</div>
+        return `<div class="pg" style="display:flex;flex-direction:column;">
+          <div style="position:relative;flex:1;min-height:0;">
+            <img id="route-map-img" src="${mapSrc}" class="pg-map-abs" alt="Route map" style="${mapSrc ? '' : 'display:none;'}" />
+            ${!mapSrc ? texHtml(texUrl) : ''}
+            <div class="pg-overlay" style="background:linear-gradient(to bottom,rgba(0,0,0,0.5) 0%,transparent 35%,transparent 100%);"></div>
+            <div style="position:absolute;top:10px;left:12px;z-index:2;"><div class="pg-eyebrow">${TRIP.destination} Circuit</div></div>
+          </div>
+          <div style="background:#000;padding:7px 12px;flex-shrink:0;">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px 10px;">${legendItems}</div>
+          </div>
           ${num}</div>`;
       }
 
@@ -1751,10 +1778,30 @@ async function injectMaps() {
     // Route map
     const el = document.getElementById('route-map-img');
     if (el) {
-      const seen = new Set(); const pts = [];
-      TRIP.days.forEach(d => { if (d.park && !seen.has(d.park) && d.lon && d.lat) { seen.add(d.park); pts.push(d); } });
-      if (pts.length) {
-        const pinStr = pts.map((d, i) => `pin-s-${i+1}+000000(${d.lon},${d.lat})`).join(',');
+      const INJ_GW_COORDS = {
+        'entebbe':[32.47,0.06],'kampala':[32.58,0.32],'nairobi':[36.82,-1.29],
+        'dar es salaam':[39.27,-6.81],'johannesburg':[28.04,-26.20],
+        'cape town':[18.42,-33.93],'kigali':[30.06,-1.94],'addis ababa':[38.74,9.03],
+      };
+      function injGwC(city) {
+        const l = (city || '').toLowerCase();
+        for (const [k, c] of Object.entries(INJ_GW_COORDS)) { if (l.includes(k)) return c; }
+        return null;
+      }
+      const injFirstGw = TRIP.days.find(d => isDayGateway(d));
+      const injLastGw  = [...TRIP.days].reverse().find(d => isDayGateway(d));
+      const injArrCity = injFirstGw ? injFirstGw.location.split(' → ').pop().trim() : '';
+      const injDepCity = injLastGw  ? injLastGw.location.split(' → ').pop().trim()  : '';
+      const injArrC    = injGwC(injArrCity);
+      const injDepC    = injGwC(injDepCity);
+      const injSameGw  = injArrCity.toLowerCase() === injDepCity.toLowerCase();
+      const injPts = [];
+      if (injArrCity && injArrC) injPts.push([injArrC[0], injArrC[1]]);
+      const injSeen = new Set();
+      TRIP.days.forEach(d => { if (d.park && !injSeen.has(d.park) && !isDayGateway(d) && d.lon && d.lat) { injSeen.add(d.park); injPts.push([d.lon, d.lat]); } });
+      if (!injSameGw && injDepCity && injDepC) injPts.push([injDepC[0], injDepC[1]]);
+      if (injPts.length) {
+        const pinStr = injPts.map(([lon, lat], i) => `pin-s-${i+1}+000000(${lon},${lat})`).join(',');
         el.src = `https://api.mapbox.com/styles/v1/${mapboxStyle()}/static/${pinStr}/auto/600x600@2x?padding=50&access_token=${window._mapboxToken}`;
         el.style.display = '';
       }
