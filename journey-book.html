@@ -490,7 +490,7 @@ const STATE = {
   currentStep: 0,
   cover: { photoUrl: null, spreadPhotoUrl: null, title: '', subtitle: '', spreadTitle: '' },
   opening: { introText: '', mapIncluded: true },
-  days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, photo4Url: null, reflection: '', narrative: '' })),
+  days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, photo4Url: null, photo5Url: null, photo6Url: null, photo7Url: null, reflection: '', narrative: '' })),
   closing: { photoUrl: null, portraitUrl: null, portrait2Url: null, text: '', backCoverUrl: null, backCoverText: '', panoramaTitle: '' },
   company: { photoUrl: null, photo2Url: null, guideNote: '', companyName: '' },
   teasers: {},
@@ -726,13 +726,16 @@ function storePhotoUrl(id, url) {
   else if (id === 'company-1')        STATE.company.photoUrl    = url;
   else if (id === 'company-2')        STATE.company.photo2Url   = url;
   else {
-    const m = id.match(/^day(\d+)-(hero|p2|p3|p4)$/);
+    const m = id.match(/^day(\d+)-(hero|p2|p3|p4|p5|p6|p7)$/);
     if (m) {
       const di = parseInt(m[1]), role = m[2];
       if (role === 'hero') STATE.days[di].heroUrl   = url;
       if (role === 'p2')   STATE.days[di].photo2Url = url;
       if (role === 'p3')   STATE.days[di].photo3Url = url;
       if (role === 'p4')   STATE.days[di].photo4Url = url;
+      if (role === 'p5')   STATE.days[di].photo5Url = url;
+      if (role === 'p6')   STATE.days[di].photo6Url = url;
+      if (role === 'p7')   STATE.days[di].photo7Url = url;
     }
     const mt = id.match(/^teaser-(.+)$/);
     if (mt) STATE.teasers[mt[1]] = url;
@@ -750,13 +753,16 @@ function removePhoto(e, id) {
   else if (id === 'company-1')        STATE.company.photoUrl    = null;
   else if (id === 'company-2')        STATE.company.photo2Url   = null;
   else {
-    const m = id.match(/^day(\d+)-(hero|p2|p3|p4)$/);
+    const m = id.match(/^day(\d+)-(hero|p2|p3|p4|p5|p6|p7)$/);
     if (m) {
       const di = parseInt(m[1]), role = m[2];
       if (role === 'hero') STATE.days[di].heroUrl   = null;
       if (role === 'p2')   STATE.days[di].photo2Url = null;
       if (role === 'p3')   STATE.days[di].photo3Url = null;
       if (role === 'p4')   STATE.days[di].photo4Url = null;
+      if (role === 'p5')   STATE.days[di].photo5Url = null;
+      if (role === 'p6')   STATE.days[di].photo6Url = null;
+      if (role === 'p7')   STATE.days[di].photo7Url = null;
     }
     const mt = id.match(/^teaser-(.+)$/);
     if (mt) STATE.teasers[mt[1]] = null;
@@ -892,6 +898,15 @@ function renderDay(dayIndex) {
         <textarea id="gen-ta-day-${dayIndex}" rows="4" placeholder="A moment, a feeling, something you saw or heard that you want to remember…" oninput="STATE.days[${dayIndex}].reflection=this.value">${st.reflection}</textarea>
         <button class="btn-generate" id="gen-btn-day-${dayIndex}" onclick="generateNarrative('day',${dayIndex})">${st.reflection ? '✦ Regenerate' : '✦ Let us write it'}</button>
         <div class="hint" style="margin-top:8px;">2–4 sentences is all you need. Edit freely after generating.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Additional Photos <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;font-size:0.75rem;">(optional)</span></div>
+      <p style="font-size:0.78rem;color:var(--soft);margin-bottom:14px;">Adds a second spread for this day — two photos side by side on the left, one full page on the right. No extra text needed.</p>
+      <div class="photo-grid photo-grid-3">
+        ${photoSlotHtml('day' + dayIndex + '-p5', 'thumb', 'Left A',     st.photo5Url, null)}
+        ${photoSlotHtml('day' + dayIndex + '-p6', 'thumb', 'Left B',     st.photo6Url, null)}
+        ${photoSlotHtml('day' + dayIndex + '-p7', 'thumb', 'Right Page', st.photo7Url, null)}
       </div>
     </div>
     ${navHtml(false)}`;
@@ -1047,6 +1062,11 @@ function showPreview() {
       if (hasContent) {
         pages.push({ type: 'day-text', day, st });
         pages.push(rightUrl ? { type: 'day-photo', day, st } : { type: 'blank' });
+      }
+      // Optional second spread — purely visual
+      if (st.photo5Url || st.photo6Url || st.photo7Url) {
+        pages.push({ type: 'day-extra-L', day, st });
+        pages.push(st.photo7Url ? { type: 'day-extra-R', day, st } : { type: 'blank' });
       }
     });
   });
@@ -1262,6 +1282,24 @@ function showPreview() {
           <div class="pg-overlay-text">
             <div class="pg-eyebrow">${day.displayNum}</div>
             <div style="font-size:0.48rem;color:rgba(255,255,255,0.7);font-family:'Open Sans';">${day.location}</div>
+          </div>${num}</div>`;
+      }
+
+      case 'day-extra-L': {
+        const { day, st } = p;
+        return `<div class="pg"><div style="display:flex;height:100%;gap:2px;">
+          ${st.photo5Url ? `<img src="${st.photo5Url}" id="pgimg-day${day.index}-p5" style="flex:1;height:100%;object-fit:cover;object-position:${photoPos('day'+day.index+'-p5')};" alt="" />` : '<div style="flex:1;background:rgba(255,255,255,0.03);"></div>'}
+          ${st.photo6Url ? `<img src="${st.photo6Url}" id="pgimg-day${day.index}-p6" style="flex:1;height:100%;object-fit:cover;object-position:${photoPos('day'+day.index+'-p6')};" alt="" />` : '<div style="flex:1;background:rgba(255,255,255,0.03);"></div>'}
+        </div>${num}</div>`;
+      }
+
+      case 'day-extra-R': {
+        const { day, st } = p;
+        return `<div class="pg">
+          <img src="${st.photo7Url}" class="pg-photo-abs" id="pgimg-day${day.index}-p7" style="object-position:${photoPos('day'+day.index+'-p7')};" alt="" />
+          <div class="pg-overlay" style="background:linear-gradient(to top,rgba(0,0,0,0.45) 0%,transparent 40%);"></div>
+          <div class="pg-overlay-text">
+            <div class="pg-eyebrow">${day.displayNum}</div>
           </div>${num}</div>`;
       }
 
