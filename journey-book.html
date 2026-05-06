@@ -724,7 +724,7 @@ function storePhotoUrl(id, url) {
   else if (id === 'company-1')        STATE.company.photoUrl    = url;
   else if (id === 'company-2')        STATE.company.photo2Url   = url;
   else {
-    const m = id.match(/^day(\d+)-(hero|p2|p3)$/);
+    const m = id.match(/^day(\d+)-(hero|p2|p3|p4)$/);
     if (m) {
       const di = parseInt(m[1]), role = m[2];
       if (role === 'hero') STATE.days[di].heroUrl   = url;
@@ -748,7 +748,7 @@ function removePhoto(e, id) {
   else if (id === 'company-1')        STATE.company.photoUrl    = null;
   else if (id === 'company-2')        STATE.company.photo2Url   = null;
   else {
-    const m = id.match(/^day(\d+)-(hero|p2|p3)$/);
+    const m = id.match(/^day(\d+)-(hero|p2|p3|p4)$/);
     if (m) {
       const di = parseInt(m[1]), role = m[2];
       if (role === 'hero') STATE.days[di].heroUrl   = null;
