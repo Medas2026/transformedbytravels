@@ -1022,21 +1022,18 @@ function showPreview() {
   });
   } catch(e) { /* day loop guard */ }
 
+  // Gateway days (arrival/departure) that have photos or text
+  TRIP.days.forEach((d, i) => {
+    if (!isDayGateway(d)) return;
+    const st = STATE.days[i];
+    if (!st || (!st.heroUrl && !st.photo2Url && !st.photo3Url && !st.reflection)) return;
+    const day = Object.assign({}, d, { index: i, displayNum: d.num });
+    pages.push({ type: 'day-text', day, st });
+    pages.push(st.heroUrl ? { type: 'day-photo', day, st } : { type: 'blank' });
+  });
+
   // Safari company / guide spread (always included)
-  if (pages.length % 2 !== 0) {
-    // Use last gateway day's photos instead of blank
-    let gatewayPage = null;
-    for (let gi = TRIP.days.length - 1; gi >= 0; gi--) {
-      if (isDayGateway(TRIP.days[gi]) && STATE.days[gi]) {
-        const gst = STATE.days[gi];
-        if (gst.heroUrl || gst.photo2Url) {
-          gatewayPage = { type: 'gateway-photos', day: TRIP.days[gi], st: gst, index: gi };
-          break;
-        }
-      }
-    }
-    pages.push(gatewayPage || { type: 'blank' });
-  }
+  if (pages.length % 2 !== 0) pages.push({ type: 'blank' });
   pages.push({ type: 'safari-co-L' });
   pages.push({ type: 'safari-co-R' });
 
