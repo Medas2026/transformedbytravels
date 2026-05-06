@@ -491,7 +491,7 @@ const STATE = {
   cover: { photoUrl: null, spreadPhotoUrl: null, title: '', subtitle: '', spreadTitle: '' },
   opening: { introText: '', mapIncluded: true },
   days: TRIP.days.map(d => ({ heroUrl: null, photo2Url: null, photo3Url: null, photo4Url: null, photo5Url: null, photo6Url: null, photo7Url: null, reflection: '', narrative: '' })),
-  closing: { photoUrl: null, portraitUrl: null, portrait2Url: null, text: '', backCoverUrl: null, backCoverText: '', panoramaTitle: '' },
+  closing: { photoUrl: null, portraitUrl: null, portrait2Url: null, partnerName: '', text: '', backCoverUrl: null, backCoverText: '', panoramaTitle: '' },
   company: { photoUrl: null, photo2Url: null, guideNote: '', companyName: '' },
   teasers: {},
   positions: {},
@@ -558,6 +558,8 @@ function updateProgress() {
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-label').textContent = 'Step ' + (STATE.currentStep + 1) + ' of ' + total + ' — ' + STEPS[STATE.currentStep].label;
   document.getElementById('topbar-title').textContent = TRIP.traveler + "'s Journey Book";
+  const tripTitle = STATE.cover.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year);
+  document.title = tripTitle + ' · TransformedByTravels.com';
 }
 
 // ── NAVIGATION ─────────────────────────────────────────────────────────────
@@ -946,7 +948,11 @@ function renderClosing() {
       <div class="hint" style="margin-bottom:12px;">Two photos — you and your travel partner — shown side by side on the right page.</div>
       <div class="photo-grid photo-grid-2" style="gap:12px;">
         ${photoSlotHtml('closing-portrait',  'hero', TRIP.traveler || 'Traveler', c.portraitUrl,  TRIP.traveler || 'Traveler')}
-        ${photoSlotHtml('closing-portrait2', 'hero', 'Travel Partner',            c.portrait2Url, c.portrait2Url ? 'Partner' : null)}
+        ${photoSlotHtml('closing-portrait2', 'hero', 'Travel Partner',            c.portrait2Url, c.portrait2Url ? (c.partnerName || 'Partner') : null)}
+      </div>
+      <div class="field" style="margin-top:14px;margin-bottom:0;">
+        <label>Travel Partner Name</label>
+        <input type="text" value="${c.partnerName || ''}" placeholder="e.g. Kathy" oninput="STATE.closing.partnerName=this.value" />
       </div>
     </div>
 
@@ -1391,7 +1397,7 @@ function showPreview() {
           <div style="flex:1;"></div>
           <div style="display:flex;gap:8px;width:100%;">
             ${portraitBox(p1, TRIP.traveler || 'Traveler', 'closing-portrait')}
-            ${portraitBox(p2, 'Travel Partner', 'closing-portrait2')}
+            ${portraitBox(p2, STATE.closing.partnerName || 'Travel Partner', 'closing-portrait2')}
           </div>
           <div style="font-size:0.42rem;color:var(--muted);text-align:center;padding-top:4px;">${TRIP.destination} · ${TRIP.year}</div>
           </div>${num}</div>`;
@@ -1897,7 +1903,7 @@ async function saveProgress() {
     coverTitle:      STATE.cover.title,
     coverSubtitle:   STATE.cover.subtitle,
     coverPhotoUrl:   sq(STATE.cover.photoUrl) || '',
-    openingText:     JSON.stringify({ text: STATE.opening.introText || '', coverPhotoUrl: sq(STATE.cover.photoUrl), spreadPhotoUrl: sq(STATE.cover.spreadPhotoUrl) || '', spreadTitle: STATE.cover.spreadTitle || '', panoramaTitle: STATE.closing.panoramaTitle || '', teasers: STATE.teasers, positions: STATE.positions, mapStyle: STATE.mapStyle, portrait2Url: sq(STATE.closing.portrait2Url), backCoverUrl: sq(STATE.closing.backCoverUrl), backCoverText: STATE.closing.backCoverText || '' }),
+    openingText:     JSON.stringify({ text: STATE.opening.introText || '', coverPhotoUrl: sq(STATE.cover.photoUrl), spreadPhotoUrl: sq(STATE.cover.spreadPhotoUrl) || '', spreadTitle: STATE.cover.spreadTitle || '', panoramaTitle: STATE.closing.panoramaTitle || '', partnerName: STATE.closing.partnerName || '', teasers: STATE.teasers, positions: STATE.positions, mapStyle: STATE.mapStyle, portrait2Url: sq(STATE.closing.portrait2Url), backCoverUrl: sq(STATE.closing.backCoverUrl), backCoverText: STATE.closing.backCoverText || '' }),
     daysData:        JSON.stringify(STATE.days),
     closingText:      STATE.closing.text              || '',
     closingPhotoUrl:  sq(STATE.closing.photoUrl)      || '',
@@ -1960,6 +1966,7 @@ function applyBookFields(f) {
       if (od.backCoverText !== undefined)   STATE.closing.backCoverText  = od.backCoverText;
       if (od.spreadTitle !== undefined)     STATE.cover.spreadTitle      = od.spreadTitle;
       if (od.panoramaTitle !== undefined)   STATE.closing.panoramaTitle  = od.panoramaTitle;
+      if (od.partnerName !== undefined)     STATE.closing.partnerName    = od.partnerName;
     } catch(e) { STATE.opening.introText = f['Opening Text']; }
   }
   STATE.closing.text        = f['Closing Text']        || '';
