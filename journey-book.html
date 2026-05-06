@@ -1192,10 +1192,9 @@ function showPreview() {
           <tbody>${rows}</tbody>
         </table>`;
         return `<div class="pg">${texHtml(texUrl)}<div class="pg-body">
-          <div class="pg-eyebrow">${TRIP.destination} · ${TRIP.year}</div>
           <div class="pg-title">${title}</div>
           ${STATE.opening.introText
-            ? `<div class="pg-text" style="margin-top:8px;">${STATE.opening.introText}</div>`
+            ? `<div class="pg-text" style="margin-top:3px;">${STATE.opening.introText}</div>`
             : '<div style="flex:1;"></div>'}
           <div style="margin-top:auto;padding-top:8px;">${table}</div>
           </div>${num}</div>`;
