@@ -1012,10 +1012,10 @@ function showPreview() {
 
   // Build flat page list (cover rendered separately)
   const pages = [];
-  pages.push({ type: 'spread-L' });
-  pages.push({ type: 'spread-R' });
   pages.push({ type: 'intro' });
   pages.push({ type: 'route-map' });
+  pages.push({ type: 'spread-L' });
+  pages.push({ type: 'spread-R' });
 
   try {
   groupDests().forEach(dest => {
