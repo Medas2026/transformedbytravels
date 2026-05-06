@@ -355,7 +355,7 @@ body.read-mode .preview-actions { border-top: none; margin-top: 20px; padding-to
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
-  html { font-size: 40px; }
+  html { font-size: 40px !important; }
   body { background: #000 !important; margin: 0 !important; padding: 0 !important; }
 
   .topbar, #sidebar, .mobile-progress, #wizard-view,
@@ -1569,12 +1569,14 @@ function buildReaderPages() {
 function openReader() {
   READER_PAGES = buildReaderPages();
   READER_IDX   = 0;
+  document.documentElement.style.fontSize = '25px';
   document.getElementById('reader-overlay').classList.add('open');
   readerRender();
 }
 
 function closeReader() {
   document.getElementById('reader-overlay').classList.remove('open');
+  document.documentElement.style.fontSize = '';
 }
 
 function readerNav(dir) {
