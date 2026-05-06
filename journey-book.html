@@ -1021,10 +1021,14 @@ function showPreview() {
     pages.push({ type: 'dest-map', dest });
     dest.days.forEach((day, di) => {
       const st = STATE.days[day.index];
-      if (st.reflection || st.photo2Url || st.photo3Url || st.photo4Url || st.heroUrl) {
-        // Left: text + support photos. Right: photo4Url (or heroUrl fallback).
+      const isOpener = bestHeroDay && day.index === bestHeroDay.index;
+      // For opener days the hero is already on the dest-title page — only use photo4Url for the right page.
+      // For all other days fall back to heroUrl if photo4Url not set.
+      const rightUrl = isOpener ? st.photo4Url : (st.photo4Url || st.heroUrl);
+      const hasContent = st.reflection || st.photo2Url || st.photo3Url || st.photo4Url || (!isOpener && st.heroUrl);
+      if (hasContent) {
         pages.push({ type: 'day-text', day, st });
-        pages.push((st.photo4Url || st.heroUrl) ? { type: 'day-photo', day, st } : { type: 'blank' });
+        pages.push(rightUrl ? { type: 'day-photo', day, st } : { type: 'blank' });
       }
     });
   });
