@@ -29,9 +29,7 @@ async function geocode(place, country) {
 async function getHotspots(lat, lng, apiKey) {
   const path = '/v2/ref/hotspot/geo?lat=' + lat + '&lng=' + lng + '&dist=50&back=30&fmt=json';
   const result = await httpsGet({
-    hostname: 'api.ebird.org',
-    path,
-    method: 'GET',
+    hostname: 'api.ebird.org', path, method: 'GET',
     headers: { 'X-eBirdApiToken': apiKey, 'Accept': 'application/json' }
   });
   return Array.isArray(result.body) ? result.body : [];
@@ -40,8 +38,40 @@ async function getHotspots(lat, lng, apiKey) {
 async function getNotableSightings(lat, lng, apiKey) {
   const path = '/v2/data/notable/geo/recent?lat=' + lat + '&lng=' + lng + '&dist=50&back=30&detail=simple&maxResults=30&fmt=json';
   const result = await httpsGet({
+    hostname: 'api.ebird.org', path, method: 'GET',
+    headers: { 'X-eBirdApiToken': apiKey, 'Accept': 'application/json' }
+  });
+  return Array.isArray(result.body) ? result.body : [];
+}
+
+async function getSpeciesList(locId, apiKey) {
+  const result = await httpsGet({
     hostname: 'api.ebird.org',
-    path,
+    path: '/v2/product/spplist/' + locId,
+    method: 'GET',
+    headers: { 'X-eBirdApiToken': apiKey, 'Accept': 'application/json' }
+  });
+  return Array.isArray(result.body) ? result.body : [];
+}
+
+async function getTaxonomy(codes, apiKey) {
+  const results = [];
+  for (let i = 0; i < codes.length; i += 200) {
+    const chunk = codes.slice(i, i + 200);
+    const path = '/v2/ref/taxonomy/ebird?species=' + chunk.join(',') + '&fmt=json';
+    const r = await httpsGet({
+      hostname: 'api.ebird.org', path, method: 'GET',
+      headers: { 'X-eBirdApiToken': apiKey, 'Accept': 'application/json' }
+    });
+    if (Array.isArray(r.body)) results.push(...r.body);
+  }
+  return results;
+}
+
+async function getRecentAtHotspot(locId, apiKey) {
+  const result = await httpsGet({
+    hostname: 'api.ebird.org',
+    path: '/v2/data/obs/' + locId + '/recent?back=30&detail=simple',
     method: 'GET',
     headers: { 'X-eBirdApiToken': apiKey, 'Accept': 'application/json' }
   });
@@ -55,13 +85,46 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { place, country } = req.body || {};
+  const { place, country, type } = req.body || {};
   if (!place) return res.status(400).json({ error: 'place is required' });
 
   const apiKey = (process.env.EBIRD_API_KEY || '').trim();
   if (!apiKey) return res.status(500).json({ error: 'eBird API key not configured' });
 
   try {
+    // ── TARGET SPECIES LIST ───────────────────────────────────────────────────
+    if (type === 'targets') {
+      const coords = await geocode(place, country);
+      if (!coords) return res.status(200).json({ species: [], hotspot: null, error: 'Could not locate ' + place });
+
+      const hotspots = await getHotspots(coords.lat, coords.lng, apiKey);
+      const topHotspot = hotspots.sort((a, b) => (b.numSpeciesAllTime || 0) - (a.numSpeciesAllTime || 0))[0];
+      if (!topHotspot) return res.status(200).json({ species: [], hotspot: null });
+
+      const [codes, recent] = await Promise.all([
+        getSpeciesList(topHotspot.locId, apiKey),
+        getRecentAtHotspot(topHotspot.locId, apiKey),
+      ]);
+
+      const taxonomy = await getTaxonomy(codes, apiKey);
+      const recentCodes = new Set(recent.map(s => s.speciesCode));
+
+      const species = taxonomy.map(t => ({
+        code:         t.speciesCode,
+        comName:      t.comName,
+        sciName:      t.sciName,
+        order:        t.taxonOrder,
+        recentlySeen: recentCodes.has(t.speciesCode),
+      }));
+
+      return res.status(200).json({
+        hotspot:     { name: topHotspot.locName, speciesCount: topHotspot.numSpeciesAllTime, locId: topHotspot.locId },
+        species,
+        recentCount: recentCodes.size,
+      });
+    }
+
+    // ── HOTSPOTS + NOTABLE SIGHTINGS (existing) ───────────────────────────────
     const coords = await geocode(place, country);
     if (!coords) return res.status(200).json({ hotspots: [], sightings: [], error: 'Could not locate ' + place });
 
@@ -70,32 +133,19 @@ module.exports = async function handler(req, res) {
       getNotableSightings(coords.lat, coords.lng, apiKey)
     ]);
 
-    // Top 8 hotspots by numSpeciesAllTime desc
     const topHotspots = hotspots
       .sort((a, b) => (b.numSpeciesAllTime || 0) - (a.numSpeciesAllTime || 0))
       .slice(0, 8)
-      .map(h => ({
-        name:       h.locName,
-        lat:        h.lat,
-        lng:        h.lng,
-        species:    h.numSpeciesAllTime || 0,
-        locId:      h.locId
-      }));
+      .map(h => ({ name: h.locName, lat: h.lat, lng: h.lng, species: h.numSpeciesAllTime || 0, locId: h.locId }));
 
-    // Deduplicate notable sightings by species
     const seen = new Set();
     const topSightings = sightings
       .filter(s => { if (seen.has(s.speciesCode)) return false; seen.add(s.speciesCode); return true; })
       .slice(0, 15)
-      .map(s => ({
-        comName:    s.comName,
-        sciName:    s.sciName,
-        locName:    s.locName,
-        obsDt:      s.obsDt,
-        howMany:    s.howMany || null
-      }));
+      .map(s => ({ comName: s.comName, sciName: s.sciName, locName: s.locName, obsDt: s.obsDt, howMany: s.howMany || null }));
 
     return res.status(200).json({ hotspots: topHotspots, sightings: topSightings });
+
   } catch(e) {
     console.error('birding error:', e.message);
     return res.status(500).json({ error: e.message });

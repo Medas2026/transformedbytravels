@@ -1066,12 +1066,36 @@
           <!-- Journey Book -->
           <div id="journey-book-section" class="profile-section" style="display:none;">
             <div class="profile-section-title" style="margin-bottom:12px;padding-bottom:10px;">📖 Journey Book</div>
-            <p style="font-size:0.85rem;color:var(--soft);line-height:1.7;margin-bottom:14px;">Send the traveler a personalized link to build their Journey Book — a photo book of their trip with AI-assisted narratives.</p>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-              <button onclick="sendJourneyBookLink()" id="jb-send-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 24px;cursor:pointer;">✉ Send Journey Book Link</button>
+
+            <!-- Build link -->
+            <p style="font-size:0.85rem;color:var(--soft);line-height:1.7;margin-bottom:10px;">Send a build link so the traveler can create their Journey Book.</p>
+            <div style="margin-bottom:10px;">
+              <label style="font-size:0.78rem;color:var(--soft);display:block;margin-bottom:4px;">Send to</label>
+              <input id="jb-recipient-email" type="email" placeholder="traveler, co-traveler, or partner email" style="width:100%;max-width:320px;background:#1e293b;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:#f1f5f9;font-family:'Montserrat',sans-serif;font-size:0.85rem;box-sizing:border-box;" />
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
+              <button onclick="sendJourneyBookLink()" id="jb-send-btn" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 24px;cursor:pointer;">✉ Send Build Link</button>
+              <button onclick="sendPhotoUploadLink()" id="jb-photo-btn" style="background:var(--gold);color:#0d1520;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 24px;cursor:pointer;">📷 Send Photo Upload Link</button>
               <button onclick="openJourneyBook()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border-radius:8px;padding:11px 24px;cursor:pointer;">👁 Preview Book</button>
             </div>
-            <div id="jb-send-msg" style="display:none;font-size:0.82rem;margin-top:10px;"></div>
+            <div id="jb-send-msg" style="display:none;font-size:0.82rem;margin-top:6px;margin-bottom:14px;"></div>
+
+            <!-- Share finished book -->
+            <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:14px;margin-top:4px;">
+              <p style="font-size:0.85rem;color:var(--soft);line-height:1.7;margin-bottom:10px;">When the book is finished, share the read-only digital version with the traveler and their travel partner.</p>
+              <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:180px;">
+                  <label style="font-size:0.78rem;color:var(--soft);display:block;margin-bottom:4px;">Traveler email</label>
+                  <input id="jb-share-traveler" type="email" placeholder="traveler@email.com" style="width:100%;background:#1e293b;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:#f1f5f9;font-family:'Montserrat',sans-serif;font-size:0.85rem;box-sizing:border-box;" />
+                </div>
+                <div style="flex:1;min-width:180px;">
+                  <label style="font-size:0.78rem;color:var(--soft);display:block;margin-bottom:4px;">Partner email <span style="opacity:0.5;">(optional)</span></label>
+                  <input id="jb-share-partner" type="email" placeholder="partner@email.com" style="width:100%;background:#1e293b;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 12px;color:#f1f5f9;font-family:'Montserrat',sans-serif;font-size:0.85rem;box-sizing:border-box;" />
+                </div>
+              </div>
+              <button onclick="shareFinishedBook()" id="jb-share-btn" style="background:var(--gold);color:#0d1520;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;padding:11px 24px;cursor:pointer;">✉ Share Finished Book</button>
+              <div id="jb-share-msg" style="display:none;font-size:0.82rem;margin-top:8px;"></div>
+            </div>
           </div>
 
           <!-- Save / Cancel row -->
@@ -2971,9 +2995,9 @@ async function sendJourneyBookLink() {
   if (!currentTripId) return;
   const btn = document.getElementById('jb-send-btn');
   const msg = document.getElementById('jb-send-msg');
-  const email = currentTripEmail;
-  if (!email) {
-    msg.textContent = '⚠ No traveler email on this trip record.';
+  const toEmail = (document.getElementById('jb-recipient-email')?.value || '').trim();
+  if (!toEmail) {
+    msg.textContent = '⚠ Enter a recipient email address.';
     msg.style.color = '#f43f5e';
     msg.style.display = 'block';
     return;
@@ -2985,11 +3009,11 @@ async function sendJourneyBookLink() {
     const resp = await fetch('/api/trip-action', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'journey-book', tripId: currentTripId, email }),
+      body: JSON.stringify({ action: 'journey-book', tripId: currentTripId, email: toEmail }),
     });
     const data = await resp.json();
     if (data.ok) {
-      msg.textContent = '✓ Sent to ' + email;
+      msg.textContent = '✓ Sent to ' + toEmail;
       msg.style.color = '#2dd4bf';
     } else {
       msg.textContent = '⚠ ' + (data.error || 'Send failed');
@@ -3002,6 +3026,73 @@ async function sendJourneyBookLink() {
   msg.style.display = 'block';
   btn.disabled = false;
   btn.textContent = '✉ Send Journey Book Link';
+}
+
+async function sendPhotoUploadLink() {
+  if (!currentTripId) return;
+  const toEmail = (document.getElementById('jb-recipient-email')?.value || '').trim();
+  if (!toEmail) {
+    const msg = document.getElementById('jb-send-msg');
+    msg.textContent = '⚠ Enter a recipient email address.';
+    msg.style.color = '#f43f5e';
+    msg.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('jb-photo-btn');
+  const msg = document.getElementById('jb-send-msg');
+  btn.disabled = true; btn.textContent = 'Sending…'; msg.style.display = 'none';
+  try {
+    const resp = await fetch('/api/trip-action', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'journey-book-photos', tripId: currentTripId, email: toEmail }),
+    });
+    const data = await resp.json();
+    msg.textContent = data.ok ? '✓ Photo upload link sent to ' + toEmail : '⚠ ' + (data.error || 'Send failed');
+    msg.style.color  = data.ok ? '#2dd4bf' : '#f43f5e';
+  } catch(e) {
+    msg.textContent = '⚠ Network error'; msg.style.color = '#f43f5e';
+  }
+  msg.style.display = 'block';
+  btn.disabled = false; btn.textContent = '📷 Send Photo Upload Link';
+}
+
+async function shareFinishedBook() {
+  if (!currentTripId) return;
+  const travelerEmail = (document.getElementById('jb-share-traveler')?.value || '').trim();
+  const partnerEmail  = (document.getElementById('jb-share-partner')?.value  || '').trim();
+  if (!travelerEmail && !partnerEmail) {
+    const msg = document.getElementById('jb-share-msg');
+    msg.textContent = '⚠ Enter at least one email address.';
+    msg.style.color = '#f43f5e';
+    msg.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('jb-share-btn');
+  const msg = document.getElementById('jb-share-msg');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  msg.style.display = 'none';
+
+  const recipients = [travelerEmail, partnerEmail].filter(Boolean);
+  const results = await Promise.all(recipients.map(email =>
+    fetch('/api/trip-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'journey-book-view', tripId: currentTripId, email }),
+    }).then(r => r.json()).catch(() => ({ error: 'Network error' }))
+  ));
+
+  const anyError = results.find(r => r.error);
+  if (anyError) {
+    msg.textContent = '⚠ ' + anyError.error;
+    msg.style.color = '#f43f5e';
+  } else {
+    msg.textContent = '✓ Sent to ' + recipients.join(' and ');
+    msg.style.color = '#2dd4bf';
+  }
+  msg.style.display = 'block';
+  btn.disabled = false;
+  btn.textContent = '✉ Share Finished Book';
 }
 
 // BUILD ITINERARY
@@ -5799,6 +5890,10 @@ function openTrip(record) {
   currentTripDestination = record.fields['Destination'] || '';
   currentTripCountry     = record.fields['Country']     || '';
   currentTripEmail       = record.fields['Traveler Email'] || '';
+  const _jbInput = document.getElementById('jb-recipient-email');
+  if (_jbInput) _jbInput.value = '';
+  const _jbShareTraveler = document.getElementById('jb-share-traveler');
+  if (_jbShareTraveler) _jbShareTraveler.value = currentTripEmail;
   _scheduleRecords = [];
   _lodgingRecords  = [];
   _lodgingMap      = {};
@@ -6390,9 +6485,63 @@ async function loadActivityBirding(i) {
         </div>
       </div>`).join('');
     }
+    // Target species button
+    html += `<div style="margin-top:16px;">
+      <button onclick="loadBirdingTargets(${i})" style="background:var(--teal);color:#000;border:none;border-radius:6px;padding:8px 16px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;letter-spacing:0.05em;">
+        View Target Species List
+      </button>
+      <div id="bird-targets-${i}" style="margin-top:12px;"></div>
+    </div>`;
     body.innerHTML = html;
     document.getElementById('exp-modal-done').style.display = 'block';
   } catch(e) { _setErrEl(body, 'Error: ' + e.message); }
+}
+
+async function loadBirdingTargets(i) {
+  const p = TRIP.days[i];
+  const el = document.getElementById('bird-targets-' + i);
+  if (!el) return;
+  el.innerHTML = '<p style="color:var(--muted);font-style:italic;font-size:0.82rem;">Loading species list…</p>';
+  try {
+    const resp = await fetch('/api/birding', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ place: p.place, country: p.country, type: 'targets' })
+    });
+    const data = await resp.json();
+    if (!data.species || !data.species.length) {
+      el.innerHTML = '<p style="color:var(--muted);font-size:0.82rem;">No species list found.</p>'; return;
+    }
+    const recent  = data.species.filter(s => s.recentlySeen);
+    const allRest = data.species.filter(s => !s.recentlySeen);
+    const hotspot = data.hotspot;
+
+    let html = `<div style="font-size:0.75rem;color:var(--muted);margin-bottom:10px;">
+      Source: <span style="color:var(--soft);">${hotspot ? hotspot.name : ''}</span>
+      · <span style="color:#86efac;">${data.recentCount} seen in last 30 days</span>
+      · ${data.species.length} species recorded all-time
+      ${hotspot ? `· <a href="https://ebird.org/hotspot/${hotspot.locId}" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:none;">↗ eBird</a>` : ''}
+    </div>`;
+
+    if (recent.length) {
+      html += `<div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;color:#86efac;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Recently Seen (last 30 days)</div>`;
+      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:14px;">` +
+        recent.map(s => `<div style="background:rgba(134,239,172,0.06);border-radius:5px;padding:5px 8px;">
+          <div style="font-size:0.78rem;color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;">${s.comName}</div>
+          <div style="font-size:0.68rem;color:var(--muted);font-style:italic;">${s.sciName}</div>
+        </div>`).join('') + `</div>`;
+    }
+
+    if (allRest.length) {
+      html += `<div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">All Recorded Species</div>`;
+      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;">` +
+        allRest.map(s => `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="font-size:0.75rem;color:var(--soft);">${s.comName}</div>
+          <div style="font-size:0.65rem;color:var(--muted);font-style:italic;">${s.sciName}</div>
+        </div>`).join('') + `</div>`;
+    }
+
+    el.innerHTML = html;
+  } catch(e) { el.innerHTML = '<p style="color:var(--muted);font-size:0.82rem;">Error: ' + e.message + '</p>'; }
 }
 
 // Generic Claude-powered activity loader for all remaining passion types
