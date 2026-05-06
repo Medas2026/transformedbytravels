@@ -558,8 +558,6 @@ function updateProgress() {
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-label').textContent = 'Step ' + (STATE.currentStep + 1) + ' of ' + total + ' — ' + STEPS[STATE.currentStep].label;
   document.getElementById('topbar-title').textContent = TRIP.traveler + "'s Journey Book";
-  const tripTitle = STATE.cover.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year);
-  document.title = tripTitle + ' · TransformedByTravels.com';
 }
 
 // ── NAVIGATION ─────────────────────────────────────────────────────────────
@@ -2066,6 +2064,7 @@ async function loadProgress() {
     } catch(e) {}
   }
   await loadProgress();
+  document.title = (STATE.cover.title || (TRIP.destination + ' · ' + TRIP.traveler + ' · ' + TRIP.year)) + ' · TransformedByTravels.com';
   const params    = new URLSearchParams(window.location.search);
   const readMode  = params.get('view')   === '1';
   const photoMode = params.get('photos') === '1';
