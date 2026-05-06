@@ -68,7 +68,7 @@ Write in first person only ("I", "me", "my") — never second or third person. T
       },
       body: JSON.stringify({
         model:      'claude-haiku-4-5-20251001',
-        max_tokens: 150,
+        max_tokens: (type === 'opening' || type === 'closing') ? 350 : 150,
         messages:   [{ role: 'user', content: prompt }],
       }),
     });
