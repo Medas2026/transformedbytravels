@@ -7438,18 +7438,35 @@ async function _doCancelTrip() {
   msg.style.color   = '#ef4444';
   msg.textContent   = 'Removing…';
   try {
+    const tripId = currentTripId;
+
+    // Delete the trip record
     const resp = await fetch('/api/trips', {
       method:  'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ id: currentTripId })
+      body:    JSON.stringify({ id: tripId })
     });
     const data = await resp.json();
-    if (data.success) {
-      currentTripId = null;
-      closeTripDetail();
-    } else {
-      msg.textContent = 'Error: ' + (data.error || 'Could not remove trip.');
-    }
+    if (!data.success) { msg.textContent = 'Error: ' + (data.error || 'Could not remove trip.'); return; }
+
+    // Delete all schedule days for this trip
+    try {
+      const daysResp = await fetch('/api/trip-days?tripId=' + encodeURIComponent(tripId));
+      const daysData = await daysResp.json();
+      const dayIds   = (daysData.records || []).map(r => r.id).filter(Boolean);
+      await Promise.all(dayIds.map(id => fetch('/api/trip-days?id=' + encodeURIComponent(id), { method: 'DELETE' })));
+    } catch(e) { /* non-critical — orphaned days are harmless */ }
+
+    // Delete all places for this trip
+    try {
+      const placesResp = await fetch('/api/trip-places?tripId=' + encodeURIComponent(tripId));
+      const placesData = await placesResp.json();
+      const placeIds   = (placesData.records || []).map(r => r.id).filter(Boolean);
+      await Promise.all(placeIds.map(id => fetch('/api/trip-places?id=' + encodeURIComponent(id), { method: 'DELETE' })));
+    } catch(e) { /* non-critical */ }
+
+    currentTripId = null;
+    closeTripDetail();
   } catch(e) {
     msg.textContent = 'Error: ' + e.message;
   }
