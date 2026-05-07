@@ -633,7 +633,7 @@ function photoSlotHtml(id, cls, label, existingUrl, roleTag) {
   </div>`;
 }
 
-async function compressImage(file, maxDim = 2048, quality = 0.85) {
+async function compressImage(file, maxDim = 3600, quality = 0.92) {
   return new Promise(resolve => {
     const img = new Image();
     const url = URL.createObjectURL(file);
