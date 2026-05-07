@@ -21,7 +21,7 @@ module.exports = async function handler(req, res) {
     // Page through all species
     let all = [], offset = '';
     do {
-      const data = await at('Species', `?sort[0][field]=Name&sort[0][direction]=asc${offset ? '&offset=' + offset : ''}`);
+      const data = await at('tblYtFaj6UYMUEwFQ', `?sort[0][field]=Species Name&sort[0][direction]=asc${offset ? '&offset=' + offset : ''}`);
       all = all.concat(data.records || []);
       offset = data.offset || '';
     } while (offset);
@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
 
         return {
           id:                 r.id,
-          name:               f.Name || '',
+          name:               f['Species Name'] || '',
           scientificName:     f['Scientific Name'] || '',
           type:               f.Type || '',
           category:           f.Category || '',

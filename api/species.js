@@ -1,5 +1,5 @@
 const BASE_ID = 'appdlxcWb45dIqNK2';
-const TABLE   = 'Species';
+const TABLE   = 'tblYtFaj6UYMUEwFQ';
 
 async function at(path, method = 'GET', body = null) {
   const url  = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}${path}`;
@@ -24,10 +24,10 @@ module.exports = async function handler(req, res) {
     const filters = [];
     if (type)     filters.push(`{Type}="${type}"`);
     if (category) filters.push(`{Category}="${category}"`);
-    if (search)   filters.push(`OR(SEARCH(LOWER("${search}"),LOWER({Name})),SEARCH(LOWER("${search}"),LOWER({Scientific Name})))`);
+    if (search)   filters.push(`OR(SEARCH(LOWER("${search}"),LOWER({Species Name})),SEARCH(LOWER("${search}"),LOWER({Scientific Name})))`);
     const formula = filters.length > 1 ? `AND(${filters.join(',')})` : (filters[0] || '');
-    const qs = formula ? `?filterByFormula=${encodeURIComponent(formula)}&sort[0][field]=Name&sort[0][direction]=asc`
-                       : `?sort[0][field]=Name&sort[0][direction]=asc`;
+    const qs = formula ? `?filterByFormula=${encodeURIComponent(formula)}&sort[0][field]=Species Name&sort[0][direction]=asc`
+                       : `?sort[0][field]=Species Name&sort[0][direction]=asc`;
     try {
       // Page through all records
       let all = [], offset = '';
@@ -46,7 +46,7 @@ module.exports = async function handler(req, res) {
   if (req.method === 'POST') {
     const b = req.body || {};
     const fields = buildFields(b);
-    if (!fields['Name']) return res.status(400).json({ error: 'Name is required' });
+    if (!fields['Species Name']) return res.status(400).json({ error: 'Species Name is required' });
     try {
       const rec = await at('', 'POST', { fields });
       if (rec.error) return res.status(500).json({ error: rec.error.message || JSON.stringify(rec.error) });
@@ -87,7 +87,7 @@ module.exports = async function handler(req, res) {
 
 function buildFields(b) {
   const f = {};
-  if (b.name)               f['Name']                = b.name;
+  if (b.name)               f['Species Name']        = b.name;
   if (b.scientificName)     f['Scientific Name']     = b.scientificName;
   if (b.type)               f['Type']                = b.type;
   if (b.category)           f['Category']            = b.category;

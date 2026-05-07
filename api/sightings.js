@@ -1,5 +1,5 @@
 const BASE_ID = 'appdlxcWb45dIqNK2';
-const TABLE   = 'Sightings';
+const TABLE   = 'tblWOeO374dxfCgdC';
 
 async function at(path, method = 'GET', body = null) {
   const url  = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}${path}`;
