@@ -8931,8 +8931,13 @@ async function _doInsertAfter(idx) {
   const newDay  = (idx + 1) + 1; // insert as day idx+2 (1-based after idx+1)
   const newDate = _scheduleDateForDay(newDay);
 
-  // Insert into local array
+  // Insert into local array, carrying forward the country from the day above
   const newRec = _scheduleNewRecord(newDay, newDate, tripId);
+  const prevF = _scheduleRecords[idx]?.fields || {};
+  const carryLoc     = prevF['Ending Location']  || prevF['Starting Location']  || '';
+  const carryCountry = prevF['Ending Country']   || prevF['Starting Country']   || currentTripCountry || '';
+  if (carryLoc)     newRec.fields['Starting Location'] = carryLoc;
+  if (carryCountry) newRec.fields['Starting Country']  = carryCountry;
   _scheduleRecords.splice(idx + 1, 0, newRec);
 
   // Renumber all records after insert point
@@ -9000,6 +9005,13 @@ async function scheduleAddDay() {
   const newDayNum = _scheduleRecords.length + 1;
   const newDate   = _scheduleDateForDay(newDayNum);
   const newRec    = _scheduleNewRecord(newDayNum, newDate, tripId);
+  if (_scheduleRecords.length > 0) {
+    const prev = _scheduleRecords[_scheduleRecords.length - 1].fields;
+    const loc     = prev['Ending Location']  || prev['Starting Location']  || '';
+    const country = prev['Ending Country']   || prev['Starting Country']   || currentTripCountry || '';
+    if (loc)     newRec.fields['Starting Location'] = loc;
+    if (country) newRec.fields['Starting Country']  = country;
+  }
   _scheduleRecords.push(newRec);
   renderScheduleList();
   _scheduleWarn();
