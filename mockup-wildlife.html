@@ -410,7 +410,7 @@
   <h2 class="section-title">Every sighting. Precisely mapped.</h2>
   <p class="section-sub">As travelers log sightings across Uganda, GPS coordinates build a living map of wildlife activity — more precise than any existing database, updated in real time.</p>
   <div class="map-wrap">
-    <img id="sighting-map" src="/api/sighting-map" alt="Uganda wildlife sighting map" style="width:100%;height:420px;object-fit:cover;display:block;" />
+    <img id="sighting-map" alt="Uganda wildlife sighting map" style="width:100%;height:420px;object-fit:cover;display:block;background:#111c2e;" />
     <div class="map-legend">
       <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.7rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.07em;margin-right:8px;">Sightings</div>
       <div class="legend-item"><div class="legend-dot" style="background:#86efac;"></div>Mammal</div>
@@ -931,5 +931,35 @@
   <div class="footer-sub">TransformedByTravels.com · MichaelE@transformedbytravels.com</div>
 </div>
 
+<script>
+(async function() {
+  try {
+    const { token } = await fetch('/api/mapbox-token').then(r => r.json());
+    if (!token) return;
+    const HEX = { mammal: '86efac', bird: '2dd4bf', primate: 'fbbf24' };
+    const sightings = [
+      { lat: -0.9833, lon: 29.6167, type: 'primate' },
+      { lat: -1.0200, lon: 29.7000, type: 'primate' },
+      { lat:  2.2847, lon: 31.7583, type: 'bird'    },
+      { lat:  2.1500, lon: 31.6000, type: 'mammal'  },
+      { lat:  2.2000, lon: 31.8000, type: 'mammal'  },
+      { lat:  0.4833, lon: 30.4000, type: 'primate' },
+      { lat:  0.5100, lon: 30.3600, type: 'mammal'  },
+      { lat: -0.1200, lon: 30.0000, type: 'mammal'  },
+      { lat: -0.0800, lon: 29.9000, type: 'mammal'  },
+      { lat: -0.2000, lon: 29.8500, type: 'mammal'  },
+      { lat: -0.1500, lon: 30.0500, type: 'mammal'  },
+      { lat:  1.5800, lon: 32.4700, type: 'mammal'  },
+      { lat: -0.6200, lon: 30.9500, type: 'mammal'  },
+      { lat: -0.5800, lon: 30.9000, type: 'mammal'  },
+      { lat:  2.1800, lon: 31.7000, type: 'bird'    },
+      { lat: -0.1000, lon: 30.0200, type: 'bird'    },
+    ];
+    const pins = sightings.map(s => `pin-s+${HEX[s.type]}(${s.lon},${s.lat})`).join(',');
+    document.getElementById('sighting-map').src =
+      `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${pins}/31.0,1.0,6.2/1200x420?access_token=${token}`;
+  } catch(e) {}
+})();
+</script>
 </body>
 </html>
