@@ -38,23 +38,26 @@ module.exports = async function handler(req, res) {
 
   // ── POST — log a sighting ─────────────────────────────────────────────────
   if (req.method === 'POST') {
-    const { speciesId, name, sciName, count, location, notes, date, travelerEmail } = req.body || {};
+    const { speciesId, name, sciName, count, location, notes, date, travelerEmail, lat, lon, gpsAccuracy } = req.body || {};
     if (!speciesId || !name) return res.status(400).json({ error: 'speciesId and name are required' });
 
-    const d    = date ? new Date(date) : new Date();
+    const d     = date ? new Date(date) : new Date();
     const month = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
 
     const fields = {
-      'Species ID':    speciesId,
-      'Species Name':  name,
+      'Species ID':      speciesId,
+      'Species Name':    name,
       'Scientific Name': sciName || '',
-      'Count':         count || 1,
-      'Location':      location || '',
-      'Notes':         notes || '',
-      'Date':          d.toISOString().slice(0, 10),
-      'Month':         month,
+      'Count':           count || 1,
+      'Location':        location || '',
+      'Notes':           notes || '',
+      'Date':            d.toISOString().slice(0, 10),
+      'Month':           month,
     };
     if (travelerEmail) fields['Traveler Email'] = travelerEmail;
+    if (lat != null)   fields['Latitude']       = lat;
+    if (lon != null)   fields['Longitude']       = lon;
+    if (gpsAccuracy)   fields['GPS Accuracy (m)'] = gpsAccuracy;
 
     try {
       const rec = await at('', 'POST', { fields });

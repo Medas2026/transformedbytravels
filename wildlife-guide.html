@@ -379,6 +379,16 @@ function openLogSheet() {
   document.getElementById('log-location').value = '';
   document.getElementById('log-notes').value = '';
   document.getElementById('log-sheet').classList.add('open');
+  // Silently grab GPS in the background
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        window._pendingGps = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: Math.round(pos.coords.accuracy) };
+      },
+      () => { window._pendingGps = null; },
+      { timeout: 8000, maximumAge: 30000 }
+    );
+  }
 }
 
 function closeLogSheet() {
@@ -387,6 +397,8 @@ function closeLogSheet() {
 
 function saveSighting() {
   if (!DETAIL_SPECIES) return;
+  const gps = window._pendingGps || null;
+  window._pendingGps = null;
   const sighting = {
     id:         Date.now(),
     speciesId:  DETAIL_SPECIES.id,
@@ -396,6 +408,9 @@ function saveSighting() {
     location:   document.getElementById('log-location').value.trim(),
     notes:      document.getElementById('log-notes').value.trim(),
     date:       new Date().toISOString(),
+    lat:        gps ? gps.lat : null,
+    lon:        gps ? gps.lon : null,
+    gpsAccuracy: gps ? gps.accuracy : null,
     synced:     false,
   };
   SIGHTINGS.push(sighting);
