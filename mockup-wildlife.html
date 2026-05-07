@@ -962,7 +962,7 @@ async function initMap() {
 
     const HEX = { mammal: '86efac', bird: '2dd4bf', primate: 'fbbf24' };
     const pins = SIGHTINGS.map(s => `pin-s+${HEX[s.type]}(${s.lon},${s.lat})`).join(',');
-    const imgUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${pins}/31.0,1.0,6.2/1200x420@2x?access_token=${d.token}`;
+    const imgUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${pins}/31.0,1.0,6.2/1200x420?access_token=${d.token}`;
 
     const container = document.getElementById('sighting-map');
     const img = document.createElement('img');
