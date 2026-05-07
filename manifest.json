@@ -1,0 +1,14 @@
+{
+  "name": "Transformed by Travels",
+  "short_name": "TBT Field Guide",
+  "description": "Your offline wildlife field guide and trip companion",
+  "start_url": "/wildlife-guide.html",
+  "display": "standalone",
+  "background_color": "#0b1320",
+  "theme_color": "#0b1320",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/images/app-icon-64.png",  "sizes": "64x64",   "type": "image/png" },
+    { "src": "/images/app-icon-256.png", "sizes": "256x256", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

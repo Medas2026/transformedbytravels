@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Field Guide" />
+<title>Wildlife Field Guide</title>
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/images/app-icon-256.png" />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0b1320; --s1: #111c2e; --s2: #172035; --s3: #1e2a40;
+    --teal: #2dd4bf; --text: #e2e8f0; --soft: #94a3b8; --muted: #64748b;
+    --green: #86efac; --amber: #fbbf24; --red: #f87171;
+    --safe: env(safe-area-inset-bottom, 0px);
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Open Sans', sans-serif; overflow: hidden; }
+
+  /* ── Top bar ── */
+  .topbar { background: var(--s1); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 12px 16px 10px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); display: flex; align-items: center; gap: 10px; }
+  .topbar-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1rem; color: var(--teal); flex: 1; }
+  .offline-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .offline-dot.offline { background: var(--amber); }
+
+  /* ── Filter bar ── */
+  .filterbar { background: var(--s1); padding: 8px 12px; display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.06); scrollbar-width: none; }
+  .filterbar::-webkit-scrollbar { display: none; }
+  .filter-pill { flex-shrink: 0; padding: 5px 13px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: var(--soft); font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.72rem; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .filter-pill.active { background: var(--teal); border-color: var(--teal); color: #000; }
+  .search-wrap { padding: 10px 12px 6px; background: var(--bg); }
+  .search-wrap input { width: 100%; background: var(--s2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 15px; padding: 9px 14px; outline: none; }
+  .search-wrap input::placeholder { color: var(--muted); }
+
+  /* ── Species list ── */
+  .list-wrap { overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+  .species-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; active: background: var(--s2); }
+  .species-row:active { background: var(--s2); }
+  .species-thumb { width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: var(--s2); flex-shrink: 0; }
+  .species-thumb-ph { width: 54px; height: 54px; border-radius: 8px; background: var(--s2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+  .species-info { flex: 1; min-width: 0; }
+  .species-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .species-sci  { font-size: 0.72rem; color: var(--muted); font-style: italic; margin-top: 1px; }
+  .species-tags { display: flex; gap: 5px; margin-top: 4px; flex-wrap: wrap; }
+  .tag { padding: 2px 7px; border-radius: 10px; font-size: 0.62rem; font-family: 'Montserrat', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tag-bird     { background: rgba(45,212,191,0.15); color: var(--teal); }
+  .tag-mammal   { background: rgba(134,239,172,0.15); color: var(--green); }
+  .tag-other    { background: rgba(148,163,184,0.12); color: var(--soft); }
+  .tag-seen     { background: rgba(251,191,36,0.2); color: var(--amber); }
+  .chevron { color: var(--muted); font-size: 1rem; flex-shrink: 0; }
+  .empty-state { padding: 40px 20px; text-align: center; color: var(--muted); font-style: italic; }
+
+  /* ── Detail view ── */
+  .detail-view { position: fixed; inset: 0; background: var(--bg); z-index: 100; overflow-y: auto; -webkit-overflow-scrolling: touch; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+  .detail-view.open { transform: translateX(0); }
+  .detail-hero { width: 100%; height: 240px; object-fit: cover; background: var(--s2); display: block; }
+  .detail-hero-ph { width: 100%; height: 200px; background: var(--s2); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+  .detail-back { position: absolute; top: calc(12px + env(safe-area-inset-top,0px)); left: 14px; background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); border: none; border-radius: 20px; color: var(--text); font-size: 0.8rem; font-family: 'Montserrat', sans-serif; font-weight: 700; padding: 6px 14px; cursor: pointer; }
+  .detail-body { padding: 18px 16px 40px; }
+  .detail-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.3rem; color: var(--text); line-height: 1.2; }
+  .detail-sci  { font-size: 0.82rem; color: var(--muted); font-style: italic; margin-top: 3px; }
+  .detail-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 16px; }
+  .detail-section { margin-bottom: 16px; }
+  .detail-section h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; color: var(--teal); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .detail-section p { font-size: 0.88rem; color: var(--soft); line-height: 1.6; }
+  .parks-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .park-tag { background: var(--s2); border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; color: var(--text); font-family: 'Montserrat', sans-serif; font-weight: 600; }
+  .months-row { display: flex; gap: 4px; flex-wrap: wrap; }
+  .month-tag { background: var(--s2); border-radius: 4px; padding: 3px 8px; font-size: 0.7rem; color: var(--soft); }
+  .month-tag.good { background: rgba(45,212,191,0.15); color: var(--teal); font-weight: 700; }
+  .conservation-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-family: 'Montserrat', sans-serif; font-weight: 700; }
+  .cv-lc  { background: rgba(134,239,172,0.15); color: var(--green); }
+  .cv-nt  { background: rgba(251,191,36,0.12); color: var(--amber); }
+  .cv-vu  { background: rgba(251,146,60,0.15); color: #fb923c; }
+  .cv-en  { background: rgba(248,113,113,0.15); color: var(--red); }
+  .cv-cr  { background: rgba(248,113,113,0.25); color: var(--red); font-size: 0.8rem; }
+  .log-btn { width: 100%; margin-top: 20px; padding: 14px; background: var(--teal); color: #000; border: none; border-radius: 10px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.95rem; cursor: pointer; letter-spacing: 0.04em; }
+  .log-btn.logged { background: var(--green); }
+
+  /* ── Log confirmation sheet ── */
+  .log-sheet { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; align-items: flex-end; }
+  .log-sheet.open { display: flex; }
+  .log-sheet-inner { background: var(--s1); border-radius: 16px 16px 0 0; padding: 20px 18px; padding-bottom: calc(20px + var(--safe)); width: 100%; }
+  .log-sheet-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 14px; }
+  .log-field { margin-bottom: 12px; }
+  .log-field label { display: block; font-size: 0.72rem; color: var(--teal); font-family: 'Montserrat', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .log-field input, .log-field textarea, .log-field select { width: 100%; background: var(--s2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 15px; padding: 10px 12px; outline: none; }
+  .log-field textarea { min-height: 64px; resize: none; }
+  .sheet-btns { display: flex; gap: 10px; margin-top: 16px; }
+  .sheet-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .sheet-btn-cancel { background: var(--s3); color: var(--soft); }
+  .sheet-btn-save   { background: var(--teal); color: #000; }
+
+  /* ── Download banner ── */
+  .download-banner { background: var(--s2); border-top: 1px solid rgba(255,255,255,0.06); padding: 10px 14px; padding-bottom: calc(10px + var(--safe)); display: flex; align-items: center; gap: 10px; }
+  .download-banner p { font-size: 0.78rem; color: var(--soft); flex: 1; line-height: 1.4; }
+  .download-banner button { flex-shrink: 0; padding: 8px 14px; background: var(--teal); color: #000; border: none; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.75rem; cursor: pointer; white-space: nowrap; }
+
+  /* ── Main layout ── */
+  .main { display: flex; flex-direction: column; height: 100%; }
+  .content { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+</style>
+</head>
+<body>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">Wildlife Field Guide</div>
+    <span id="online-status" style="font-size:0.7rem;color:var(--green);">●&nbsp;Online</span>
+  </div>
+
+  <div class="content">
+    <div class="filterbar" id="filterbar">
+      <button class="filter-pill active" data-filter="all" onclick="setFilter('all',this)">All</button>
+      <button class="filter-pill" data-filter="Mammal" onclick="setFilter('Mammal',this)">Mammals</button>
+      <button class="filter-pill" data-filter="Bird" onclick="setFilter('Bird',this)">Birds</button>
+      <button class="filter-pill" data-filter="Big Five" onclick="setFilter('Big Five',this)">Big Five</button>
+      <button class="filter-pill" data-filter="Primate" onclick="setFilter('Primate',this)">Primates</button>
+      <button class="filter-pill" data-filter="seen" onclick="setFilter('seen',this)">Seen ✓</button>
+    </div>
+
+    <div class="search-wrap">
+      <input type="search" id="search-input" placeholder="Search species…" oninput="renderList()" autocomplete="off" autocorrect="off" />
+    </div>
+
+    <div class="list-wrap" id="list-wrap">
+      <div class="empty-state" id="loading-msg">Loading species…</div>
+    </div>
+  </div>
+
+  <div class="download-banner" id="download-banner" style="display:none;">
+    <p>Download for offline use — works without signal in the field.</p>
+    <button onclick="downloadForOffline()">Download</button>
+  </div>
+</div>
+
+<!-- ── Detail view ── -->
+<div class="detail-view" id="detail-view">
+  <div style="position:relative;">
+    <img id="dv-hero" class="detail-hero" alt="" style="display:none;" />
+    <div id="dv-hero-ph" class="detail-hero-ph">🦁</div>
+    <button class="detail-back" onclick="closeDetail()">← Back</button>
+  </div>
+  <div class="detail-body">
+    <div class="detail-name" id="dv-name"></div>
+    <div class="detail-sci"  id="dv-sci"></div>
+    <div class="detail-tags" id="dv-tags"></div>
+    <div class="detail-section" id="dv-desc-sec" style="display:none;">
+      <h3>About</h3>
+      <p id="dv-desc"></p>
+    </div>
+    <div class="detail-section" id="dv-hab-sec" style="display:none;">
+      <h3>Habitat</h3>
+      <p id="dv-hab"></p>
+    </div>
+    <div class="detail-section" id="dv-parks-sec" style="display:none;">
+      <h3>Where to See</h3>
+      <div class="parks-list" id="dv-parks"></div>
+    </div>
+    <div class="detail-section" id="dv-months-sec" style="display:none;">
+      <h3>Best Months</h3>
+      <div class="months-row" id="dv-months"></div>
+    </div>
+    <button class="log-btn" id="log-btn" onclick="openLogSheet()">Log Sighting</button>
+  </div>
+</div>
+
+<!-- ── Log sheet ── -->
+<div class="log-sheet" id="log-sheet" onclick="e => { if(e.target===this) closeLogSheet(); }">
+  <div class="log-sheet-inner">
+    <div class="log-sheet-title" id="log-sheet-title">Log Sighting</div>
+    <div class="log-field">
+      <label>Count</label>
+      <input type="number" id="log-count" value="1" min="1" />
+    </div>
+    <div class="log-field">
+      <label>Location / Park</label>
+      <input type="text" id="log-location" placeholder="e.g. Bwindi Impenetrable Forest" />
+    </div>
+    <div class="log-field">
+      <label>Notes</label>
+      <textarea id="log-notes" placeholder="Behaviour, distance, conditions…"></textarea>
+    </div>
+    <div class="sheet-btns">
+      <button class="sheet-btn sheet-btn-cancel" onclick="closeLogSheet()">Cancel</button>
+      <button class="sheet-btn sheet-btn-save" onclick="saveSighting()">Save Sighting</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let ALL_SPECIES  = [];
+let SIGHTINGS    = JSON.parse(localStorage.getItem('tbt-sightings') || '[]');
+let ACTIVE_FILTER = 'all';
+let DETAIL_SPECIES = null;
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const CURRENT_MONTH = MONTHS[new Date().getMonth()];
+
+// ── Service worker registration ───────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// ── Online/offline indicator ─────────────────────────────────────────────────
+function updateOnlineStatus() {
+  const el = document.getElementById('online-status');
+  if (navigator.onLine) { el.textContent = '● Online';  el.style.color = 'var(--green)'; }
+  else                  { el.textContent = '● Offline'; el.style.color = 'var(--amber)'; }
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
+
+// ── Load species ─────────────────────────────────────────────────────────────
+async function loadSpecies() {
+  // Try localStorage cache first (instant offline load)
+  const cached = localStorage.getItem('tbt-species-cache');
+  if (cached) {
+    try {
+      const data = JSON.parse(cached);
+      ALL_SPECIES = data.species || [];
+      renderList();
+      document.getElementById('loading-msg').style.display = 'none';
+    } catch(e) {}
+  }
+
+  // Fetch fresh data if online
+  if (!navigator.onLine && ALL_SPECIES.length) return;
+  try {
+    const resp = await fetch('/api/species-pack');
+    if (!resp.ok) throw new Error('Network error');
+    const data = await resp.json();
+    ALL_SPECIES = data.species || [];
+    localStorage.setItem('tbt-species-cache', JSON.stringify(data));
+    renderList();
+    document.getElementById('loading-msg').style.display = 'none';
+    // Show download banner if not installed as PWA
+    if (!window.matchMedia('(display-mode: standalone)').matches) {
+      document.getElementById('download-banner').style.display = 'flex';
+    }
+  } catch(e) {
+    if (!ALL_SPECIES.length) {
+      document.getElementById('loading-msg').textContent = navigator.onLine
+        ? 'Could not load species. Check your connection.'
+        : 'No data cached. Connect to wifi to download the field guide.';
+    }
+  }
+}
+
+// ── Filters & search ─────────────────────────────────────────────────────────
+function setFilter(f, btn) {
+  ACTIVE_FILTER = f;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+function renderList() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase();
+  const seenIds = new Set(SIGHTINGS.map(s => s.speciesId));
+
+  let list = ALL_SPECIES.filter(sp => {
+    if (ACTIVE_FILTER === 'seen')    return seenIds.has(sp.id);
+    if (ACTIVE_FILTER === 'all')     return true;
+    if (ACTIVE_FILTER === 'Mammal' || ACTIVE_FILTER === 'Bird') return sp.type === ACTIVE_FILTER;
+    return sp.category === ACTIVE_FILTER;
+  });
+
+  if (q) list = list.filter(sp =>
+    sp.name.toLowerCase().includes(q) || sp.scientificName.toLowerCase().includes(q)
+  );
+
+  const wrap = document.getElementById('list-wrap');
+  if (!list.length) {
+    wrap.innerHTML = '<div class="empty-state">No species found.</div>';
+    return;
+  }
+
+  const typeEmoji = t => t === 'Bird' ? '🦅' : t === 'Mammal' ? '🦁' : '🦎';
+  const tagClass  = t => t === 'Bird' ? 'tag-bird' : t === 'Mammal' ? 'tag-mammal' : 'tag-other';
+
+  wrap.innerHTML = list.map(sp => {
+    const seen = seenIds.has(sp.id);
+    return `<div class="species-row" onclick="openDetail('${sp.id}')">
+      ${sp.photoUrl
+        ? `<img src="${sp.photoUrl}" class="species-thumb" alt="${sp.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><div class="species-thumb-ph" style="display:none;">${typeEmoji(sp.type)}</div>`
+        : `<div class="species-thumb-ph">${typeEmoji(sp.type)}</div>`}
+      <div class="species-info">
+        <div class="species-name">${sp.name}</div>
+        <div class="species-sci">${sp.scientificName}</div>
+        <div class="species-tags">
+          ${sp.type ? `<span class="tag ${tagClass(sp.type)}">${sp.type}</span>` : ''}
+          ${sp.category && sp.category !== sp.type ? `<span class="tag tag-other">${sp.category}</span>` : ''}
+          ${seen ? `<span class="tag tag-seen">✓ Seen</span>` : ''}
+        </div>
+      </div>
+      <div class="chevron">›</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Detail view ───────────────────────────────────────────────────────────────
+function openDetail(id) {
+  const sp = ALL_SPECIES.find(s => s.id === id);
+  if (!sp) return;
+  DETAIL_SPECIES = sp;
+
+  // Hero
+  const hero = document.getElementById('dv-hero');
+  const heroPh = document.getElementById('dv-hero-ph');
+  if (sp.photoUrl) {
+    hero.src = sp.photoUrl;
+    hero.style.display = 'block';
+    heroPh.style.display = 'none';
+  } else {
+    hero.style.display = 'none';
+    heroPh.style.display = 'flex';
+    heroPh.textContent = sp.type === 'Bird' ? '🦅' : sp.type === 'Mammal' ? '🦁' : '🦎';
+  }
+
+  document.getElementById('dv-name').textContent = sp.name;
+  document.getElementById('dv-sci').textContent  = sp.scientificName;
+
+  // Tags
+  const cvClass = { 'Least Concern':'cv-lc','Near Threatened':'cv-nt','Vulnerable':'cv-vu','Endangered':'cv-en','Critically Endangered':'cv-cr' };
+  document.getElementById('dv-tags').innerHTML = [
+    sp.type     ? `<span class="tag ${sp.type==='Bird'?'tag-bird':sp.type==='Mammal'?'tag-mammal':'tag-other'}">${sp.type}</span>` : '',
+    sp.category ? `<span class="tag tag-other">${sp.category}</span>` : '',
+    sp.conservationStatus ? `<span class="conservation-badge ${cvClass[sp.conservationStatus]||''}">${sp.conservationStatus}</span>` : '',
+  ].join('');
+
+  const show = (secId, contentId, val) => {
+    const sec = document.getElementById(secId);
+    if (val) { sec.style.display = ''; document.getElementById(contentId).innerHTML = val; }
+    else sec.style.display = 'none';
+  };
+  show('dv-desc-sec', 'dv-desc', sp.description);
+  show('dv-hab-sec',  'dv-hab',  sp.habitat);
+
+  // Parks
+  const parkSec = document.getElementById('dv-parks-sec');
+  if (sp.bestParks && sp.bestParks.length) {
+    parkSec.style.display = '';
+    document.getElementById('dv-parks').innerHTML = sp.bestParks.map(p => `<div class="park-tag">${p}</div>`).join('');
+  } else parkSec.style.display = 'none';
+
+  // Months
+  const monSec = document.getElementById('dv-months-sec');
+  if (sp.bestMonths && sp.bestMonths.length) {
+    monSec.style.display = '';
+    document.getElementById('dv-months').innerHTML = MONTHS.map(m =>
+      `<div class="month-tag ${sp.bestMonths.includes(m) ? 'good' : ''}">${m}</div>`
+    ).join('');
+  } else monSec.style.display = 'none';
+
+  // Log button
+  const seenIds = new Set(SIGHTINGS.map(s => s.speciesId));
+  const logBtn = document.getElementById('log-btn');
+  if (seenIds.has(sp.id)) { logBtn.textContent = '✓ Logged — Log Again'; logBtn.classList.add('logged'); }
+  else                    { logBtn.textContent = 'Log Sighting'; logBtn.classList.remove('logged'); }
+
+  document.getElementById('detail-view').classList.add('open');
+  document.getElementById('detail-view').scrollTop = 0;
+}
+
+function closeDetail() {
+  document.getElementById('detail-view').classList.remove('open');
+}
+
+// ── Sighting log ─────────────────────────────────────────────────────────────
+function openLogSheet() {
+  if (!DETAIL_SPECIES) return;
+  document.getElementById('log-sheet-title').textContent = 'Log: ' + DETAIL_SPECIES.name;
+  document.getElementById('log-count').value = '1';
+  document.getElementById('log-location').value = '';
+  document.getElementById('log-notes').value = '';
+  document.getElementById('log-sheet').classList.add('open');
+}
+
+function closeLogSheet() {
+  document.getElementById('log-sheet').classList.remove('open');
+}
+
+function saveSighting() {
+  if (!DETAIL_SPECIES) return;
+  const sighting = {
+    id:         Date.now(),
+    speciesId:  DETAIL_SPECIES.id,
+    name:       DETAIL_SPECIES.name,
+    sciName:    DETAIL_SPECIES.scientificName,
+    count:      parseInt(document.getElementById('log-count').value) || 1,
+    location:   document.getElementById('log-location').value.trim(),
+    notes:      document.getElementById('log-notes').value.trim(),
+    date:       new Date().toISOString(),
+    synced:     false,
+  };
+  SIGHTINGS.push(sighting);
+  localStorage.setItem('tbt-sightings', JSON.stringify(SIGHTINGS));
+  closeLogSheet();
+  // Update log button
+  const logBtn = document.getElementById('log-btn');
+  logBtn.textContent = '✓ Logged — Log Again';
+  logBtn.classList.add('logged');
+  renderList();
+  // Attempt background sync if online
+  if (navigator.onLine) syncSightings();
+}
+
+async function syncSightings() {
+  const unsynced = SIGHTINGS.filter(s => !s.synced);
+  if (!unsynced.length) return;
+  for (const s of unsynced) {
+    try {
+      const resp = await fetch('/api/sightings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(s),
+      });
+      if (resp.ok) {
+        s.synced = true;
+      }
+    } catch(e) { break; } // stop if offline
+  }
+  localStorage.setItem('tbt-sightings', JSON.stringify(SIGHTINGS));
+}
+
+// ── Offline download ─────────────────────────────────────────────────────────
+async function downloadForOffline() {
+  const btn = document.querySelector('#download-banner button');
+  btn.textContent = 'Downloading…';
+  btn.disabled = true;
+  try {
+    // Pre-fetch species pack into service worker cache
+    await fetch('/api/species-pack');
+    // Pre-cache all species photos
+    let cached = 0;
+    for (const sp of ALL_SPECIES) {
+      if (sp.photoUrl) {
+        try { await fetch(sp.photoUrl); cached++; } catch(e) {}
+      }
+    }
+    btn.textContent = '✓ Available offline';
+    setTimeout(() => { document.getElementById('download-banner').style.display = 'none'; }, 2000);
+  } catch(e) {
+    btn.textContent = 'Download failed';
+    btn.disabled = false;
+  }
+}
+
+// ── Sync on reconnect ────────────────────────────────────────────────────────
+window.addEventListener('online', syncSightings);
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+loadSpecies();
+</script>
+</body>
+</html>
