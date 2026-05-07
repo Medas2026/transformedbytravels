@@ -387,6 +387,123 @@
 
 <hr class="divider" />
 
+<!-- ── eBird integration ──────────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">For Serious Birders</div>
+  <h2 class="section-title">Connected to the world's largest birding network.</h2>
+  <p class="section-sub">For dedicated birders, the platform integrates directly with eBird — the Cornell Lab of Ornithology's global database of 1.5 billion bird sightings. Before the trip, travelers get a target species list drawn from real eBird data at Uganda's top hotspots. In the field, notable recent sightings tell them what other birders are seeing right now.</p>
+
+  <div class="two-col" style="align-items:start;gap:40px;">
+
+    <!-- Left: flow -->
+    <div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <div style="background:var(--s1);border-radius:12px;padding:20px;border:1px solid rgba(255,255,255,0.06);display:flex;gap:16px;align-items:flex-start;">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(45,212,191,0.1);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">🎯</div>
+          <div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:var(--text);margin-bottom:4px;">Pre-Trip Target List</div>
+            <div style="font-size:0.8rem;color:var(--soft);line-height:1.6;">Before departure, the platform pulls the complete species list from the highest-rated eBird hotspot near each park on the itinerary. Filtered by travel month, so travelers know exactly which species are realistic targets — not just historically recorded.</div>
+          </div>
+        </div>
+
+        <div style="background:var(--s1);border-radius:12px;padding:20px;border:1px solid rgba(255,255,255,0.06);display:flex;gap:16px;align-items:flex-start;">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(134,239,172,0.1);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">📡</div>
+          <div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:var(--text);margin-bottom:4px;">Live Notable Sightings</div>
+            <div style="font-size:0.8rem;color:var(--soft);line-height:1.6;">eBird's real-time notable sightings API surfaces rare and unusual species reported by other birders within 50km — updated daily. Traveler's guide knows what's being seen before the morning drive.</div>
+          </div>
+        </div>
+
+        <div style="background:var(--s1);border-radius:12px;padding:20px;border:1px solid rgba(255,255,255,0.06);display:flex;gap:16px;align-items:flex-start;">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(251,191,36,0.1);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">📋</div>
+          <div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:var(--text);margin-bottom:4px;">Trip Life List</div>
+            <div style="font-size:0.8rem;color:var(--soft);line-height:1.6;">Every species ticked in the field app accumulates into a personal life list that spans trips and years. Serious birders maintain life lists obsessively — this becomes their canonical record, tied to Uganda.</div>
+          </div>
+        </div>
+
+        <div style="background:var(--s1);border-radius:12px;padding:20px;border:1px solid rgba(255,255,255,0.06);display:flex;gap:16px;align-items:flex-start;">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(45,212,191,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#2dd4bf" stroke-width="1.5"/><path d="M12 6v6l4 2" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:var(--text);margin-bottom:4px;">Journey Book Integration</div>
+            <div style="font-size:0.8rem;color:var(--soft);line-height:1.6;">The birding trip culminates in a printed Journey Book — a narrative memoir with photos, maps, and the complete species log. A keepsake no birder would discard, and a natural conversation starter that drives referrals.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right: eBird data panel mockup -->
+    <div>
+      <div style="background:var(--s1);border-radius:16px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;">
+
+        <!-- Hotspot header -->
+        <div style="background:var(--s2);padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.68rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Top Birding Hotspot · Bwindi</div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);">Bwindi Impenetrable Forest NP</div>
+            <div style="font-size:0.78rem;color:var(--green);font-family:'Montserrat',sans-serif;font-weight:700;">347 species recorded</div>
+          </div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-top:3px;">Source: eBird · <span style="color:var(--teal);">↗ View on eBird</span></div>
+        </div>
+
+        <!-- Recently seen -->
+        <div style="padding:14px 18px;">
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.68rem;color:var(--green);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Recently Seen — Last 30 Days</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:16px;">
+            ${[
+              ['African Green Broadbill','Pseudocalyptomena graueri'],
+              ["Shelley's Crimsonwing",'Cryptospiza shelleyi'],
+              ['Short-tailed Warbler','Hemitesia neumanni'],
+              ["Grauer's Warbler",'Graueria vittata'],
+              ['Bar-tailed Trogon','Apaloderma vittatum'],
+              ['Rwenzori Turaco','Gallirex johnstoni'],
+            ].map(([cn,sn]) => `<div style="background:rgba(134,239,172,0.06);border-radius:5px;padding:5px 8px;">
+              <div style="font-size:0.72rem;color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;">${cn}</div>
+              <div style="font-size:0.62rem;color:var(--muted);font-style:italic;">${sn}</div>
+            </div>`).join('')}
+          </div>
+
+          <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.68rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Notable Recent Sightings · 50km Radius</div>
+          ${[
+            ['African Green Broadbill','Bwindi NP — May 3','Rare forest endemic — 2 seen'],
+            ["Shelley's Crimsonwing",'Ruhija Sector — May 5','Highly sought montane species'],
+            ['Rwenzori Nightjar','Bwindi NP — May 1','Rarely recorded; single bird calling'],
+          ].map(([name, loc, note]) => `
+          <div style="background:var(--s2);border-radius:8px;padding:10px 12px;margin-bottom:6px;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--text);">${name}</div>
+            <div style="font-size:0.68rem;color:var(--soft);margin-top:2px;">${loc}</div>
+            <div style="font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:2px;">${note}</div>
+          </div>`).join('')}
+
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.68rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">My Target List — May Trip</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              ${[
+                ['African Green Broadbill','✓ Seen','var(--green)'],
+                ["Shelley's Crimsonwing",'✓ Seen','var(--green)'],
+                ['Bar-tailed Trogon','✓ Seen','var(--green)'],
+                ['Rwenzori Turaco','Not yet','var(--muted)'],
+                ['Strange Weaver','Not yet','var(--muted)'],
+                ['Grauer\'s Rush Warbler','Not yet','var(--muted)'],
+              ].map(([name, status, col]) => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:0.75rem;color:var(--soft);">${name}</div>
+                <div style="font-size:0.68rem;font-family:'Montserrat',sans-serif;font-weight:700;color:${col};">${status}</div>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
 <!-- ── Trip summary / life list ───────────────────────────────────────────── -->
 <div class="section">
   <div class="section-label">The Life List</div>
