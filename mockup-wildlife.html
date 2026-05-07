@@ -410,7 +410,7 @@
   <h2 class="section-title">Every sighting. Precisely mapped.</h2>
   <p class="section-sub">As travelers log sightings across Uganda, GPS coordinates build a living map of wildlife activity — more precise than any existing database, updated in real time.</p>
   <div class="map-wrap">
-    <div id="sighting-map"></div>
+    <img id="sighting-map" src="/api/sighting-map" alt="Uganda wildlife sighting map" style="width:100%;height:420px;object-fit:cover;display:block;" />
     <div class="map-legend">
       <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.7rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.07em;margin-right:8px;">Sightings</div>
       <div class="legend-item"><div class="legend-dot" style="background:#86efac;"></div>Mammal</div>
@@ -931,56 +931,5 @@
   <div class="footer-sub">TransformedByTravels.com · MichaelE@transformedbytravels.com</div>
 </div>
 
-<script>
-// ── Load map ─────────────────────────────────────────────────────────────────
-const SIGHTINGS = [
-  { lat: -0.9833, lon: 29.6167, name: 'Mountain Gorilla',    type: 'primate', park: 'Bwindi' },
-  { lat: -1.0200, lon: 29.7000, name: 'Chimpanzee',          type: 'primate', park: 'Bwindi' },
-  { lat:  2.2847, lon: 31.7583, name: 'Shoebill',            type: 'bird',    park: 'Murchison Falls' },
-  { lat:  2.1500, lon: 31.6000, name: 'African Elephant',    type: 'mammal',  park: 'Murchison Falls' },
-  { lat:  2.2000, lon: 31.8000, name: 'Nile Crocodile',      type: 'mammal',  park: 'Murchison Falls' },
-  { lat:  0.4833, lon: 30.4000, name: 'Chimpanzee',          type: 'primate', park: 'Kibale' },
-  { lat:  0.5100, lon: 30.3600, name: 'Black & White Colobus',type:'mammal',  park: 'Kibale' },
-  { lat: -0.1200, lon: 30.0000, name: 'African Lion',        type: 'mammal',  park: 'Queen Elizabeth' },
-  { lat: -0.0800, lon: 29.9000, name: 'African Elephant',    type: 'mammal',  park: 'Queen Elizabeth' },
-  { lat: -0.2000, lon: 29.8500, name: 'Hippopotamus',        type: 'mammal',  park: 'Queen Elizabeth' },
-  { lat: -0.1500, lon: 30.0500, name: 'African Buffalo',     type: 'mammal',  park: 'Queen Elizabeth' },
-  { lat:  1.5800, lon: 32.4700, name: 'Northern White Rhino',type: 'mammal',  park: 'Ziwa Rhino' },
-  { lat: -0.6200, lon: 30.9500, name: 'Uganda Kob',          type: 'mammal',  park: 'Lake Mburo' },
-  { lat: -0.5800, lon: 30.9000, name: 'Zebra',               type: 'mammal',  park: 'Lake Mburo' },
-  { lat:  2.1800, lon: 31.7000, name: 'Grey Crowned Crane',  type: 'bird',    park: 'Murchison Falls' },
-  { lat: -0.1000, lon: 30.0200, name: 'African Fish Eagle',  type: 'bird',    park: 'Queen Elizabeth' },
-];
-
-const COLOR = { mammal: '#86efac', bird: '#2dd4bf', primate: '#fbbf24' };
-
-async function initMap() {
-  try {
-    const r = await fetch('/api/mapbox-token');
-    const d = await r.json();
-    if (!d.token) return showStaticMap();
-
-    const HEX = { mammal: '86efac', bird: '2dd4bf', primate: 'fbbf24' };
-    const pins = SIGHTINGS.map(s => `pin-s+${HEX[s.type]}(${s.lon},${s.lat})`).join(',');
-    const imgUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${pins}/31.0,1.0,6.2/1200x420?access_token=${d.token}`;
-
-    const container = document.getElementById('sighting-map');
-    const img = document.createElement('img');
-    img.src = imgUrl;
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-    img.alt = 'Uganda wildlife sighting map';
-    img.onerror = showStaticMap;
-    container.innerHTML = '';
-    container.appendChild(img);
-  } catch(e) { showStaticMap(); }
-}
-
-function showStaticMap() {
-  document.getElementById('sighting-map').innerHTML =
-    '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#64748b;font-style:italic;font-size:0.85rem;">Map loads with Mapbox token configured</div>';
-}
-
-initMap();
-</script>
 </body>
 </html>
