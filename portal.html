@@ -6755,7 +6755,8 @@ function openPlaceModal(idx) {
     daySel.appendChild(opt);
   }
   pmSetRating(p.rating || 0);
-  countrySel.value = p.country || '';
+  const lastCountry = idx === -1 && sourceArr.length > 0 ? (sourceArr[sourceArr.length - 1].country || '') : '';
+  countrySel.value = p.country || lastCountry;
   pmCountryChange(p.place);
 
   // Reset guide state
