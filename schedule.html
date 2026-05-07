@@ -768,7 +768,15 @@ async function _doDeleteDay(idx) {
 async function scheduleAddDay() {
   const newDayNum = _scheduleRecords.length + 1;
   const newDate   = _scheduleDateForDay(newDayNum);
-  _scheduleRecords.push(_scheduleNewRecord(newDayNum, newDate));
+  const newRec    = _scheduleNewRecord(newDayNum, newDate);
+  if (_scheduleRecords.length > 0) {
+    const prev = _scheduleRecords[_scheduleRecords.length - 1].fields;
+    const loc     = prev['Ending Location']  || prev['Starting Location']  || '';
+    const country = prev['Ending Country']   || prev['Starting Country']   || currentTripCountry || '';
+    if (loc)     newRec.fields['Starting Location'] = loc;
+    if (country) newRec.fields['Starting Country']  = country;
+  }
+  _scheduleRecords.push(newRec);
   renderScheduleList();
   _scheduleWarn();
   try {
@@ -792,14 +800,16 @@ async function _saveRenumbered() {
 }
 
 async function saveTripSchedule() {
-  const status = document.getElementById('trip-schedule-status');
-  const btn    = document.getElementById('save-schedule-btn');
-  status.style.display = 'block';
-  status.style.color   = 'var(--teal)';
-  status.textContent   = 'Saving…';
+  const btn = document.getElementById('save-schedule-btn');
+  const orig = btn.textContent;
   btn.disabled = true;
+  btn.textContent = 'Saving…';
   const dirty = _scheduleRecords.filter(r => r._startDirty || r._endDirty);
-  if (!dirty.length) { status.textContent = 'No changes to save.'; status.style.color='var(--muted)'; btn.disabled = false; status.scrollIntoView({behavior:'smooth',block:'nearest'}); return; }
+  if (!dirty.length) {
+    btn.textContent = 'No changes';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+    return;
+  }
   let errors = 0;
   for (const r of dirty) {
     try {
@@ -811,9 +821,8 @@ async function saveTripSchedule() {
       if (!d.success) errors++; else { r._startDirty = false; r._endDirty = false; r._autoCascaded = false; }
     } catch(e) { errors++; }
   }
-  if (errors) { status.style.color = '#f43f5e'; status.textContent = errors + ' day(s) failed to save.'; }
-  else { status.style.color = 'var(--teal)'; status.textContent = 'Locations saved!'; setTimeout(() => { status.style.display = 'none'; }, 2000); }
-  btn.disabled = false;
+  btn.textContent = errors ? `${errors} failed` : '✓ Saved!';
+  setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2000);
 }
 
 async function finishSchedule() {
