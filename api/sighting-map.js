@@ -29,7 +29,9 @@ module.exports = async function handler(req, res) {
   const url  = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${pins}/31.0,1.0,6.2/1200x420?access_token=${token}`;
 
   try {
-    const upstream = await fetch(url);
+    const upstream = await fetch(url, {
+      headers: { Referer: 'https://transformedbytravels.com/' }
+    });
     if (!upstream.ok) {
       const text = await upstream.text();
       return res.status(502).send(`Mapbox error ${upstream.status}: ${text}`);
