@@ -959,35 +959,19 @@ async function initMap() {
     const r = await fetch('/api/mapbox-token');
     const d = await r.json();
     if (!d.token) return showStaticMap();
-    window._mapboxToken = d.token;
 
-    const script = document.createElement('script');
-    script.src = 'https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js';
-    document.head.appendChild(script);
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css';
-    document.head.appendChild(link);
-    script.onload = () => {
-      mapboxgl.accessToken = d.token;
-      const map = new mapboxgl.Map({
-        container: 'sighting-map',
-        style: 'mapbox://styles/mapbox/dark-v11',
-        center: [31.0, 1.0],
-        zoom: 6.2,
-      });
-      map.on('load', () => {
-        SIGHTINGS.forEach(s => {
-          const el = document.createElement('div');
-          el.style.cssText = `width:12px;height:12px;border-radius:50%;background:${COLOR[s.type]};border:2px solid rgba(0,0,0,0.4);cursor:pointer;box-shadow:0 0 6px ${COLOR[s.type]}88;`;
-          new mapboxgl.Marker({ element: el })
-            .setLngLat([s.lon, s.lat])
-            .setPopup(new mapboxgl.Popup({ offset: 10, closeButton: false })
-              .setHTML(`<div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#fff;background:#111c2e;padding:6px 10px;border-radius:6px;">${s.name}<br/><span style="font-weight:400;font-size:0.68rem;color:#64748b;">${s.park}</span></div>`))
-            .addTo(map);
-        });
-      });
-    };
+    const HEX = { mammal: '86efac', bird: '2dd4bf', primate: 'fbbf24' };
+    const pins = SIGHTINGS.map(s => `pin-s+${HEX[s.type]}(${s.lon},${s.lat})`).join(',');
+    const imgUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${pins}/31.0,1.0,6.2/1200x420@2x?access_token=${d.token}`;
+
+    const container = document.getElementById('sighting-map');
+    const img = document.createElement('img');
+    img.src = imgUrl;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    img.alt = 'Uganda wildlife sighting map';
+    img.onerror = showStaticMap;
+    container.innerHTML = '';
+    container.appendChild(img);
   } catch(e) { showStaticMap(); }
 }
 
