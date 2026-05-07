@@ -765,6 +765,15 @@ async function _doDeleteDay(idx) {
   await _saveRenumbered();
 }
 
+function _resolveCountry() {
+  if (currentTripCountry) return currentTripCountry;
+  if (currentTripDestination && typeof DESTINATIONS !== 'undefined') {
+    const match = DESTINATIONS.find(r => r[0] === currentTripDestination);
+    if (match) return match[1];
+  }
+  return _scheduleRecords.map(r => r.fields['Ending Country'] || r.fields['Starting Country']).find(Boolean) || '';
+}
+
 async function scheduleAddDay() {
   const newDayNum = _scheduleRecords.length + 1;
   const newDate   = _scheduleDateForDay(newDayNum);
@@ -772,9 +781,12 @@ async function scheduleAddDay() {
   if (_scheduleRecords.length > 0) {
     const prev = _scheduleRecords[_scheduleRecords.length - 1].fields;
     const loc     = prev['Ending Location']  || prev['Starting Location']  || '';
-    const country = prev['Ending Country']   || prev['Starting Country']   || currentTripCountry || '';
+    const country = prev['Ending Country']   || prev['Starting Country']   || _resolveCountry();
     if (loc)     newRec.fields['Starting Location'] = loc;
     if (country) newRec.fields['Starting Country']  = country;
+  } else {
+    const country = _resolveCountry();
+    if (country) newRec.fields['Starting Country'] = country;
   }
   _scheduleRecords.push(newRec);
   renderScheduleList();
