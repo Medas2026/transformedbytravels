@@ -140,6 +140,14 @@
       <button onclick="openDraftRouteModal()" style="background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.5);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:7px 16px;cursor:pointer;">✦ Draft Route</button>
     </div>
     <div id="trip-schedule-status" style="display:none;font-size:0.85rem;margin-bottom:10px;"></div>
+    <div id="date-resync-banner" style="display:none;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.4);border-radius:10px;padding:14px 18px;margin-bottom:12px;display:none;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;color:#f59e0b;margin-bottom:3px;">⚠ Trip dates have changed</div>
+        <div id="date-resync-msg" style="font-size:0.78rem;color:var(--soft);"></div>
+      </div>
+      <button onclick="resyncDates()" style="background:#f59e0b;border:none;border-radius:8px;color:#000;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;padding:8px 18px;cursor:pointer;white-space:nowrap;">Shift All Dates</button>
+      <button onclick="document.getElementById('date-resync-banner').style.display='none'" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.8rem;padding:8px 14px;cursor:pointer;">Dismiss</button>
+    </div>
     <div id="trip-schedule-list" style="display:flex;flex-direction:column;gap:8px;"></div>
     <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--bd);padding-top:16px;">
       <button onclick="scheduleAddDay()" style="background:none;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border-radius:8px;padding:8px 18px;cursor:pointer;">+ Add Day at End</button>
@@ -494,6 +502,7 @@ async function loadSchedule() {
     renderScheduleList();
     _scheduleWarn();
     updateMainNavButtons();
+    _checkDateResync();
   } catch(e) {
     document.getElementById('loading').textContent = 'Error loading schedule: ' + e.message;
   }
@@ -708,6 +717,52 @@ function _scheduleWarn() {
     warn.style.display = 'none';
   }
 }
+function _checkDateResync() {
+  if (!currentTripStart || !_scheduleRecords.length) return;
+  const firstRec = _scheduleRecords[0];
+  const firstDate = firstRec.fields['Date'] || '';
+  if (!firstDate || firstDate === currentTripStart) return;
+  const oldStart = new Date(firstDate + 'T00:00:00Z');
+  const newStart = new Date(currentTripStart + 'T00:00:00Z');
+  const deltaDays = Math.round((newStart - oldStart) / 86400000);
+  if (deltaDays === 0) return;
+  const dir = deltaDays > 0 ? 'forward' : 'back';
+  const abs = Math.abs(deltaDays);
+  const banner = document.getElementById('date-resync-banner');
+  document.getElementById('date-resync-msg').textContent =
+    `Day 1 is dated ${firstDate} but the trip now starts ${currentTripStart}. `
+    + `Shift all ${_scheduleRecords.length} days ${dir} by ${abs} day${abs !== 1 ? 's' : ''}?`;
+  banner.style.display = 'flex';
+}
+
+async function resyncDates() {
+  const banner = document.getElementById('date-resync-banner');
+  const btn = banner.querySelector('button');
+  btn.textContent = 'Shifting…';
+  btn.disabled = true;
+  let errors = 0;
+  for (let i = 0; i < _scheduleRecords.length; i++) {
+    const r = _scheduleRecords[i];
+    const newDate = _scheduleDateForDay(i + 1);
+    r.fields['Date'] = newDate;
+    if (r.id) {
+      try {
+        const resp = await fetch('/api/trip-days', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: r.id, 'Date': newDate, 'Day Number': i + 1 }) });
+        const d = await resp.json();
+        if (!d.success) errors++;
+      } catch(e) { errors++; }
+    }
+  }
+  banner.style.display = 'none';
+  renderScheduleList();
+  if (errors) {
+    const status = document.getElementById('trip-schedule-status');
+    status.style.display = 'block';
+    status.style.color = '#f43f5e';
+    status.textContent = errors + ' day(s) failed to update. Try saving again.';
+  }
+}
+
 function _scheduleNewRecord(dayNum, date) {
   return { id: null, _new: true, _startDirty: false, _endDirty: false, fields: { 'Trip ID': currentTripId, 'Day Number': dayNum, 'Date': date, 'Starting Location': '', 'Starting Country': '', 'Ending Location': '', 'Ending Country': '' } };
 }
