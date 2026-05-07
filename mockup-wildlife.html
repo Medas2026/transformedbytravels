@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wildlife Tracking · Transformed by Travels · Uganda Tourism Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:   #0b1320; --s1: #111c2e; --s2: #172035; --s3: #1e2a40;
+    --teal: #2dd4bf; --text: #e2e8f0; --soft: #94a3b8; --muted: #64748b;
+    --green: #86efac; --amber: #fbbf24; --red: #f87171; --gold: #f59e0b;
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Open Sans', sans-serif; line-height: 1.6; }
+
+  /* ── Hero ── */
+  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 24px; background: radial-gradient(ellipse at 50% 0%, rgba(45,212,191,0.12) 0%, transparent 60%), var(--bg); position: relative; overflow: hidden; }
+  .hero::before { content:''; position:absolute; inset:0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232dd4bf' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.3); border-radius: 20px; padding: 6px 16px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; color: var(--teal); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 5vw, 3.8rem); line-height: 1.15; color: var(--text); max-width: 780px; margin-bottom: 20px; }
+  .hero h1 em { font-style: italic; color: var(--teal); }
+  .hero p { font-size: 1.05rem; color: var(--soft); max-width: 580px; margin-bottom: 40px; line-height: 1.7; }
+  .hero-stats { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; margin-bottom: 50px; }
+  .hero-stat { text-align: center; }
+  .hero-stat-num { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 2.2rem; color: var(--teal); line-height: 1; }
+  .hero-stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; font-family: 'Montserrat', sans-serif; font-weight: 600; }
+  .scroll-hint { font-size: 0.78rem; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .scroll-hint span { animation: bounce 2s infinite; display: block; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+
+  /* ── Section ── */
+  .section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+  .section-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; color: var(--teal); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.4rem); color: var(--text); margin-bottom: 16px; line-height: 1.2; }
+  .section-sub { font-size: 0.95rem; color: var(--soft); max-width: 560px; line-height: 1.7; margin-bottom: 48px; }
+  .divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0; }
+
+  /* ── Two-col layout ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+  .two-col.flip { }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; gap: 40px; } }
+
+  /* ── Phone mockup ── */
+  .phone-wrap { display: flex; justify-content: center; }
+  .phone { width: 280px; background: #0a0f1a; border-radius: 36px; border: 2px solid rgba(255,255,255,0.12); box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.08); overflow: hidden; position: relative; }
+  .phone-notch { height: 28px; background: #0a0f1a; display: flex; align-items: center; justify-content: center; }
+  .phone-notch-inner { width: 80px; height: 20px; background: #000; border-radius: 0 0 14px 14px; }
+  .phone-screen { background: var(--bg); padding: 0; }
+  .phone-topbar { background: var(--s1); padding: 8px 12px 6px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .phone-topbar-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.7rem; color: var(--teal); }
+  .phone-online { font-size: 0.55rem; color: var(--green); }
+  .phone-filters { background: var(--s1); padding: 5px 8px; display: flex; gap: 5px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .phone-filters::-webkit-scrollbar { display: none; }
+  .phone-pill { padding: 3px 9px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.55rem; color: var(--soft); white-space: nowrap; }
+  .phone-pill.active { background: var(--teal); border-color: var(--teal); color: #000; }
+  .phone-search { padding: 6px 8px; }
+  .phone-search-bar { background: var(--s2); border-radius: 6px; padding: 5px 8px; font-size: 0.6rem; color: var(--muted); }
+  .phone-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .phone-thumb { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; background: var(--s2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+  .phone-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+  .phone-row-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem; color: var(--text); }
+  .phone-row-sci  { font-size: 0.55rem; color: var(--muted); font-style: italic; }
+  .phone-row-tags { display: flex; gap: 3px; margin-top: 2px; }
+  .phone-tag { padding: 1px 5px; border-radius: 8px; font-size: 0.48rem; font-family: 'Montserrat', sans-serif; font-weight: 700; }
+  .phone-tag-bird   { background: rgba(45,212,191,0.15); color: var(--teal); }
+  .phone-tag-mammal { background: rgba(134,239,172,0.15); color: var(--green); }
+  .phone-tag-seen   { background: rgba(251,191,36,0.2); color: var(--amber); }
+  .phone-chevron { color: var(--muted); font-size: 0.7rem; margin-left: auto; }
+  .phone-home { height: 4px; background: rgba(255,255,255,0.2); width: 80px; border-radius: 2px; margin: 8px auto; }
+
+  /* ── Detail card ── */
+  .detail-card { background: var(--s1); border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+  .detail-card-img { width: 100%; height: 220px; object-fit: cover; display: block; background: var(--s2); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+  .detail-card-body { padding: 20px; }
+  .detail-card-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.15rem; color: var(--text); }
+  .detail-card-sci  { font-size: 0.78rem; color: var(--muted); font-style: italic; margin-top: 2px; }
+  .detail-card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+  .card-tag { padding: 3px 10px; border-radius: 12px; font-size: 0.68rem; font-family: 'Montserrat', sans-serif; font-weight: 700; }
+  .card-tag-cr    { background: rgba(248,113,113,0.2); color: var(--red); }
+  .card-tag-mammal{ background: rgba(134,239,172,0.15); color: var(--green); }
+  .card-tag-primate{ background: rgba(251,191,36,0.15); color: var(--amber); }
+  .detail-section { margin-top: 14px; }
+  .detail-section h4 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem; color: var(--teal); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+  .detail-section p  { font-size: 0.82rem; color: var(--soft); line-height: 1.6; }
+  .parks-wrap { display: flex; flex-wrap: wrap; gap: 5px; }
+  .park-chip { background: var(--s2); border-radius: 5px; padding: 3px 9px; font-size: 0.7rem; color: var(--text); font-family: 'Montserrat', sans-serif; font-weight: 600; }
+  .months-wrap { display: flex; gap: 3px; flex-wrap: wrap; }
+  .mon { background: var(--s2); border-radius: 3px; padding: 2px 6px; font-size: 0.62rem; color: var(--muted); }
+  .mon.good { background: rgba(45,212,191,0.15); color: var(--teal); font-weight: 700; }
+  .log-btn-mock { width: 100%; margin-top: 16px; padding: 11px; background: var(--teal); color: #000; border: none; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: default; }
+
+  /* ── Map section ── */
+  .map-wrap { background: var(--s1); border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+  #sighting-map { width: 100%; height: 420px; }
+  .map-legend { padding: 14px 18px; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--soft); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Sighting log ── */
+  .sighting-card { background: var(--s2); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; display: flex; gap: 14px; align-items: flex-start; border: 1px solid rgba(255,255,255,0.04); }
+  .sighting-icon { width: 44px; height: 44px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+  .sighting-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; color: var(--text); }
+  .sighting-meta { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+  .sighting-notes { font-size: 0.78rem; color: var(--soft); margin-top: 5px; font-style: italic; }
+  .sighting-gps { font-size: 0.65rem; color: var(--teal); margin-top: 4px; }
+  .sighting-count { margin-left: auto; text-align: right; flex-shrink: 0; }
+  .sighting-count-num { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.4rem; color: var(--green); line-height: 1; }
+  .sighting-count-label { font-size: 0.62rem; color: var(--muted); }
+
+  /* ── Value props ── */
+  .props-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  @media (max-width: 768px) { .props-grid { grid-template-columns: 1fr; } }
+  .prop-card { background: var(--s1); border-radius: 12px; padding: 24px; border: 1px solid rgba(255,255,255,0.06); }
+  .prop-icon { font-size: 1.8rem; margin-bottom: 12px; }
+  .prop-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; color: var(--text); margin-bottom: 8px; }
+  .prop-desc  { font-size: 0.8rem; color: var(--soft); line-height: 1.6; }
+
+  /* ── Trip summary ── */
+  .trip-summary { background: linear-gradient(135deg, rgba(45,212,191,0.08) 0%, transparent 60%), var(--s1); border-radius: 16px; padding: 32px; border: 1px solid rgba(45,212,191,0.15); }
+  .trip-summary-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--text); margin-bottom: 6px; }
+  .trip-summary-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 24px; }
+  .trip-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 600px) { .trip-stats-grid { grid-template-columns: repeat(2,1fr); } }
+  .trip-stat { text-align: center; }
+  .trip-stat-num { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.8rem; color: var(--teal); line-height: 1; }
+  .trip-stat-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 4px; font-family: 'Montserrat', sans-serif; }
+  .life-list { margin-top: 24px; }
+  .life-list-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; color: var(--teal); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .life-list-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+  @media (max-width: 600px) { .life-list-grid { grid-template-columns: repeat(2,1fr); } }
+  .life-item { background: var(--s2); border-radius: 6px; padding: 6px 10px; display: flex; align-items: center; gap: 6px; }
+  .life-item-icon { font-size: 1rem; flex-shrink: 0; }
+  .life-item-name { font-size: 0.72rem; color: var(--text); font-family: 'Montserrat', sans-serif; font-weight: 600; }
+  .life-item.highlight { background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.2); }
+
+  /* ── Footer ── */
+  .footer { background: var(--s1); border-top: 1px solid rgba(255,255,255,0.06); padding: 32px 24px; text-align: center; }
+  .footer-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: var(--teal); margin-bottom: 6px; }
+  .footer-sub { font-size: 0.78rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="hero-badge">🦅 Uganda Tourism Board · Innovation in Travel Technology</div>
+  <h1>Every sighting tells<br/><em>Uganda's story.</em></h1>
+  <p>A traveler-facing wildlife tracking platform that turns every Uganda safari into a living, growing database of where animals are seen — building Uganda's most precise wildlife intelligence, one trip at a time.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-num">487</div><div class="hero-stat-label">Species Tracked</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">12</div><div class="hero-stat-label">National Parks</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">GPS</div><div class="hero-stat-label">Precise Sightings</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">Offline</div><div class="hero-stat-label">No Signal Needed</div></div>
+  </div>
+  <div class="scroll-hint"><span>↓</span>See how it works</div>
+</div>
+
+<hr class="divider" />
+
+<!-- ── Phone mockup ───────────────────────────────────────────────────────── -->
+<div class="section">
+  <div class="two-col">
+    <div>
+      <div class="section-label">The Field Guide App</div>
+      <h2 class="section-title">Uganda's wildlife in their pocket — with no signal required.</h2>
+      <p class="section-sub">Before departure, travelers download the complete Uganda wildlife database to their phone. In the field — in Bwindi, in Murchison, in Kibale — they browse species, read habitat notes, and log every sighting with a single tap. GPS coordinates are captured silently in the background.</p>
+      <div class="props-grid" style="grid-template-columns:1fr 1fr;gap:14px;margin-top:0;">
+        <div class="prop-card" style="padding:16px;">
+          <div class="prop-icon">📡</div>
+          <div class="prop-title">Works Offline</div>
+          <div class="prop-desc">Full species database cached on the device. No signal, no problem.</div>
+        </div>
+        <div class="prop-card" style="padding:16px;">
+          <div class="prop-icon">📍</div>
+          <div class="prop-title">GPS Precision</div>
+          <div class="prop-desc">Every sighting logged with exact coordinates — not just park-level data.</div>
+        </div>
+        <div class="prop-card" style="padding:16px;">
+          <div class="prop-icon">🔄</div>
+          <div class="prop-title">Auto-Sync</div>
+          <div class="prop-desc">Sightings upload to the central database the moment wifi is available.</div>
+        </div>
+        <div class="prop-card" style="padding:16px;">
+          <div class="prop-icon">📖</div>
+          <div class="prop-title">Life List</div>
+          <div class="prop-desc">Every trip adds to a personal record that grows across years.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-notch"><div class="phone-notch-inner"></div></div>
+        <div class="phone-screen">
+          <div class="phone-topbar">
+            <div class="phone-topbar-title">Wildlife Field Guide</div>
+            <div class="phone-online">● Online</div>
+          </div>
+          <div class="phone-filters">
+            <div class="phone-pill active">All</div>
+            <div class="phone-pill">Mammals</div>
+            <div class="phone-pill">Birds</div>
+            <div class="phone-pill">Big Five</div>
+            <div class="phone-pill">Primates</div>
+            <div class="phone-pill">Seen ✓</div>
+          </div>
+          <div class="phone-search"><div class="phone-search-bar">🔍 Search species…</div></div>
+
+          <div class="phone-row">
+            <div class="phone-thumb">🦍</div>
+            <div style="flex:1;">
+              <div class="phone-row-name">Mountain Gorilla</div>
+              <div class="phone-row-sci">Gorilla beringei beringei</div>
+              <div class="phone-row-tags">
+                <span class="phone-tag phone-tag-mammal">Mammal</span>
+                <span class="phone-tag phone-tag-seen">✓ Seen</span>
+              </div>
+            </div>
+            <div class="phone-chevron">›</div>
+          </div>
+          <div class="phone-row">
+            <div class="phone-thumb">🐦</div>
+            <div style="flex:1;">
+              <div class="phone-row-name">Shoebill</div>
+              <div class="phone-row-sci">Balaeniceps rex</div>
+              <div class="phone-row-tags">
+                <span class="phone-tag phone-tag-bird">Bird</span>
+                <span class="phone-tag phone-tag-seen">✓ Seen</span>
+              </div>
+            </div>
+            <div class="phone-chevron">›</div>
+          </div>
+          <div class="phone-row">
+            <div class="phone-thumb">🐘</div>
+            <div style="flex:1;">
+              <div class="phone-row-name">African Elephant</div>
+              <div class="phone-row-sci">Loxodonta africana</div>
+              <div class="phone-row-tags">
+                <span class="phone-tag phone-tag-mammal">Mammal</span>
+              </div>
+            </div>
+            <div class="phone-chevron">›</div>
+          </div>
+          <div class="phone-row">
+            <div class="phone-thumb">🐒</div>
+            <div style="flex:1;">
+              <div class="phone-row-name">Chimpanzee</div>
+              <div class="phone-row-sci">Pan troglodytes</div>
+              <div class="phone-row-tags">
+                <span class="phone-tag phone-tag-mammal">Mammal</span>
+                <span class="phone-tag phone-tag-seen">✓ Seen</span>
+              </div>
+            </div>
+            <div class="phone-chevron">›</div>
+          </div>
+          <div class="phone-row">
+            <div class="phone-thumb">🦁</div>
+            <div style="flex:1;">
+              <div class="phone-row-name">African Lion</div>
+              <div class="phone-row-sci">Panthera leo</div>
+              <div class="phone-row-tags">
+                <span class="phone-tag phone-tag-mammal">Mammal</span>
+              </div>
+            </div>
+            <div class="phone-chevron">›</div>
+          </div>
+          <div class="phone-row">
+            <div class="phone-thumb">🦅</div>
+            <div style="flex:1;">
+              <div class="phone-row-name">Grey Crowned Crane</div>
+              <div class="phone-row-sci">Balearica regulorum</div>
+              <div class="phone-row-tags">
+                <span class="phone-tag phone-tag-bird">Bird</span>
+              </div>
+            </div>
+            <div class="phone-chevron">›</div>
+          </div>
+          <div class="phone-home"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ── Species detail ─────────────────────────────────────────────────────── -->
+<div class="section">
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <div class="section-label">Species Detail</div>
+      <h2 class="section-title">Rich profiles. Built for the field.</h2>
+      <p class="section-sub">Every species entry includes habitat notes, best parks, peak months, and conservation status — written for travelers, not researchers. One tap logs a sighting with GPS coordinates attached.</p>
+
+      <!-- Sighting log cards -->
+      <div class="section-label" style="margin-top:32px;">Recent Sightings — This Trip</div>
+      <div style="margin-top:12px;">
+        <div class="sighting-card">
+          <div class="sighting-icon" style="background:rgba(134,239,172,0.1);">🦍</div>
+          <div style="flex:1;">
+            <div class="sighting-name">Mountain Gorilla</div>
+            <div class="sighting-meta">Bwindi Impenetrable Forest · May 4, 2026 · 09:14 AM</div>
+            <div class="sighting-notes">"Silverback led the family group across the trail, paused within 6 metres."</div>
+            <div class="sighting-gps">📍 0.9833° S, 29.6167° E · ±4m accuracy</div>
+          </div>
+          <div class="sighting-count"><div class="sighting-count-num">7</div><div class="sighting-count-label">seen</div></div>
+        </div>
+        <div class="sighting-card">
+          <div class="sighting-icon" style="background:rgba(45,212,191,0.1);">🐦</div>
+          <div style="flex:1;">
+            <div class="sighting-name">Shoebill</div>
+            <div class="sighting-meta">Murchison Falls NP · May 2, 2026 · 07:42 AM</div>
+            <div class="sighting-notes">"Standing motionless in the papyrus swamp. Watched for 20 minutes."</div>
+            <div class="sighting-gps">📍 2.2847° N, 31.7583° E · ±6m accuracy</div>
+          </div>
+          <div class="sighting-count"><div class="sighting-count-num">1</div><div class="sighting-count-label">seen</div></div>
+        </div>
+        <div class="sighting-card">
+          <div class="sighting-icon" style="background:rgba(251,191,36,0.1);">🐒</div>
+          <div style="flex:1;">
+            <div class="sighting-name">Chimpanzee</div>
+            <div class="sighting-meta">Kibale Forest NP · May 3, 2026 · 10:05 AM</div>
+            <div class="sighting-notes">"Troop of 12 feeding in the canopy. Juveniles playing on lower branches."</div>
+            <div class="sighting-gps">📍 0.4833° N, 30.4000° E · ±8m accuracy</div>
+          </div>
+          <div class="sighting-count"><div class="sighting-count-num">12</div><div class="sighting-count-label">seen</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div style="width:100%;height:200px;background:linear-gradient(135deg,#1a2d1a,#0d1f0d);display:flex;align-items:center;justify-content:center;font-size:5rem;">🦍</div>
+      <div class="detail-card-body">
+        <div class="detail-card-name">Mountain Gorilla</div>
+        <div class="detail-card-sci">Gorilla beringei beringei</div>
+        <div class="detail-card-tags">
+          <span class="card-tag card-tag-mammal">Mammal</span>
+          <span class="card-tag card-tag-primate">Primate</span>
+          <span class="card-tag card-tag-cr">Critically Endangered</span>
+        </div>
+        <div class="detail-section">
+          <h4>About</h4>
+          <p>One of the world's rarest great apes, found only in the Virunga mountains and Bwindi Impenetrable Forest. Uganda hosts more than half the global population of around 1,000 individuals.</p>
+        </div>
+        <div class="detail-section">
+          <h4>Where to See</h4>
+          <div class="parks-wrap">
+            <div class="park-chip">Bwindi</div>
+            <div class="park-chip">Mgahinga</div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>Best Months</h4>
+          <div class="months-wrap">
+            <div class="mon">Jan</div><div class="mon good">Feb</div><div class="mon">Mar</div>
+            <div class="mon">Apr</div><div class="mon">May</div><div class="mon good">Jun</div>
+            <div class="mon good">Jul</div><div class="mon good">Aug</div><div class="mon">Sep</div>
+            <div class="mon">Oct</div><div class="mon">Nov</div><div class="mon good">Dec</div>
+          </div>
+        </div>
+        <button class="log-btn-mock">Log Sighting</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ── Map ────────────────────────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Sighting Map</div>
+  <h2 class="section-title">Every sighting. Precisely mapped.</h2>
+  <p class="section-sub">As travelers log sightings across Uganda, GPS coordinates build a living map of wildlife activity — more precise than any existing database, updated in real time.</p>
+  <div class="map-wrap">
+    <div id="sighting-map"></div>
+    <div class="map-legend">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.7rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.07em;margin-right:8px;">Sightings</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#86efac;"></div>Mammal</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#2dd4bf;"></div>Bird</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div>Primate</div>
+      <div class="legend-item" style="margin-left:auto;font-size:0.7rem;color:var(--muted);">47 sightings logged · 9 days · May 2026</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ── Trip summary / life list ───────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">The Life List</div>
+  <h2 class="section-title">One trip becomes a lifetime of records.</h2>
+  <p class="section-sub">Every Uganda trip accumulates into a personal life list — a growing record that gives travelers a reason to return, and gives Uganda a reason to be their destination of choice for every future adventure.</p>
+
+  <div class="trip-summary">
+    <div class="trip-summary-title">Mike & Kathy's Uganda Trip</div>
+    <div class="trip-summary-sub">Entebbe · Ziwa · Murchison Falls · Kibale · Queen Elizabeth · Bwindi · May 2026</div>
+    <div class="trip-stats-grid">
+      <div class="trip-stat"><div class="trip-stat-num">47</div><div class="trip-stat-label">Sightings logged</div></div>
+      <div class="trip-stat"><div class="trip-stat-num">31</div><div class="trip-stat-label">Species seen</div></div>
+      <div class="trip-stat"><div class="trip-stat-num">9</div><div class="trip-stat-label">Days in field</div></div>
+      <div class="trip-stat"><div class="trip-stat-num">5</div><div class="trip-stat-label">Parks visited</div></div>
+    </div>
+    <div class="life-list">
+      <div class="life-list-title">Species Logged This Trip</div>
+      <div class="life-list-grid">
+        <div class="life-item highlight"><div class="life-item-icon">🦍</div><div class="life-item-name">Mountain Gorilla</div></div>
+        <div class="life-item highlight"><div class="life-item-icon">🐦</div><div class="life-item-name">Shoebill</div></div>
+        <div class="life-item highlight"><div class="life-item-icon">🦏</div><div class="life-item-name">Northern White Rhino</div></div>
+        <div class="life-item"><div class="life-item-icon">🐒</div><div class="life-item-name">Chimpanzee</div></div>
+        <div class="life-item"><div class="life-item-icon">🐘</div><div class="life-item-name">African Elephant</div></div>
+        <div class="life-item"><div class="life-item-icon">🦁</div><div class="life-item-name">African Lion</div></div>
+        <div class="life-item"><div class="life-item-icon">🐊</div><div class="life-item-name">Nile Crocodile</div></div>
+        <div class="life-item"><div class="life-item-icon">🦛</div><div class="life-item-name">Hippopotamus</div></div>
+        <div class="life-item"><div class="life-item-icon">🦅</div><div class="life-item-name">Grey Crowned Crane</div></div>
+        <div class="life-item"><div class="life-item-icon">🐆</div><div class="life-item-name">African Leopard</div></div>
+        <div class="life-item"><div class="life-item-icon">🦒</div><div class="life-item-name">Rothschild's Giraffe</div></div>
+        <div class="life-item"><div class="life-item-icon">🐃</div><div class="life-item-name">African Buffalo</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ── Value props ────────────────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Why It Matters for Uganda</div>
+  <h2 class="section-title">A platform that works for travelers <em style="font-style:italic;color:var(--teal);">and</em> for Uganda.</h2>
+  <p class="section-sub" style="margin-bottom:36px;">Every interaction creates value at two levels — a richer experience for the traveler, and a growing intelligence asset for Uganda's wildlife conservation and tourism ecosystem.</p>
+  <div class="props-grid">
+    <div class="prop-card">
+      <div class="prop-icon">🗺️</div>
+      <div class="prop-title">Proprietary Wildlife Intelligence</div>
+      <div class="prop-desc">GPS-precise sighting data — aggregated across thousands of traveler trips — builds Uganda's most detailed real-world map of where species are seen, when, and in what numbers. No research institution has this at traveler scale.</div>
+    </div>
+    <div class="prop-card">
+      <div class="prop-icon">🔁</div>
+      <div class="prop-title">Repeat Visitation Driver</div>
+      <div class="prop-desc">A personal life list is the single strongest driver of repeat safari visits. Travelers who start a life list in Uganda have a compelling reason to return — more parks, more species, more Uganda.</div>
+    </div>
+    <div class="prop-card">
+      <div class="prop-icon">📚</div>
+      <div class="prop-title">Uganda-First Database</div>
+      <div class="prop-desc">Built around Uganda's parks and species from day one. Not a generic global app — a platform where Uganda is the hero, curated for the traveler who chose Uganda specifically.</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-logo">Transformed by Travels</div>
+  <div class="footer-sub">TransformedByTravels.com · MichaelE@transformedbytravels.com</div>
+</div>
+
+<script>
+// ── Load map ─────────────────────────────────────────────────────────────────
+const SIGHTINGS = [
+  { lat: -0.9833, lon: 29.6167, name: 'Mountain Gorilla',    type: 'primate', park: 'Bwindi' },
+  { lat: -1.0200, lon: 29.7000, name: 'Chimpanzee',          type: 'primate', park: 'Bwindi' },
+  { lat:  2.2847, lon: 31.7583, name: 'Shoebill',            type: 'bird',    park: 'Murchison Falls' },
+  { lat:  2.1500, lon: 31.6000, name: 'African Elephant',    type: 'mammal',  park: 'Murchison Falls' },
+  { lat:  2.2000, lon: 31.8000, name: 'Nile Crocodile',      type: 'mammal',  park: 'Murchison Falls' },
+  { lat:  0.4833, lon: 30.4000, name: 'Chimpanzee',          type: 'primate', park: 'Kibale' },
+  { lat:  0.5100, lon: 30.3600, name: 'Black & White Colobus',type:'mammal',  park: 'Kibale' },
+  { lat: -0.1200, lon: 30.0000, name: 'African Lion',        type: 'mammal',  park: 'Queen Elizabeth' },
+  { lat: -0.0800, lon: 29.9000, name: 'African Elephant',    type: 'mammal',  park: 'Queen Elizabeth' },
+  { lat: -0.2000, lon: 29.8500, name: 'Hippopotamus',        type: 'mammal',  park: 'Queen Elizabeth' },
+  { lat: -0.1500, lon: 30.0500, name: 'African Buffalo',     type: 'mammal',  park: 'Queen Elizabeth' },
+  { lat:  1.5800, lon: 32.4700, name: 'Northern White Rhino',type: 'mammal',  park: 'Ziwa Rhino' },
+  { lat: -0.6200, lon: 30.9500, name: 'Uganda Kob',          type: 'mammal',  park: 'Lake Mburo' },
+  { lat: -0.5800, lon: 30.9000, name: 'Zebra',               type: 'mammal',  park: 'Lake Mburo' },
+  { lat:  2.1800, lon: 31.7000, name: 'Grey Crowned Crane',  type: 'bird',    park: 'Murchison Falls' },
+  { lat: -0.1000, lon: 30.0200, name: 'African Fish Eagle',  type: 'bird',    park: 'Queen Elizabeth' },
+];
+
+const COLOR = { mammal: '#86efac', bird: '#2dd4bf', primate: '#fbbf24' };
+
+async function initMap() {
+  try {
+    const r = await fetch('/api/mapbox-token');
+    const d = await r.json();
+    if (!d.token) return showStaticMap();
+    window._mapboxToken = d.token;
+
+    const script = document.createElement('script');
+    script.src = 'https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js';
+    document.head.appendChild(script);
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css';
+    document.head.appendChild(link);
+    script.onload = () => {
+      mapboxgl.accessToken = d.token;
+      const map = new mapboxgl.Map({
+        container: 'sighting-map',
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [31.0, 1.0],
+        zoom: 6.2,
+      });
+      map.on('load', () => {
+        SIGHTINGS.forEach(s => {
+          const el = document.createElement('div');
+          el.style.cssText = `width:12px;height:12px;border-radius:50%;background:${COLOR[s.type]};border:2px solid rgba(0,0,0,0.4);cursor:pointer;box-shadow:0 0 6px ${COLOR[s.type]}88;`;
+          new mapboxgl.Marker({ element: el })
+            .setLngLat([s.lon, s.lat])
+            .setPopup(new mapboxgl.Popup({ offset: 10, closeButton: false })
+              .setHTML(`<div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#fff;background:#111c2e;padding:6px 10px;border-radius:6px;">${s.name}<br/><span style="font-weight:400;font-size:0.68rem;color:#64748b;">${s.park}</span></div>`))
+            .addTo(map);
+        });
+      });
+    };
+  } catch(e) { showStaticMap(); }
+}
+
+function showStaticMap() {
+  document.getElementById('sighting-map').innerHTML =
+    '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#64748b;font-style:italic;font-size:0.85rem;">Map loads with Mapbox token configured</div>';
+}
+
+initMap();
+</script>
+</body>
+</html>
