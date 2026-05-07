@@ -454,46 +454,76 @@
         <div style="padding:14px 18px;">
           <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.68rem;color:var(--green);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Recently Seen — Last 30 Days</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:16px;">
-            ${[
-              ['African Green Broadbill','Pseudocalyptomena graueri'],
-              ["Shelley's Crimsonwing",'Cryptospiza shelleyi'],
-              ['Short-tailed Warbler','Hemitesia neumanni'],
-              ["Grauer's Warbler",'Graueria vittata'],
-              ['Bar-tailed Trogon','Apaloderma vittatum'],
-              ['Rwenzori Turaco','Gallirex johnstoni'],
-            ].map(([cn,sn]) => `<div style="background:rgba(134,239,172,0.06);border-radius:5px;padding:5px 8px;">
-              <div style="font-size:0.72rem;color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;">${cn}</div>
-              <div style="font-size:0.62rem;color:var(--muted);font-style:italic;">${sn}</div>
-            </div>`).join('')}
+            <div style="background:rgba(134,239,172,0.06);border-radius:5px;padding:5px 8px;">
+              <div style="font-size:0.72rem;color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;">African Green Broadbill</div>
+              <div style="font-size:0.62rem;color:var(--muted);font-style:italic;">Pseudocalyptomena graueri</div>
+            </div>
+            <div style="background:rgba(134,239,172,0.06);border-radius:5px;padding:5px 8px;">
+              <div style="font-size:0.72rem;color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;">Shelley's Crimsonwing</div>
+              <div style="font-size:0.62rem;color:var(--muted);font-style:italic;">Cryptospiza shelleyi</div>
+            </div>
+            <div style="background:rgba(134,239,172,0.06);border-radius:5px;padding:5px 8px;">
+              <div style="font-size:0.72rem;color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;">Short-tailed Warbler</div>
+              <div style="font-size:0.62rem;color:var(--muted);font-style:italic;">Hemitesia neumanni</div>
+            </div>
+            <div style="background:rgba(134,239,172,0.06);border-radius:5px;padding:5px 8px;">
+              <div style="font-size:0.72rem;color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;">Grauer's Warbler</div>
+              <div style="font-size:0.62rem;color:var(--muted);font-style:italic;">Graueria vittata</div>
+            </div>
+            <div style="background:rgba(134,239,172,0.06);border-radius:5px;padding:5px 8px;">
+              <div style="font-size:0.72rem;color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;">Bar-tailed Trogon</div>
+              <div style="font-size:0.62rem;color:var(--muted);font-style:italic;">Apaloderma vittatum</div>
+            </div>
+            <div style="background:rgba(134,239,172,0.06);border-radius:5px;padding:5px 8px;">
+              <div style="font-size:0.72rem;color:#fff;font-family:'Montserrat',sans-serif;font-weight:600;">Rwenzori Turaco</div>
+              <div style="font-size:0.62rem;color:var(--muted);font-style:italic;">Gallirex johnstoni</div>
+            </div>
           </div>
 
           <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.68rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Notable Recent Sightings · 50km Radius</div>
-          ${[
-            ['African Green Broadbill','Bwindi NP — May 3','Rare forest endemic — 2 seen'],
-            ["Shelley's Crimsonwing",'Ruhija Sector — May 5','Highly sought montane species'],
-            ['Rwenzori Nightjar','Bwindi NP — May 1','Rarely recorded; single bird calling'],
-          ].map(([name, loc, note]) => `
           <div style="background:var(--s2);border-radius:8px;padding:10px 12px;margin-bottom:6px;">
-            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--text);">${name}</div>
-            <div style="font-size:0.68rem;color:var(--soft);margin-top:2px;">${loc}</div>
-            <div style="font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:2px;">${note}</div>
-          </div>`).join('')}
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--text);">African Green Broadbill</div>
+            <div style="font-size:0.68rem;color:var(--soft);margin-top:2px;">Bwindi NP — May 3</div>
+            <div style="font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:2px;">Rare forest endemic — 2 seen</div>
+          </div>
+          <div style="background:var(--s2);border-radius:8px;padding:10px 12px;margin-bottom:6px;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--text);">Shelley's Crimsonwing</div>
+            <div style="font-size:0.68rem;color:var(--soft);margin-top:2px;">Ruhija Sector — May 5</div>
+            <div style="font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:2px;">Highly sought montane species</div>
+          </div>
+          <div style="background:var(--s2);border-radius:8px;padding:10px 12px;margin-bottom:6px;">
+            <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--text);">Rwenzori Nightjar</div>
+            <div style="font-size:0.68rem;color:var(--soft);margin-top:2px;">Bwindi NP — May 1</div>
+            <div style="font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:2px;">Rarely recorded; single bird calling</div>
+          </div>
 
           <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);">
             <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.68rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">My Target List — May Trip</div>
             <div style="display:flex;flex-direction:column;gap:4px;">
-              ${[
-                ['African Green Broadbill','✓ Seen','var(--green)'],
-                ["Shelley's Crimsonwing",'✓ Seen','var(--green)'],
-                ['Bar-tailed Trogon','✓ Seen','var(--green)'],
-                ['Rwenzori Turaco','Not yet','var(--muted)'],
-                ['Strange Weaver','Not yet','var(--muted)'],
-                ['Grauer\'s Rush Warbler','Not yet','var(--muted)'],
-              ].map(([name, status, col]) => `
               <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-                <div style="font-size:0.75rem;color:var(--soft);">${name}</div>
-                <div style="font-size:0.68rem;font-family:'Montserrat',sans-serif;font-weight:700;color:${col};">${status}</div>
-              </div>`).join('')}
+                <div style="font-size:0.75rem;color:var(--soft);">African Green Broadbill</div>
+                <div style="font-size:0.68rem;font-family:'Montserrat',sans-serif;font-weight:700;color:var(--green);">✓ Seen</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:0.75rem;color:var(--soft);">Shelley's Crimsonwing</div>
+                <div style="font-size:0.68rem;font-family:'Montserrat',sans-serif;font-weight:700;color:var(--green);">✓ Seen</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:0.75rem;color:var(--soft);">Bar-tailed Trogon</div>
+                <div style="font-size:0.68rem;font-family:'Montserrat',sans-serif;font-weight:700;color:var(--green);">✓ Seen</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:0.75rem;color:var(--soft);">Rwenzori Turaco</div>
+                <div style="font-size:0.68rem;font-family:'Montserrat',sans-serif;font-weight:700;color:var(--muted);">Not yet</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:0.75rem;color:var(--soft);">Strange Weaver</div>
+                <div style="font-size:0.68rem;font-family:'Montserrat',sans-serif;font-weight:700;color:var(--muted);">Not yet</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:0.75rem;color:var(--soft);">Grauer's Rush Warbler</div>
+                <div style="font-size:0.68rem;font-family:'Montserrat',sans-serif;font-weight:700;color:var(--muted);">Not yet</div>
+              </div>
             </div>
           </div>
         </div>
