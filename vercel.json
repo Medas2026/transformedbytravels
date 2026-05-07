@@ -46,7 +46,8 @@
     "api/uganda-lead.js":     { "maxDuration": 10 },
     "api/journey-book.js":   { "maxDuration": 20 },
     "api/load-trip.js":      { "maxDuration": 30 },
-    "api/narrative.js":      { "maxDuration": 30 }
+    "api/narrative.js":      { "maxDuration": 30 },
+    "api/species.js":        { "maxDuration": 20 }
   },
   "crons": [
     {

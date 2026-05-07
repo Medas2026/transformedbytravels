@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wildlife Species Database · Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0b1320; --s1: #111c2e; --s2: #172035; --s3: #1e2a40;
+    --teal: #2dd4bf; --text: #e2e8f0; --soft: #94a3b8; --muted: #64748b;
+    --red: #f87171; --green: #86efac;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 14px; min-height: 100vh; }
+  h1 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.3rem; color: var(--teal); }
+  h2 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--text); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+  .header { background: var(--s1); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .layout { display: grid; grid-template-columns: 1fr 420px; gap: 0; height: calc(100vh - 57px); }
+  .list-panel { overflow-y: auto; padding: 20px 24px; border-right: 1px solid rgba(255,255,255,0.06); }
+  .form-panel { overflow-y: auto; padding: 20px 24px; background: var(--s1); }
+  .search-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  input[type=text], input[type=number], textarea, select {
+    background: var(--s2); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+    color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 13px; padding: 7px 10px; width: 100%;
+    outline: none; transition: border-color 0.15s;
+  }
+  input[type=text]:focus, input[type=number]:focus, textarea:focus, select:focus { border-color: var(--teal); }
+  textarea { resize: vertical; min-height: 70px; }
+  select option { background: #1e2a40; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; cursor: pointer; letter-spacing: 0.04em; transition: opacity 0.15s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-teal  { background: var(--teal); color: #000; }
+  .btn-ghost { background: transparent; color: var(--soft); border: 1px solid rgba(255,255,255,0.12); }
+  .btn-red   { background: var(--red); color: #000; }
+  .btn-sm    { padding: 4px 10px; font-size: 0.7rem; }
+  .field-row { margin-bottom: 12px; }
+  .field-row label { display: block; font-size: 0.72rem; color: var(--teal); font-family: 'Montserrat', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+  .field-row.half { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-row.half label { display: block; }
+  .species-card { background: var(--s2); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s; }
+  .species-card:hover { border-color: rgba(45,212,191,0.3); }
+  .species-card.active { border-color: var(--teal); }
+  .species-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: var(--s3); flex-shrink: 0; }
+  .species-thumb-placeholder { width: 48px; height: 48px; border-radius: 6px; background: var(--s3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+  .species-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; color: var(--text); }
+  .species-sci  { font-size: 0.72rem; color: var(--muted); font-style: italic; }
+  .species-meta { font-size: 0.7rem; color: var(--soft); margin-top: 2px; }
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 0.65rem; font-family: 'Montserrat', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px; }
+  .badge-bird   { background: rgba(45,212,191,0.15); color: var(--teal); }
+  .badge-mammal { background: rgba(134,239,172,0.15); color: var(--green); }
+  .badge-other  { background: rgba(148,163,184,0.15); color: var(--soft); }
+  .photo-upload-area { border: 2px dashed rgba(255,255,255,0.12); border-radius: 8px; padding: 14px; text-align: center; cursor: pointer; transition: border-color 0.15s; }
+  .photo-upload-area:hover { border-color: var(--teal); }
+  .photo-preview { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; }
+  .months-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 4px; }
+  .month-cb { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.65rem; color: var(--soft); cursor: pointer; }
+  .month-cb input { accent-color: var(--teal); width: 14px; height: 14px; }
+  .parks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .park-cb { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--soft); cursor: pointer; }
+  .park-cb input { accent-color: var(--teal); }
+  .status-bar { font-size: 0.78rem; color: var(--soft); padding: 6px 0; }
+  .status-bar.ok  { color: var(--green); }
+  .status-bar.err { color: var(--red); }
+  .divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 16px 0; }
+  .count-badge { background: var(--s3); color: var(--soft); border-radius: 10px; padding: 2px 8px; font-size: 0.72rem; font-family: 'Montserrat', sans-serif; font-weight: 700; }
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; height: auto; }
+    .list-panel { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); max-height: 50vh; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Wildlife Species Database</h1>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span id="total-count" class="count-badge">— species</span>
+    <button class="btn btn-teal" onclick="newSpecies()">+ Add Species</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- ── LEFT: Species list ─────────────────────────────────────────────── -->
+  <div class="list-panel">
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="Search name or scientific name…" oninput="filterList()" style="flex:1;" />
+      <select id="filter-type" onchange="filterList()" style="width:120px;">
+        <option value="">All types</option>
+        <option>Mammal</option>
+        <option>Bird</option>
+        <option>Reptile</option>
+        <option>Amphibian</option>
+        <option>Fish</option>
+        <option>Insect</option>
+      </select>
+    </div>
+    <div id="species-list">
+      <p style="color:var(--muted);font-style:italic;">Loading…</p>
+    </div>
+  </div>
+
+  <!-- ── RIGHT: Add / Edit form ─────────────────────────────────────────── -->
+  <div class="form-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h2 id="form-title">Add Species</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-red btn-sm" id="delete-btn" onclick="deleteSpecies()" style="display:none;">Delete</button>
+        <button class="btn btn-ghost btn-sm" onclick="newSpecies()">Clear</button>
+      </div>
+    </div>
+
+    <div id="form-status" class="status-bar" style="min-height:20px;margin-bottom:8px;"></div>
+
+    <!-- Photo -->
+    <div class="field-row">
+      <label>Photo</label>
+      <div class="photo-upload-area" onclick="document.getElementById('photo-input').click()">
+        <img id="photo-preview" class="photo-preview" style="display:none;" alt="Preview" />
+        <div id="photo-placeholder" style="color:var(--muted);font-size:0.8rem;">Click to upload photo</div>
+      </div>
+      <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)" />
+      <input type="text" id="f-photoUrl" placeholder="or paste Cloudinary URL" style="margin-top:6px;" oninput="updatePhotoPreview(this.value)" />
+    </div>
+
+    <!-- Names -->
+    <div class="field-row half">
+      <div>
+        <label>Common Name *</label>
+        <input type="text" id="f-name" placeholder="e.g. Shoebill" />
+      </div>
+      <div>
+        <label>Scientific Name</label>
+        <input type="text" id="f-scientificName" placeholder="e.g. Balaeniceps rex" style="font-style:italic;" />
+      </div>
+    </div>
+
+    <!-- Type + Category -->
+    <div class="field-row half">
+      <div>
+        <label>Type</label>
+        <select id="f-type">
+          <option value="">— select —</option>
+          <option>Mammal</option>
+          <option>Bird</option>
+          <option>Reptile</option>
+          <option>Amphibian</option>
+          <option>Fish</option>
+          <option>Insect</option>
+        </select>
+      </div>
+      <div>
+        <label>Category</label>
+        <select id="f-category">
+          <option value="">— select —</option>
+          <option>Big Five</option>
+          <option>Primate</option>
+          <option>Predator</option>
+          <option>Antelope / Ungulate</option>
+          <option>Raptor</option>
+          <option>Waterbird</option>
+          <option>Forest Bird</option>
+          <option>Savanna Bird</option>
+          <option>Reptile</option>
+          <option>Other Mammal</option>
+          <option>Other Bird</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Conservation status -->
+    <div class="field-row">
+      <label>Conservation Status</label>
+      <select id="f-conservationStatus">
+        <option value="">— select —</option>
+        <option>Least Concern</option>
+        <option>Near Threatened</option>
+        <option>Vulnerable</option>
+        <option>Endangered</option>
+        <option>Critically Endangered</option>
+      </select>
+    </div>
+
+    <!-- Description -->
+    <div class="field-row">
+      <label>Description</label>
+      <textarea id="f-description" rows="3" placeholder="2–3 sentences, traveler-friendly…"></textarea>
+    </div>
+
+    <!-- Habitat -->
+    <div class="field-row">
+      <label>Habitat</label>
+      <textarea id="f-habitat" rows="2" placeholder="Where they live and how to find them…"></textarea>
+    </div>
+
+    <!-- Best Parks -->
+    <div class="field-row">
+      <label>Best Parks</label>
+      <div class="parks-grid" id="parks-grid">
+        <!-- Uganda -->
+        <label class="park-cb"><input type="checkbox" value="Bwindi" /> Bwindi</label>
+        <label class="park-cb"><input type="checkbox" value="Murchison Falls" /> Murchison Falls</label>
+        <label class="park-cb"><input type="checkbox" value="Queen Elizabeth" /> Queen Elizabeth</label>
+        <label class="park-cb"><input type="checkbox" value="Kibale" /> Kibale</label>
+        <label class="park-cb"><input type="checkbox" value="Mgahinga" /> Mgahinga</label>
+        <label class="park-cb"><input type="checkbox" value="Lake Mburo" /> Lake Mburo</label>
+        <label class="park-cb"><input type="checkbox" value="Kidepo Valley" /> Kidepo Valley</label>
+        <label class="park-cb"><input type="checkbox" value="Ziwa Rhino" /> Ziwa Rhino</label>
+        <!-- Rwanda -->
+        <label class="park-cb"><input type="checkbox" value="Volcanoes" /> Volcanoes</label>
+        <label class="park-cb"><input type="checkbox" value="Nyungwe" /> Nyungwe</label>
+        <label class="park-cb"><input type="checkbox" value="Akagera" /> Akagera</label>
+        <!-- Tanzania -->
+        <label class="park-cb"><input type="checkbox" value="Serengeti" /> Serengeti</label>
+        <label class="park-cb"><input type="checkbox" value="Ngorongoro" /> Ngorongoro</label>
+        <label class="park-cb"><input type="checkbox" value="Tarangire" /> Tarangire</label>
+        <label class="park-cb"><input type="checkbox" value="Ruaha" /> Ruaha</label>
+        <label class="park-cb"><input type="checkbox" value="Lake Manyara" /> Lake Manyara</label>
+      </div>
+    </div>
+
+    <!-- Best Months -->
+    <div class="field-row">
+      <label>Best Months</label>
+      <div class="months-grid">
+        <label class="month-cb"><input type="checkbox" value="Jan" />Jan</label>
+        <label class="month-cb"><input type="checkbox" value="Feb" />Feb</label>
+        <label class="month-cb"><input type="checkbox" value="Mar" />Mar</label>
+        <label class="month-cb"><input type="checkbox" value="Apr" />Apr</label>
+        <label class="month-cb"><input type="checkbox" value="May" />May</label>
+        <label class="month-cb"><input type="checkbox" value="Jun" />Jun</label>
+        <label class="month-cb"><input type="checkbox" value="Jul" />Jul</label>
+        <label class="month-cb"><input type="checkbox" value="Aug" />Aug</label>
+        <label class="month-cb"><input type="checkbox" value="Sep" />Sep</label>
+        <label class="month-cb"><input type="checkbox" value="Oct" />Oct</label>
+        <label class="month-cb"><input type="checkbox" value="Nov" />Nov</label>
+        <label class="month-cb"><input type="checkbox" value="Dec" />Dec</label>
+      </div>
+    </div>
+
+    <!-- External IDs -->
+    <div class="field-row half">
+      <div>
+        <label>eBird Code</label>
+        <input type="text" id="f-ebirdCode" placeholder="e.g. shoebil1" />
+      </div>
+      <div>
+        <label>iNaturalist ID</label>
+        <input type="number" id="f-inaturalistId" placeholder="e.g. 4849" />
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="field-row">
+      <label>Internal Notes</label>
+      <textarea id="f-notes" rows="2" placeholder="Guide tips, photo tips, anything internal…"></textarea>
+    </div>
+
+    <hr class="divider" />
+
+    <button class="btn btn-teal" onclick="saveSpecies()" style="width:100%;justify-content:center;">
+      Save Species
+    </button>
+  </div>
+</div>
+
+<script>
+const CLOUDINARY_CLOUD  = 'dporenlvw';
+const CLOUDINARY_PRESET = 'Trip Image';
+
+let ALL_SPECIES = [];
+let EDITING_ID  = null;
+
+// ── Load species list ────────────────────────────────────────────────────────
+async function loadSpecies() {
+  try {
+    const resp = await fetch('/api/species');
+    const data = await resp.json();
+    ALL_SPECIES = data.records || [];
+    document.getElementById('total-count').textContent = ALL_SPECIES.length + ' species';
+    renderList(ALL_SPECIES);
+  } catch(e) {
+    document.getElementById('species-list').innerHTML = '<p style="color:var(--red);">Error loading species: ' + e.message + '</p>';
+  }
+}
+
+function renderList(records) {
+  const el = document.getElementById('species-list');
+  if (!records.length) { el.innerHTML = '<p style="color:var(--muted);font-style:italic;">No species found.</p>'; return; }
+  el.innerHTML = records.map(r => {
+    const f = r.fields;
+    const typeClass = f.Type === 'Bird' ? 'badge-bird' : f.Type === 'Mammal' ? 'badge-mammal' : 'badge-other';
+    const emoji = f.Type === 'Bird' ? '🦅' : f.Type === 'Mammal' ? '🦁' : '🦎';
+    return `<div class="species-card ${EDITING_ID === r.id ? 'active' : ''}" onclick="editSpecies('${r.id}')">
+      ${f['Photo URL']
+        ? `<img src="${f['Photo URL']}" class="species-thumb" alt="${f.Name}" onerror="this.style.display='none'" />`
+        : `<div class="species-thumb-placeholder">${emoji}</div>`}
+      <div style="flex:1;min-width:0;">
+        <div class="species-name">${f.Name || '—'}</div>
+        <div class="species-sci">${f['Scientific Name'] || ''}</div>
+        <div class="species-meta">
+          ${f.Type ? `<span class="badge ${typeClass}">${f.Type}</span>` : ''}
+          ${f.Category ? `<span style="color:var(--muted);">${f.Category}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterList() {
+  const q    = document.getElementById('search-input').value.toLowerCase();
+  const type = document.getElementById('filter-type').value;
+  const filtered = ALL_SPECIES.filter(r => {
+    const f = r.fields;
+    const matchType = !type || f.Type === type;
+    const matchQ    = !q || (f.Name || '').toLowerCase().includes(q) || (f['Scientific Name'] || '').toLowerCase().includes(q);
+    return matchType && matchQ;
+  });
+  renderList(filtered);
+}
+
+// ── Edit existing species ────────────────────────────────────────────────────
+function editSpecies(id) {
+  const rec = ALL_SPECIES.find(r => r.id === id);
+  if (!rec) return;
+  EDITING_ID = id;
+  const f = rec.fields;
+
+  document.getElementById('form-title').textContent = 'Edit Species';
+  document.getElementById('delete-btn').style.display = 'inline-flex';
+  setStatus('');
+
+  document.getElementById('f-name').value             = f.Name || '';
+  document.getElementById('f-scientificName').value   = f['Scientific Name'] || '';
+  document.getElementById('f-type').value             = f.Type || '';
+  document.getElementById('f-category').value         = f.Category || '';
+  document.getElementById('f-conservationStatus').value = f['Conservation Status'] || '';
+  document.getElementById('f-description').value      = f.Description || '';
+  document.getElementById('f-habitat').value          = f.Habitat || '';
+  document.getElementById('f-ebirdCode').value        = f['eBird Code'] || '';
+  document.getElementById('f-inaturalistId').value    = f['iNaturalist ID'] || '';
+  document.getElementById('f-notes').value            = f.Notes || '';
+  document.getElementById('f-photoUrl').value         = f['Photo URL'] || '';
+  updatePhotoPreview(f['Photo URL'] || '');
+
+  // Parks checkboxes
+  const parks = (f['Best Parks'] || '').split(',').map(s => s.trim());
+  document.querySelectorAll('#parks-grid input[type=checkbox]').forEach(cb => {
+    cb.checked = parks.includes(cb.value);
+  });
+
+  // Month checkboxes
+  const months = (f['Best Months'] || '').split(',').map(s => s.trim());
+  document.querySelectorAll('.months-grid input[type=checkbox]').forEach(cb => {
+    cb.checked = months.includes(cb.value);
+  });
+
+  renderList(ALL_SPECIES); // refresh to show active state
+  document.querySelector('.form-panel').scrollTop = 0;
+}
+
+function newSpecies() {
+  EDITING_ID = null;
+  document.getElementById('form-title').textContent = 'Add Species';
+  document.getElementById('delete-btn').style.display = 'none';
+  setStatus('');
+  ['f-name','f-scientificName','f-description','f-habitat','f-ebirdCode','f-inaturalistId','f-notes','f-photoUrl'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-type').value = '';
+  document.getElementById('f-category').value = '';
+  document.getElementById('f-conservationStatus').value = '';
+  document.querySelectorAll('#parks-grid input, .months-grid input').forEach(cb => cb.checked = false);
+  updatePhotoPreview('');
+  renderList(ALL_SPECIES);
+}
+
+// ── Save ─────────────────────────────────────────────────────────────────────
+async function saveSpecies() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { setStatus('Name is required.', true); return; }
+
+  const parks  = [...document.querySelectorAll('#parks-grid input:checked')].map(c => c.value).join(', ');
+  const months = [...document.querySelectorAll('.months-grid input:checked')].map(c => c.value).join(', ');
+
+  const body = {
+    name,
+    scientificName:     document.getElementById('f-scientificName').value.trim(),
+    type:               document.getElementById('f-type').value,
+    category:           document.getElementById('f-category').value,
+    conservationStatus: document.getElementById('f-conservationStatus').value,
+    description:        document.getElementById('f-description').value.trim(),
+    habitat:            document.getElementById('f-habitat').value.trim(),
+    bestParks:          parks,
+    bestMonths:         months,
+    photoUrl:           document.getElementById('f-photoUrl').value.trim(),
+    ebirdCode:          document.getElementById('f-ebirdCode').value.trim(),
+    inaturalistId:      document.getElementById('f-inaturalistId').value.trim(),
+    notes:              document.getElementById('f-notes').value.trim(),
+  };
+
+  setStatus('Saving…');
+  try {
+    const url    = EDITING_ID ? '/api/species?id=' + EDITING_ID : '/api/species';
+    const method = EDITING_ID ? 'PATCH' : 'POST';
+    const resp   = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data   = await resp.json();
+    if (data.error) { setStatus('Error: ' + data.error, true); return; }
+    setStatus('Saved!');
+    await loadSpecies();
+    if (!EDITING_ID && data.id) editSpecies(data.id);
+    else if (EDITING_ID) renderList(ALL_SPECIES);
+  } catch(e) {
+    setStatus('Error: ' + e.message, true);
+  }
+}
+
+// ── Delete ───────────────────────────────────────────────────────────────────
+async function deleteSpecies() {
+  if (!EDITING_ID) return;
+  const name = document.getElementById('f-name').value || 'this species';
+  if (!confirm('Delete ' + name + '? This cannot be undone.')) return;
+  setStatus('Deleting…');
+  try {
+    await fetch('/api/species?id=' + EDITING_ID, { method: 'DELETE' });
+    newSpecies();
+    await loadSpecies();
+    setStatus('Deleted.');
+  } catch(e) {
+    setStatus('Error: ' + e.message, true);
+  }
+}
+
+// ── Photo upload ─────────────────────────────────────────────────────────────
+async function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  setStatus('Uploading photo…');
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_PRESET);
+    fd.append('folder', 'species');
+    const resp = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
+    document.getElementById('f-photoUrl').value = data.secure_url;
+    updatePhotoPreview(data.secure_url);
+    setStatus('Photo uploaded.');
+  } catch(e) {
+    setStatus('Upload error: ' + e.message, true);
+  }
+}
+
+function updatePhotoPreview(url) {
+  const img  = document.getElementById('photo-preview');
+  const ph   = document.getElementById('photo-placeholder');
+  if (url) { img.src = url; img.style.display = 'block'; ph.style.display = 'none'; }
+  else      { img.style.display = 'none'; ph.style.display = 'block'; }
+}
+
+function setStatus(msg, isErr) {
+  const el = document.getElementById('form-status');
+  el.textContent = msg;
+  el.className = 'status-bar' + (isErr ? ' err' : msg === 'Saved!' || msg === 'Deleted.' ? ' ok' : '');
+}
+
+loadSpecies();
+</script>
+</body>
+</html>
