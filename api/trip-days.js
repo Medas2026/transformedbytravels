@@ -87,8 +87,8 @@ module.exports = async function handler(req, res) {
         'Day Number': (explicitDayNum && days === 1) ? explicitDayNum : i + 1,
         'Date':       d.toISOString().split('T')[0]
       };
-      if (i === 0)        record['Starting Location'] = 'Home';
-      if (i === days - 1) record['Ending Location']   = 'Home';
+      if (i === 0        && !explicitDayNum) record['Starting Location'] = 'Home';
+      if (i === days - 1 && !explicitDayNum) record['Ending Location']   = 'Home';
       records.push(record);
     }
 
