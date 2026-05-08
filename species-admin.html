@@ -283,9 +283,6 @@
         <textarea id="f-notes" rows="2" placeholder="Guide tips, photo tips, anything for internal use…"></textarea>
       </div>
 
-      <button class="btn btn-teal" onclick="saveSpecies()" style="width:100%;justify-content:center;">
-        Save Species
-      </button>
     </div>
   </div>
 </div>
@@ -460,6 +457,12 @@ function newSpecies() {
 async function saveSpecies() {
   const name = document.getElementById('f-name').value.trim();
   if (!name) { setStatus('Name is required.', true); return; }
+
+  // Duplicate check (only for new entries, not edits)
+  if (!EDITING_ID) {
+    const dup = ALL_SPECIES.find(r => (r.fields['Species Name'] || '').toLowerCase() === name.toLowerCase());
+    if (dup) { setStatus('⚠ "' + name + '" already exists in the database.', true); return; }
+  }
 
   const parks  = [...document.querySelectorAll('.park-cb input:checked')].map(c => c.value).join(', ');
   const months = [...document.querySelectorAll('.months-grid input:checked')].map(c => c.value).join(', ');
