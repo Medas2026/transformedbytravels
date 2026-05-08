@@ -371,10 +371,10 @@ function renderList(records) {
     const emoji = f.Type === 'Bird' ? '🦅' : f.Type === 'Mammal' ? '🦁' : '🦎';
     return `<div class="species-card ${EDITING_ID === r.id ? 'active' : ''}" onclick="editSpecies('${r.id}')">
       ${f['Photo URL']
-        ? `<img src="${f['Photo URL']}" class="species-thumb" alt="${f.Name}" onerror="this.style.display='none'" />`
+        ? `<img src="${f['Photo URL']}" class="species-thumb" alt="${f['Species Name']}" onerror="this.style.display='none'" />`
         : `<div class="species-thumb-placeholder">${emoji}</div>`}
       <div style="flex:1;min-width:0;">
-        <div class="species-name">${f.Name || '—'}</div>
+        <div class="species-name">${f['Species Name'] || '—'}</div>
         <div class="species-sci">${f['Scientific Name'] || ''}</div>
         <div class="species-meta">
           ${f.Type ? `<span class="badge ${typeClass}">${f.Type}</span>` : ''}
