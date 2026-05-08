@@ -16,6 +16,7 @@ Category: ${category || 'unknown'}
 
 Respond with ONLY valid JSON in this exact format:
 {
+  "scientificName": "the Latin scientific name, e.g. Gorilla beringei beringei",
   "description": "3 engaging sentences about this animal for a traveler who just spotted it on safari. What makes it special, notable behaviors, why travelers love seeing it.",
   "habitat": "1-2 sentences on where this animal lives and how to find it in the wild.",
   "conservationStatus": "one of: Least Concern, Near Threatened, Vulnerable, Endangered, Critically Endangered",

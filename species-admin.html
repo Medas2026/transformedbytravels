@@ -316,8 +316,9 @@ async function generateDetails() {
     });
     const data = await resp.json();
     if (data.error) { status.textContent = 'Error: ' + data.error; return; }
-    if (data.description)        document.getElementById('f-description').value      = data.description;
-    if (data.habitat)            document.getElementById('f-habitat').value           = data.habitat;
+    if (data.scientificName)     document.getElementById('f-scientificName').value    = data.scientificName;
+    if (data.description)        document.getElementById('f-description').value        = data.description;
+    if (data.habitat)            document.getElementById('f-habitat').value             = data.habitat;
     if (data.conservationStatus) document.getElementById('f-conservationStatus').value = data.conservationStatus;
     if (data.bestMonths && Array.isArray(data.bestMonths)) {
       document.querySelectorAll('.months-grid input[type=checkbox]').forEach(cb => {
