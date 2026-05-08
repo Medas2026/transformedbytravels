@@ -2061,7 +2061,9 @@ async function loadProgress() {
     } catch(e) {}
   }
 
-  // 3. Fallback to localStorage
+  // 3. Fallback to localStorage — skip when a tripId is in the URL (trip-specific
+  //    book not found in Airtable means it's brand new; don't load stale data)
+  if (urlTripId) return;
   try {
     const saved = localStorage.getItem('jb_progress');
     if (!saved) return;
