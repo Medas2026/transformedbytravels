@@ -475,6 +475,7 @@ async function loadSchedule() {
     currentTripCountry     = tf['Country']     || '';
 
     document.getElementById('sch-trip-name').textContent  = tf['Trip Name'] || 'Trip Schedule';
+    document.getElementById('sch-trip-name').title = 'dest:' + currentTripDestination + ' | country:' + currentTripCountry;
     const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const fmtDate = s => { if (!s) return ''; const d = new Date(s+'T00:00:00Z'); return MONTHS[d.getUTCMonth()]+' '+d.getUTCDate()+', '+d.getUTCFullYear(); };
     document.getElementById('sch-trip-dates').textContent = currentTripStart
