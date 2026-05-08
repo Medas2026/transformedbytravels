@@ -530,7 +530,7 @@ function _locPickerHtml(idx, field) {
   const locField     = field === 'start' ? 'Starting Location' : 'Ending Location';
   const countryField = field === 'start' ? 'Starting Country'  : 'Ending Country';
   const curDest    = f[locField]     || '';
-  const curCountry = f[countryField] || '';
+  const curCountry = f[countryField] || (field === 'end' ? f['Starting Country'] : '') || '';
   const label      = curDest ? _locLabel(curDest) : (curCountry ? curCountry + ' — pick destination' : (field === 'start' ? 'Set starting location' : 'Set ending location'));
   const labelColor = curDest ? 'var(--text)' : (curCountry ? 'var(--teal)' : 'var(--muted)');
   const countries  = _scheduleGetCountries();
