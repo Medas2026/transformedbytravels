@@ -356,7 +356,7 @@ function editSpecies(id) {
   document.getElementById('delete-btn').style.display = 'inline-flex';
   setStatus('');
 
-  document.getElementById('f-name').value             = f.Name || '';
+  document.getElementById('f-name').value             = f['Species Name'] || '';
   document.getElementById('f-scientificName').value   = f['Scientific Name'] || '';
   document.getElementById('f-type').value             = f.Type || '';
   document.getElementById('f-category').value         = f.Category || '';
@@ -370,13 +370,13 @@ function editSpecies(id) {
   updatePhotoPreview(f['Photo URL'] || '');
 
   // Parks checkboxes
-  const parks = (f['Best Parks'] || '').split(',').map(s => s.trim());
-  document.querySelectorAll('#parks-grid input[type=checkbox]').forEach(cb => {
+  const parks = Array.isArray(f['Best Parks']) ? f['Best Parks'] : (f['Best Parks'] || '').split(',').map(s => s.trim());
+  document.querySelectorAll('.park-cb input[type=checkbox]').forEach(cb => {
     cb.checked = parks.includes(cb.value);
   });
 
   // Month checkboxes
-  const months = (f['Best Months'] || '').split(',').map(s => s.trim());
+  const months = Array.isArray(f['Best Months']) ? f['Best Months'] : (f['Best Months'] || '').split(',').map(s => s.trim());
   document.querySelectorAll('.months-grid input[type=checkbox]').forEach(cb => {
     cb.checked = months.includes(cb.value);
   });
