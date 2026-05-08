@@ -821,12 +821,16 @@ async function _doDeleteDay(idx) {
 }
 
 function _resolveCountry() {
+  console.log('[resolveCountry] tripCountry:', currentTripCountry, '| tripDestination:', currentTripDestination);
   if (currentTripCountry) return currentTripCountry;
   if (currentTripDestination && typeof DESTINATIONS !== 'undefined') {
     const match = DESTINATIONS.find(r => r[0] === currentTripDestination);
+    console.log('[resolveCountry] DESTINATIONS match:', match ? match[1] : 'none');
     if (match) return match[1];
   }
-  return _scheduleRecords.map(r => r.fields['Ending Country'] || r.fields['Starting Country']).find(Boolean) || '';
+  const fromRecords = _scheduleRecords.map(r => r.fields['Ending Country'] || r.fields['Starting Country']).find(Boolean) || '';
+  console.log('[resolveCountry] from existing records:', fromRecords);
+  return fromRecords;
 }
 
 async function scheduleAddDay() {
