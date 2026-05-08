@@ -103,43 +103,29 @@
 
   <!-- ── RIGHT: Add / Edit form ─────────────────────────────────────────── -->
   <div class="form-panel">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <h2 id="form-title">Add Species</h2>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-red btn-sm" id="delete-btn" onclick="deleteSpecies()" style="display:none;">Delete</button>
         <button class="btn btn-ghost btn-sm" onclick="newSpecies()">Clear</button>
       </div>
     </div>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px;">Fill in the essentials and save — you can always come back to add details later.</p>
 
     <div id="form-status" class="status-bar" style="min-height:20px;margin-bottom:8px;"></div>
 
-    <!-- Photo -->
-    <div class="field-row">
-      <label>Photo</label>
-      <div class="photo-upload-area" onclick="document.getElementById('photo-input').click()">
-        <img id="photo-preview" class="photo-preview" style="display:none;" alt="Preview" />
-        <div id="photo-placeholder" style="color:var(--muted);font-size:0.8rem;">Click to upload photo</div>
-      </div>
-      <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)" />
-      <input type="text" id="f-photoUrl" placeholder="or paste Cloudinary URL" style="margin-top:6px;" oninput="updatePhotoPreview(this.value)" />
-    </div>
+    <!-- ── ESSENTIALS ──────────────────────────────────────────────────────── -->
 
-    <!-- Names -->
-    <div class="field-row half">
-      <div>
-        <label>Common Name *</label>
-        <input type="text" id="f-name" placeholder="e.g. Shoebill" />
-      </div>
-      <div>
-        <label>Scientific Name</label>
-        <input type="text" id="f-scientificName" placeholder="e.g. Balaeniceps rex" style="font-style:italic;" />
-      </div>
+    <!-- Common Name -->
+    <div class="field-row">
+      <label>Animal Name <span style="color:var(--red);">*</span></label>
+      <input type="text" id="f-name" placeholder="e.g. Shoebill, Mountain Gorilla, African Elephant" />
     </div>
 
     <!-- Type + Category -->
     <div class="field-row half">
       <div>
-        <label>Type</label>
+        <label>Type <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(what kind?)</span></label>
         <select id="f-type">
           <option value="">— select —</option>
           <option>Mammal</option>
@@ -151,7 +137,7 @@
         </select>
       </div>
       <div>
-        <label>Category</label>
+        <label>Category <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(group)</span></label>
         <select id="f-category">
           <option value="">— select —</option>
           <option>Big Five</option>
@@ -170,36 +156,11 @@
       </div>
     </div>
 
-    <!-- Conservation status -->
-    <div class="field-row">
-      <label>Conservation Status</label>
-      <select id="f-conservationStatus">
-        <option value="">— select —</option>
-        <option>Least Concern</option>
-        <option>Near Threatened</option>
-        <option>Vulnerable</option>
-        <option>Endangered</option>
-        <option>Critically Endangered</option>
-      </select>
-    </div>
-
-    <!-- Description -->
-    <div class="field-row">
-      <label>Description</label>
-      <textarea id="f-description" rows="3" placeholder="2–3 sentences, traveler-friendly…"></textarea>
-    </div>
-
-    <!-- Habitat -->
-    <div class="field-row">
-      <label>Habitat</label>
-      <textarea id="f-habitat" rows="2" placeholder="Where they live and how to find them…"></textarea>
-    </div>
-
     <!-- Best Parks -->
     <div class="field-row">
-      <label>Best Parks</label>
-      <div class="parks-grid" id="parks-grid">
-        <!-- Uganda -->
+      <label>Where can you see it? <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">check all that apply</span></label>
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px;font-style:italic;">Uganda</div>
+      <div class="parks-grid" id="parks-grid" style="margin-bottom:8px;">
         <label class="park-cb"><input type="checkbox" value="Bwindi" /> Bwindi</label>
         <label class="park-cb"><input type="checkbox" value="Murchison Falls" /> Murchison Falls</label>
         <label class="park-cb"><input type="checkbox" value="Queen Elizabeth" /> Queen Elizabeth</label>
@@ -208,11 +169,15 @@
         <label class="park-cb"><input type="checkbox" value="Lake Mburo" /> Lake Mburo</label>
         <label class="park-cb"><input type="checkbox" value="Kidepo Valley" /> Kidepo Valley</label>
         <label class="park-cb"><input type="checkbox" value="Ziwa Rhino" /> Ziwa Rhino</label>
-        <!-- Rwanda -->
+      </div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px;font-style:italic;">Rwanda</div>
+      <div class="parks-grid" style="margin-bottom:8px;">
         <label class="park-cb"><input type="checkbox" value="Volcanoes" /> Volcanoes</label>
         <label class="park-cb"><input type="checkbox" value="Nyungwe" /> Nyungwe</label>
         <label class="park-cb"><input type="checkbox" value="Akagera" /> Akagera</label>
-        <!-- Tanzania -->
+      </div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px;font-style:italic;">Tanzania</div>
+      <div class="parks-grid">
         <label class="park-cb"><input type="checkbox" value="Serengeti" /> Serengeti</label>
         <label class="park-cb"><input type="checkbox" value="Ngorongoro" /> Ngorongoro</label>
         <label class="park-cb"><input type="checkbox" value="Tarangire" /> Tarangire</label>
@@ -221,48 +186,100 @@
       </div>
     </div>
 
-    <!-- Best Months -->
+    <!-- Photo -->
     <div class="field-row">
-      <label>Best Months</label>
-      <div class="months-grid">
-        <label class="month-cb"><input type="checkbox" value="Jan" />Jan</label>
-        <label class="month-cb"><input type="checkbox" value="Feb" />Feb</label>
-        <label class="month-cb"><input type="checkbox" value="Mar" />Mar</label>
-        <label class="month-cb"><input type="checkbox" value="Apr" />Apr</label>
-        <label class="month-cb"><input type="checkbox" value="May" />May</label>
-        <label class="month-cb"><input type="checkbox" value="Jun" />Jun</label>
-        <label class="month-cb"><input type="checkbox" value="Jul" />Jul</label>
-        <label class="month-cb"><input type="checkbox" value="Aug" />Aug</label>
-        <label class="month-cb"><input type="checkbox" value="Sep" />Sep</label>
-        <label class="month-cb"><input type="checkbox" value="Oct" />Oct</label>
-        <label class="month-cb"><input type="checkbox" value="Nov" />Nov</label>
-        <label class="month-cb"><input type="checkbox" value="Dec" />Dec</label>
+      <label>Photo <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional — add now or later)</span></label>
+      <div class="photo-upload-area" onclick="document.getElementById('photo-input').click()">
+        <img id="photo-preview" class="photo-preview" style="display:none;" alt="Preview" />
+        <div id="photo-placeholder" style="color:var(--muted);font-size:0.8rem;">Click to upload photo</div>
       </div>
+      <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)" />
+      <input type="text" id="f-photoUrl" placeholder="or paste photo URL" style="margin-top:6px;" oninput="updatePhotoPreview(this.value)" />
     </div>
 
-    <!-- External IDs -->
-    <div class="field-row half">
-      <div>
-        <label>eBird Code</label>
-        <input type="text" id="f-ebirdCode" placeholder="e.g. shoebil1" />
-      </div>
-      <div>
-        <label>iNaturalist ID</label>
-        <input type="number" id="f-inaturalistId" placeholder="e.g. 4849" />
-      </div>
-    </div>
-
-    <!-- Notes -->
-    <div class="field-row">
-      <label>Internal Notes</label>
-      <textarea id="f-notes" rows="2" placeholder="Guide tips, photo tips, anything internal…"></textarea>
-    </div>
-
-    <hr class="divider" />
-
-    <button class="btn btn-teal" onclick="saveSpecies()" style="width:100%;justify-content:center;">
+    <button class="btn btn-teal" onclick="saveSpecies()" style="width:100%;justify-content:center;margin-bottom:6px;">
       Save Species
     </button>
+
+    <!-- ── OPTIONAL DETAILS (collapsed) ───────────────────────────────────── -->
+    <hr class="divider" />
+    <button onclick="toggleDetails(this)" style="background:none;border:none;color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px;margin-bottom:12px;">
+      <span id="details-arrow">▶</span> MORE DETAILS (scientific name, description, best months…)
+    </button>
+    <div id="details-section" style="display:none;">
+
+      <!-- Scientific Name -->
+      <div class="field-row">
+        <label>Scientific Name</label>
+        <input type="text" id="f-scientificName" placeholder="e.g. Balaeniceps rex" style="font-style:italic;" />
+      </div>
+
+      <!-- Conservation status -->
+      <div class="field-row">
+        <label>Conservation Status</label>
+        <select id="f-conservationStatus">
+          <option value="">— select —</option>
+          <option>Least Concern</option>
+          <option>Near Threatened</option>
+          <option>Vulnerable</option>
+          <option>Endangered</option>
+          <option>Critically Endangered</option>
+        </select>
+      </div>
+
+      <!-- Description -->
+      <div class="field-row">
+        <label>Description <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">for travelers</span></label>
+        <textarea id="f-description" rows="3" placeholder="2–3 sentences about what makes this animal special…"></textarea>
+      </div>
+
+      <!-- Habitat -->
+      <div class="field-row">
+        <label>Habitat <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">where to find it</span></label>
+        <textarea id="f-habitat" rows="2" placeholder="Forest, savanna, wetland…"></textarea>
+      </div>
+
+      <!-- Best Months -->
+      <div class="field-row">
+        <label>Best Months to see it</label>
+        <div class="months-grid">
+          <label class="month-cb"><input type="checkbox" value="Jan" />Jan</label>
+          <label class="month-cb"><input type="checkbox" value="Feb" />Feb</label>
+          <label class="month-cb"><input type="checkbox" value="Mar" />Mar</label>
+          <label class="month-cb"><input type="checkbox" value="Apr" />Apr</label>
+          <label class="month-cb"><input type="checkbox" value="May" />May</label>
+          <label class="month-cb"><input type="checkbox" value="Jun" />Jun</label>
+          <label class="month-cb"><input type="checkbox" value="Jul" />Jul</label>
+          <label class="month-cb"><input type="checkbox" value="Aug" />Aug</label>
+          <label class="month-cb"><input type="checkbox" value="Sep" />Sep</label>
+          <label class="month-cb"><input type="checkbox" value="Oct" />Oct</label>
+          <label class="month-cb"><input type="checkbox" value="Nov" />Nov</label>
+          <label class="month-cb"><input type="checkbox" value="Dec" />Dec</label>
+        </div>
+      </div>
+
+      <!-- External IDs -->
+      <div class="field-row half">
+        <div>
+          <label>eBird Code <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">birds only</span></label>
+          <input type="text" id="f-ebirdCode" placeholder="e.g. shoebil1" />
+        </div>
+        <div>
+          <label>iNaturalist ID</label>
+          <input type="number" id="f-inaturalistId" placeholder="e.g. 4849" />
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="field-row">
+        <label>Internal Notes</label>
+        <textarea id="f-notes" rows="2" placeholder="Guide tips, photo tips, anything for internal use…"></textarea>
+      </div>
+
+      <button class="btn btn-teal" onclick="saveSpecies()" style="width:100%;justify-content:center;">
+        Save Species
+      </button>
+    </div>
   </div>
 </div>
 
@@ -271,6 +288,14 @@ const CLOUDINARY_CLOUD  = 'dporenlvw';
 const CLOUDINARY_PRESET = 'Trip Image';
 
 let ALL_SPECIES = [];
+
+function toggleDetails(btn) {
+  const sec = document.getElementById('details-section');
+  const arrow = document.getElementById('details-arrow');
+  const open = sec.style.display === 'none';
+  sec.style.display = open ? 'block' : 'none';
+  arrow.textContent = open ? '▼' : '▶';
+}
 let EDITING_ID  = null;
 
 // ── Load species list ────────────────────────────────────────────────────────
