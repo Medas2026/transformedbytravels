@@ -29,7 +29,7 @@ module.exports = async function handler(req, res) {
     const species = all
       .map(r => {
         const f = r.fields;
-        const bestParks = (f['Best Parks'] || '').split(',').map(s => s.trim()).filter(Boolean);
+        const bestParks = Array.isArray(f['Best Parks']) ? f['Best Parks'] : (f['Best Parks'] || '').split(',').map(s => s.trim()).filter(Boolean);
 
         // Filter by parks if requested
         if (parkFilter && parkFilter.length) {
@@ -53,7 +53,7 @@ module.exports = async function handler(req, res) {
           description:        f.Description || '',
           habitat:            f.Habitat || '',
           bestParks,
-          bestMonths:         (f['Best Months'] || '').split(',').map(s => s.trim()).filter(Boolean),
+          bestMonths:         Array.isArray(f['Best Months']) ? f['Best Months'] : (f['Best Months'] || '').split(',').map(s => s.trim()).filter(Boolean),
           photoUrl:           thumbUrl,
           ebirdCode:          f['eBird Code'] || '',
           inaturalistId:      f['iNaturalist ID'] || '',
