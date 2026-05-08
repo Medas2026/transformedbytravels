@@ -488,8 +488,13 @@ async function saveSpecies() {
     if (data.error) { setStatus('Error: ' + data.error, true); return; }
     setStatus('Saved!');
     await loadSpecies();
-    if (!EDITING_ID && data.id) editSpecies(data.id);
-    else if (EDITING_ID) renderList(ALL_SPECIES);
+    if (EDITING_ID) {
+      renderList(ALL_SPECIES);
+    } else {
+      // New species saved — reset to Add mode so next entry is fresh
+      newSpecies();
+      setStatus('✓ Saved! Ready for next animal.');
+    }
   } catch(e) {
     setStatus('Error: ' + e.message, true);
   }
