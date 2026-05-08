@@ -789,7 +789,7 @@ async function _doInsertAfter(idx) {
   renderScheduleList();
   _scheduleWarn();
   try {
-    const resp = await fetch('/api/trip-days', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tripId: currentTripId, startDate: newDate, endDate: newDate }) });
+    const resp = await fetch('/api/trip-days', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tripId: currentTripId, startDate: newDate, endDate: newDate, dayNum: newDay }) });
     const data = await resp.json();
     if (data.success && data.records && data.records[0]) {
       _scheduleRecords[idx + 1].id   = data.records[0].id;
@@ -833,21 +833,21 @@ async function scheduleAddDay() {
   const newDayNum = _scheduleRecords.length + 1;
   const newDate   = _scheduleDateForDay(newDayNum);
   const newRec    = _scheduleNewRecord(newDayNum, newDate);
+  let carryLoc = '', carryCountry = '';
   if (_scheduleRecords.length > 0) {
     const prev = _scheduleRecords[_scheduleRecords.length - 1].fields;
-    const loc     = prev['Ending Location']  || prev['Starting Location']  || '';
-    const country = prev['Ending Country']   || prev['Starting Country']   || _resolveCountry();
-    if (loc)     newRec.fields['Starting Location'] = loc;
-    if (country) newRec.fields['Starting Country']  = country;
+    carryLoc     = prev['Ending Location']  || prev['Starting Location']  || '';
+    carryCountry = prev['Ending Country']   || prev['Starting Country']   || _resolveCountry();
   } else {
-    const country = _resolveCountry();
-    if (country) newRec.fields['Starting Country'] = country;
+    carryCountry = _resolveCountry();
   }
+  if (carryLoc)     { newRec.fields['Starting Location'] = carryLoc;     newRec._startDirty = true; }
+  if (carryCountry) { newRec.fields['Starting Country']  = carryCountry; newRec._startDirty = true; }
   _scheduleRecords.push(newRec);
   renderScheduleList();
   _scheduleWarn();
   try {
-    const resp = await fetch('/api/trip-days', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tripId: currentTripId, startDate: newDate, endDate: newDate, dayNum: newDayNum }) });
+    const resp = await fetch('/api/trip-days', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tripId: currentTripId, startDate: newDate, endDate: newDate, dayNum: newDayNum, startingLocation: carryLoc || undefined, startingCountry: carryCountry || undefined }) });
     const data = await resp.json();
     if (data.success && data.records && data.records[0]) {
       _scheduleRecords[_scheduleRecords.length - 1].id   = data.records[0].id;
