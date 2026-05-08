@@ -397,9 +397,12 @@ function newSpecies() {
   document.getElementById('f-type').value = '';
   document.getElementById('f-category').value = '';
   document.getElementById('f-conservationStatus').value = '';
-  document.querySelectorAll('#parks-grid input, .months-grid input').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.park-cb input, .months-grid input').forEach(cb => cb.checked = false);
   updatePhotoPreview('');
   renderList(ALL_SPECIES);
+  // Scroll form into view and focus the name field
+  document.querySelector('.form-panel').scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('f-name').focus();
 }
 
 // ── Save ─────────────────────────────────────────────────────────────────────
@@ -407,7 +410,7 @@ async function saveSpecies() {
   const name = document.getElementById('f-name').value.trim();
   if (!name) { setStatus('Name is required.', true); return; }
 
-  const parks  = [...document.querySelectorAll('#parks-grid input:checked')].map(c => c.value).join(', ');
+  const parks  = [...document.querySelectorAll('.park-cb input:checked')].map(c => c.value).join(', ');
   const months = [...document.querySelectorAll('.months-grid input:checked')].map(c => c.value).join(', ');
 
   const body = {
