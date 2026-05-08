@@ -50,7 +50,8 @@
     "api/species.js":        { "maxDuration": 20 },
     "api/species-pack.js":   { "maxDuration": 30 },
     "api/sightings.js":      { "maxDuration": 20 },
-    "api/sighting-map.js":   { "maxDuration": 15 }
+    "api/sighting-map.js":   { "maxDuration": 15 },
+    "api/species-generate.js": { "maxDuration": 20 }
   },
   "crons": [
     {

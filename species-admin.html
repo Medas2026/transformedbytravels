@@ -155,6 +155,14 @@
       </div>
     </div>
 
+    <!-- Generate button -->
+    <div class="field-row">
+      <button id="gen-btn" onclick="generateDetails()" style="width:100%;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.4);color:#a78bfa;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:10px;cursor:pointer;">
+        ✦ Generate Description, Habitat, Conservation Status &amp; Best Months
+      </button>
+      <div id="gen-status" style="font-size:0.75rem;color:var(--muted);margin-top:4px;min-height:16px;"></div>
+    </div>
+
     <!-- Best Parks -->
     <div class="field-row">
       <label>Where can you see it? <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">check all that apply</span></label>
@@ -287,6 +295,49 @@ const CLOUDINARY_CLOUD  = 'dporenlvw';
 const CLOUDINARY_PRESET = 'Trip Image';
 
 let ALL_SPECIES = [];
+
+async function generateDetails() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { document.getElementById('gen-status').textContent = 'Enter the animal name first.'; return; }
+  const btn = document.getElementById('gen-btn');
+  const status = document.getElementById('gen-status');
+  btn.disabled = true;
+  btn.textContent = '✦ Generating…';
+  status.textContent = '';
+  try {
+    const resp = await fetch('/api/species-generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        type:     document.getElementById('f-type').value,
+        category: document.getElementById('f-category').value,
+      }),
+    });
+    const data = await resp.json();
+    if (data.error) { status.textContent = 'Error: ' + data.error; return; }
+    if (data.description)        document.getElementById('f-description').value      = data.description;
+    if (data.habitat)            document.getElementById('f-habitat').value           = data.habitat;
+    if (data.conservationStatus) document.getElementById('f-conservationStatus').value = data.conservationStatus;
+    if (data.bestMonths && Array.isArray(data.bestMonths)) {
+      document.querySelectorAll('.months-grid input[type=checkbox]').forEach(cb => {
+        cb.checked = data.bestMonths.includes(cb.value);
+      });
+    }
+    // Open details section so user can see the results
+    const sec = document.getElementById('details-section');
+    if (sec.style.display === 'none') {
+      sec.style.display = 'block';
+      document.getElementById('details-arrow').textContent = '▼';
+    }
+    status.textContent = '✓ Done — review and save when ready.';
+  } catch(e) {
+    status.textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ Generate Description, Habitat, Conservation Status & Best Months';
+  }
+}
 
 function toggleDetails(btn) {
   const sec = document.getElementById('details-section');
