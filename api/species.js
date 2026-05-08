@@ -94,8 +94,8 @@ function buildFields(b) {
   if (b.description)        f['Description']         = b.description;
   if (b.habitat)            f['Habitat']             = b.habitat;
   if (b.conservationStatus) f['Conservation Status'] = b.conservationStatus;
-  if (b.bestParks)          f['Best Parks']          = b.bestParks;          // comma-separated string
-  if (b.bestMonths)         f['Best Months']         = b.bestMonths;         // comma-separated string
+  if (b.bestParks)          f['Best Parks']          = b.bestParks.split(',').map(s => s.trim()).filter(Boolean);
+  if (b.bestMonths)         f['Best Months']         = b.bestMonths.split(',').map(s => s.trim()).filter(Boolean);
   if (b.photoUrl)           f['Photo URL']           = b.photoUrl;
   if (b.ebirdCode)          f['eBird Code']          = b.ebirdCode;
   if (b.inaturalistId)      f['iNaturalist ID']      = String(b.inaturalistId);
