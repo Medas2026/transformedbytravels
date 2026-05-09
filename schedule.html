@@ -2015,6 +2015,36 @@ async function draftRoute() {
   const status = document.getElementById('draft-route-status');
   const instructions = document.getElementById('draft-route-instructions').value.trim();
 
+  // If no days exist yet, create them from the trip date range first
+  if (!_scheduleRecords.length) {
+    if (!currentTripStart || !currentTripEnd) {
+      status.style.display = 'block';
+      status.style.color   = '#f59e0b';
+      status.textContent   = 'Trip has no start/end dates — set dates first, then generate a draft.';
+      return;
+    }
+    status.style.display = 'block';
+    status.style.color   = 'var(--teal)';
+    status.textContent   = 'Creating days from trip dates…';
+    try {
+      const cr = await fetch('/api/trip-days', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tripId: currentTripId, startDate: currentTripStart, endDate: currentTripEnd })
+      });
+      const cd = await cr.json();
+      if (!cd.success) throw new Error(cd.error || 'Could not create days');
+      // Reload days into memory
+      const dr = await fetch('/api/trip-days?tripId=' + encodeURIComponent(currentTripId));
+      const dd = await dr.json();
+      _scheduleRecords = dd.records || [];
+      renderScheduleList();
+    } catch(e) {
+      status.textContent = 'Error creating days: ' + e.message;
+      btn.disabled = false; btn.textContent = 'Generate Draft';
+      return;
+    }
+  }
+
   const emptyDays = _scheduleRecords.filter(r =>
     !r.fields['Starting Location'] && !r.fields['Ending Location']
   );
