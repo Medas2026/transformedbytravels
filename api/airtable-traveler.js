@@ -132,6 +132,7 @@ module.exports = function handler(req, res) {
     airtableRequest('GET', filter, null, (err, data) => {
       if (err) return res.status(500).json({ error: err.message });
       if (data.error) return res.status(500).json({ error: data.error.message || JSON.stringify(data.error) });
+      if (data.errors) return res.status(500).json({ error: JSON.stringify(data.errors), _debug: { email } });
       if (data.records && data.records.length > 0) {
         res.status(200).json({ record: data.records[0] });
       } else {
