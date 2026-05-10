@@ -131,12 +131,12 @@ module.exports = function handler(req, res) {
     const filter = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
     airtableRequest('GET', filter, null, (err, data) => {
       if (err) return res.status(500).json({ error: err.message });
-      if (data.error) return res.status(500).json({ error: data.error.message || JSON.stringify(data.error) });
-      if (data.errors) return res.status(500).json({ error: JSON.stringify(data.errors), _debug: { email } });
+      if (data.error)  return res.status(500).json({ error: data.error.message  || JSON.stringify(data.error) });
+      if (data.errors) return res.status(500).json({ error: data.errors[0]?.message || JSON.stringify(data.errors) });
       if (data.records && data.records.length > 0) {
         res.status(200).json({ record: data.records[0] });
       } else {
-        res.status(200).json({ record: null, _debug: { email, recordCount: (data.records || []).length, keys: Object.keys(data) } });
+        res.status(200).json({ record: null });
       }
     });
     return;

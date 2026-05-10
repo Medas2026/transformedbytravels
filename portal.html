@@ -2692,6 +2692,17 @@ async function loadProfile(email) {
     document.getElementById('profile-loading').style.display = 'none';
     document.getElementById('profile-content').style.display  = 'block';
 
+    if (!resp.ok || data.error) {
+      document.getElementById('profile-content').innerHTML = `
+        <div style="text-align:center;padding:40px 20px;">
+          <div style="font-size:2rem;margin-bottom:16px;">⚠</div>
+          <h2 style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;margin-bottom:12px;">Couldn't load your profile</h2>
+          <p style="color:#94a3b8;font-size:0.9rem;margin-bottom:20px;">There was a temporary error connecting to the database. Please refresh the page to try again.</p>
+          <button onclick="location.reload()" style="background:#2dd4bf;color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;border:none;border-radius:8px;padding:12px 28px;cursor:pointer;">Refresh →</button>
+        </div>`;
+      return;
+    }
+
     if (data.record) {
       const f = data.record.fields;
       portalProfile  = f;
