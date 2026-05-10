@@ -4,6 +4,7 @@ const BASE_ID       = 'appdlxcWb45dIqNK2';
 const TRIPS_TABLE   = 'Trips';
 const TRAVEL_TABLE  = 'Traveler';
 const EMAILS_TABLE  = 'Emails';
+const MEMBERS_TABLE = 'Trip Members';
 const PORTAL_URL    = 'https://app.transformedbytravels.com';
 
 const TIMEZONE_MAP = {
@@ -211,6 +212,28 @@ function airtableRequest(method, table, path, body, callback) {
   req.end();
 }
 
+// Fetch accepted trip members and send email to each
+async function sendToTripMembers(tripId, primaryEmail, subject, html) {
+  if (!tripId) return;
+  try {
+    const filter = `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Status}="Accepted")`)}`;
+    await new Promise(resolve => {
+      airtableRequest('GET', MEMBERS_TABLE, filter, null, (err, data) => {
+        if (err || !data || !data.records) return resolve();
+        const members = data.records
+          .map(r => (r.fields['Email'] || '').trim().toLowerCase())
+          .filter(e => e && e !== primaryEmail.toLowerCase());
+        members.forEach(memberEmail => {
+          sendEmail(memberEmail, '', subject, html, () => {});
+        });
+        resolve();
+      });
+    });
+  } catch(e) {
+    console.error('[trip-action] sendToTripMembers error:', e.message);
+  }
+}
+
 function sendEmail(to, name, subject, html, callback) {
   const apiKey  = process.env.RESEND_API_KEY;
   const body    = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to, subject, html });
@@ -254,8 +277,8 @@ function emailHTML(title, heading, body, btnText, btnUrl, photoUrl) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
 ${photoRow}
-<tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
-<img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
+${!photoUrl ? `<tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
+<img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>` : ''}
 <tr><td style="padding:36px 40px;">
 <h2 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">${heading}</h2>
 <div style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;">${body}</div>
@@ -268,7 +291,7 @@ ${btn}
 
 // ── Handler ───────────────────────────────────────────────────────
 
-module.exports = function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -349,8 +372,7 @@ module.exports = function handler(req, res) {
             `<p>Your trip to <strong>${tripName}</strong> begins today. Don't forget to activate it in your portal so your daily journal reminders and trip support can begin.</p>`,
             'Activate My Trip →', activateUrl);
           await sendEmailAsync(email, name, subject, html);
-          const coEmail = (f['Co-Traveler Email'] || '').trim();
-          if (coEmail) await sendEmailAsync(coEmail, name, subject, html);
+          await sendToTripMembers(rec.id, email, subject, html);
           console.log('[same-day] sent to', email, tripName);
         }
       } catch(e) { console.error('[same-day]', e.message); }
@@ -375,7 +397,6 @@ module.exports = function handler(req, res) {
           const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
           const startDate   = f['Start Date']  || tomorrowStr;
           const photoUrl    = f['Trip Photo URL'] || '';
-          const coEmail     = (f['Co-Traveler Email'] || '').trim();
           const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
           const name        = await fetchTravelerName(email);
           const vars        = { name, tripName, destination, country, startDate };
@@ -391,7 +412,7 @@ module.exports = function handler(req, res) {
           const pendingBlock1 = await buildPendingInvitesBlock(rec.id, headers);
           const html = emailHTML(subject, subject, bodyContent + pendingBlock1, 'Start My Trip →', activateUrl, photoUrl);
           await sendEmailAsync(email, name, subject, html);
-          if (coEmail) await sendEmailAsync(coEmail, name, subject, html);
+          await sendToTripMembers(rec.id, email, subject, html);
           console.log('[1-day] sent to', email, tripName);
         }
       } catch(e) { console.error('[1-day]', e.message); }
@@ -416,7 +437,6 @@ module.exports = function handler(req, res) {
           const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
           const startDate   = f['Start Date']  || threeDayStr;
           const photoUrl    = f['Trip Photo URL'] || '';
-          const coEmail     = (f['Co-Traveler Email'] || '').trim();
           const activateUrl = `${PORTAL_URL}/portal.html?page=my-trip`;
           const name        = await fetchTravelerName(email);
           const vars        = { name, tripName, destination, country, startDate };
@@ -432,7 +452,7 @@ module.exports = function handler(req, res) {
           const pendingBlock3 = await buildPendingInvitesBlock(rec.id, headers);
           const html = emailHTML(subject, subject, bodyContent + pendingBlock3, 'Start My Trip →', activateUrl, photoUrl);
           await sendEmailAsync(email, name, subject, html);
-          if (coEmail) await sendEmailAsync(coEmail, name, subject, html);
+          await sendToTripMembers(rec.id, email, subject, html);
           console.log('[3-day] sent to', email, tripName);
         }
       } catch(e) { console.error('[3-day]', e.message); }
@@ -464,7 +484,6 @@ module.exports = function handler(req, res) {
           const tripName    = f['Trip Name']   || (destination + (country ? ', ' + country : ''));
           const startDate   = f['Start Date']  || '';
           const endDate     = f['End Date']    || yesterdayStr;
-          const coEmail     = (f['Co-Traveler Email'] || '').trim();
 
           const travFilter    = `?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`;
           const journalFilter = `?filterByFormula=${encodeURIComponent(`({Trip ID}="${r.id}")`)}` +
@@ -506,8 +525,9 @@ module.exports = function handler(req, res) {
             'Start Integration Workshop →', portalUrl + '?page=integration'
           );
 
-          sendEmail(email, name, subject, html, () => {});
-          if (coEmail) sendEmail(coEmail, name, subject, html, () => {});
+          sendEmail(email, name, subject, html, async () => {
+            await sendToTripMembers(r.id, email, subject, html);
+          });
           console.log('[post-trip summary] sent to', email, tripName);
         }
       } catch(e) {
@@ -528,20 +548,73 @@ module.exports = function handler(req, res) {
 
   if (!action || !tripId || !email) return res.status(400).json({ error: 'action, tripId, email required' });
 
-  // ── Journey Book link email ───────────────────────────────────────────────
-  if (action === 'journey-book') {
-    const bookUrl  = `${PORTAL_URL}/journey-book.html?tripId=${tripId}`;
-    const subject  = 'Your Journey Book is ready to build';
-    const html     = emailHTML(
+  // ── Journey Book — photo upload QR email ────────────────────────────────
+  if (action === 'journey-book-photos') {
+    const photosUrl = `${PORTAL_URL}/journey-book.html?tripId=${tripId}&photos=1`;
+    const qrSrc     = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(photosUrl)}&margin=12`;
+    const subject   = 'Upload your trip photos to your Journey Book';
+    let tripPhotoUrl = null;
+    try {
+      const apiKey = process.env.AIRTABLE_API_KEY;
+      const tr = await fetch(`https://api.airtable.com/v0/${BASE_ID}/Trips/${tripId}`, { headers: { 'Authorization': 'Bearer ' + apiKey } });
+      const td = await tr.json();
+      tripPhotoUrl = td.fields?.['Trip Photo URL'] || null;
+    } catch(e) {}
+    const html = emailHTML(
       subject,
-      'Build Your Journey Book',
-      `<p>Your trip photos, reflections, and memories are ready to be turned into a beautiful 10×10 Journey Book.</p>
-       <p>Click the button below to start building — add your photos, adjust the layout, and let AI help you capture your story in words. It only takes a few minutes per day.</p>
-       <p style="font-size:13px;color:#94a3b8;">You can return to this link anytime — your progress is saved automatically.</p>`,
-      'Build My Journey Book →',
-      bookUrl,
-      null
+      'Add Your Trip Photos',
+      `<p>Your Journey Book has been set up and is ready for your photos.</p>
+       <p>Scan the QR code below on your iPhone to open the photo uploader — then tap each slot to add photos straight from your camera roll.</p>
+       <div style="text-align:center;margin:28px 0 20px;">
+         <img src="${qrSrc}" width="200" height="200" alt="Scan to upload photos" style="border-radius:10px;display:inline-block;" />
+         <div style="font-size:12px;color:#94a3b8;margin-top:10px;">Scan with your iPhone camera</div>
+       </div>
+       <p style="font-size:13px;color:#94a3b8;text-align:center;">Or tap the button below to open on any device.</p>`,
+      'Open Photo Uploader →',
+      photosUrl,
+      tripPhotoUrl
     );
+    return new Promise(resolve => {
+      sendEmail(email, email, subject, html, (err) => {
+        if (err) { res.status(500).json({ error: err.message }); }
+        else     { res.status(200).json({ ok: true }); }
+        resolve();
+      });
+    });
+  }
+
+  // ── Journey Book — build link ────────────────────────────────────────────
+  if (action === 'journey-book' || action === 'journey-book-view') {
+    const isView   = action === 'journey-book-view';
+    const bookUrl  = `${PORTAL_URL}/journey-book.html?tripId=${tripId}${isView ? '&view=1' : ''}`;
+    const subject  = isView ? 'Your Journey Book is ready to view' : 'Your Journey Book is ready to build';
+    let tripPhotoUrl = null;
+    try {
+      const apiKey = process.env.AIRTABLE_API_KEY;
+      const tr = await fetch(`https://api.airtable.com/v0/${BASE_ID}/Trips/${tripId}`, { headers: { 'Authorization': 'Bearer ' + apiKey } });
+      const td = await tr.json();
+      tripPhotoUrl = td.fields?.['Trip Photo URL'] || null;
+    } catch(e) {}
+    const html = isView
+      ? emailHTML(
+          subject,
+          'Your Journey Book is Ready',
+          `<p>Your Journey Book has been finished — relive every moment of your trip through photos, maps, and your own words.</p>
+           <p>Click the button below to open your personal digital book. You can page through it, share it, and download a PDF copy to keep forever.</p>`,
+          'Open My Journey Book →',
+          bookUrl,
+          tripPhotoUrl
+        )
+      : emailHTML(
+          subject,
+          'Build Your Journey Book',
+          `<p>We will turn your trip photos and memories into a beautiful digital book that will forever remind you of your time on travel.</p>
+           <p>Click the button below to start building — add your photos, adjust the layout, and let AI help you capture your story in words. It only takes a few minutes per day.</p>
+           <p style="font-size:13px;color:#94a3b8;">You can return to this link anytime — your progress is saved automatically.</p>`,
+          'Build My Journey Book →',
+          bookUrl,
+          tripPhotoUrl
+        );
     return new Promise(resolve => {
       sendEmail(email, email, subject, html, (err) => {
         if (err) { res.status(500).json({ error: err.message }); }
@@ -623,8 +696,8 @@ module.exports = function handler(req, res) {
              ${details}${summaryHtml}
              <p>Safe travels — we hope this journey transforms you!</p>`,
             null, null, tripPhotoUrl);
-          sendEmail(email, name, subject, html, () => {
-            if (coTravelerEmail) sendEmail(coTravelerEmail, name, subject, html, () => {});
+          sendEmail(email, name, subject, html, async () => {
+            await sendToTripMembers(tripId, email, subject, html);
             res.status(200).json({ success: true, action, tripName });
           });
         })().catch(err => {
@@ -638,8 +711,8 @@ module.exports = function handler(req, res) {
         const html = emailHTML(subject, `Welcome Home, ${name}!`,
           `<p>Your trip to <strong>${tripName}</strong> is now complete.</p>
            <p>We hope it was everything you imagined and more. Head to your portal to begin your Integration Workshop and capture the insights from your journey while they're still fresh.</p>`);
-        sendEmail(email, name, subject, html, () => {
-          if (coTravelerEmail) sendEmail(coTravelerEmail, name, subject, html, () => {});
+        sendEmail(email, name, subject, html, async () => {
+          await sendToTripMembers(tripId, email, subject, html);
           res.status(200).json({ success: true, action, tripName });
         });
       }

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Flow — Transformed by Travels</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f1f5f9; color: #0f172a; padding: 32px 24px; }
+  h1 { font-family: Georgia, serif; font-size: 26px; color: #0f172a; margin-bottom: 6px; }
+  .subtitle { font-size: 14px; color: #64748b; margin-bottom: 36px; }
+
+  /* ── Timeline rail ── */
+  .timeline { position: relative; margin-bottom: 48px; }
+  .rail-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8; margin-bottom: 14px; }
+  .stages { display: flex; align-items: stretch; gap: 0; border-radius: 12px; overflow: hidden; }
+  .stage {
+    flex: 1; padding: 14px 16px 12px; text-align: center;
+    font-size: 13px; font-weight: 700; position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .stage-name { font-size: 12px; font-weight: 700; }
+  .stage-sub  { font-size: 11px; font-weight: 400; opacity: 0.8; }
+  .stage-research  { background: #dbeafe; color: #1e40af; }
+  .stage-planned   { background: #ede9fe; color: #6d28d9; }
+  .stage-committed { background: #fef9c3; color: #854d0e; }
+  .stage-active    { background: #dcfce7; color: #166534; }
+  .stage-completed { background: #f1f5f9; color: #334155; }
+  .arrow { font-size: 18px; display: flex; align-items: center; padding: 0 4px; color: #94a3b8; }
+
+  /* ── Email cards ── */
+  .section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #94a3b8; margin-bottom: 14px; padding-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .card {
+    background: #fff; border-radius: 12px; padding: 18px 20px;
+    border-left: 4px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .card.auto   { border-left-color: #2dd4bf; }
+  .card.manual { border-left-color: #818cf8; }
+  .card.mktg   { border-left-color: #fb923c; }
+
+  .card-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .badge {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+  }
+  .badge.auto   { background: #ccfbf1; color: #0d9488; }
+  .badge.manual { background: #ede9fe; color: #7c3aed; }
+  .badge.mktg   { background: #ffedd5; color: #c2410c; }
+  .badge.sms    { background: #dbeafe; color: #1d4ed8; }
+
+  .card-name { font-size: 14px; font-weight: 700; color: #0f172a; line-height: 1.3; }
+  .card-subject {
+    font-size: 12px; color: #475569; background: #f8fafc;
+    border: 1px solid #e2e8f0; border-radius: 6px;
+    padding: 7px 10px; margin-bottom: 10px; line-height: 1.5;
+    font-style: italic;
+  }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; }
+  .meta-item { font-size: 11px; color: #64748b; display: flex; gap: 5px; align-items: flex-start; }
+  .meta-label { font-weight: 700; color: #94a3b8; white-space: nowrap; }
+  .meta-value { color: #475569; }
+
+  .stage-tag {
+    display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; margin-right: 4px;
+  }
+  .tag-research  { background: #dbeafe; color: #1e40af; }
+  .tag-planned   { background: #ede9fe; color: #6d28d9; }
+  .tag-committed { background: #fef9c3; color: #854d0e; }
+  .tag-active    { background: #dcfce7; color: #166534; }
+  .tag-completed { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+  .tag-any       { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+  .recipients { font-size: 11px; }
+  .recipient-primary   { color: #0d9488; font-weight: 600; }
+  .recipient-members   { color: #7c3aed; font-weight: 600; }
+  .recipient-invitee   { color: #c2410c; font-weight: 600; }
+
+  .source { font-size: 10px; color: #94a3b8; font-family: monospace; margin-top: 8px; }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 32px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #475569; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+  .sw-auto   { background: #2dd4bf; }
+  .sw-manual { background: #818cf8; }
+  .sw-mktg   { background: #fb923c; }
+  .sw-primary  { background: #ccfbf1; border: 1px solid #2dd4bf; }
+  .sw-members  { background: #ede9fe; border: 1px solid #818cf8; }
+
+  /* ── Note box ── */
+  .note {
+    background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+    padding: 14px 18px; font-size: 13px; color: #92400e; margin-bottom: 28px;
+    line-height: 1.6;
+  }
+  .note strong { color: #78350f; }
+
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 32px 0; }
+</style>
+</head>
+<body>
+
+<h1>Email Flow — Transformed by Travels</h1>
+<p class="subtitle">Master reference · Last updated May 2026</p>
+
+<!-- ── Trip lifecycle rail ── -->
+<div class="rail-label">Trip Lifecycle</div>
+<div class="stages">
+  <div class="stage stage-research"><span class="stage-name">Research</span><span class="stage-sub">Exploring</span></div>
+  <div class="arrow">›</div>
+  <div class="stage stage-planned"><span class="stage-name">Planned</span><span class="stage-sub">Dates set</span></div>
+  <div class="arrow">›</div>
+  <div class="stage stage-committed"><span class="stage-name">Committed</span><span class="stage-sub">Booked</span></div>
+  <div class="arrow">›</div>
+  <div class="stage stage-committed" style="background:#fef3c7;">
+    <span class="stage-name">3-Day Out</span><span class="stage-sub">Countdown</span>
+  </div>
+  <div class="arrow">›</div>
+  <div class="stage stage-committed" style="background:#fed7aa;">
+    <span class="stage-name">1-Day Out</span><span class="stage-sub">Tomorrow</span>
+  </div>
+  <div class="arrow">›</div>
+  <div class="stage stage-active" style="background:#bbf7d0;">
+    <span class="stage-name">Depart Day</span><span class="stage-sub">Same-day</span>
+  </div>
+  <div class="arrow">›</div>
+  <div class="stage stage-active"><span class="stage-name">Active</span><span class="stage-sub">On trip</span></div>
+  <div class="arrow">›</div>
+  <div class="stage stage-completed"><span class="stage-name">Completed</span><span class="stage-sub">Home</span></div>
+</div>
+
+<br>
+
+<!-- ── Legend ── -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch sw-auto"></div>Automated (cron)</div>
+  <div class="legend-item"><div class="legend-swatch sw-manual"></div>User-triggered</div>
+  <div class="legend-item"><div class="legend-swatch sw-mktg"></div>Marketing sequence</div>
+  <span style="color:#94a3b8;font-size:12px;margin:auto 0;">Recipients:</span>
+  <div class="legend-item"><span class="recipient-primary">●</span> Primary traveler</div>
+  <div class="legend-item"><span class="recipient-members">●</span> + all accepted Trip Members</div>
+  <div class="legend-item"><span class="recipient-invitee">●</span> Invitee only</div>
+</div>
+
+<div class="note">
+  <strong>Note on recipients:</strong> "Accepted Trip Members" means anyone in the Trip Members table with Status = "Accepted" for that trip, <em>excluding</em> the primary traveler's email. The old single <code>Co-Traveler Email</code> field on the trip record is still used in the Committed email (trips.js) — that file has not yet been migrated to the Trip Members broadcast pattern.
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Pre-Trip — Planning &amp; Commitment</div>
+  <div class="cards">
+
+    <div class="card manual">
+      <div class="card-header">
+        <span class="badge manual">User Action</span>
+        <span class="card-name">Trip Planned</span>
+      </div>
+      <div class="card-subject">"Your trip to {destination} is planned!"<br><em style="font-size:11px;">(or custom template TRIP_PLAN)</em></div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">New trip created with status Research or Planned</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span>
+          <span><span class="stage-tag tag-research">Research</span><span class="stage-tag tag-planned">Planned</span></span>
+        </div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value recipient-primary">Primary traveler</span></div>
+      </div>
+      <div class="source">api/trips.js › sendTripPlanEmail()</div>
+    </div>
+
+    <div class="card manual">
+      <div class="card-header">
+        <span class="badge manual">User Action</span>
+        <span class="card-name">Trip Committed / Confirmed</span>
+      </div>
+      <div class="card-subject">"Your trip to {tripName} is confirmed!"</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Trip status set to Committed (new or PATCH)</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-committed">Committed</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value"><span class="recipient-primary">Primary traveler</span> + Co-Traveler Email field <em style="color:#94a3b8;">(not yet migrated to Trip Members)</em></span></div>
+        <div class="meta-item"><span class="meta-label">Content</span><span class="meta-value">AI-generated trip summary + daily tip included</span></div>
+      </div>
+      <div class="source">api/trips.js › PATCH/POST with status=Committed</div>
+    </div>
+
+    <div class="card manual">
+      <div class="card-header">
+        <span class="badge manual">User Action</span>
+        <span class="card-name">Past Trip Added</span>
+      </div>
+      <div class="card-subject">"Your past trip to {dest} has been added to your account."</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Trip imported via history flag</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-completed">Completed</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value recipient-primary">Primary traveler</span></div>
+      </div>
+      <div class="source">api/trips.js › sendTripHistoryEmail()</div>
+    </div>
+
+    <div class="card manual">
+      <div class="card-header">
+        <span class="badge manual">User Action</span>
+        <span class="card-name">Trip Invitation</span>
+      </div>
+      <div class="card-subject">"{inviterName} invited you to join {tripName}"</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Primary traveler invites a co-traveler or partner</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-any">Any</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value recipient-invitee">Invited person's email</span></div>
+        <div class="meta-item"><span class="meta-label">Content</span><span class="meta-value">Accept link + role (Partner / Co-Traveler / Trip Planner)</span></div>
+      </div>
+      <div class="source">api/trip-members.js › POST invite</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Pre-Departure — Countdown Reminders <span style="font-weight:400;color:#64748b;">(Cron: daily at noon UTC)</span></div>
+  <div class="cards">
+
+    <div class="card auto">
+      <div class="card-header">
+        <span class="badge auto">Cron Daily</span>
+        <span class="card-name">3-Day Notice</span>
+      </div>
+      <div class="card-subject">"Your trip to {tripName} is in 3 days!"<br><em style="font-size:11px;">(or template TRIP_REMINDER_3DAY)</em></div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Start Date = today + 3, status Committed/Planned/Research</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-committed">Committed</span><span class="stage-tag tag-planned">Planned</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value"><span class="recipient-primary">Primary traveler</span> <span class="recipient-members">+ accepted Trip Members</span></span></div>
+        <div class="meta-item"><span class="meta-label">Content</span><span class="meta-value">Includes pending invite reminder block</span></div>
+      </div>
+      <div class="source">api/trip-action.js › reminders cron › 3-day</div>
+    </div>
+
+    <div class="card auto">
+      <div class="card-header">
+        <span class="badge auto">Cron Daily</span>
+        <span class="card-name">1-Day Reminder</span>
+      </div>
+      <div class="card-subject">"Your trip to {tripName} starts tomorrow!"<br><em style="font-size:11px;">(or template TRIP_REMINDER_1DAY)</em></div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Start Date = tomorrow, status Committed/Planned/Research</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-committed">Committed</span><span class="stage-tag tag-planned">Planned</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value"><span class="recipient-primary">Primary traveler</span> <span class="recipient-members">+ accepted Trip Members</span></span></div>
+        <div class="meta-item"><span class="meta-label">Content</span><span class="meta-value">Includes pending invite reminder block</span></div>
+      </div>
+      <div class="source">api/trip-action.js › reminders cron › 1-day</div>
+    </div>
+
+    <div class="card auto">
+      <div class="card-header">
+        <span class="badge auto">Cron Daily</span>
+        <span class="card-name">Same-Day Nudge</span>
+      </div>
+      <div class="card-subject">"Today is the day — activate your trip to {tripName}!"</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Start Date = today, status Committed/Planned/Research</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-committed">Committed</span><span class="stage-tag tag-planned">Planned</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value"><span class="recipient-primary">Primary traveler</span> <span class="recipient-members">+ accepted Trip Members</span></span></div>
+        <div class="meta-item"><span class="meta-label">CTA</span><span class="meta-value">Activate My Trip → portal.html?page=my-trip</span></div>
+      </div>
+      <div class="source">api/trip-action.js › reminders cron › same-day</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Active Trip</div>
+  <div class="cards">
+
+    <div class="card manual">
+      <div class="card-header">
+        <span class="badge manual">User Action</span>
+        <span class="card-name">Trip Started (Activation)</span>
+      </div>
+      <div class="card-subject">"Your trip to {tripName} has begun!"</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Traveler clicks "Start Trip" in portal → status set to Active</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-active">Active</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value"><span class="recipient-primary">Primary traveler</span> <span class="recipient-members">+ accepted Trip Members</span></span></div>
+        <div class="meta-item"><span class="meta-label">Content</span><span class="meta-value">AI trip summary, itinerary details block</span></div>
+      </div>
+      <div class="source">api/trip-action.js › POST action=start</div>
+    </div>
+
+    <div class="card auto">
+      <div class="card-header">
+        <span class="badge auto">Cron Hourly</span>
+        <span class="badge sms">+ SMS</span>
+        <span class="card-name">Daily Journal Prompt</span>
+      </div>
+      <div class="card-subject">"Day {N} Journal — {currentPlace}"<br>"Last Day — {currentPlace} 🏁"</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Trip Active, local hour = traveler's Journal Time preference</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-active">Active (every day)</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value recipient-primary">Primary traveler only</span></div>
+        <div class="meta-item"><span class="meta-label">Content</span><span class="meta-value">Tomorrow's weather, lunar phase, archetype tip, journal link</span></div>
+        <div class="meta-item"><span class="meta-label">SMS</span><span class="meta-value">Same tip + weather summary if phone on file</span></div>
+      </div>
+      <div class="source">api/journal.js › send-daily cron (hourly)</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Post-Trip</div>
+  <div class="cards">
+
+    <div class="card manual">
+      <div class="card-header">
+        <span class="badge manual">User Action</span>
+        <span class="card-name">Trip Ended</span>
+      </div>
+      <div class="card-subject">"Welcome home from {tripName}!"</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Traveler clicks "End Trip" in portal → status set to Completed</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-completed">Completed</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value"><span class="recipient-primary">Primary traveler</span> <span class="recipient-members">+ accepted Trip Members</span></span></div>
+        <div class="meta-item"><span class="meta-label">CTA</span><span class="meta-value">Integration Workshop</span></div>
+      </div>
+      <div class="source">api/trip-action.js › POST action=end</div>
+    </div>
+
+    <div class="card auto">
+      <div class="card-header">
+        <span class="badge auto">Cron Daily</span>
+        <span class="card-name">Post-Trip Reflection Summary</span>
+      </div>
+      <div class="card-subject">"Your journey to {tripName} — a reflection"</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">End Date = yesterday, status Active or Completed</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-completed">Completed (day after end)</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value"><span class="recipient-primary">Primary traveler</span> <span class="recipient-members">+ accepted Trip Members</span></span></div>
+        <div class="meta-item"><span class="meta-label">Content</span><span class="meta-value">AI-generated narrative from journal entries</span></div>
+        <div class="meta-item"><span class="meta-label">CTA</span><span class="meta-value">Start Integration Workshop</span></div>
+      </div>
+      <div class="source">api/trip-action.js › reminders cron › post-trip</div>
+    </div>
+
+    <div class="card auto">
+      <div class="card-header">
+        <span class="badge auto">Cron Monthly</span>
+        <span class="card-name">Monthly Reflection Prompt</span>
+      </div>
+      <div class="card-subject">"Your Monthly Travel Reflection"<br><em style="font-size:11px;">(from template MONTHLY_JOURNAL)</em></div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">1st of month at 9am · Subscription Active + has Completed trip, no Active trip</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-completed">Between trips</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value recipient-primary">Eligible subscribers (not on active trip)</span></div>
+        <div class="meta-item"><span class="meta-label">CTA</span><span class="meta-value">Write My Reflection → monthly-journal.html</span></div>
+      </div>
+      <div class="source">api/journal.js › send-monthly cron (1st of month)</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Journey Book <span style="font-weight:400;color:#64748b;">(Staff-triggered from portal)</span></div>
+  <div class="cards">
+
+    <div class="card manual">
+      <div class="card-header">
+        <span class="badge manual">Staff Action</span>
+        <span class="card-name">Journey Book — Build Link</span>
+      </div>
+      <div class="card-subject">"Your Journey Book is ready to build"</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Staff sends from trip admin panel</span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value recipient-primary">Primary traveler</span></div>
+        <div class="meta-item"><span class="meta-label">CTA</span><span class="meta-value">Build My Journey Book → journey-book.html?tripId=…</span></div>
+      </div>
+      <div class="source">api/trip-action.js › POST action=journey-book</div>
+    </div>
+
+    <div class="card manual">
+      <div class="card-header">
+        <span class="badge manual">Staff Action</span>
+        <span class="card-name">Journey Book — View Link</span>
+      </div>
+      <div class="card-subject">"Your Journey Book is ready to view"</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Staff sends after book is finished</span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value recipient-primary">Primary traveler</span></div>
+        <div class="meta-item"><span class="meta-label">CTA</span><span class="meta-value">Open My Journey Book → journey-book.html?tripId=…&amp;view=1</span></div>
+      </div>
+      <div class="source">api/trip-action.js › POST action=journey-book-view</div>
+    </div>
+
+    <div class="card manual">
+      <div class="card-header">
+        <span class="badge manual">Staff Action</span>
+        <span class="card-name">Journey Book — Photo Upload QR</span>
+      </div>
+      <div class="card-subject">"Upload your trip photos to your Journey Book"</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Staff sends to prompt photo uploads</span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value recipient-primary">Primary traveler</span></div>
+        <div class="meta-item"><span class="meta-label">Content</span><span class="meta-value">QR code linking to photo uploader on mobile</span></div>
+      </div>
+      <div class="source">api/trip-action.js › POST action=journey-book-photos</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Marketing Nurture Sequence <span style="font-weight:400;color:#64748b;">(Cron: daily at 10am UTC)</span></div>
+  <div class="cards">
+
+    <div class="card mktg">
+      <div class="card-header">
+        <span class="badge mktg">Cron Daily</span>
+        <span class="card-name">Nurture Sequence (Multi-Step)</span>
+      </div>
+      <div class="card-subject">Subject from each step's template (MKTG_STEP_1, MKTG_STEP_2 …)</div>
+      <div class="meta">
+        <div class="meta-item"><span class="meta-label">Trigger</span><span class="meta-value">Marketing Consent = TRUE, Free/no plan, not yet responded or unsubscribed, last send ≥ N days ago</span></div>
+        <div class="meta-item"><span class="meta-label">Stage</span><span><span class="stage-tag tag-any">Pre-membership</span></span></div>
+        <div class="meta-item"><span class="meta-label">To</span><span class="meta-value recipient-primary">Eligible free-tier travelers</span></div>
+        <div class="meta-item"><span class="meta-label">Content</span><span class="meta-value">Drip sequence — steps stop when traveler clicks CTA or upgrades</span></div>
+        <div class="meta-item"><span class="meta-label">Tracking</span><span class="meta-value">Marketing Communications table logs each send + response</span></div>
+      </div>
+      <div class="source">api/marketing.js › cron action</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<hr>
+<div style="font-size:12px;color:#94a3b8;line-height:1.8;">
+  <strong style="color:#475569;">Email provider:</strong> Resend (api.resend.com) · From: TravelForGrowth@transformedbytravels.com<br>
+  <strong style="color:#475569;">SMS provider:</strong> Twilio (journal daily only, requires phone in Traveler record)<br>
+  <strong style="color:#475569;">Templates:</strong> Stored in Airtable "Email Templates" table, keyed by Code field<br>
+  <strong style="color:#475569;">Cron schedules:</strong> Defined in vercel.json<br>
+  <strong style="color:#475569;">TODO:</strong> Migrate Trip Committed email (trips.js) from single Co-Traveler Email field to Trip Members broadcast pattern
+</div>
+
+</body>
+</html>

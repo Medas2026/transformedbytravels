@@ -56,22 +56,23 @@ module.exports = async function handler(req, res) {
         }
       }
 
-      const rec = await at(BOOKS, '', 'POST', { fields: {
-        'Trip ID':            tripId            || '',
-        'Traveler Email':     travelerEmail     || '',
-        'Session ID':         sessionId,
-        'Cover Title':        coverTitle        || '',
-        'Cover Subtitle':     coverSubtitle     || '',
-        'Cover Photo URL':    coverPhotoUrl     || '',
-        'Opening Text':       openingText       || '',
-        'Days Data':          daysData          || '',
-        'Closing Text':       closingText       || '',
-        'Closing Photo URL':  closingPhotoUrl   || '',
-        'Portrait Photo URL': portraitPhotoUrl  || '',
-        'Guide Data':         guideData         || '',
-        'Book Status':        bookStatus        || 'Draft',
-        'Create Date':        new Date().toISOString()
-      }});
+      const fields = {
+        'Session ID':   sessionId,
+        'Book Status':  bookStatus  || 'Draft',
+      };
+      if (tripId)         fields['Trip ID']            = tripId;
+      if (travelerEmail)  fields['Traveler Email']     = travelerEmail;
+      if (coverTitle)     fields['Cover Title']        = coverTitle;
+      if (coverSubtitle)  fields['Cover Subtitle']     = coverSubtitle;
+      const stripQ = v => (v || '').trim().replace(/^["']+|["']+$/g, '');
+      const cp = stripQ(coverPhotoUrl);   if (cp)  fields['Cover Photo URL']    = cp;
+      if (openingText)    fields['Opening Text']       = openingText;
+      if (daysData)       fields['Days Data']          = daysData;
+      if (closingText)    fields['Closing Text']       = closingText;
+      const cl = stripQ(closingPhotoUrl);  if (cl)  fields['Closing Photo URL']  = cl;
+      const pt = stripQ(portraitPhotoUrl); if (pt)  fields['Portrait Photo URL'] = pt;
+      if (guideData)      fields['Guide Data']         = guideData;
+      const rec = await at(BOOKS, '', 'POST', { fields });
       if (rec.error) return res.status(500).json({ error: rec.error.message || JSON.stringify(rec.error) });
       return res.status(200).json({ ok: true, id: rec.id, record: rec });
     } catch(e) {
@@ -84,18 +85,23 @@ module.exports = async function handler(req, res) {
     const { id } = req.query;
     if (!id) return res.status(400).json({ error: 'id required' });
 
-    const { coverTitle, coverSubtitle, coverPhotoUrl, openingText, daysData,
+    const { tripId, coverTitle, coverSubtitle, coverPhotoUrl, openingText, daysData,
             closingText, closingPhotoUrl, portraitPhotoUrl, guideData, bookStatus } = req.body || {};
 
+    const stripQ = v => (v || '').trim().replace(/^["']+|["']+$/g, '');
     const fields = {};
+    if (tripId            !== undefined && tripId) fields['Trip ID']   = tripId;
     if (coverTitle        !== undefined) fields['Cover Title']         = coverTitle;
     if (coverSubtitle     !== undefined) fields['Cover Subtitle']      = coverSubtitle;
-    if (coverPhotoUrl     !== undefined) fields['Cover Photo URL']     = coverPhotoUrl;
+    const cleanCover = stripQ(coverPhotoUrl);
+    if (cleanCover)     fields['Cover Photo URL']     = cleanCover;
     if (openingText       !== undefined) fields['Opening Text']        = openingText;
     if (daysData          !== undefined) fields['Days Data']           = daysData;
     if (closingText       !== undefined) fields['Closing Text']        = closingText;
-    if (closingPhotoUrl   !== undefined) fields['Closing Photo URL']   = closingPhotoUrl;
-    if (portraitPhotoUrl  !== undefined) fields['Portrait Photo URL']  = portraitPhotoUrl;
+    const cleanClosing = stripQ(closingPhotoUrl);
+    if (cleanClosing)   fields['Closing Photo URL']   = cleanClosing;
+    const cleanPortrait = stripQ(portraitPhotoUrl);
+    if (cleanPortrait)  fields['Portrait Photo URL']  = cleanPortrait;
     if (guideData         !== undefined) fields['Guide Data']          = guideData;
     if (bookStatus        !== undefined) fields['Book Status']         = bookStatus;
 
