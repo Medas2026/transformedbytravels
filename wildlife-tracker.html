@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1520">
+<title>Wildlife Tracker</title>
+<link rel="manifest" href="/wildlife-manifest.json">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg:    #0d1520;
+  --s1:    #131f2e;
+  --s2:    #1a2840;
+  --teal:  #2dd4bf;
+  --text:  #f1f5f9;
+  --soft:  #94a3b8;
+  --muted: #475569;
+  --border:#1e3a5f;
+}
+body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Header ── */
+.app-header { background: var(--s1); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.trip-name { font-family: 'Georgia', serif; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.sync-btn { position: relative; background: var(--teal); color: #0d1520; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.sync-btn:disabled { background: var(--muted); cursor: default; }
+.sync-badge { background: #ef4444; color: #fff; border-radius: 10px; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; min-width: 18px; text-align: center; }
+.online-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+.online-dot.offline { background: var(--muted); }
+.download-btn { background: none; border: 1px solid var(--teal); color: var(--teal); border-radius: 8px; padding: 7px 12px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+
+/* ── Tab bar ── */
+.tab-bar { background: var(--s1); border-bottom: 1px solid var(--border); display: flex; flex-shrink: 0; }
+.tab { flex: 1; padding: 12px 4px; text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; text-transform: uppercase; letter-spacing: 0.06em; }
+.tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+/* ── Page content ── */
+.page-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.tab-panel { display: none; padding: 12px 14px; }
+.tab-panel.active { display: block; }
+
+/* ── Today panel ── */
+.today-location { background: var(--s2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+.today-date { font-size: 0.72rem; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.today-park { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.today-country { font-size: 0.82rem; color: var(--soft); }
+.today-activities { margin-bottom: 14px; }
+.activity-card { background: var(--s2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; }
+.activity-slot { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.activity-name { font-size: 0.92rem; color: var(--text); }
+
+.section-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; margin-top: 4px; }
+
+/* ── Species list ── */
+.search-bar { background: var(--s2); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 0.92rem; width: 100%; outline: none; margin-bottom: 10px; }
+.search-bar:focus { border-color: var(--teal); }
+.filter-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.filter-chip { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border); color: var(--soft); background: none; cursor: pointer; }
+.filter-chip.active { background: var(--teal); color: #0d1520; border-color: var(--teal); }
+
+.category-header { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 0 6px; border-top: 1px solid var(--border); margin-top: 4px; }
+.species-card { display: flex; align-items: center; gap: 12px; background: var(--s2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 7px; cursor: pointer; transition: border-color 0.15s; }
+.species-card:active { border-color: var(--teal); }
+.species-thumb { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: var(--s1); flex-shrink: 0; }
+.species-thumb-placeholder { width: 52px; height: 52px; border-radius: 8px; background: var(--s1); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+.species-info { flex: 1; min-width: 0; }
+.species-name { font-size: 0.92rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.species-sci { font-size: 0.75rem; color: var(--soft); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.unsighted { background: var(--muted); }
+.status-dot.sighted   { background: #f59e0b; }
+.status-dot.secured   { background: #22c55e; }
+
+/* ── My Sightings ── */
+.sighting-row { background: var(--s2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; }
+.sighting-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--s1); flex-shrink: 0; }
+.sighting-thumb-placeholder { width: 44px; height: 44px; border-radius: 8px; background: var(--s1); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.sighting-info { flex: 1; }
+.sighting-name { font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.sighting-meta { font-size: 0.75rem; color: var(--soft); }
+.sighting-status { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; }
+.sighting-status.pending  { background: #78350f; color: #fcd34d; }
+.sighting-status.secured  { background: #14532d; color: #4ade80; }
+
+/* ── Empty states ── */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--soft); }
+.empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.empty-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.empty-text { font-size: 0.85rem; line-height: 1.6; }
+
+/* ── Modal ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal-sheet { background: var(--s1); border-radius: 20px 20px 0 0; padding: 24px 20px 32px; width: 100%; max-width: 480px; max-height: 90dvh; overflow-y: auto; }
+.modal-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
+.modal-thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; background: var(--s2); flex-shrink: 0; }
+.modal-thumb-placeholder { width: 64px; height: 64px; border-radius: 10px; background: var(--s2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+.modal-title { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.modal-sci { font-size: 0.8rem; color: var(--soft); font-style: italic; }
+.modal-close { margin-left: auto; background: none; border: none; color: var(--soft); font-size: 1.3rem; cursor: pointer; padding: 4px; }
+
+.modal-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; margin-top: 16px; }
+.count-stepper { display: flex; align-items: center; gap: 0; }
+.count-btn { width: 44px; height: 44px; border: 1.5px solid var(--border); background: var(--s2); color: var(--text); font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.count-btn:first-child { border-radius: 8px 0 0 8px; }
+.count-btn:last-child  { border-radius: 0 8px 8px 0; }
+.count-display { width: 56px; height: 44px; border-top: 1.5px solid var(--border); border-bottom: 1.5px solid var(--border); background: var(--s2); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; color: var(--text); }
+
+.behavior-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.behavior-chip { padding: 8px 4px; border: 1.5px solid var(--border); border-radius: 8px; background: none; color: var(--soft); font-size: 0.78rem; text-align: center; cursor: pointer; transition: all 0.15s; }
+.behavior-chip.selected { border-color: var(--teal); background: rgba(45,212,191,0.12); color: var(--teal); font-weight: 700; }
+
+.notes-input { width: 100%; background: var(--s2); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 0.88rem; outline: none; resize: none; min-height: 72px; }
+.notes-input:focus { border-color: var(--teal); }
+
+.gps-status { font-size: 0.75rem; color: var(--soft); margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+.gps-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.gps-dot.got { background: #22c55e; }
+
+.log-btn { width: 100%; background: var(--teal); color: #0d1520; border: none; border-radius: 12px; padding: 16px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; }
+.log-btn:disabled { background: var(--muted); cursor: default; }
+
+/* ── Toast ── */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: var(--text); padding: 10px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; z-index: 200; opacity: 0; transition: opacity 0.25s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; }
+
+/* ── Setup screen ── */
+#setup-screen { position: fixed; inset: 0; background: var(--bg); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; text-align: center; }
+#setup-screen.hidden { display: none; }
+.setup-logo { font-family: Georgia, serif; font-size: 1.4rem; color: var(--teal); margin-bottom: 8px; }
+.setup-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.setup-text { font-size: 0.88rem; color: var(--soft); line-height: 1.65; margin-bottom: 28px; max-width: 340px; }
+.setup-download-btn { background: var(--teal); color: #0d1520; border: none; border-radius: 12px; padding: 16px 32px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 12px; width: 100%; max-width: 320px; }
+.setup-progress { font-size: 0.82rem; color: var(--soft); margin-top: 8px; min-height: 20px; }
+</style>
+</head>
+<body>
+
+<!-- Setup / Download screen -->
+<div id="setup-screen">
+  <div class="setup-logo">Wildlife Tracker</div>
+  <div class="setup-title" id="setup-title">Ready to go offline?</div>
+  <p class="setup-text" id="setup-text">Download the species database and your trip schedule before heading into the field. You'll need WiFi for this — it only takes a moment.</p>
+  <button class="setup-download-btn" id="setup-download-btn" onclick="downloadAll()">Download for Offline</button>
+  <div class="setup-progress" id="setup-progress"></div>
+</div>
+
+<!-- Main app -->
+<div id="app" style="display:none;flex-direction:column;height:100dvh;">
+
+  <div class="app-header">
+    <div class="trip-name" id="trip-name-header">Wildlife Tracker</div>
+    <div class="header-right">
+      <div class="online-dot" id="online-dot" title="Online"></div>
+      <button class="sync-btn" id="sync-btn" onclick="syncPending()">
+        Sync <span class="sync-badge" id="sync-badge" style="display:none;">0</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab('today')" id="tab-today">Today</div>
+    <div class="tab" onclick="switchTab('species')" id="tab-species">Species</div>
+    <div class="tab" onclick="switchTab('sightings')" id="tab-sightings">My Sightings</div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- TODAY -->
+    <div class="tab-panel active" id="panel-today">
+      <div class="today-location" id="today-location">
+        <div class="today-date" id="today-date"></div>
+        <div class="today-park" id="today-park">Loading...</div>
+        <div class="today-country" id="today-country"></div>
+      </div>
+      <div class="section-label">Schedule</div>
+      <div id="today-activities"></div>
+      <div class="section-label" style="margin-top:4px;">Quick Log — Species in this Park</div>
+      <div id="today-species-grid"></div>
+    </div>
+
+    <!-- SPECIES -->
+    <div class="tab-panel" id="panel-species">
+      <input type="text" class="search-bar" id="species-search" placeholder="Search species..." oninput="renderSpeciesList()">
+      <div class="filter-row">
+        <button class="filter-chip active" onclick="setFilter('all')" id="chip-all">All</button>
+        <button class="filter-chip" onclick="setFilter('unsighted')" id="chip-unsighted">Unsighted</button>
+        <button class="filter-chip" onclick="setFilter('sighted')" id="chip-sighted">Sighted</button>
+        <button class="filter-chip" onclick="setFilter('secured')" id="chip-secured">Secured</button>
+      </div>
+      <div id="species-list"></div>
+    </div>
+
+    <!-- MY SIGHTINGS -->
+    <div class="tab-panel" id="panel-sightings">
+      <div id="sightings-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Sighting modal -->
+<div class="modal-overlay" id="sighting-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div id="modal-thumb-wrap"></div>
+      <div>
+        <div class="modal-title" id="modal-name"></div>
+        <div class="modal-sci" id="modal-sci"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-label">Count</div>
+    <div class="count-stepper">
+      <button class="count-btn" onclick="adjustCount(-1)">−</button>
+      <div class="count-display" id="count-display">1</div>
+      <button class="count-btn" onclick="adjustCount(1)">+</button>
+    </div>
+
+    <div class="modal-label">Behavior</div>
+    <div class="behavior-grid" id="behavior-grid"></div>
+
+    <div class="modal-label">Notes (optional)</div>
+    <textarea class="notes-input" id="modal-notes" placeholder="What were they doing? Any notable details..."></textarea>
+
+    <div class="gps-status">
+      <div class="gps-dot" id="gps-dot"></div>
+      <span id="gps-label">Acquiring GPS...</span>
+    </div>
+
+    <button class="log-btn" id="log-btn" onclick="logSighting()">Log Sighting</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const DB_NAME    = 'wildlife-tracker';
+const DB_VERSION = 2;
+const BEHAVIORS  = ['Feeding','Resting','Hunting','With young','Crossing water','Moving','Playing','Grooming','Flying'];
+const CATEGORY_ICONS = {
+  'Primate':      '🦍',
+  'Predator':     '🦁',
+  'Antelope':     '🦌',
+  'Big Five':     '🐘',
+  'Waterbird':    '🦢',
+  'Raptor':       '🦅',
+  'Storks':       '🦩',
+  'Songbird':     '🐦',
+  'Other Mammal': '🦏',
+  'Other Bird':   '🦉',
+  'Other':        '🐾',
+};
+
+// ── URL params ───────────────────────────────────────────────────────────────
+const params    = new URLSearchParams(location.search);
+const TRIP_ID   = params.get('tripId') || '';
+const USER_EMAIL= params.get('email')  || '';
+const COUNTRY   = params.get('country')|| '';
+
+// ── State ───────────────────────────────────────────────────────────────────
+let db            = null;
+let allSpecies    = [];
+let tripDays      = [];
+let pendingSightings = [];
+let syncedSightings  = [];
+let currentFilter = 'all';
+let modalSpecies  = null;
+let modalCount    = 1;
+let modalBehavior = '';
+let gpsCoords     = null;
+let gpsWatcher    = null;
+let isOnline      = navigator.onLine;
+
+// ── IndexedDB ────────────────────────────────────────────────────────────────
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('species'))   d.createObjectStore('species',   { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('tripDays'))  d.createObjectStore('tripDays',  { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('sightings')) d.createObjectStore('sightings', { keyPath: 'localId' });
+      if (!d.objectStoreNames.contains('meta'))      d.createObjectStore('meta',      { keyPath: 'key' });
+    };
+    req.onsuccess  = e => resolve(e.target.result);
+    req.onerror    = e => reject(e.target.error);
+  });
+}
+
+function dbPut(store, value) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(value);
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbGet(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+// ── Download all offline data ─────────────────────────────────────────────
+async function downloadAll() {
+  const btn  = document.getElementById('setup-download-btn');
+  const prog = document.getElementById('setup-progress');
+  btn.disabled = true;
+  btn.textContent = 'Downloading...';
+
+  try {
+    // 1. Species pack
+    prog.textContent = 'Downloading species database...';
+    const speciesUrl = '/api/species-pack' + (COUNTRY ? `?country=${encodeURIComponent(COUNTRY)}` : '');
+    const speciesResp = await fetch(speciesUrl);
+    const speciesData = await speciesResp.json();
+    const species = speciesData.species || [];
+    for (const s of species) await dbPut('species', s);
+    prog.textContent = `✓ ${species.length} species downloaded`;
+
+    // 2. Trip days
+    if (TRIP_ID) {
+      prog.textContent = 'Downloading trip schedule...';
+      const daysResp = await fetch(`/api/trip-days?tripId=${encodeURIComponent(TRIP_ID)}`);
+      const daysData = await daysResp.json();
+      const days = daysData.records || [];
+      for (const d of days) await dbPut('tripDays', { id: d.id, ...d.fields });
+      prog.textContent = `✓ ${days.length} days downloaded`;
+    }
+
+    // 3. Existing sightings for this trip
+    if (USER_EMAIL && TRIP_ID) {
+      prog.textContent = 'Downloading your sightings...';
+      const sResp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(USER_EMAIL)}&tripId=${encodeURIComponent(TRIP_ID)}`);
+      const sData = await sResp.json();
+      const existing = sData.records || [];
+      for (const r of existing) {
+        await dbPut('sightings', {
+          localId:    r.id,
+          airtableId: r.id,
+          status:     'secured',
+          speciesId:  r.fields['Species ID']   || '',
+          name:       r.fields['Species Name'] || '',
+          sciName:    r.fields['Scientific Name'] || '',
+          count:      r.fields['Count'] || 1,
+          behavior:   r.fields['Behavior'] || '',
+          notes:      r.fields['Notes'] || '',
+          location:   r.fields['Location'] || '',
+          lat:        r.fields['Latitude'] || null,
+          lon:        r.fields['Longitude'] || null,
+          date:       r.fields['Date'] || '',
+          time:       '',
+        });
+      }
+    }
+
+    // 4. Save meta
+    await dbPut('meta', { key: 'tripId',    value: TRIP_ID });
+    await dbPut('meta', { key: 'email',     value: USER_EMAIL });
+    await dbPut('meta', { key: 'country',   value: COUNTRY });
+    await dbPut('meta', { key: 'lastSync',  value: new Date().toISOString() });
+
+    prog.textContent = '✓ All data ready — you can now go offline';
+    setTimeout(launchApp, 800);
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Retry Download';
+    prog.textContent = '⚠ Download failed: ' + e.message;
+  }
+}
+
+// ── Launch app from cached data ───────────────────────────────────────────
+async function launchApp() {
+  allSpecies        = await dbGetAll('species');
+  tripDays          = await dbGetAll('tripDays');
+  const sightings   = await dbGetAll('sightings');
+  pendingSightings  = sightings.filter(s => s.status === 'pending');
+  syncedSightings   = sightings.filter(s => s.status === 'secured');
+
+  // Trip name from meta
+  const tripMeta = await dbGet('meta', 'tripId');
+  const country  = (await dbGet('meta', 'country'))?.value || COUNTRY;
+
+  document.getElementById('setup-screen').classList.add('hidden');
+  const appEl = document.getElementById('app');
+  appEl.style.display = 'flex';
+
+  renderToday();
+  renderSpeciesList();
+  renderSightingsList();
+  updateSyncBadge();
+  startGPS();
+}
+
+// ── Today panel ───────────────────────────────────────────────────────────
+function renderToday() {
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const isoDate = today.toISOString().slice(0, 10);
+
+  document.getElementById('today-date').textContent = dateStr;
+
+  // Find today's day record
+  const todayRec = tripDays.find(d => (d['Date'] || d['Day Date'] || '') === isoDate)
+                || tripDays.find(d => d['Day Number'] && true) // fallback to first
+                || null;
+
+  const park    = todayRec ? (todayRec['Ending Location'] || todayRec['Starting Location'] || 'In the field') : 'In the field';
+  const country = todayRec ? (todayRec['Ending Country']  || todayRec['Starting Country']  || '') : '';
+
+  document.getElementById('today-park').textContent    = park;
+  document.getElementById('today-country').textContent = country;
+
+  // Activities from slots
+  const activitiesEl = document.getElementById('today-activities');
+  const SLOT_LABELS  = ['Morning', 'Midday', 'Afternoon', 'Evening'];
+  let activitiesHtml = '';
+  if (todayRec) {
+    [1,2,3,4].forEach((n, i) => {
+      const raw = todayRec['Slot ' + n];
+      if (!raw) return;
+      try {
+        const slot = JSON.parse(raw);
+        if (slot.name || slot.title) {
+          activitiesHtml += `<div class="activity-card">
+            <div class="activity-slot">${SLOT_LABELS[i]}</div>
+            <div class="activity-name">${slot.name || slot.title || ''}</div>
+          </div>`;
+        }
+      } catch(e) {}
+    });
+  }
+  activitiesEl.innerHTML = activitiesHtml || '<div style="color:var(--soft);font-size:0.85rem;margin-bottom:12px;">No activities scheduled for today.</div>';
+
+  // Quick-log grid for species in this park
+  const parkSpecies = park !== 'In the field'
+    ? allSpecies.filter(s => s.bestParks && s.bestParks.some(p => p.toLowerCase().includes(park.toLowerCase())))
+    : allSpecies.slice(0, 20);
+
+  const gridEl = document.getElementById('today-species-grid');
+  gridEl.innerHTML = parkSpecies.slice(0, 30).map(s => {
+    const status = getSightingStatus(s.id);
+    return `<div class="species-card" onclick="openModal('${s.id}')">
+      ${s.photoUrl ? `<img class="species-thumb" src="${s.photoUrl}" alt="${s.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="species-thumb-placeholder" style="display:none;">${CATEGORY_ICONS[s.category]||'🐾'}</div>`
+      : `<div class="species-thumb-placeholder">${CATEGORY_ICONS[s.category]||'🐾'}</div>`}
+      <div class="species-info">
+        <div class="species-name">${s.name}</div>
+        <div class="species-sci">${s.scientificName || ''}</div>
+      </div>
+      <div class="status-dot ${status}"></div>
+    </div>`;
+  }).join('');
+}
+
+// ── Species panel ─────────────────────────────────────────────────────────
+function setFilter(f) {
+  currentFilter = f;
+  ['all','unsighted','sighted','secured'].forEach(id => {
+    document.getElementById('chip-' + id).classList.toggle('active', id === f);
+  });
+  renderSpeciesList();
+}
+
+function renderSpeciesList() {
+  const q = (document.getElementById('species-search')?.value || '').toLowerCase();
+  let list = allSpecies.filter(s =>
+    (!q || s.name.toLowerCase().includes(q) || (s.scientificName || '').toLowerCase().includes(q))
+  );
+  if (currentFilter !== 'all') {
+    list = list.filter(s => getSightingStatus(s.id) === currentFilter);
+  }
+
+  // Group by category
+  const groups = {};
+  list.forEach(s => {
+    const cat = s.category || 'Other';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(s);
+  });
+
+  const el = document.getElementById('species-list');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No species found</div><div class="empty-text">Try a different search or filter.</div></div>`;
+    return;
+  }
+
+  el.innerHTML = Object.entries(groups).map(([cat, species]) => `
+    <div class="category-header">${CATEGORY_ICONS[cat]||'🐾'} ${cat}</div>
+    ${species.map(s => {
+      const status = getSightingStatus(s.id);
+      return `<div class="species-card" onclick="openModal('${s.id}')">
+        ${s.photoUrl ? `<img class="species-thumb" src="${s.photoUrl}" alt="${s.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="species-thumb-placeholder" style="display:none;">${CATEGORY_ICONS[s.category]||'🐾'}</div>`
+        : `<div class="species-thumb-placeholder">${CATEGORY_ICONS[s.category]||'🐾'}</div>`}
+        <div class="species-info">
+          <div class="species-name">${s.name}</div>
+          <div class="species-sci">${s.scientificName || ''}</div>
+        </div>
+        <div class="status-dot ${status}"></div>
+      </div>`;
+    }).join('')}
+  `).join('');
+}
+
+// ── My Sightings panel ────────────────────────────────────────────────────
+function renderSightingsList() {
+  const all = [...pendingSightings, ...syncedSightings]
+    .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+
+  const el = document.getElementById('sightings-list');
+  if (!all.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🦒</div><div class="empty-title">No sightings yet</div><div class="empty-text">Tap any animal from the Species or Today tab to log your first sighting.</div></div>`;
+    return;
+  }
+
+  el.innerHTML = all.map(s => {
+    const species = allSpecies.find(sp => sp.id === s.speciesId);
+    const thumb   = species?.photoUrl || '';
+    const meta    = [s.count > 1 ? `×${s.count}` : '', s.behavior, s.location].filter(Boolean).join(' · ');
+    return `<div class="sighting-row">
+      ${thumb ? `<img class="sighting-thumb" src="${thumb}" alt="${s.name}">` : `<div class="sighting-thumb-placeholder">${CATEGORY_ICONS[species?.category]||'🐾'}</div>`}
+      <div class="sighting-info">
+        <div class="sighting-name">${s.name}</div>
+        <div class="sighting-meta">${s.date}${meta ? ' · ' + meta : ''}</div>
+      </div>
+      <div class="sighting-status ${s.status === 'secured' ? 'secured' : 'pending'}">${s.status === 'secured' ? 'Secured' : 'Sighted'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Sighting status helper ────────────────────────────────────────────────
+function getSightingStatus(speciesId) {
+  const all = [...pendingSightings, ...syncedSightings];
+  const match = all.find(s => s.speciesId === speciesId);
+  if (!match) return 'unsighted';
+  return match.status === 'secured' ? 'secured' : 'sighted';
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────
+function openModal(speciesId) {
+  modalSpecies  = allSpecies.find(s => s.id === speciesId);
+  if (!modalSpecies) return;
+  modalCount    = 1;
+  modalBehavior = '';
+
+  document.getElementById('modal-name').textContent = modalSpecies.name;
+  document.getElementById('modal-sci').textContent  = modalSpecies.scientificName || '';
+  document.getElementById('count-display').textContent = '1';
+  document.getElementById('modal-notes').value = '';
+
+  // Thumb
+  const wrap = document.getElementById('modal-thumb-wrap');
+  wrap.innerHTML = modalSpecies.photoUrl
+    ? `<img class="modal-thumb" src="${modalSpecies.photoUrl}" alt="${modalSpecies.name}" onerror="this.outerHTML='<div class=\\'modal-thumb-placeholder\\'>${CATEGORY_ICONS[modalSpecies.category]||'🐾'}</div>'">`
+    : `<div class="modal-thumb-placeholder">${CATEGORY_ICONS[modalSpecies.category]||'🐾'}</div>`;
+
+  // Behavior chips
+  document.getElementById('behavior-grid').innerHTML = BEHAVIORS.map(b =>
+    `<button class="behavior-chip" onclick="selectBehavior('${b}',this)">${b}</button>`
+  ).join('');
+
+  document.getElementById('sighting-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('sighting-modal').classList.remove('open');
+  modalSpecies = null;
+}
+
+function adjustCount(delta) {
+  modalCount = Math.max(1, modalCount + delta);
+  document.getElementById('count-display').textContent = modalCount;
+}
+
+function selectBehavior(b, el) {
+  modalBehavior = (modalBehavior === b) ? '' : b;
+  document.querySelectorAll('.behavior-chip').forEach(c => c.classList.remove('selected'));
+  if (modalBehavior) el.classList.add('selected');
+}
+
+// ── GPS ───────────────────────────────────────────────────────────────────
+function startGPS() {
+  if (!navigator.geolocation) return;
+  gpsWatcher = navigator.geolocation.watchPosition(
+    pos => {
+      gpsCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy };
+      const dot   = document.getElementById('gps-dot');
+      const label = document.getElementById('gps-label');
+      if (dot)   dot.classList.add('got');
+      if (label) label.textContent = `GPS ready · ±${Math.round(pos.coords.accuracy)}m`;
+    },
+    err => {
+      const label = document.getElementById('gps-label');
+      if (label) label.textContent = 'GPS unavailable';
+    },
+    { enableHighAccuracy: true, maximumAge: 10000 }
+  );
+}
+
+// ── Log sighting ──────────────────────────────────────────────────────────
+async function logSighting() {
+  if (!modalSpecies) return;
+  const btn = document.getElementById('log-btn');
+  btn.disabled = true;
+  btn.textContent = 'Logging...';
+
+  const now   = new Date();
+  const notes = document.getElementById('modal-notes').value.trim();
+  const todayRec = tripDays.find(d => (d['Date'] || d['Day Date'] || '') === now.toISOString().slice(0, 10))
+                 || tripDays[0];
+  const location = todayRec ? (todayRec['Ending Location'] || todayRec['Starting Location'] || '') : '';
+
+  const sighting = {
+    localId:   'local_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+    status:    'pending',
+    speciesId: modalSpecies.id,
+    name:      modalSpecies.name,
+    sciName:   modalSpecies.scientificName || '',
+    count:     modalCount,
+    behavior:  modalBehavior,
+    notes,
+    location,
+    lat:       gpsCoords?.lat  || null,
+    lon:       gpsCoords?.lon  || null,
+    accuracy:  gpsCoords?.accuracy || null,
+    date:      now.toISOString().slice(0, 10),
+    time:      now.toTimeString().slice(0, 5),
+    tripId:    TRIP_ID,
+    email:     USER_EMAIL,
+  };
+
+  await dbPut('sightings', sighting);
+  pendingSightings.push(sighting);
+
+  closeModal();
+  updateSyncBadge();
+  renderSpeciesList();
+  renderSightingsList();
+  renderToday();
+
+  btn.disabled = false;
+  btn.textContent = 'Log Sighting';
+
+  showToast(`${modalSpecies.name} logged!`);
+
+  if (isOnline) syncPending();
+}
+
+// ── Sync ──────────────────────────────────────────────────────────────────
+async function syncPending() {
+  if (!isOnline || !pendingSightings.length) return;
+  const btn = document.getElementById('sync-btn');
+  btn.disabled = true;
+  btn.textContent = 'Syncing...';
+
+  let synced = 0;
+  for (const s of [...pendingSightings]) {
+    try {
+      const resp = await fetch('/api/sightings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          speciesId:     s.speciesId,
+          name:          s.name,
+          sciName:       s.sciName,
+          count:         s.count,
+          behavior:      s.behavior,
+          notes:         s.notes,
+          location:      s.location,
+          date:          s.date,
+          travelerEmail: s.email,
+          lat:           s.lat,
+          lon:           s.lon,
+          gpsAccuracy:   s.accuracy,
+        })
+      });
+      const result = await resp.json();
+      if (result.ok) {
+        s.status     = 'secured';
+        s.airtableId = result.id;
+        await dbPut('sightings', s);
+        pendingSightings = pendingSightings.filter(p => p.localId !== s.localId);
+        syncedSightings.push(s);
+        synced++;
+      }
+    } catch(e) {}
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Sync';
+  updateSyncBadge();
+  renderSightingsList();
+  if (synced) showToast(`${synced} sighting${synced > 1 ? 's' : ''} secured!`);
+}
+
+function updateSyncBadge() {
+  const badge = document.getElementById('sync-badge');
+  const count = pendingSightings.length;
+  badge.style.display = count ? 'inline' : 'none';
+  badge.textContent   = count;
+}
+
+// ── Online/offline ────────────────────────────────────────────────────────
+function updateOnlineStatus() {
+  isOnline = navigator.onLine;
+  const dot = document.getElementById('online-dot');
+  if (dot) dot.classList.toggle('offline', !isOnline);
+  if (isOnline && pendingSightings.length) syncPending();
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  ['today','species','sightings'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('panel-' + t).classList.toggle('active', t === tab);
+  });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+async function init() {
+  db = await openDB();
+
+  // Check if we already have species data cached
+  const cached = await dbGetAll('species');
+  if (cached.length > 0) {
+    // Already have data — go straight to app
+    document.getElementById('setup-title').textContent = 'Data ready';
+    document.getElementById('setup-text').textContent  = 'Your species database is already downloaded. Launch the tracker.';
+    document.getElementById('setup-download-btn').textContent = 'Open Tracker';
+    document.getElementById('setup-download-btn').onclick = launchApp;
+    // Auto-launch after a beat
+    launchApp();
+  }
+  // else: show setup screen to download
+}
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/wildlife-sw.js').catch(() => {});
+}
+
+init();
+</script>
+</body>
+</html>

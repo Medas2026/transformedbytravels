@@ -1,0 +1,25 @@
+{
+  "name": "Wildlife Tracker",
+  "short_name": "Wildlife",
+  "description": "Offline wildlife sighting log for adventure travel",
+  "start_url": "/wildlife-tracker.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0d1520",
+  "background_color": "#0d1520",
+  "icons": [
+    {
+      "src": "/images/app-icon-64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/app-icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "lifestyle"],
+  "lang": "en-US"
+}

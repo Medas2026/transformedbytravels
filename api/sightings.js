@@ -20,11 +20,12 @@ module.exports = async function handler(req, res) {
 
   // ── GET — list sightings with optional filters ────────────────────────────
   if (req.method === 'GET') {
-    const { park, month, speciesId } = req.query;
+    const { park, month, speciesId, travelerEmail } = req.query;
     const filters = [];
-    if (speciesId) filters.push(`{Species ID}="${speciesId}"`);
-    if (park)      filters.push(`SEARCH(LOWER("${park}"),LOWER({Location}))`);
-    if (month)     filters.push(`SEARCH("${month}",{Month})`);
+    if (speciesId)     filters.push(`{Species ID}="${speciesId}"`);
+    if (travelerEmail) filters.push(`{Traveler Email}="${travelerEmail.toLowerCase().trim()}"`);
+    if (park)          filters.push(`SEARCH(LOWER("${park}"),LOWER({Location}))`);
+    if (month)         filters.push(`SEARCH("${month}",{Month})`);
     const formula = filters.length > 1 ? `AND(${filters.join(',')})` : (filters[0] || '');
     const qs = (formula ? `?filterByFormula=${encodeURIComponent(formula)}&` : '?') +
                'sort[0][field]=Date&sort[0][direction]=desc';
@@ -38,7 +39,7 @@ module.exports = async function handler(req, res) {
 
   // ── POST — log a sighting ─────────────────────────────────────────────────
   if (req.method === 'POST') {
-    const { speciesId, name, sciName, count, location, notes, date, travelerEmail, lat, lon, gpsAccuracy } = req.body || {};
+    const { speciesId, name, sciName, count, location, notes, behavior, date, travelerEmail, lat, lon, gpsAccuracy } = req.body || {};
     if (!speciesId || !name) return res.status(400).json({ error: 'speciesId and name are required' });
 
     const d     = date ? new Date(date) : new Date();
@@ -55,6 +56,7 @@ module.exports = async function handler(req, res) {
       'Month':           month,
     };
     if (travelerEmail) fields['Traveler Email'] = travelerEmail;
+    if (behavior)      fields['Behavior']       = behavior;
     if (lat != null)   fields['Latitude']       = lat;
     if (lon != null)   fields['Longitude']       = lon;
     if (gpsAccuracy)   fields['GPS Accuracy (m)'] = gpsAccuracy;

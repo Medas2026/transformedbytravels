@@ -1,5 +1,19 @@
 const BASE_ID = 'appdlxcWb45dIqNK2';
 
+// Map country (or region) names to park name keywords for species filtering
+const COUNTRY_PARKS = {
+  'uganda':        ['bwindi', 'kibale', 'queen elizabeth', 'murchison', 'kidepo'],
+  'rwanda':        ['volcanoes', 'nyungwe', 'akagera'],
+  'uganda/rwanda': ['bwindi', 'kibale', 'queen elizabeth', 'murchison', 'kidepo', 'volcanoes', 'nyungwe', 'akagera'],
+  'kenya':         ['masai mara', 'amboseli', 'tsavo', 'samburu', 'nakuru', 'ol pejeta', 'laikipia'],
+  'tanzania':      ['serengeti', 'ngorongoro', 'tarangire', 'manyara', 'selous', 'ruaha', 'mikumi'],
+  'botswana':      ['okavango', 'chobe', 'moremi', 'central kalahari', 'makgadikgadi'],
+  'south africa':  ['kruger', 'sabi', 'hluhluwe', 'addo', 'pilanesberg', 'madikwe'],
+  'zambia':        ['luangwa', 'zambezi', 'kafue', 'liuwa'],
+  'zimbabwe':      ['hwange', 'mana pools', 'victoria falls', 'gonarezhou'],
+  'namibia':       ['etosha', 'damaraland', 'skeleton coast', 'sossusvlei'],
+};
+
 async function at(table, path) {
   const url  = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(table)}${path}`;
   const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + process.env.AIRTABLE_API_KEY } });
@@ -13,9 +27,13 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Optional ?parks=Bwindi,Kibale filter
-  const { parks } = req.query;
-  const parkFilter = parks ? parks.split(',').map(p => p.trim().toLowerCase()) : null;
+  // Optional ?parks=Bwindi,Kibale or ?country=Uganda/Rwanda filter
+  const { parks, country } = req.query;
+  let parkFilter = parks ? parks.split(',').map(p => p.trim().toLowerCase()) : null;
+  if (!parkFilter && country) {
+    const key = country.toLowerCase().trim();
+    parkFilter = COUNTRY_PARKS[key] || null;
+  }
 
   try {
     // Page through all species
@@ -67,6 +85,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       generated: new Date().toISOString(),
       count:     species.length,
+      country:   country || null,
       parks:     parkFilter || [],
       species,
     });
