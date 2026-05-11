@@ -431,6 +431,9 @@ async function launchApp() {
   renderSightingsList();
   updateSyncBadge();
   startGPS();
+
+  // Auto-sync any pending sightings on launch
+  if (isOnline && pendingSightings.length) syncPending();
 }
 
 // ── Today panel ───────────────────────────────────────────────────────────
@@ -732,13 +735,16 @@ async function logSighting() {
 }
 
 // ── Sync ──────────────────────────────────────────────────────────────────
+let _syncing = false;
+
 async function syncPending() {
-  if (!isOnline || !pendingSightings.length) return;
+  if (!isOnline || !pendingSightings.length || _syncing) return;
+  _syncing = true;
   const btn = document.getElementById('sync-btn');
   btn.disabled = true;
   btn.textContent = 'Syncing...';
 
-  let synced = 0;
+  let synced = 0, failed = 0;
   for (const s of [...pendingSightings]) {
     try {
       const resp = await fetch('/api/sightings', {
@@ -767,15 +773,23 @@ async function syncPending() {
         pendingSightings = pendingSightings.filter(p => p.localId !== s.localId);
         syncedSightings.push(s);
         synced++;
+      } else {
+        failed++;
+        console.warn('[sync] sighting rejected:', result.error || result);
       }
-    } catch(e) {}
+    } catch(e) {
+      failed++;
+      console.warn('[sync] network error:', e.message);
+    }
   }
 
+  _syncing = false;
   btn.disabled = false;
   btn.textContent = 'Sync';
   updateSyncBadge();
   renderSightingsList();
   if (synced) showToast(`${synced} sighting${synced > 1 ? 's' : ''} secured!`);
+  if (failed && !synced) showToast(`Sync failed — will retry when online`);
 }
 
 function updateSyncBadge() {

@@ -1,11 +1,10 @@
-const CACHE = 'wildlife-v2';
+const CACHE = 'wildlife-v3';
 const SHELL = [
-  '/wildlife-tracker.html',
   '/wildlife-manifest.json',
   '/images/app-icon-256.png',
 ];
 
-// ── Install: cache the app shell ──────────────────────────────────────────
+// ── Install: pre-cache static assets (not the HTML itself) ────────────────
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
@@ -23,7 +22,7 @@ self.addEventListener('activate', e => {
   );
 });
 
-// ── Fetch: cache-first for shell, pass-through for API ────────────────────
+// ── Fetch ─────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
 
@@ -32,21 +31,33 @@ self.addEventListener('fetch', e => {
   // Never intercept API calls — IndexedDB handles data offline
   if (url.pathname.startsWith('/api/')) return;
 
+  // HTML navigation: network-first so deploys reach users immediately;
+  // fall back to cache only when genuinely offline
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(resp => {
+          if (resp.ok) {
+            const clone = resp.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+          }
+          return resp;
+        })
+        .catch(() => caches.match(e.request).then(c => c || caches.match('/wildlife-tracker.html')))
+    );
+    return;
+  }
+
+  // Static assets: cache-first
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(resp => {
-        // Cache successful same-origin responses
         if (resp.ok && url.origin === self.location.origin) {
           const clone = resp.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return resp;
-      }).catch(() => {
-        // Offline and not cached — return the app shell for navigation requests
-        if (e.request.mode === 'navigate') {
-          return caches.match('/wildlife-tracker.html');
-        }
       });
     })
   );
