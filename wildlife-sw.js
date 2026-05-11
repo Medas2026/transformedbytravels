@@ -1,4 +1,4 @@
-const CACHE = 'wildlife-v1';
+const CACHE = 'wildlife-v2';
 const SHELL = [
   '/wildlife-tracker.html',
   '/wildlife-manifest.json',
