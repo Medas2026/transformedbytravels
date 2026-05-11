@@ -499,9 +499,10 @@ module.exports = async function handler(req, res) {
           // Traveler info
           const travData = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${email}")`));
           const travRec  = (travData.records || [])[0];
-          const name      = travRec ? (travRec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
-          const phone     = travRec ? (travRec.fields['Phone Number'] || '') : '';
-          const archetype = travRec ? (travRec.fields['Archetype'] || '') : '';
+          const name          = travRec ? (travRec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
+          const phone         = travRec ? (travRec.fields['Phone Number'] || '') : '';
+          const archetype     = travRec ? (travRec.fields['Archetype'] || '') : '';
+          const specialVersion = travRec ? (travRec.fields['Special Version'] || '') : '';
 
           // Day number
           let dayNum = null;
@@ -573,6 +574,11 @@ module.exports = async function handler(req, res) {
 </td></tr>` : '';
 
           const finishLink = `${PORTAL_URL}/portal.html`;
+          const wildlifeUrl = `${PORTAL_URL}/wildlife-tracker.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(email)}&country=${encodeURIComponent(country)}`;
+          const wildlifeBlockHtml = specialVersion === 'Safari' ? `
+<tr><td style="padding:0 40px 28px;text-align:center;">
+  <a href="${wildlifeUrl}" style="display:inline-block;background:#7c3aed;color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">🦁 Log Wildlife Sightings</a>
+</td></tr>` : '';
 
           let smsSent = false;
           console.log(`[send-daily] SMS check for ${email}: phone=${phone ? 'yes('+phone.slice(0,4)+'***)' : 'none'} tipText=${tipText ? 'yes' : 'none'} archetype=${archetype||'none'}`);
@@ -632,7 +638,7 @@ ${tripPhotoHtml}
 <tr><td style="padding:0 40px 28px;text-align:center;">
 <a href="${link}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Write Today's Journal →</a>
 </td></tr>
-${tipBlockHtml}${tomorrowBlockHtml}
+${wildlifeBlockHtml}${tipBlockHtml}${tomorrowBlockHtml}
 <tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
 <p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
 </td></tr></table></td></tr></table></body></html>`;

@@ -517,6 +517,7 @@
             <div class="profile-field"><span class="field-label">Trips Remaining</span><span class="field-value" id="pf-trips-remaining">—</span></div>
             <div class="profile-field"><span class="field-label">DNA Guides Remaining</span><span class="field-value" id="pf-dna-remaining">—</span></div>
             <div class="profile-field"><span class="field-label">Subscription Plan</span><span class="field-value" id="pf-workshops">—</span></div>
+            <div class="profile-field"><span class="field-label">Special Version</span><span class="field-value" id="pf-special-version">—</span></div>
             <div class="profile-field" id="pf-active-trip-row" style="display:none;"><span class="field-label">Active Trip</span><span class="field-value" id="pf-active-trip-name" style="color:#2dd4bf;">—</span></div>
             <div class="profile-field" id="pf-ws-pretrip-row" style="display:none;"><span class="field-label">Pre-Trip Workshop</span><span class="field-value" id="pf-ws-pretrip-status">—</span></div>
             <div class="profile-field" id="pf-ws-integration-row" style="display:none;"><span class="field-label">Integration Workshop</span><span class="field-value" id="pf-ws-integration-status">—</span></div>
@@ -2580,9 +2581,10 @@ const AUTH0_DOMAIN   = 'dev-oys4h8z7qa7irffk.us.auth0.com';
 const AUTH0_CLIENT_ID = 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd';
 
 let auth0Client  = null;
-let userEmail    = null;
+let userEmail      = null;
 let portalProfile  = null;
 let portalRecordId = null;
+let specialVersion = '';
 
 function appFmtDate(s) {
   if (!s) return '';
@@ -2736,6 +2738,9 @@ async function loadProfile(email) {
       if (_dnaBadge2) _dnaBadge2.textContent = _dnaVal;
       const workshops = f['Subscription Plan'] || '—';
       document.getElementById('pf-workshops').textContent     = workshops;
+      specialVersion = f['Special Version'] || '';
+      const _svEl = document.getElementById('pf-special-version');
+      if (_svEl) _svEl.textContent = specialVersion || '—';
       document.getElementById('pf-archetype').textContent    = f['Archetype'] || '—';
       document.getElementById('pf-passions').textContent     = f['Passions'] || '—';
       document.getElementById('pf-hopes').textContent        = f['Hopes to Experience'] || '—';
@@ -4471,6 +4476,7 @@ function loadMyTrip() {
       if (active) {
         title.textContent = 'Trip in Progress';
         renderMyTripActive(active, content);
+        if (specialVersion === 'Safari') loadWildlifeDashboard(active.id, userEmail);
       } else if (planning.length) {
         title.textContent = 'Start Your Trip';
         renderMyTripPlanning(planning[0], content);
@@ -4630,6 +4636,13 @@ function renderMyTripActive(r, container) {
     </div>
     <a href="#" onclick="openTodayJournal('${_jTripId}','${_jStart}','${encodeURIComponent(_jDest)}');return false;" style="display:block;text-align:center;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">📔 Log Today's Journal Entry</a>
 
+    ${specialVersion === 'Safari' ? `
+    <a href="/wildlife-tracker.html?tripId=${encodeURIComponent(r.id)}&email=${encodeURIComponent(userEmail)}&country=${encodeURIComponent(f['Country']||'')}" style="display:block;text-align:center;background:#7c3aed;color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">🦁 Wildlife Tracker</a>
+    <div style="margin-bottom:24px;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#a78bfa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Uganda Sweet 16</div>
+      <div id="wildlife-dashboard" style="color:var(--soft);font-size:0.88rem;">Loading sightings…</div>
+    </div>` : ''}
+
     <div style="margin-bottom:20px;">
       <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Journal History</div>
       <div id="journal-history-list" style="color:var(--soft);font-size:0.88rem;">Loading entries…</div>
@@ -4695,6 +4708,88 @@ function loadJournalHistory(tripId, startDate, today, destName, containerId) {
       const el = document.getElementById(containerId);
       if (el) el.textContent = 'Could not load journal entries.';
     });
+}
+
+// ── Wildlife dashboard ────────────────────────────────────────────────────
+const SWEET16 = [
+  { label: 'African Bush Elephant', key: 'elephant',       file: 'elephant.jpg' },
+  { label: 'White Rhino',           key: 'rhino',          file: 'white-rhino.jpg' },
+  { label: 'African Buffalo',       key: 'buffalo',        file: 'buffalo.jpg' },
+  { label: 'Leopard',               key: 'leopard',        file: 'leopard.jpg' },
+  { label: 'Lion',                  key: 'lion',           file: 'lion.jpg' },
+  { label: 'Mountain Gorilla',      key: 'gorilla',        file: 'mountain-gorilla.jpg' },
+  { label: 'Chimpanzee',            key: 'chimpanzee',     file: 'chimpanzee.jpg' },
+  { label: 'Plains Zebra',          key: 'zebra',          file: 'plains-zebra.jpg' },
+  { label: "Rothschild's Giraffe",  key: 'giraffe',        file: 'rothschild-giraffe.jpg' },
+  { label: 'Hippopotamus',          key: 'hippo',          file: 'hippopotamus.jpg' },
+  { label: 'Grey Crowned Crane',    key: 'crowned crane',  file: 'grey-crowned-crane.jpg' },
+  { label: 'Shoebill Stork',        key: 'shoebill',       file: 'shoebill-stork.jpg' },
+  { label: 'Golden Monkey',         key: 'golden monkey',  file: 'golden-monkey.jpg' },
+  { label: 'African Fish Eagle',    key: 'fish eagle',     file: 'african-fish-eagle.jpg' },
+  { label: "Jackson's Hartebeest", key: 'hartebeest',     file: 'jacksons-hartebeest.jpg' },
+  { label: 'Nile Crocodile',        key: 'crocodile',      file: 'nile-crocodile.jpg' },
+];
+
+async function loadWildlifeDashboard(tripId, email) {
+  const el = document.getElementById('wildlife-dashboard');
+  if (!el) return;
+  try {
+    const resp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(email)}`);
+    const data = await resp.json();
+    const sightings = data.records || [];
+
+    // Map keyword → sighting record
+    const sighted = {};
+    sightings.forEach(s => {
+      const name = (s.fields['Species Name'] || '').toLowerCase();
+      SWEET16.forEach(sp => { if (name.includes(sp.key) && !sighted[sp.key]) sighted[sp.key] = s.fields; });
+    });
+
+    const seen = Object.keys(sighted).length;
+
+    // Progress bar
+    const pips = SWEET16.map((sp, i) =>
+      `<div style="flex:1;height:5px;border-radius:3px;background:${sighted[sp.key] ? '#7c3aed' : '#3b1f80'};"></div>`
+    ).join('');
+
+    // Photo grid
+    const grid = SWEET16.map(sp => {
+      const hit  = sighted[sp.key];
+      const img  = `/images/wildlife/${sp.file}`;
+      const dot  = hit ? 'background:#22c55e;' : 'background:#475569;';
+      const filt = hit ? '' : 'filter:grayscale(80%);opacity:0.55;';
+      return `<div style="position:relative;text-align:center;">
+        <img src="${img}" onerror="this.style.display='none'"
+          style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;${filt}">
+        <div style="position:absolute;top:5px;right:5px;width:10px;height:10px;border-radius:50%;${dot}border:1.5px solid rgba(0,0,0,0.4);"></div>
+        <div style="font-size:0.6rem;color:var(--soft);margin-top:4px;line-height:1.2;">${sp.label}</div>
+      </div>`;
+    }).join('');
+
+    // Recent sightings log
+    const log = sightings.slice(0, 8).map(s => {
+      const f = s.fields;
+      const name = f['Species Name'] || 'Unknown';
+      const date = f['Date'] ? new Date(f['Date']).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '';
+      const loc  = f['Location'] || '';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);">
+        <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;"></div>
+        <div style="flex:1;font-size:0.82rem;color:var(--text);">${name}</div>
+        <div style="font-size:0.75rem;color:var(--soft);">${loc}${loc && date ? ' · ' : ''}${date}</div>
+      </div>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:0.82rem;color:var(--soft);">Sighted</span>
+        <span style="font-size:1.1rem;font-weight:700;color:#fff;">${seen} <span style="font-size:0.8rem;color:#a78bfa;font-weight:400;">of 16</span></span>
+      </div>
+      <div style="display:flex;gap:3px;margin-bottom:16px;">${pips}</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">${grid}</div>
+      ${sightings.length ? `<div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Recent Sightings</div>${log}` : ''}`;
+  } catch(e) {
+    if (el) el.textContent = 'Could not load sightings.';
+  }
 }
 
 function renderMyTripPlanning(r, container) {
