@@ -42,8 +42,7 @@ module.exports = async function handler(req, res) {
     const { speciesId, name, sciName, count, location, notes, behavior, date, travelerEmail, lat, lon, gpsAccuracy } = req.body || {};
     if (!speciesId || !name) return res.status(400).json({ error: 'speciesId and name are required' });
 
-    const d     = date ? new Date(date) : new Date();
-    const month = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+    const d = date ? new Date(date) : new Date();
 
     const fields = {
       'Species ID':      speciesId,
@@ -53,7 +52,6 @@ module.exports = async function handler(req, res) {
       'Location':        location || '',
       'Notes':           notes || '',
       'Date':            d.toISOString().slice(0, 10),
-      'Month':           month,
     };
     if (travelerEmail) fields['Traveler Email'] = travelerEmail;
     if (behavior)      fields['Behavior']       = behavior;
