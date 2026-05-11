@@ -138,7 +138,9 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
 .dozen-pips { display: flex; gap: 5px; }
 .dozen-pip { flex: 1; height: 5px; border-radius: 3px; background: #3b1f80; }
 .dozen-pip.seen { background: #7c3aed; }
-.modal-desc { font-size: 0.82rem; color: var(--soft); line-height: 1.55; margin-bottom: 4px; }
+.modal-desc { font-size: 0.92rem; color: var(--soft); line-height: 1.55; margin-bottom: 4px; }
+.notes-mic-btn { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--soft); font-size: 1rem; padding: 4px 9px; cursor: pointer; flex-shrink: 0; }
+.notes-mic-btn.recording { border-color: #f43f5e; color: #f43f5e; }
 .modal-dozen-tag { display: inline-block; font-size: 0.65rem; font-weight: 800; background: #7c3aed; color: #fff; border-radius: 4px; padding: 2px 7px; letter-spacing: 0.04em; margin-top: 5px; }
 
 /* ── Setup screen ── */
@@ -242,7 +244,10 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
     <div class="modal-label">Behavior</div>
     <div class="behavior-grid" id="behavior-grid"></div>
 
-    <div class="modal-label">Notes (optional)</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:8px;">
+      <div class="modal-label" style="margin:0;">Notes (optional)</div>
+      <button class="notes-mic-btn" id="notes-mic-btn" onclick="noteMicToggle()" title="Speak notes">🎤</button>
+    </div>
     <textarea class="notes-input" id="modal-notes" placeholder="What were they doing? Any notable details..."></textarea>
 
     <div class="gps-status">
@@ -645,6 +650,7 @@ function openModal(speciesId) {
 }
 
 function closeModal() {
+  if (_noteRecog) { _noteRecog.stop(); }
   document.getElementById('sighting-modal').classList.remove('open');
   modalSpecies = null;
 }
@@ -677,6 +683,38 @@ function startGPS() {
     },
     { enableHighAccuracy: true, maximumAge: 10000 }
   );
+}
+
+// ── Voice notes ───────────────────────────────────────────────────────────
+let _noteRecog = null;
+
+function noteMicToggle() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = document.getElementById('notes-mic-btn');
+  if (!SR) { showToast('Voice not supported on this browser'); return; }
+
+  if (_noteRecog) {
+    _noteRecog.stop();
+    return;
+  }
+
+  const textarea = document.getElementById('modal-notes');
+  const base     = textarea.value;
+  const recog    = new SR();
+  recog.continuous = true; recog.interimResults = true; recog.lang = 'en-US';
+
+  recog.onstart  = () => { _noteRecog = recog; btn.classList.add('recording'); btn.textContent = '⏹'; };
+  recog.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t; else interim += t;
+    }
+    textarea.value = base + (base && (final || interim) ? ' ' : '') + final + interim;
+  };
+  recog.onerror  = () => { _noteRecog = null; btn.classList.remove('recording'); btn.textContent = '🎤'; };
+  recog.onend    = () => { _noteRecog = null; btn.classList.remove('recording'); btn.textContent = '🎤'; };
+  recog.start();
 }
 
 // ── Log sighting ──────────────────────────────────────────────────────────
