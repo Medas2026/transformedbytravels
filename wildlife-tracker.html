@@ -126,8 +126,20 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
 .log-btn:disabled { background: var(--muted); cursor: default; }
 
 /* ── Toast ── */
-.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: var(--text); padding: 10px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; z-index: 200; opacity: 0; transition: opacity 0.25s; pointer-events: none; white-space: nowrap; }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: var(--text); padding: 10px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; z-index: 200; opacity: 0; transition: opacity 0.25s; pointer-events: none; max-width: 88vw; text-align: center; }
 .toast.show { opacity: 1; }
+
+/* ── Uganda Dozen ── */
+.species-dozen { font-size: 0.65rem; font-weight: 700; color: #a78bfa; margin-top: 2px; }
+.dozen-banner { background: linear-gradient(135deg, #1e1040, #2a1060); border: 1px solid #7c3aed; border-radius: 12px; padding: 13px 16px; margin-bottom: 14px; }
+.dozen-banner-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.dozen-banner-label { font-size: 0.7rem; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.07em; }
+.dozen-banner-count { font-size: 1.2rem; font-weight: 700; color: #fff; }
+.dozen-pips { display: flex; gap: 5px; }
+.dozen-pip { flex: 1; height: 5px; border-radius: 3px; background: #3b1f80; }
+.dozen-pip.seen { background: #7c3aed; }
+.modal-desc { font-size: 0.82rem; color: var(--soft); line-height: 1.55; margin-bottom: 4px; }
+.modal-dozen-tag { display: inline-block; font-size: 0.65rem; font-weight: 800; background: #7c3aed; color: #fff; border-radius: 4px; padding: 2px 7px; letter-spacing: 0.04em; margin-top: 5px; }
 
 /* ── Setup screen ── */
 #setup-screen { position: fixed; inset: 0; background: var(--bg); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; text-align: center; }
@@ -186,6 +198,7 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
 
     <!-- SPECIES -->
     <div class="tab-panel" id="panel-species">
+      <div id="dozen-banner"></div>
       <input type="text" class="search-bar" id="species-search" placeholder="Search species..." oninput="renderSpeciesList()">
       <div class="filter-row">
         <button class="filter-chip active" onclick="setFilter('all')" id="chip-all">All</button>
@@ -216,6 +229,9 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
 
+    <div class="modal-desc" id="modal-desc"></div>
+    <div id="modal-dozen-tag"></div>
+
     <div class="modal-label">Count</div>
     <div class="count-stepper">
       <button class="count-btn" onclick="adjustCount(-1)">−</button>
@@ -245,6 +261,9 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
 const DB_NAME    = 'wildlife-tracker';
 const DB_VERSION = 2;
 const BEHAVIORS  = ['Feeding','Resting','Hunting','With young','Crossing water','Moving','Playing','Grooming','Flying'];
+// Uganda Dozen — keyword list (matches species names case-insensitively)
+const DOZEN_KEYWORDS = ['lion','leopard','elephant','buffalo','rhino','chimpanzee','gorilla','zebra','hippo','giraffe','ostrich','shoebill'];
+
 const CATEGORY_ICONS = {
   'Primate':      '🦍',
   'Predator':     '🦁',
@@ -507,10 +526,13 @@ function renderSpeciesList() {
     return;
   }
 
+  renderDozenBanner();
+
   el.innerHTML = Object.entries(groups).map(([cat, species]) => `
     <div class="category-header">${CATEGORY_ICONS[cat]||'🐾'} ${cat}</div>
     ${species.map(s => {
       const status = getSightingStatus(s.id);
+      const dozen  = isUgandaDozen(s);
       return `<div class="species-card" onclick="openModal('${s.id}')">
         ${s.photoUrl ? `<img class="species-thumb" src="${s.photoUrl}" alt="${s.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="species-thumb-placeholder" style="display:none;">${CATEGORY_ICONS[s.category]||'🐾'}</div>`
@@ -518,6 +540,7 @@ function renderSpeciesList() {
         <div class="species-info">
           <div class="species-name">${s.name}</div>
           <div class="species-sci">${s.scientificName || ''}</div>
+          ${dozen ? '<div class="species-dozen">★ Uganda Dozen</div>' : ''}
         </div>
         <div class="status-dot ${status}"></div>
       </div>`;
@@ -551,6 +574,31 @@ function renderSightingsList() {
   }).join('');
 }
 
+// ── Uganda Dozen helpers ──────────────────────────────────────────────────
+function isUgandaDozen(species) {
+  const name = (species.name || '').toLowerCase();
+  return DOZEN_KEYWORDS.some(k => name.includes(k));
+}
+
+function getDozenSightedCount() {
+  const all = [...pendingSightings, ...syncedSightings];
+  // Count unique dozen species that have at least one sighting
+  return allSpecies.filter(s => isUgandaDozen(s) && all.some(sg => sg.speciesId === s.id)).length;
+}
+
+function renderDozenBanner() {
+  const el = document.getElementById('dozen-banner');
+  if (!el) return;
+  const seen  = getDozenSightedCount();
+  const pips  = DOZEN_KEYWORDS.map((_, i) => `<div class="dozen-pip${i < seen ? ' seen' : ''}"></div>`).join('');
+  el.innerHTML = `
+    <div class="dozen-banner-row">
+      <div class="dozen-banner-label">Uganda Dozen</div>
+      <div class="dozen-banner-count">${seen} <span style="font-size:0.8rem;color:#a78bfa;font-weight:400;">of 12</span></div>
+    </div>
+    <div class="dozen-pips">${pips}</div>`;
+}
+
 // ── Sighting status helper ────────────────────────────────────────────────
 function getSightingStatus(speciesId) {
   const all = [...pendingSightings, ...syncedSightings];
@@ -576,6 +624,14 @@ function openModal(speciesId) {
   wrap.innerHTML = modalSpecies.photoUrl
     ? `<img class="modal-thumb" src="${modalSpecies.photoUrl}" alt="${modalSpecies.name}" onerror="this.outerHTML='<div class=\\'modal-thumb-placeholder\\'>${CATEGORY_ICONS[modalSpecies.category]||'🐾'}</div>'">`
     : `<div class="modal-thumb-placeholder">${CATEGORY_ICONS[modalSpecies.category]||'🐾'}</div>`;
+
+  // Description
+  const descEl = document.getElementById('modal-desc');
+  if (descEl) descEl.textContent = modalSpecies.description || '';
+
+  // Uganda Dozen tag
+  const tagEl = document.getElementById('modal-dozen-tag');
+  if (tagEl) tagEl.innerHTML = isUgandaDozen(modalSpecies) ? '<div class="modal-dozen-tag">★ Uganda Dozen</div>' : '';
 
   // Behavior chips
   document.getElementById('behavior-grid').innerHTML = BEHAVIORS.map(b =>
@@ -664,7 +720,13 @@ async function logSighting() {
   btn.disabled = false;
   btn.textContent = 'Log Sighting';
 
-  showToast(`${modalSpecies.name} logged!`);
+  renderDozenBanner();
+  if (isUgandaDozen(modalSpecies)) {
+    const n = getDozenSightedCount();
+    showToast(`${modalSpecies.name} logged! You now have ${n} of 12 Uganda Dozen sightings.`);
+  } else {
+    showToast(`${modalSpecies.name} logged!`);
+  }
 
   if (isOnline) syncPending();
 }
