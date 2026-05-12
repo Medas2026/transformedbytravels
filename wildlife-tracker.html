@@ -129,6 +129,10 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: var(--text); padding: 10px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; z-index: 200; opacity: 0; transition: opacity 0.25s; pointer-events: none; max-width: 88vw; text-align: center; }
 .toast.show { opacity: 1; }
 
+/* ── Grayscale / color effect ── */
+.species-thumb.unsighted  { filter: grayscale(1); transition: filter 0.5s; }
+.sighting-thumb.unsighted { filter: grayscale(1); }
+
 /* ── Uganda Sweet 16 ── */
 .species-dozen { font-size: 0.65rem; font-weight: 700; color: #a78bfa; margin-top: 2px; }
 .dozen-banner { background: linear-gradient(135deg, #1e1040, #2a1060); border: 1px solid #7c3aed; border-radius: 12px; padding: 13px 16px; margin-bottom: 14px; }
@@ -204,6 +208,7 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
       <input type="text" class="search-bar" id="species-search" placeholder="Search species..." oninput="renderSpeciesList()">
       <div class="filter-row">
         <button class="filter-chip active" onclick="setFilter('all')" id="chip-all">All</button>
+        <button class="filter-chip" onclick="setFilter('park')" id="chip-park" style="display:none;">📍 Park</button>
         <button class="filter-chip" onclick="setFilter('unsighted')" id="chip-unsighted">Unsighted</button>
         <button class="filter-chip" onclick="setFilter('sighted')" id="chip-sighted">Sighted</button>
         <button class="filter-chip" onclick="setFilter('secured')" id="chip-secured">Secured</button>
@@ -269,6 +274,26 @@ const BEHAVIORS  = ['Feeding','Resting','Hunting','With young','Crossing water',
 // Uganda Sweet 16 — keyword list (matches species names case-insensitively)
 const SWEET16_KEYWORDS = ['elephant','rhino','buffalo','leopard','lion','gorilla','chimpanzee','zebra','giraffe','hippo','crowned crane','shoebill','golden monkey','fish eagle','hartebeest','crocodile'];
 
+// Local photo filenames for Sweet 16 (in /images/wildlife/)
+const SWEET16_PHOTOS = {
+  'elephant':      'elephant.jpg',
+  'rhino':         'white-rhino.jpg',
+  'buffalo':       'african-buffalo.jpg',
+  'leopard':       'african-leopard.jpg',
+  'lion':          'african-lion.jpg',
+  'gorilla':       'mountain-gorilla.jpg',
+  'chimpanzee':    'chimpanzee.jpg',
+  'zebra':         'plains-zebra.jpg',
+  'giraffe':       'rothschild-giraffe.jpg',
+  'hippo':         'hippopotamus.jpg',
+  'crowned crane': 'gray-crowned-crane.jpg',
+  'shoebill':      'shoebill-stork.jpg',
+  'golden monkey': 'golden-monkey.jpg',
+  'fish eagle':    'african-fish-eagle.jpg',
+  'hartebeest':    'jacksons-hartebeest.jpg',
+  'crocodile':     'nile-crocodile.jpg',
+};
+
 const CATEGORY_ICONS = {
   'Primate':      '🦍',
   'Predator':     '🦁',
@@ -295,8 +320,9 @@ let allSpecies    = [];
 let tripDays      = [];
 let pendingSightings = [];
 let syncedSightings  = [];
-let currentFilter = 'all';
-let modalSpecies  = null;
+let currentFilter   = 'all';
+let currentParkName = '';
+let modalSpecies    = null;
 let modalCount    = 1;
 let modalBehavior = '';
 let gpsCoords     = null;
@@ -437,8 +463,11 @@ async function launchApp() {
   updateSyncBadge();
   startGPS();
 
-  // Auto-sync any pending sightings on launch
-  if (isOnline && pendingSightings.length) syncPending();
+  // Auto-sync pending, then refresh all sightings from Airtable
+  if (isOnline) {
+    if (pendingSightings.length) syncPending();
+    refreshSightings();
+  }
 }
 
 // ── Today panel ───────────────────────────────────────────────────────────
@@ -459,6 +488,18 @@ function renderToday() {
 
   document.getElementById('today-park').textContent    = park;
   document.getElementById('today-country').textContent = country;
+
+  // Update park filter chip in Species tab
+  currentParkName = park !== 'In the field' ? park : '';
+  const parkChip = document.getElementById('chip-park');
+  if (parkChip) {
+    if (currentParkName) {
+      parkChip.textContent  = '📍 ' + currentParkName;
+      parkChip.style.display = '';
+    } else {
+      parkChip.style.display = 'none';
+    }
+  }
 
   // Activities from slots
   const activitiesEl = document.getElementById('today-activities');
@@ -489,8 +530,10 @@ function renderToday() {
   const gridEl = document.getElementById('today-species-grid');
   gridEl.innerHTML = parkSpecies.slice(0, 30).map(s => {
     const status = getSightingStatus(s.id);
+    const photo  = getLocalPhoto(s) || s.photoUrl || '';
+    const gray   = status === 'unsighted' ? ' unsighted' : '';
     return `<div class="species-card" onclick="openModal('${s.id}')">
-      ${s.photoUrl ? `<img class="species-thumb" src="${s.photoUrl}" alt="${s.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      ${photo ? `<img class="species-thumb${gray}" src="${photo}" alt="${s.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="species-thumb-placeholder" style="display:none;">${CATEGORY_ICONS[s.category]||'🐾'}</div>`
       : `<div class="species-thumb-placeholder">${CATEGORY_ICONS[s.category]||'🐾'}</div>`}
       <div class="species-info">
@@ -505,8 +548,9 @@ function renderToday() {
 // ── Species panel ─────────────────────────────────────────────────────────
 function setFilter(f) {
   currentFilter = f;
-  ['all','unsighted','sighted','secured'].forEach(id => {
-    document.getElementById('chip-' + id).classList.toggle('active', id === f);
+  ['all','park','unsighted','sighted','secured'].forEach(id => {
+    const el = document.getElementById('chip-' + id);
+    if (el) el.classList.toggle('active', id === f);
   });
   renderSpeciesList();
 }
@@ -516,7 +560,11 @@ function renderSpeciesList() {
   let list = allSpecies.filter(s =>
     (!q || s.name.toLowerCase().includes(q) || (s.scientificName || '').toLowerCase().includes(q))
   );
-  if (currentFilter !== 'all') {
+  if (currentFilter === 'park') {
+    list = currentParkName
+      ? list.filter(s => s.bestParks && s.bestParks.some(p => p.toLowerCase().includes(currentParkName.toLowerCase())))
+      : list;
+  } else if (currentFilter !== 'all') {
     list = list.filter(s => getSightingStatus(s.id) === currentFilter);
   }
 
@@ -541,8 +589,10 @@ function renderSpeciesList() {
     ${species.map(s => {
       const status = getSightingStatus(s.id);
       const dozen  = isSweet16(s);
+      const photo  = getLocalPhoto(s) || s.photoUrl || '';
+      const gray   = status === 'unsighted' ? ' unsighted' : '';
       return `<div class="species-card" onclick="openModal('${s.id}')">
-        ${s.photoUrl ? `<img class="species-thumb" src="${s.photoUrl}" alt="${s.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        ${photo ? `<img class="species-thumb${gray}" src="${photo}" alt="${s.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="species-thumb-placeholder" style="display:none;">${CATEGORY_ICONS[s.category]||'🐾'}</div>`
         : `<div class="species-thumb-placeholder">${CATEGORY_ICONS[s.category]||'🐾'}</div>`}
         <div class="species-info">
@@ -580,6 +630,15 @@ function renderSightingsList() {
       <div class="sighting-status ${s.status === 'secured' ? 'secured' : 'pending'}">${s.status === 'secured' ? 'Secured' : 'Sighted'}</div>
     </div>`;
   }).join('');
+}
+
+// ── Local photo lookup ────────────────────────────────────────────────────
+function getLocalPhoto(species) {
+  const name = (species.name || '').toLowerCase();
+  for (const [kw, file] of Object.entries(SWEET16_PHOTOS)) {
+    if (name.includes(kw)) return '/images/wildlife/' + file;
+  }
+  return null;
 }
 
 // ── Uganda Sweet 16 helpers ───────────────────────────────────────────────
@@ -860,6 +919,42 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Refresh sightings from Airtable ───────────────────────────────────────
+async function refreshSightings() {
+  if (!isOnline || !USER_EMAIL) return;
+  try {
+    const resp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(USER_EMAIL)}`);
+    const data = await resp.json();
+    for (const r of (data.records || [])) {
+      await dbPut('sightings', {
+        localId:    r.id,
+        airtableId: r.id,
+        status:     'secured',
+        speciesId:  r.fields['Species ID']      || '',
+        name:       r.fields['Species Name']    || '',
+        sciName:    r.fields['Scientific Name'] || '',
+        count:      r.fields['Count']           || 1,
+        behavior:   r.fields['Behavior']        || '',
+        notes:      r.fields['Notes']           || '',
+        location:   r.fields['Location']        || '',
+        lat:        r.fields['Latitude']        || null,
+        lon:        r.fields['Longitude']       || null,
+        date:       r.fields['Date']            || '',
+        time:       '',
+      });
+    }
+    const all = await dbGetAll('sightings');
+    pendingSightings = all.filter(s => s.status === 'pending');
+    syncedSightings  = all.filter(s => s.status === 'secured');
+    renderSightingsList();
+    renderSpeciesList();
+    renderToday();
+    updateSyncBadge();
+  } catch(e) {
+    console.warn('[refresh] sightings fetch failed:', e.message);
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
