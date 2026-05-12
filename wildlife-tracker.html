@@ -943,8 +943,9 @@ async function refreshSpecies() {
     if (!species.length) return;
     for (const s of species) await dbPut('species', s);
     allSpecies = await dbGetAll('species');
-    renderSpeciesList();
     renderToday();
+    if (currentParkName && currentFilter === 'all') setFilter('park');
+    else renderSpeciesList();
   } catch(e) {
     console.warn('[refresh] species fetch failed:', e.message);
   }
