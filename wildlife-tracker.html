@@ -458,7 +458,7 @@ async function launchApp() {
   appEl.style.display = 'flex';
 
   renderToday();
-  if (currentParkName) setFilter('park'); else renderSpeciesList();
+  renderSpeciesList();
   renderSightingsList();
   updateSyncBadge();
   startGPS();
@@ -582,6 +582,11 @@ function renderSpeciesList() {
 
   const el = document.getElementById('species-list');
   if (!list.length) {
+    if (currentFilter === 'park') {
+      // Park data not yet in database — fall back to all species
+      setFilter('all');
+      return;
+    }
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No species found</div><div class="empty-text">Try a different search or filter.</div></div>`;
     return;
   }
