@@ -359,6 +359,9 @@
       <div class="menu-item" onclick="showPageGated('planning')" data-page="planning" data-tooltip="Plan your trip details, connect your Destination DNA Guide, and organize the places you want to visit.">
         <i class="ph ph-suitcase menu-icon"></i> Trip Planning <span class="menu-lock" id="lock-planning">🔒</span>
       </div>
+      <div class="menu-item" id="my-trip-menu-item" onclick="showPageGated('my-trip')" data-page="my-trip" style="display:none;" data-tooltip="View your active trip — daily journal, wildlife tracker, and trip details.">
+        <i class="ph ph-airplane-takeoff menu-icon"></i> My Trip
+      </div>
       <div class="menu-item" onclick="showPage('story')" data-page="story" data-tooltip="See your travel journey — archetypes, trips taken, and trips ahead.">
         <i class="ph ph-book-open menu-icon"></i> Your Travel Story
       </div>
@@ -5125,6 +5128,8 @@ function checkActiveTripBanner() {
             }
             journalBtn.style.display = 'block';
           }
+          const myTripNav = document.getElementById('my-trip-menu-item');
+          if (myTripNav) myTripNav.style.display = 'flex';
           statusBar.style.display = 'flex';
         };
 
