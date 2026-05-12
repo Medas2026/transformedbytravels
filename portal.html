@@ -4475,8 +4475,9 @@ function loadMyTrip() {
                            .sort((a, b) => (b.fields['End Date'] || '').localeCompare(a.fields['End Date'] || ''));
       if (active) {
         title.textContent = 'Trip in Progress';
-        renderMyTripActive(active, content);
-        if (specialVersion === 'Safari') loadWildlifeDashboard(active.id, userEmail);
+        const _sv = specialVersion || (portalProfile?.fields?.['Special Version']) || '';
+        renderMyTripActive(active, content, _sv);
+        if (_sv === 'Safari') loadWildlifeDashboard(active.id, userEmail);
       } else if (planning.length) {
         title.textContent = 'Start Your Trip';
         renderMyTripPlanning(planning[0], content);
@@ -4567,7 +4568,8 @@ function _tzOptionsHtml(selected) {
   ).join('');
 }
 
-function renderMyTripActive(r, container) {
+function renderMyTripActive(r, container, _specialVersion) {
+  _specialVersion = _specialVersion || specialVersion || '';
   const f     = r.fields;
   const name  = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
   const dest  = [f['Destination'], f['Country']].filter(Boolean).join(', ');
@@ -4636,7 +4638,7 @@ function renderMyTripActive(r, container) {
     </div>
     <a href="#" onclick="openTodayJournal('${_jTripId}','${_jStart}','${encodeURIComponent(_jDest)}');return false;" style="display:block;text-align:center;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">📔 Log Today's Journal Entry</a>
 
-    ${specialVersion === 'Safari' ? `
+    ${_specialVersion === 'Safari' ? `
     <a href="/wildlife-tracker.html?tripId=${encodeURIComponent(r.id)}&email=${encodeURIComponent(userEmail)}&country=${encodeURIComponent(f['Country']||'')}" style="display:block;text-align:center;background:#7c3aed;color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">🦁 Wildlife Tracker</a>
     <div style="margin-bottom:24px;">
       <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#a78bfa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Uganda Sweet 16</div>
