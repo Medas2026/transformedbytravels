@@ -21,7 +21,9 @@
   --muted: #475569;
   --border:#1e3a5f;
 }
-body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+#app { width: 100%; max-width: 480px; }
+@media (min-width: 560px) { #app { box-shadow: 0 0 60px rgba(0,0,0,0.7); } }
 
 /* ── Header ── */
 .app-header { background: var(--s1); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
@@ -183,8 +185,8 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
 
   <div class="tab-bar">
     <div class="tab active" onclick="switchTab('today')" id="tab-today">Today</div>
-    <div class="tab" onclick="switchTab('species')" id="tab-species">Record</div>
-    <div class="tab" onclick="switchTab('sightings')" id="tab-sightings">My Sightings</div>
+    <div class="tab" onclick="switchTab('species')" id="tab-species">Current Location</div>
+    <div class="tab" onclick="switchTab('sightings')" id="tab-sightings">The Trip</div>
   </div>
 
   <div class="page-content">
@@ -202,23 +204,30 @@ body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif
       <div id="today-species-grid"></div>
     </div>
 
-    <!-- SPECIES -->
+    <!-- CURRENT LOCATION -->
     <div class="tab-panel" id="panel-species">
       <div id="dozen-banner"></div>
-      <input type="text" class="search-bar" id="species-search" placeholder="Search species..." oninput="renderSpeciesList()">
+      <input type="text" class="search-bar" id="species-search" placeholder="Search species here..." oninput="renderLocationList()">
       <div class="filter-row">
-        <button class="filter-chip active" onclick="setFilter('all')" id="chip-all">All</button>
-        <button class="filter-chip" onclick="setFilter('park')" id="chip-park" style="display:none;">📍 Park</button>
-        <button class="filter-chip" onclick="setFilter('unsighted')" id="chip-unsighted">Unsighted</button>
-        <button class="filter-chip" onclick="setFilter('sighted')" id="chip-sighted">Sighted</button>
-        <button class="filter-chip" onclick="setFilter('secured')" id="chip-secured">Secured</button>
+        <button class="filter-chip active" onclick="setLocationFilter('all')" id="loc-chip-all">All</button>
+        <button class="filter-chip" onclick="setLocationFilter('unsighted')" id="loc-chip-unsighted">Unsighted</button>
+        <button class="filter-chip" onclick="setLocationFilter('sighted')" id="loc-chip-sighted">Sighted</button>
+        <button class="filter-chip" onclick="setLocationFilter('secured')" id="loc-chip-secured">Secured</button>
       </div>
-      <div id="species-list"></div>
+      <div id="location-list"></div>
     </div>
 
-    <!-- MY SIGHTINGS -->
+    <!-- THE TRIP -->
     <div class="tab-panel" id="panel-sightings">
-      <div id="sightings-list"></div>
+      <div id="trip-dozen-banner"></div>
+      <input type="text" class="search-bar" id="trip-search" placeholder="Search all trip species..." oninput="renderTripList()">
+      <div class="filter-row">
+        <button class="filter-chip active" onclick="setTripFilter('all')" id="trip-chip-all">All</button>
+        <button class="filter-chip" onclick="setTripFilter('unsighted')" id="trip-chip-unsighted">Unsighted</button>
+        <button class="filter-chip" onclick="setTripFilter('sighted')" id="trip-chip-sighted">Sighted</button>
+        <button class="filter-chip" onclick="setTripFilter('secured')" id="trip-chip-secured">Secured</button>
+      </div>
+      <div id="trip-list"></div>
     </div>
 
   </div>
@@ -320,7 +329,8 @@ let allSpecies    = [];
 let tripDays      = [];
 let pendingSightings = [];
 let syncedSightings  = [];
-let currentFilter   = 'all';
+let locationFilter  = 'all';
+let tripFilter      = 'all';
 let currentParkName = '';
 let modalSpecies    = null;
 let modalCount    = 1;
@@ -458,8 +468,8 @@ async function launchApp() {
   appEl.style.display = 'flex';
 
   renderToday();
-  renderSpeciesList();
-  renderSightingsList();
+  renderLocationList();
+  renderTripList();
   updateSyncBadge();
   startGPS();
 
@@ -490,17 +500,7 @@ function renderToday() {
   document.getElementById('today-park').textContent    = park;
   document.getElementById('today-country').textContent = country;
 
-  // Update park filter chip in Species tab
   currentParkName = park !== 'In the field' ? park : '';
-  const parkChip = document.getElementById('chip-park');
-  if (parkChip) {
-    if (currentParkName) {
-      parkChip.textContent  = '📍 ' + currentParkName;
-      parkChip.style.display = '';
-    } else {
-      parkChip.style.display = 'none';
-    }
-  }
 
   // Activities from slots
   const activitiesEl = document.getElementById('today-activities');
@@ -546,55 +546,79 @@ function renderToday() {
   }).join('');
 }
 
-// ── Species panel ─────────────────────────────────────────────────────────
-function setFilter(f) {
-  currentFilter = f;
-  ['all','park','unsighted','sighted','secured'].forEach(id => {
-    const el = document.getElementById('chip-' + id);
+// ── Current Location panel ────────────────────────────────────────────────
+function setLocationFilter(f) {
+  locationFilter = f;
+  ['all','unsighted','sighted','secured'].forEach(id => {
+    const el = document.getElementById('loc-chip-' + id);
     if (el) el.classList.toggle('active', id === f);
   });
-  renderSpeciesList();
+  renderLocationList();
 }
 
-function renderSpeciesList() {
+function renderLocationList() {
   const q = (document.getElementById('species-search')?.value || '').toLowerCase();
   let list = allSpecies.filter(s =>
     (!q || s.name.toLowerCase().includes(q) || (s.scientificName || '').toLowerCase().includes(q))
   );
-  if (currentFilter === 'park') {
-    list = currentParkName
-      ? list.filter(s => s.bestParks && s.bestParks.some(p => {
-          const pl = p.toLowerCase().trim();
-          const cl = currentParkName.toLowerCase().trim();
-          return cl.includes(pl) || pl.includes(cl);
-        }))
-      : list;
-  } else if (currentFilter !== 'all') {
-    list = list.filter(s => getSightingStatus(s.id) === currentFilter);
+  // Always filter to current park
+  if (currentParkName) {
+    list = list.filter(s => s.bestParks && s.bestParks.some(p => {
+      const pl = p.toLowerCase().trim();
+      const cl = currentParkName.toLowerCase().trim();
+      return cl.includes(pl) || pl.includes(cl);
+    }));
+  }
+  if (locationFilter !== 'all') {
+    list = list.filter(s => getSightingStatus(s.id) === locationFilter);
   }
 
-  // Group by category
+  const el = document.getElementById('location-list');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No species found</div><div class="empty-text">Try a different filter, or log a species from The Trip tab.</div></div>`;
+    return;
+  }
+  renderDozenBanner();
+  el.innerHTML = buildSpeciesCards(list);
+}
+
+// ── The Trip panel ────────────────────────────────────────────────────────
+function setTripFilter(f) {
+  tripFilter = f;
+  ['all','unsighted','sighted','secured'].forEach(id => {
+    const el = document.getElementById('trip-chip-' + id);
+    if (el) el.classList.toggle('active', id === f);
+  });
+  renderTripList();
+}
+
+function renderTripList() {
+  const q = (document.getElementById('trip-search')?.value || '').toLowerCase();
+  let list = allSpecies.filter(s =>
+    (!q || s.name.toLowerCase().includes(q) || (s.scientificName || '').toLowerCase().includes(q))
+  );
+  if (tripFilter !== 'all') {
+    list = list.filter(s => getSightingStatus(s.id) === tripFilter);
+  }
+
+  const el = document.getElementById('trip-list');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🦒</div><div class="empty-title">No species found</div><div class="empty-text">Try a different search or filter.</div></div>`;
+    return;
+  }
+  renderTripDozenBanner();
+  el.innerHTML = buildSpeciesCards(list);
+}
+
+// ── Shared species card renderer ──────────────────────────────────────────
+function buildSpeciesCards(list) {
   const groups = {};
   list.forEach(s => {
     const cat = s.category || 'Other';
     if (!groups[cat]) groups[cat] = [];
     groups[cat].push(s);
   });
-
-  const el = document.getElementById('species-list');
-  if (!list.length) {
-    if (currentFilter === 'park') {
-      // Park data not yet in database — fall back to all species
-      setFilter('all');
-      return;
-    }
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No species found</div><div class="empty-text">Try a different search or filter.</div></div>`;
-    return;
-  }
-
-  renderDozenBanner();
-
-  el.innerHTML = Object.entries(groups).map(([cat, species]) => `
+  return Object.entries(groups).map(([cat, species]) => `
     <div class="category-header">${CATEGORY_ICONS[cat]||'🐾'} ${cat}</div>
     ${species.map(s => {
       const status = getSightingStatus(s.id);
@@ -616,30 +640,17 @@ function renderSpeciesList() {
   `).join('');
 }
 
-// ── My Sightings panel ────────────────────────────────────────────────────
-function renderSightingsList() {
-  const all = [...pendingSightings, ...syncedSightings]
-    .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
-
-  const el = document.getElementById('sightings-list');
-  if (!all.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🦒</div><div class="empty-title">No sightings yet</div><div class="empty-text">Tap any animal from the Species or Today tab to log your first sighting.</div></div>`;
-    return;
-  }
-
-  el.innerHTML = all.map(s => {
-    const species = allSpecies.find(sp => sp.id === s.speciesId);
-    const thumb   = (species ? getLocalPhoto(species) : null) || species?.photoUrl || '';
-    const meta    = [s.count > 1 ? `×${s.count}` : '', s.behavior, s.location].filter(Boolean).join(' · ');
-    return `<div class="sighting-row">
-      ${thumb ? `<img class="sighting-thumb" src="${thumb}" alt="${s.name}">` : `<div class="sighting-thumb-placeholder">${CATEGORY_ICONS[species?.category]||'🐾'}</div>`}
-      <div class="sighting-info">
-        <div class="sighting-name">${s.name}</div>
-        <div class="sighting-meta">${s.date}${meta ? ' · ' + meta : ''}</div>
-      </div>
-      <div class="sighting-status ${s.status === 'secured' ? 'secured' : 'pending'}">${s.status === 'secured' ? 'Secured' : 'Sighted'}</div>
-    </div>`;
-  }).join('');
+function renderTripDozenBanner() {
+  const el = document.getElementById('trip-dozen-banner');
+  if (!el) return;
+  const seen = getSweet16Count();
+  const pips = SWEET16_KEYWORDS.map((_, i) => `<div class="dozen-pip${i < seen ? ' seen' : ''}"></div>`).join('');
+  el.innerHTML = `
+    <div class="dozen-banner-row">
+      <div class="dozen-banner-label">Uganda Sweet 16</div>
+      <div class="dozen-banner-count">${seen} <span style="font-size:0.8rem;color:#a78bfa;font-weight:400;">of 16</span></div>
+    </div>
+    <div class="dozen-pips">${pips}</div>`;
 }
 
 // ── Local photo lookup ────────────────────────────────────────────────────
@@ -822,8 +833,8 @@ async function logSighting() {
 
   closeModal();
   updateSyncBadge();
-  renderSpeciesList();
-  renderSightingsList();
+  renderLocationList();
+  renderTripList();
   renderToday();
 
   btn.disabled = false;
@@ -893,7 +904,8 @@ async function syncPending() {
   btn.disabled = false;
   btn.textContent = 'Sync';
   updateSyncBadge();
-  renderSightingsList();
+  renderLocationList();
+  renderTripList();
   if (synced) showToast(`${synced} sighting${synced > 1 ? 's' : ''} secured!`);
   if (failed && !synced) showToast(`Sync failed — will retry when online`);
 }
@@ -944,8 +956,9 @@ async function refreshSpecies() {
     for (const s of species) await dbPut('species', s);
     allSpecies = await dbGetAll('species');
     renderToday();
-    if (currentParkName && currentFilter === 'all') setFilter('park');
-    else renderSpeciesList();
+    if (currentParkName && locationFilter === 'all') setLocationFilter('all');
+    renderLocationList();
+    renderTripList();
   } catch(e) {
     console.warn('[refresh] species fetch failed:', e.message);
   }
@@ -978,8 +991,8 @@ async function refreshSightings() {
     const all = await dbGetAll('sightings');
     pendingSightings = all.filter(s => s.status === 'pending');
     syncedSightings  = all.filter(s => s.status === 'secured');
-    renderSightingsList();
-    renderSpeciesList();
+    renderLocationList();
+    renderTripList();
     renderToday();
     updateSyncBadge();
   } catch(e) {
