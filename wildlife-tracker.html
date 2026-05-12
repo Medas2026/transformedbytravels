@@ -629,7 +629,7 @@ function renderSightingsList() {
 
   el.innerHTML = all.map(s => {
     const species = allSpecies.find(sp => sp.id === s.speciesId);
-    const thumb   = species?.photoUrl || '';
+    const thumb   = (species ? getLocalPhoto(species) : null) || species?.photoUrl || '';
     const meta    = [s.count > 1 ? `×${s.count}` : '', s.behavior, s.location].filter(Boolean).join(' · ');
     return `<div class="sighting-row">
       ${thumb ? `<img class="sighting-thumb" src="${thumb}" alt="${s.name}">` : `<div class="sighting-thumb-placeholder">${CATEGORY_ICONS[species?.category]||'🐾'}</div>`}
