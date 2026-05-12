@@ -463,9 +463,10 @@ async function launchApp() {
   updateSyncBadge();
   startGPS();
 
-  // Auto-sync pending, then refresh all sightings from Airtable
+  // Auto-sync pending, then refresh species + sightings from Airtable
   if (isOnline) {
     if (pendingSightings.length) syncPending();
+    refreshSpecies();
     refreshSightings();
   }
 }
@@ -928,6 +929,25 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Refresh species from Airtable (picks up new records / Best Parks) ────
+async function refreshSpecies() {
+  if (!isOnline) return;
+  try {
+    const country   = (await dbGet('meta', 'country'))?.value || COUNTRY;
+    const url       = '/api/species-pack' + (country ? `?country=${encodeURIComponent(country)}` : '');
+    const resp      = await fetch(url);
+    const data      = await resp.json();
+    const species   = data.species || [];
+    if (!species.length) return;
+    for (const s of species) await dbPut('species', s);
+    allSpecies = await dbGetAll('species');
+    renderSpeciesList();
+    renderToday();
+  } catch(e) {
+    console.warn('[refresh] species fetch failed:', e.message);
+  }
 }
 
 // ── Refresh sightings from Airtable ───────────────────────────────────────
