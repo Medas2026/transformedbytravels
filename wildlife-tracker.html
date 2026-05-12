@@ -458,7 +458,7 @@ async function launchApp() {
   appEl.style.display = 'flex';
 
   renderToday();
-  renderSpeciesList();
+  if (currentParkName) setFilter('park'); else renderSpeciesList();
   renderSightingsList();
   updateSyncBadge();
   startGPS();
@@ -562,7 +562,11 @@ function renderSpeciesList() {
   );
   if (currentFilter === 'park') {
     list = currentParkName
-      ? list.filter(s => s.bestParks && s.bestParks.some(p => p.toLowerCase().includes(currentParkName.toLowerCase())))
+      ? list.filter(s => s.bestParks && s.bestParks.some(p => {
+          const pl = p.toLowerCase().trim();
+          const cl = currentParkName.toLowerCase().trim();
+          return cl.includes(pl) || pl.includes(cl);
+        }))
       : list;
   } else if (currentFilter !== 'all') {
     list = list.filter(s => getSightingStatus(s.id) === currentFilter);
