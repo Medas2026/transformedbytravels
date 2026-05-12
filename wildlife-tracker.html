@@ -65,7 +65,10 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
 .filter-chip { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border); color: var(--soft); background: none; cursor: pointer; }
 .filter-chip.active { background: var(--teal); color: #0d1520; border-color: var(--teal); }
 
-.category-header { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 0 6px; border-top: 1px solid var(--border); margin-top: 4px; }
+.category-header { font-size: 0.8rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.07em; padding: 12px 0 6px; border-top: 1px solid var(--border); margin-top: 4px; }
+.location-header { background: var(--s2); border: 1px solid rgba(45,212,191,0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; }
+.location-header-label { font-size: 0.65rem; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+.location-header-name { font-size: 1rem; font-weight: 700; color: var(--text); }
 .species-card { display: flex; align-items: center; gap: 12px; background: var(--s2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 7px; cursor: pointer; transition: border-color 0.15s; }
 .species-card:active { border-color: var(--teal); }
 .species-thumb { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: var(--s1); flex-shrink: 0; }
@@ -206,6 +209,10 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
 
     <!-- CURRENT LOCATION -->
     <div class="tab-panel" id="panel-species">
+      <div class="location-header" id="current-location-header">
+        <div class="location-header-label">Current Location</div>
+        <div class="location-header-name" id="current-location-name">—</div>
+      </div>
       <div id="dozen-banner"></div>
       <input type="text" class="search-bar" id="species-search" placeholder="Search species here..." oninput="renderLocationList()">
       <div class="filter-row">
@@ -494,13 +501,22 @@ function renderToday() {
                 || tripDays.find(d => d['Day Number'] && true) // fallback to first
                 || null;
 
-  const park    = todayRec ? (todayRec['Ending Location'] || todayRec['Starting Location'] || 'In the field') : 'In the field';
+  // Use time of day to pick location — afternoon/evening uses ending location
+  // so a morning-to-new-park transition is handled automatically
+  const hour    = new Date().getHours();
+  const park    = todayRec
+    ? (hour >= 13
+        ? (todayRec['Ending Location']   || todayRec['Starting Location'] || 'In the field')
+        : (todayRec['Starting Location'] || todayRec['Ending Location']   || 'In the field'))
+    : 'In the field';
   const country = todayRec ? (todayRec['Ending Country']  || todayRec['Starting Country']  || '') : '';
 
   document.getElementById('today-park').textContent    = park;
   document.getElementById('today-country').textContent = country;
 
   currentParkName = park !== 'In the field' ? park : '';
+  const locNameEl = document.getElementById('current-location-name');
+  if (locNameEl) locNameEl.textContent = currentParkName || 'In the field';
 
   // Activities from slots
   const activitiesEl = document.getElementById('today-activities');
