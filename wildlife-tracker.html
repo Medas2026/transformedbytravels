@@ -129,6 +129,8 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
 
 .log-btn { width: 100%; background: var(--teal); color: #0d1520; border: none; border-radius: 12px; padding: 16px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; }
 .log-btn:disabled { background: var(--muted); cursor: default; }
+.unlisted-btn { width: 100%; background: none; border: 1px dashed var(--border); border-radius: 10px; padding: 14px; color: var(--soft); font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-top: 12px; margin-bottom: 20px; transition: border-color 0.15s, color 0.15s; }
+.unlisted-btn:hover { border-color: var(--teal); color: var(--teal); }
 
 /* ── Toast ── */
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: var(--text); padding: 10px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; z-index: 200; opacity: 0; transition: opacity 0.25s; pointer-events: none; max-width: 88vw; text-align: center; }
@@ -222,6 +224,7 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
         <button class="filter-chip" onclick="setLocationFilter('secured')" id="loc-chip-secured">Secured</button>
       </div>
       <div id="location-list"></div>
+      <button class="unlisted-btn" onclick="openCustomModal()">+ Log Unlisted Animal</button>
     </div>
 
     <!-- THE TRIP -->
@@ -235,6 +238,7 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
         <button class="filter-chip" onclick="setTripFilter('secured')" id="trip-chip-secured">Secured</button>
       </div>
       <div id="trip-list"></div>
+      <button class="unlisted-btn" onclick="openCustomModal()">+ Log Unlisted Animal</button>
     </div>
 
   </div>
@@ -250,6 +254,11 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
         <div class="modal-sci" id="modal-sci"></div>
       </div>
       <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div id="modal-custom-name-row" style="display:none;">
+      <div class="modal-label" style="margin-top:0;">Animal Name</div>
+      <input type="text" class="notes-input" id="modal-custom-name" placeholder="e.g. Black-and-white Colobus Monkey" style="min-height:44px;resize:none;">
     </div>
 
     <div class="modal-desc" id="modal-desc"></div>
@@ -340,6 +349,7 @@ let locationFilter  = 'all';
 let tripFilter      = 'all';
 let currentParkName = '';
 let modalSpecies    = null;
+let modalIsCustom   = false;
 let modalCount    = 1;
 let modalBehavior = '';
 let gpsCoords     = null;
@@ -427,7 +437,7 @@ async function downloadAll() {
           localId:    r.id,
           airtableId: r.id,
           status:     'secured',
-          speciesId:  r.fields['Species ID']   || '',
+          speciesId:  r.fields['Species ID']   || 'custom',
           name:       r.fields['Species Name'] || '',
           sciName:    r.fields['Scientific Name'] || '',
           count:      r.fields['Count'] || 1,
@@ -618,12 +628,34 @@ function renderTripList() {
   }
 
   const el = document.getElementById('trip-list');
-  if (!list.length) {
+  if (!list.length && !customSightings(q).length) {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">🦒</div><div class="empty-title">No species found</div><div class="empty-text">Try a different search or filter.</div></div>`;
     return;
   }
   renderTripDozenBanner();
-  el.innerHTML = buildSpeciesCards(list);
+  el.innerHTML = buildSpeciesCards(list) + buildCustomSightingsHtml(q);
+}
+
+function customSightings(q) {
+  const all = [...pendingSightings, ...syncedSightings].filter(s => s.speciesId === 'custom');
+  return q ? all.filter(s => s.name.toLowerCase().includes(q)) : all;
+}
+
+function buildCustomSightingsHtml(q) {
+  const list = customSightings(q).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+  if (!list.length) return '';
+  return `<div class="category-header">🐾 Unlisted Animals</div>` +
+    list.map(s => {
+      const meta = [s.date, s.location, s.count > 1 ? `×${s.count}` : '', s.behavior].filter(Boolean).join(' · ');
+      return `<div class="species-card">
+        <div class="species-thumb-placeholder">🐾</div>
+        <div class="species-info">
+          <div class="species-name">${s.name}</div>
+          <div class="species-sci">${meta}</div>
+        </div>
+        <div class="status-dot ${s.status === 'secured' ? 'secured' : 'sighted'}"></div>
+      </div>`;
+    }).join('');
 }
 
 // ── Shared species card renderer ──────────────────────────────────────────
@@ -711,11 +743,36 @@ function getSightingStatus(speciesId) {
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────
+function openCustomModal() {
+  modalIsCustom = true;
+  modalSpecies  = null;
+  modalCount    = 1;
+  modalBehavior = '';
+
+  document.getElementById('modal-name').textContent = 'Unlisted Animal';
+  document.getElementById('modal-sci').textContent  = 'Enter the name below';
+  document.getElementById('count-display').textContent = '1';
+  document.getElementById('modal-notes').value = '';
+  document.getElementById('modal-custom-name').value = '';
+  document.getElementById('modal-custom-name-row').style.display = 'block';
+  document.getElementById('modal-thumb-wrap').innerHTML = '<div class="modal-thumb-placeholder">🐾</div>';
+  const descEl = document.getElementById('modal-desc');
+  if (descEl) descEl.textContent = '';
+  const tagEl = document.getElementById('modal-dozen-tag');
+  if (tagEl) tagEl.innerHTML = '';
+  document.getElementById('behavior-grid').innerHTML = BEHAVIORS.map(b =>
+    `<button class="behavior-chip" onclick="selectBehavior('${b}',this)">${b}</button>`
+  ).join('');
+  document.getElementById('sighting-modal').classList.add('open');
+}
+
 function openModal(speciesId) {
+  modalIsCustom = false;
   modalSpecies  = allSpecies.find(s => s.id === speciesId);
   if (!modalSpecies) return;
   modalCount    = 1;
   modalBehavior = '';
+  document.getElementById('modal-custom-name-row').style.display = 'none';
 
   document.getElementById('modal-name').textContent = modalSpecies.name;
   document.getElementById('modal-sci').textContent  = modalSpecies.scientificName || '';
@@ -747,7 +804,8 @@ function openModal(speciesId) {
 function closeModal() {
   if (_noteRecog) { _noteRecog.stop(); }
   document.getElementById('sighting-modal').classList.remove('open');
-  modalSpecies = null;
+  modalSpecies  = null;
+  modalIsCustom = false;
 }
 
 function adjustCount(delta) {
@@ -814,8 +872,13 @@ function noteMicToggle() {
 
 // ── Log sighting ──────────────────────────────────────────────────────────
 async function logSighting() {
-  if (!modalSpecies) return;
+  if (!modalIsCustom && !modalSpecies) return;
   const btn = document.getElementById('log-btn');
+
+  // Validate custom name
+  const customName = modalIsCustom ? document.getElementById('modal-custom-name').value.trim() : '';
+  if (modalIsCustom && !customName) { showToast('Please enter an animal name'); return; }
+
   btn.disabled = true;
   btn.textContent = 'Logging...';
 
@@ -828,9 +891,9 @@ async function logSighting() {
   const sighting = {
     localId:   'local_' + Date.now() + '_' + Math.random().toString(36).slice(2),
     status:    'pending',
-    speciesId: modalSpecies.id,
-    name:      modalSpecies.name,
-    sciName:   modalSpecies.scientificName || '',
+    speciesId: modalIsCustom ? 'custom' : modalSpecies.id,
+    name:      modalIsCustom ? customName : modalSpecies.name,
+    sciName:   modalIsCustom ? '' : (modalSpecies.scientificName || ''),
     count:     modalCount,
     behavior:  modalBehavior,
     notes,
@@ -857,11 +920,11 @@ async function logSighting() {
   btn.textContent = 'Log Sighting';
 
   renderDozenBanner();
-  if (isSweet16(modalSpecies)) {
+  if (!modalIsCustom && isSweet16(modalSpecies)) {
     const n = getSweet16Count();
     showToast(`${modalSpecies.name} logged! You now have ${n} of 16 Uganda Sweet 16 sightings.`);
   } else {
-    showToast(`${modalSpecies.name} logged!`);
+    showToast(`${sighting.name} logged!`);
   }
 
   if (isOnline) syncPending();
@@ -991,7 +1054,7 @@ async function refreshSightings() {
         localId:    r.id,
         airtableId: r.id,
         status:     'secured',
-        speciesId:  r.fields['Species ID']      || '',
+        speciesId:  r.fields['Species ID']      || 'custom',
         name:       r.fields['Species Name']    || '',
         sciName:    r.fields['Scientific Name'] || '',
         count:      r.fields['Count']           || 1,

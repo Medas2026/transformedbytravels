@@ -40,12 +40,12 @@ module.exports = async function handler(req, res) {
   // ── POST — log a sighting ─────────────────────────────────────────────────
   if (req.method === 'POST') {
     const { speciesId, name, sciName, count, location, notes, behavior, date, travelerEmail, lat, lon, gpsAccuracy } = req.body || {};
-    if (!speciesId || !name) return res.status(400).json({ error: 'speciesId and name are required' });
+    if (!name) return res.status(400).json({ error: 'name is required' });
 
     const d = date ? new Date(date) : new Date();
 
     const fields = {
-      'Species ID':      speciesId,
+      ...(speciesId && speciesId !== 'custom' ? { 'Species ID': speciesId } : {}),
       'Species Name':    name,
       'Scientific Name': sciName || '',
       'Count':           count || 1,
