@@ -962,8 +962,8 @@ async function logSighting() {
       }
     }
   } catch(e) {
-    console.error('[log] failed:', e.message, e.name);
-    showToast('Could not save — please try again');
+    console.error('[log] failed:', e.message, e.name, e.stack);
+    showToast('Error: ' + (e.message || e.name || 'unknown'));
   } finally {
     btn.disabled = false;
     btn.textContent = 'Log Sighting';

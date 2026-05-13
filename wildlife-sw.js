@@ -1,4 +1,4 @@
-const CACHE = 'wildlife-v3';
+const CACHE = 'wildlife-v4';
 const SHELL = [
   '/wildlife-manifest.json',
   '/images/app-icon-256.png',
