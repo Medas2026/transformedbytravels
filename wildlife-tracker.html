@@ -66,6 +66,19 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
 .filter-chip.active { background: var(--teal); color: #0d1520; border-color: var(--teal); }
 
 .category-header { font-size: 0.8rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.07em; padding: 12px 0 6px; border-top: 1px solid var(--border); margin-top: 4px; }
+.cat-accordion { margin-bottom: 8px; }
+.cat-header-card { display: flex; align-items: center; gap: 12px; background: var(--s2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; user-select: none; -webkit-user-select: none; }
+.cat-header-card:active { border-color: var(--teal); }
+.cat-header-card.open { border-color: rgba(45,212,191,0.4); background: rgba(45,212,191,0.04); }
+.cat-header-thumb { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.cat-header-thumb-placeholder { width: 52px; height: 52px; border-radius: 8px; background: var(--s1); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+.cat-header-info { flex: 1; min-width: 0; }
+.cat-header-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.cat-header-sub { font-size: 0.75rem; color: var(--soft); margin-top: 2px; }
+.cat-chevron { color: var(--soft); font-size: 1.2rem; transition: transform 0.2s; flex-shrink: 0; line-height: 1; }
+.cat-header-card.open .cat-chevron { transform: rotate(90deg); }
+.cat-body { display: none; padding-left: 14px; padding-top: 4px; }
+.cat-body.open { display: block; }
 .location-header { background: var(--s2); border: 1px solid rgba(45,212,191,0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; }
 .location-header-label { font-size: 0.65rem; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
 .location-header-name { font-size: 1rem; font-weight: 700; color: var(--text); }
@@ -337,17 +350,18 @@ const LOCAL_PHOTOS = {
 };
 
 const CATEGORY_ICONS = {
-  'Primate':      '🦍',
-  'Predator':     '🦁',
-  'Antelope':     '🦌',
-  'Big Five':     '🐘',
-  'Waterbird':    '🦢',
-  'Raptor':       '🦅',
-  'Storks':       '🦩',
-  'Songbird':     '🐦',
-  'Other Mammal': '🦏',
-  'Other Bird':   '🦉',
-  'Other':        '🐾',
+  'Primate':        '🦍',
+  'Predator':       '🦁',
+  'Antelope':       '🦌',
+  'Big Five':       '🐘',
+  'Hoofed Mammal':  '🦓',
+  'Waterbird':      '🦢',
+  'Raptor':         '🦅',
+  'Storks':         '🦩',
+  'Songbird':       '🐦',
+  'Other Mammal':   '🦏',
+  'Other Bird':     '🦉',
+  'Other':          '🐾',
 };
 
 // ── URL params ───────────────────────────────────────────────────────────────
@@ -364,6 +378,7 @@ let pendingSightings = [];
 let syncedSightings  = [];
 let locationFilter  = 'all';
 let tripFilter      = 'all';
+const openCategories = new Set();
 let currentParkName = '';
 let modalSpecies    = null;
 let modalIsCustom   = false;
@@ -650,7 +665,7 @@ function renderTripList() {
     return;
   }
   renderTripDozenBanner();
-  el.innerHTML = buildSpeciesCards(list) + buildCustomSightingsHtml(q);
+  el.innerHTML = buildSpeciesAccordion(list, q) + buildCustomSightingsHtml(q);
 }
 
 function customSightings(q) {
@@ -703,6 +718,73 @@ function buildSpeciesCards(list) {
       </div>`;
     }).join('')}
   `).join('');
+}
+
+function toggleCat(cat) {
+  if (openCategories.has(cat)) openCategories.delete(cat);
+  else openCategories.add(cat);
+  const safe = cat.replace(/[^a-z0-9]/gi, '-');
+  const header = document.getElementById('catheader-' + safe);
+  const body   = document.getElementById('catbody-'   + safe);
+  if (header) header.classList.toggle('open', openCategories.has(cat));
+  if (body)   body.classList.toggle('open',   openCategories.has(cat));
+}
+
+function buildSpeciesAccordion(list, q) {
+  const groups = {};
+  list.forEach(s => {
+    const cat = s.category || 'Other';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(s);
+  });
+  const autoOpen = !!q;
+  return Object.entries(groups).map(([cat, species]) => {
+    const isOpen   = autoOpen || openCategories.has(cat);
+    const safe     = cat.replace(/[^a-z0-9]/gi, '-');
+    const sighted  = species.filter(s => getSightingStatus(s.id) !== 'unsighted').length;
+    const sub      = `${sighted} sighted · ${species.length} species`;
+    const icon     = CATEGORY_ICONS[cat] || '🐾';
+    // Best thumbnail: prefer a sighted animal with a local photo, fall back to any with a photo
+    const repSighted = species.find(s => getSightingStatus(s.id) !== 'unsighted' && getLocalPhoto(s));
+    const repAny     = species.find(s => getLocalPhoto(s));
+    const rep        = repSighted || repAny;
+    const repPhoto   = rep ? getLocalPhoto(rep) : null;
+    const thumbHtml  = repPhoto
+      ? `<img class="cat-header-thumb${!repSighted ? ' unsighted' : ''}" src="${repPhoto}" alt="${cat}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+         <div class="cat-header-thumb-placeholder" style="display:none;">${icon}</div>`
+      : `<div class="cat-header-thumb-placeholder">${icon}</div>`;
+    const safeCat = cat.replace(/'/g, "\\'");
+    const speciesHtml = species.map(s => {
+      const status = getSightingStatus(s.id);
+      const dozen  = isSweet16(s);
+      const photo  = getLocalPhoto(s) || s.photoUrl || '';
+      const gray   = status === 'unsighted' ? ' unsighted' : '';
+      return `<div class="species-card" onclick="openModal('${s.id}')">
+        ${photo ? `<img class="species-thumb${gray}" src="${photo}" alt="${s.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="species-thumb-placeholder" style="display:none;">${CATEGORY_ICONS[s.category]||'🐾'}</div>`
+        : `<div class="species-thumb-placeholder">${CATEGORY_ICONS[s.category]||'🐾'}</div>`}
+        <div class="species-info">
+          <div class="species-name">${s.name}</div>
+          <div class="species-sci">${s.scientificName || ''}</div>
+          ${dozen ? '<div class="species-dozen">★ Uganda Sweet 16</div>' : ''}
+        </div>
+        <div class="status-dot ${status}"></div>
+      </div>`;
+    }).join('');
+    return `<div class="cat-accordion" id="catgroup-${safe}">
+      <div class="cat-header-card${isOpen ? ' open' : ''}" id="catheader-${safe}" onclick="toggleCat('${safeCat}')">
+        ${thumbHtml}
+        <div class="cat-header-info">
+          <div class="cat-header-name">${icon} ${cat}</div>
+          <div class="cat-header-sub">${sub}</div>
+        </div>
+        <div class="cat-chevron">›</div>
+      </div>
+      <div class="cat-body${isOpen ? ' open' : ''}" id="catbody-${safe}">
+        ${speciesHtml}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderTripDozenBanner() {
