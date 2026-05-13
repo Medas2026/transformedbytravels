@@ -55,9 +55,9 @@ module.exports = async function handler(req, res) {
     };
     if (travelerEmail) fields['Traveler Email'] = travelerEmail;
     if (behavior)      fields['Behavior']       = behavior;
-    if (lat != null)   fields['Latitude']       = lat;
-    if (lon != null)   fields['Longitude']       = lon;
-    if (gpsAccuracy)   fields['GPS Accuracy (m)'] = gpsAccuracy;
+    if (lat != null)   fields['Lattitude']    = lat;
+    if (lon != null)   fields['Longitude']    = lon;
+    if (gpsAccuracy)   fields['GPS Accuracy'] = gpsAccuracy;
 
     try {
       const rec = await at('', 'POST', { fields });
