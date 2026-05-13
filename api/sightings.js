@@ -51,7 +51,7 @@ module.exports = async function handler(req, res) {
       'Count':           count || 1,
       'Location':        location || '',
       'Notes':           notes || '',
-      'Date':            d.toISOString().slice(0, 10),
+      'Date':            d.toISOString().slice(0, 19),
     };
     if (travelerEmail) fields['Traveler Email'] = travelerEmail;
     if (behavior)      fields['Behavior']       = behavior;
