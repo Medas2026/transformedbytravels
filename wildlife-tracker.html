@@ -913,8 +913,15 @@ async function logSighting() {
       email:     USER_EMAIL,
     };
 
-    await dbPut('sightings', sighting);
-    pendingSightings.push(sighting);
+    // Try local save — if it fails, still sync to Airtable directly
+    let savedLocally = false;
+    try {
+      await dbPut('sightings', sighting);
+      pendingSightings.push(sighting);
+      savedLocally = true;
+    } catch(dbErr) {
+      console.warn('[log] IndexedDB failed:', dbErr.message, dbErr.name);
+    }
 
     closeModal();
     updateSyncBadge();
@@ -929,9 +936,33 @@ async function logSighting() {
       showToast(`${_name} logged!`);
     }
 
-    if (isOnline) syncPending();
+    if (isOnline) {
+      if (savedLocally) {
+        syncPending();
+      } else {
+        // IndexedDB unavailable — sync directly to Airtable
+        fetch('/api/sightings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            speciesId:     sighting.speciesId,
+            name:          sighting.name,
+            sciName:       sighting.sciName,
+            count:         sighting.count,
+            behavior:      sighting.behavior,
+            notes:         sighting.notes,
+            location:      sighting.location,
+            date:          sighting.date,
+            travelerEmail: sighting.email,
+            lat:           sighting.lat,
+            lon:           sighting.lon,
+            gpsAccuracy:   sighting.accuracy,
+          })
+        }).catch(e => console.warn('[log] direct sync failed:', e.message));
+      }
+    }
   } catch(e) {
-    console.error('[log] failed:', e.message);
+    console.error('[log] failed:', e.message, e.name);
     showToast('Could not save — please try again');
   } finally {
     btn.disabled = false;
