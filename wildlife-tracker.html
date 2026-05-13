@@ -1026,7 +1026,7 @@ async function syncPending() {
   renderLocationList();
   renderTripList();
   if (synced) showToast(`${synced} sighting${synced > 1 ? 's' : ''} secured!`);
-  if (failed && !synced) showToast(`Sync failed: ${lastError}`);
+  if (failed && !synced) showToast(`Sync failed — will retry when online`);
 }
 
 function updateSyncBadge() {
