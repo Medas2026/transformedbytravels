@@ -876,59 +876,67 @@ async function logSighting() {
   if (!modalIsCustom && !modalSpecies) return;
   const btn = document.getElementById('log-btn');
 
-  // Validate custom name
   const customName = modalIsCustom ? document.getElementById('modal-custom-name').value.trim() : '';
   if (modalIsCustom && !customName) { showToast('Please enter an animal name'); return; }
+
+  // Capture modal state before closeModal() clears it
+  const _isCustom = modalIsCustom;
+  const _species  = modalSpecies;
+  const _name     = _isCustom ? customName : _species.name;
 
   btn.disabled = true;
   btn.textContent = 'Logging...';
 
-  const now   = new Date();
-  const notes = document.getElementById('modal-notes').value.trim();
-  const todayRec = tripDays.find(d => (d['Date'] || d['Day Date'] || '') === now.toISOString().slice(0, 10))
-                 || tripDays[0];
-  const location = todayRec ? (todayRec['Ending Location'] || todayRec['Starting Location'] || '') : '';
+  try {
+    const now      = new Date();
+    const notes    = document.getElementById('modal-notes').value.trim();
+    const todayRec = tripDays.find(d => (d['Date'] || d['Day Date'] || '') === now.toISOString().slice(0, 10))
+                   || tripDays[0] || null;
+    const location = todayRec ? (todayRec['Ending Location'] || todayRec['Starting Location'] || '') : '';
 
-  const sighting = {
-    localId:   'local_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-    status:    'pending',
-    speciesId: modalIsCustom ? 'custom' : modalSpecies.id,
-    name:      modalIsCustom ? customName : modalSpecies.name,
-    sciName:   modalIsCustom ? '' : (modalSpecies.scientificName || ''),
-    count:     modalCount,
-    behavior:  modalBehavior,
-    notes,
-    location,
-    lat:       gpsCoords?.lat  || null,
-    lon:       gpsCoords?.lon  || null,
-    accuracy:  gpsCoords?.accuracy || null,
-    date:      now.toISOString().slice(0, 10),
-    time:      now.toTimeString().slice(0, 5),
-    tripId:    TRIP_ID,
-    email:     USER_EMAIL,
-  };
+    const sighting = {
+      localId:   'local_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+      status:    'pending',
+      speciesId: _isCustom ? 'custom' : _species.id,
+      name:      _name,
+      sciName:   _isCustom ? '' : (_species.scientificName || ''),
+      count:     modalCount,
+      behavior:  modalBehavior,
+      notes,
+      location,
+      lat:       gpsCoords?.lat      || null,
+      lon:       gpsCoords?.lon      || null,
+      accuracy:  gpsCoords?.accuracy || null,
+      date:      now.toISOString().slice(0, 10),
+      time:      now.toTimeString().slice(0, 5),
+      tripId:    TRIP_ID,
+      email:     USER_EMAIL,
+    };
 
-  await dbPut('sightings', sighting);
-  pendingSightings.push(sighting);
+    await dbPut('sightings', sighting);
+    pendingSightings.push(sighting);
 
-  closeModal();
-  updateSyncBadge();
-  renderLocationList();
-  renderTripList();
-  renderToday();
+    closeModal();
+    updateSyncBadge();
+    renderLocationList();
+    renderTripList();
+    renderToday();
+    renderDozenBanner();
 
-  btn.disabled = false;
-  btn.textContent = 'Log Sighting';
+    if (!_isCustom && isSweet16(_species)) {
+      showToast(`${_name} logged! You now have ${getSweet16Count()} of 16 Uganda Sweet 16 sightings.`);
+    } else {
+      showToast(`${_name} logged!`);
+    }
 
-  renderDozenBanner();
-  if (!modalIsCustom && isSweet16(modalSpecies)) {
-    const n = getSweet16Count();
-    showToast(`${modalSpecies.name} logged! You now have ${n} of 16 Uganda Sweet 16 sightings.`);
-  } else {
-    showToast(`${sighting.name} logged!`);
+    if (isOnline) syncPending();
+  } catch(e) {
+    console.error('[log] failed:', e.message);
+    showToast('Could not save — please try again');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Log Sighting';
   }
-
-  if (isOnline) syncPending();
 }
 
 // ── Sync ──────────────────────────────────────────────────────────────────
