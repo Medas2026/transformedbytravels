@@ -979,7 +979,7 @@ async function syncPending() {
   const btn = document.getElementById('sync-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Syncing...'; }
 
-  let synced = 0, failed = 0;
+  let synced = 0, failed = 0, lastError = '';
   for (const s of [...pendingSightings]) {
     try {
       const resp = await fetch('/api/sightings', {
@@ -1010,10 +1010,12 @@ async function syncPending() {
         synced++;
       } else {
         failed++;
-        console.warn('[sync] sighting rejected:', result.error || result);
+        lastError = result.error || JSON.stringify(result);
+        console.warn('[sync] sighting rejected:', lastError);
       }
     } catch(e) {
       failed++;
+      lastError = e.message;
       console.warn('[sync] network error:', e.message);
     }
   }
@@ -1024,7 +1026,7 @@ async function syncPending() {
   renderLocationList();
   renderTripList();
   if (synced) showToast(`${synced} sighting${synced > 1 ? 's' : ''} secured!`);
-  if (failed && !synced) showToast(`Sync failed — will retry when online`);
+  if (failed && !synced) showToast(`Sync failed: ${lastError}`);
 }
 
 function updateSyncBadge() {
