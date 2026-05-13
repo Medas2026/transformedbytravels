@@ -300,8 +300,9 @@ const BEHAVIORS  = ['Feeding','Resting','Hunting','With young','Crossing water',
 // Uganda Sweet 16 — keyword list (matches species names case-insensitively)
 const SWEET16_KEYWORDS = ['elephant','rhino','buffalo','leopard','lion','gorilla','chimpanzee','zebra','giraffe','hippo','crowned crane','shoebill','golden monkey','fish eagle','hartebeest','crocodile'];
 
-// Local photo filenames for Sweet 16 (in /images/wildlife/)
-const SWEET16_PHOTOS = {
+// Local photo filenames for all species with photos (in /images/wildlife/)
+const LOCAL_PHOTOS = {
+  // Uganda Sweet 16
   'elephant':      'elephant.jpg',
   'rhino':         'white-rhino.jpg',
   'buffalo':       'african-buffalo.jpg',
@@ -318,6 +319,18 @@ const SWEET16_PHOTOS = {
   'fish eagle':    'african-fish-eagle.jpg',
   'hartebeest':    'jacksons-hartebeest.jpg',
   'crocodile':     'nile-crocodile.jpg',
+  // Additional species
+  'cheetah':       'cheetah.jpg',
+  'ostrich':       'common-ostrich.jpg',
+  'eland':         'eland.jpg',
+  'hyena':         'hyena.jpg',
+  'impala':        'impala.jpg',
+  'baboon':        'olive-baboon.jpg',
+  'topi':          'topi.jpg',
+  'vervet':        'vervet-monkey.jpg',
+  'vulture':       'vulture.jpg',
+  'warthog':       'warthog.jpg',
+  'waterbuck':     'waterbuck.jpg',
 };
 
 const CATEGORY_ICONS = {
@@ -705,7 +718,7 @@ function renderTripDozenBanner() {
 // ── Local photo lookup ────────────────────────────────────────────────────
 function getLocalPhoto(species) {
   const name = (species.name || '').toLowerCase();
-  for (const [kw, file] of Object.entries(SWEET16_PHOTOS)) {
+  for (const [kw, file] of Object.entries(LOCAL_PHOTOS)) {
     if (name.includes(kw)) return '/images/wildlife/' + file;
   }
   return null;
