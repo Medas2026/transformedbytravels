@@ -963,7 +963,7 @@ async function logSighting() {
     }
   } catch(e) {
     console.error('[log] failed:', e.message, e.name, e.stack);
-    showToast('Error: ' + (e.message || e.name || 'unknown'));
+    showToast('Could not save — please try again');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Log Sighting';
@@ -977,8 +977,7 @@ async function syncPending() {
   if (!isOnline || !pendingSightings.length || _syncing) return;
   _syncing = true;
   const btn = document.getElementById('sync-btn');
-  btn.disabled = true;
-  btn.textContent = 'Syncing...';
+  if (btn) { btn.disabled = true; btn.textContent = 'Syncing...'; }
 
   let synced = 0, failed = 0;
   for (const s of [...pendingSightings]) {
@@ -1020,8 +1019,7 @@ async function syncPending() {
   }
 
   _syncing = false;
-  btn.disabled = false;
-  btn.textContent = 'Sync';
+  if (btn) { btn.disabled = false; btn.textContent = 'Sync'; }
   updateSyncBadge();
   renderLocationList();
   renderTripList();
@@ -1031,6 +1029,7 @@ async function syncPending() {
 
 function updateSyncBadge() {
   const badge = document.getElementById('sync-badge');
+  if (!badge) return;
   const count = pendingSightings.length;
   badge.style.display = count ? 'inline' : 'none';
   badge.textContent   = count;
