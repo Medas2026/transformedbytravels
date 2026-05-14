@@ -293,6 +293,7 @@
       <button onclick="document.getElementById('portal-video-lightbox').style.display='flex'" title="Video Overview" style="background:none;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer;padding:4px 6px;line-height:1;display:flex;align-items:center;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'"><i class="ph ph-play-circle"></i></button>
       <button onclick="showPage('guide')" title="How It Works" style="background:none;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer;padding:4px 6px;line-height:1;display:flex;align-items:center;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'"><i class="ph ph-question"></i></button>
       <button onclick="showPage('profile')" title="Your Profile" style="background:none;border:none;color:var(--muted);font-size:1.25rem;cursor:pointer;padding:4px 6px;line-height:1;display:flex;align-items:center;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'"><i class="ph ph-user-circle"></i></button>
+      <button id="nav-trip-btn" onclick="document.getElementById('nav-trip-btn').dataset.hasTrip==='1' ? showPageGated('my-trip') : showPage('trips')" style="display:none;background:var(--teal);color:#0d1520;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.75rem;border:none;border-radius:6px;padding:7px 14px;cursor:pointer;white-space:nowrap;" data-has-trip="0">My Trip</button>
 
       <!-- Portal Video Lightbox -->
       <div id="portal-video-lightbox" onclick="if(event.target===this){this.style.display='none';document.getElementById('portal-overview-video').src=document.getElementById('portal-overview-video').src;}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px;">
@@ -5148,7 +5149,9 @@ function checkActiveTripBanner() {
             journalBtn.style.display = 'block';
           }
           const myTripNav = document.getElementById('my-trip-menu-item');
-          if (myTripNav) myTripNav.style.display = 'flex';
+          if (myTripNav) myTripNav.style.display = 'none';
+          const navTripBtn = document.getElementById('nav-trip-btn');
+          if (navTripBtn) { navTripBtn.textContent = 'My Trip'; navTripBtn.dataset.hasTrip = '1'; navTripBtn.style.display = 'block'; }
           statusBar.style.display = 'flex';
         };
 
@@ -5174,6 +5177,8 @@ function checkActiveTripBanner() {
       } else {
         if (statusBar) statusBar.style.display = 'none';
         if (pfRow)  pfRow.style.display = 'none';
+        const navTripBtn = document.getElementById('nav-trip-btn');
+        if (navTripBtn) { navTripBtn.textContent = 'Start Trip'; navTripBtn.dataset.hasTrip = '0'; navTripBtn.style.display = 'block'; }
       }
     }).catch(() => {});
 }
