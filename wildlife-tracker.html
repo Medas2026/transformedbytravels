@@ -177,6 +177,7 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
 .setup-download-btn { background: var(--teal); color: #0d1520; border: none; border-radius: 12px; padding: 16px 32px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 12px; width: 100%; max-width: 320px; }
 .setup-progress { font-size: 0.82rem; color: var(--soft); margin-top: 8px; min-height: 20px; }
 </style>
+<script src="https://unpkg.com/exifr/dist/lite.umd.js"></script>
 </head>
 <body>
 
@@ -197,6 +198,7 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
     <div class="trip-name" id="trip-name-header" style="text-align:center;">Wildlife Tracker</div>
     <div class="header-right">
       <div class="online-dot" id="online-dot" title="Online"></div>
+      <button id="force-refresh-btn" onclick="forceRefreshSpecies()" title="Refresh species database" style="background:none;border:none;color:var(--soft);font-size:1.1rem;cursor:pointer;padding:4px 6px;line-height:1;">↺</button>
       <button class="sync-btn" id="sync-btn" onclick="syncPending()">
         Sync <span class="sync-badge" id="sync-badge" style="display:none;">0</span>
       </button>
@@ -298,6 +300,10 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
     <div class="gps-status">
       <div class="gps-dot" id="gps-dot"></div>
       <span id="gps-label">Acquiring GPS...</span>
+    </div>
+    <div style="margin-top:6px;">
+      <input type="file" id="photo-exif-input" accept="image/*" style="display:none;" onchange="readPhotoLocation(this)">
+      <button onclick="document.getElementById('photo-exif-input').click()" style="background:none;border:1px solid var(--border);border-radius:7px;color:var(--soft);font-size:0.75rem;font-family:'Montserrat',sans-serif;font-weight:600;padding:5px 12px;cursor:pointer;">📷 Use photo location</button>
     </div>
 
     <button class="log-btn" id="log-btn" onclick="logSighting()">Log Sighting</button>
@@ -428,6 +434,24 @@ function dbGetAll(store) {
   });
 }
 
+function dbDelete(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbClear(store) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).clear();
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
 function dbGet(store, key) {
   return new Promise((resolve, reject) => {
     const tx  = db.transaction(store, 'readonly');
@@ -511,8 +535,8 @@ async function launchApp() {
   allSpecies        = await dbGetAll('species');
   tripDays          = await dbGetAll('tripDays');
   const sightings   = await dbGetAll('sightings');
-  pendingSightings  = sightings.filter(s => s.status === 'pending');
-  syncedSightings   = sightings.filter(s => s.status === 'secured');
+  pendingSightings  = TRIP_ID ? sightings.filter(s => s.status === 'pending' && s.tripId === TRIP_ID) : [];
+  syncedSightings   = TRIP_ID ? sightings.filter(s => s.status === 'secured' && s.tripId === TRIP_ID) : [];
 
   // Trip name from meta
   const tripMeta = await dbGet('meta', 'tripId');
@@ -944,6 +968,27 @@ function startGPS() {
   );
 }
 
+async function readPhotoLocation(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const dot   = document.getElementById('gps-dot');
+  const label = document.getElementById('gps-label');
+  try {
+    const gps = await exifr.gps(file);
+    if (!gps || gps.latitude == null || gps.longitude == null) {
+      showToast('No GPS data found in photo');
+      return;
+    }
+    gpsCoords = { lat: gps.latitude, lon: gps.longitude, accuracy: 0, fromPhoto: true };
+    if (dot)   { dot.classList.add('got'); }
+    if (label) label.textContent = `📷 From photo · exact`;
+    showToast('Location loaded from photo');
+  } catch(e) {
+    showToast('Could not read photo EXIF data');
+  }
+  input.value = '';
+}
+
 // ── Voice notes ───────────────────────────────────────────────────────────
 let _noteRecog = null;
 
@@ -1100,6 +1145,7 @@ async function syncPending() {
           location:      s.location,
           date:          s.date,
           travelerEmail: s.email,
+          tripId:        s.tripId,
           lat:           s.lat,
           lon:           s.lon,
           gpsAccuracy:   s.accuracy,
@@ -1189,14 +1235,40 @@ async function refreshSpecies() {
   }
 }
 
+async function forceRefreshSpecies() {
+  if (!isOnline) { showToast('Need internet to refresh'); return; }
+  const btn = document.getElementById('force-refresh-btn');
+  if (btn) { btn.textContent = '↻'; btn.disabled = true; }
+  showToast('Refreshing species data…');
+  try {
+    await dbClear('species');
+    await refreshSpecies();
+    showToast('Species database updated');
+  } catch(e) {
+    showToast('Refresh failed');
+  } finally {
+    if (btn) { btn.textContent = '↺'; btn.disabled = false; }
+  }
+}
+
 // ── Refresh sightings from Airtable ───────────────────────────────────────
 async function refreshSightings() {
   if (!isOnline || !USER_EMAIL) return;
   try {
-    const resp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(USER_EMAIL)}${TRIP_ID ? '&tripId=' + encodeURIComponent(TRIP_ID) : ''}`);
+    // Require tripId — without it we can't scope to this trip
+    if (!TRIP_ID) {
+      syncedSightings = [];
+      renderLocationList(); renderTripList(); renderToday(); updateSyncBadge();
+      return;
+    }
+    const resp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(USER_EMAIL)}&tripId=${encodeURIComponent(TRIP_ID)}`);
     const data = await resp.json();
+
+    // Build the canonical secured list directly from server response
+    const serverIds = new Set();
+    const fresh = [];
     for (const r of (data.records || [])) {
-      await dbPut('sightings', {
+      const rec = {
         localId:    r.id,
         airtableId: r.id,
         status:     'secured',
@@ -1211,11 +1283,25 @@ async function refreshSightings() {
         lon:        r.fields['Longitude']       || null,
         date:       r.fields['Date']            || '',
         time:       '',
-      });
+        tripId:     TRIP_ID,
+      };
+      serverIds.add(r.id);
+      fresh.push(rec);
+      await dbPut('sightings', rec);
     }
+
+    // Remove any stale secured records for this trip that the server didn't return
     const all = await dbGetAll('sightings');
-    pendingSightings = all.filter(s => s.status === 'pending');
-    syncedSightings  = all.filter(s => s.status === 'secured');
+    for (const s of all) {
+      if (s.status === 'secured' && s.tripId === TRIP_ID && !serverIds.has(s.localId)) {
+        await dbDelete('sightings', s.localId);
+      }
+    }
+
+    // Set in-memory arrays from authoritative sources
+    syncedSightings  = fresh;
+    pendingSightings = all.filter(s => s.status === 'pending' && s.tripId === TRIP_ID);
+
     renderLocationList();
     renderTripList();
     renderToday();

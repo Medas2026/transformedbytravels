@@ -4759,7 +4759,7 @@ async function loadWildlifeDashboard(tripId, email) {
   const el = document.getElementById('wildlife-dashboard');
   if (!el) return;
   try {
-    const resp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(email)}`);
+    const resp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(email)}&tripId=${encodeURIComponent(tripId)}`);
     const data = await resp.json();
     const sightings = data.records || [];
 

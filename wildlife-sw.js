@@ -1,4 +1,4 @@
-const CACHE = 'wildlife-v4';
+const CACHE = 'wildlife-v5';
 const SHELL = [
   '/wildlife-manifest.json',
   '/images/app-icon-256.png',
@@ -30,6 +30,9 @@ self.addEventListener('fetch', e => {
 
   // Never intercept API calls — IndexedDB handles data offline
   if (url.pathname.startsWith('/api/')) return;
+
+  // Never intercept cross-origin requests — let the browser handle them directly
+  if (url.origin !== self.location.origin) return;
 
   // HTML navigation: network-first so deploys reach users immediately;
   // fall back to cache only when genuinely offline
