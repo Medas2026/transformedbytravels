@@ -478,7 +478,8 @@ async function downloadAll() {
     for (const s of species) await dbPut('species', s);
     prog.textContent = `✓ ${species.length} species downloaded`;
 
-    // 2. Trip days
+    // 2. Trip days — clear first so old trips don't linger
+    await dbClear('tripDays');
     if (TRIP_ID) {
       prog.textContent = 'Downloading trip schedule...';
       const daysResp = await fetch(`/api/trip-days?tripId=${encodeURIComponent(TRIP_ID)}`);
@@ -488,7 +489,8 @@ async function downloadAll() {
       prog.textContent = `✓ ${days.length} days downloaded`;
     }
 
-    // 3. Existing sightings for this trip
+    // 3. Existing sightings for this trip — clear first so stale records don't linger
+    await dbClear('sightings');
     if (USER_EMAIL && TRIP_ID) {
       prog.textContent = 'Downloading your sightings...';
       const sResp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(USER_EMAIL)}&tripId=${encodeURIComponent(TRIP_ID)}`);
@@ -568,10 +570,8 @@ function renderToday() {
 
   document.getElementById('today-date').textContent = dateStr;
 
-  // Find today's day record
-  const todayRec = tripDays.find(d => (d['Date'] || d['Day Date'] || '') === isoDate)
-                || tripDays.find(d => d['Day Number'] && true) // fallback to first
-                || null;
+  // Find today's day record — no fallback, only exact date match
+  const todayRec = tripDays.find(d => (d['Date'] || d['Day Date'] || '') === isoDate) || null;
 
   // Use time of day to pick location — afternoon/evening uses ending location
   // so a morning-to-new-park transition is handled automatically
@@ -580,13 +580,13 @@ function renderToday() {
     ? (hour >= 13
         ? (todayRec['Ending Location']   || todayRec['Starting Location'] || 'In the field')
         : (todayRec['Starting Location'] || todayRec['Ending Location']   || 'In the field'))
-    : 'In the field';
+    : 'Unscheduled';
   const country = todayRec ? (todayRec['Ending Country']  || todayRec['Starting Country']  || '') : '';
 
   document.getElementById('today-park').textContent    = park;
   document.getElementById('today-country').textContent = country;
 
-  currentParkName = park !== 'In the field' ? park : '';
+  currentParkName = (todayRec && park !== 'In the field') ? park : '';
   const locNameEl = document.getElementById('current-location-name');
   if (locNameEl) locNameEl.textContent = currentParkName || 'In the field';
 
