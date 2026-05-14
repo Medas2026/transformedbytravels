@@ -7389,6 +7389,7 @@ function showNewTripForm() {
   ['td-name','td-start','td-end','td-notes','td-status','td-airport'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  document.getElementById('trip-duration').textContent = '';
   _clearTripPhotoField();
   // Planning trips: dates must be today or later
   const todayStr = new Date().toISOString().split('T')[0];
@@ -8803,6 +8804,8 @@ function confirmSharePin() {
 }
 
 async function _doSaveTrip(payload, msg) {
+  const destination = payload.destination || '';
+  const country     = payload.country     || '';
   try {
     const resp = await fetch('/api/trips', {
       method: currentTripId ? 'PATCH' : 'POST',
