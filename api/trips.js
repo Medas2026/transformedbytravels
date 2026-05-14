@@ -423,19 +423,38 @@ module.exports = function handler(req, res) {
                    </div>`
                 : '';
 
+              const shareToken = (f['Share Token'] || '').trim();
+              const shareUrl   = shareToken
+                ? `${PORTAL_URL}/trip-share.html?tripId=${encodeURIComponent(id)}&token=${encodeURIComponent(shareToken)}`
+                : '';
+              const shareBlock = shareUrl
+                ? `<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:18px 20px;margin:16px 0;">
+                     <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Share Your Trip Schedule</div>
+                     <p style="font-family:Arial,sans-serif;font-size:14px;color:#0f172a;line-height:1.65;margin:0 0 12px;">Send this link to your travel partner so they can see your day-by-day schedule anytime.</p>
+                     <a href="${shareUrl}" style="display:inline-block;background:#0284c7;color:#fff;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;text-decoration:none;padding:10px 22px;border-radius:7px;">View Trip Schedule →</a>
+                   </div>`
+                : '';
+
               const subject = `Your trip to ${tripName} is confirmed!`;
               const html = buildEmailHTML(subject, `You're committed, traveler!`,
                 `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
-                 ${details}${summaryHtml}${tipHtml}
+                 ${details}${summaryHtml}${tipHtml}${shareBlock}
                  <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`,
                 photoUrl);
               await sendResendEmail(email, subject, html);
               if (coEmail && coEmail !== email.toLowerCase().trim()) {
                 const exists = await coTravelerCopyExists(tripName, coEmail);
                 if (!exists) await createCoTravelerTrip(f, id, coEmail);
+                const coShareBlock = shareUrl
+                  ? `<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:18px 20px;margin:16px 0;">
+                       <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Your Trip Schedule</div>
+                       <p style="font-family:Arial,sans-serif;font-size:14px;color:#0f172a;line-height:1.65;margin:0 0 12px;">Bookmark this link — it's your day-by-day schedule for the trip.</p>
+                       <a href="${shareUrl}" style="display:inline-block;background:#0284c7;color:#fff;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;text-decoration:none;padding:10px 22px;border-radius:7px;">View Trip Schedule →</a>
+                     </div>`
+                  : '';
                 const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
                   `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
-                   ${details}${summaryHtml}
+                   ${details}${summaryHtml}${coShareBlock}
                    <p>Get ready for an incredible journey!</p>`,
                   photoUrl);
                 await sendResendEmail(coEmail, subject, coHtml);
@@ -677,6 +696,7 @@ function buildFields(b) {
   if (b.history              !== undefined) fields['History']            = !!b.history;
   if (b.tripRating !== undefined && b.tripRating !== '') fields['Trip Rating'] = b.tripRating;
   if (b.tripPhotoUrl !== undefined && b.tripPhotoUrl !== '') fields['Trip Photo URL'] = b.tripPhotoUrl;
-  if (b.tripPassions !== undefined) fields['Trip Passions'] = b.tripPassions;
+  if (b.tripPassions  !== undefined) fields['Trip Passions']  = b.tripPassions;
+  if (b.shareToken    !== undefined) fields['Share Token']    = b.shareToken;
   return fields;
 }

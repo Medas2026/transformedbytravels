@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trip Schedule · Transformed by Travels</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy:  #0d1520; --navy2: #121e2d; --navy3: #1a2840;
+  --teal:  #2dd4bf; --gold:  #f59e0b;
+  --text:  #e2e8f0; --soft:  #94a3b8; --muted: #64748b;
+  --bd:    rgba(255,255,255,0.08);
+}
+body { background: var(--navy); color: var(--text); font-family: 'Open Sans', sans-serif; min-height: 100vh; }
+
+/* ── Banner ── */
+.banner {
+  position: relative; width: 100%; height: 200px; overflow: hidden;
+  background: var(--navy2);
+}
+.banner-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.banner-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(13,21,32,0.92) 0%, rgba(13,21,32,0.3) 60%, transparent 100%);
+}
+.banner-body {
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 18px 20px;
+}
+.banner-eyebrow {
+  font-family: 'Montserrat', sans-serif; font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); margin-bottom: 4px;
+}
+.banner-title {
+  font-family: 'Montserrat', sans-serif; font-size: 1.45rem; font-weight: 800;
+  color: #fff; line-height: 1.15;
+}
+.banner-sub { font-size: 0.82rem; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+/* ── Content ── */
+.content { padding: 20px 16px 60px; max-width: 520px; margin: 0 auto; }
+
+/* ── Date strip ── */
+.date-strip {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--navy2); border: 1px solid var(--bd); border-radius: 10px;
+  padding: 12px 16px; margin-bottom: 20px;
+}
+.date-strip-label { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.date-strip-val { font-size: 0.9rem; font-weight: 600; color: var(--text); margin-top: 2px; }
+.date-strip-divider { width: 1px; height: 36px; background: var(--bd); flex-shrink: 0; }
+
+/* ── Day card ── */
+.day-card {
+  background: var(--navy2); border: 1px solid var(--bd); border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 12px;
+}
+.day-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.day-num { font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700; color: var(--teal); }
+.day-date { font-size: 0.75rem; color: var(--muted); }
+
+.loc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.loc-box { background: rgba(255,255,255,0.04); border: 1px solid var(--bd); border-radius: 8px; padding: 8px 10px; }
+.loc-label { font-size: 0.62rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 3px; }
+.loc-val { font-size: 0.82rem; color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.slots { background: rgba(45,212,191,0.04); border: 1px solid rgba(45,212,191,0.12); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 5px; }
+.slot-row { display: flex; align-items: baseline; gap: 6px; font-size: 0.78rem; }
+.slot-label { color: var(--teal); font-weight: 700; flex-shrink: 0; }
+.slot-name { color: var(--soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.slot-time { color: var(--muted); font-size: 0.72rem; flex-shrink: 0; }
+
+.lodging-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.75rem; color: var(--teal);
+  background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.2);
+  border-radius: 6px; padding: 4px 10px;
+}
+
+/* ── Error / Loading ── */
+.state-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; padding: 32px 24px; text-align: center; gap: 14px; }
+.state-icon { font-size: 2.8rem; }
+.state-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; color: #fff; }
+.state-text { font-size: 0.88rem; color: var(--soft); line-height: 1.65; max-width: 280px; }
+
+/* ── Footer ── */
+.footer { text-align: center; padding: 32px 20px 40px; }
+.footer-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.8rem; color: var(--muted); }
+.footer-logo span { color: var(--teal); }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="state-screen">
+    <div class="state-icon">✦</div>
+    <div class="state-title">Loading your trip…</div>
+  </div>
+</div>
+
+<script>
+const SLOT_LABELS = ['Morning', 'Lunch', 'Afternoon', 'Evening'];
+const SLOT_ICONS  = {
+  experiences: '✦', trails: '🥾', mountaineering: '🧗', 'mountain-biking': '🚵',
+  diving: '🤿', kayaking: '🛶', sailing: '⛵', fishing: '🎣',
+  birding: '🦅', wildlife: '🦁', photography: '📷', 'history-art': '🏛',
+  archaeology: '🪨', culinary: '🍽', wine: '🍷', pilgrimage: '🙏',
+  volunteerism: '🤝', events: '🎟', flight: '✈', transfer: '🚐',
+};
+const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00Z');
+  return DAYS[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+}
+
+function fmtShort(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00Z');
+  return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+}
+
+function buildSlots(fields) {
+  const slots = [1,2,3,4].map(n => {
+    const raw = fields['Slot ' + n];
+    if (!raw) return null;
+    try { return { label: SLOT_LABELS[n-1], ...JSON.parse(raw) }; } catch(e) { return null; }
+  }).filter(s => s && s.type);
+  if (!slots.length) return '';
+  const rows = slots.map(s => {
+    const icon = SLOT_ICONS[s.type] || '•';
+    const name = s.name || s.passion || s.type;
+    const time = s.startTime ? `<span class="slot-time">${s.startTime}</span>` : '';
+    return `<div class="slot-row">
+      <span class="slot-label">${icon} ${s.label}</span>
+      <span class="slot-name">${name}</span>${time}
+    </div>`;
+  }).join('');
+  return `<div class="slots">${rows}</div>`;
+}
+
+function render(data) {
+  const { trip, days, lodgingMap } = data;
+
+  const bannerImg = trip.photoUrl
+    ? `<img class="banner-img" src="${trip.photoUrl}" alt="${trip.name}">`
+    : '';
+  const datesLine = [trip.startDate && fmtShort(trip.startDate), trip.endDate && fmtShort(trip.endDate)].filter(Boolean).join(' – ');
+
+  const dateStrip = (trip.startDate || trip.endDate) ? `
+    <div class="date-strip">
+      <div>
+        <div class="date-strip-label">Departure</div>
+        <div class="date-strip-val">${trip.startDate ? fmtShort(trip.startDate) : '—'}</div>
+      </div>
+      <div class="date-strip-divider"></div>
+      <div>
+        <div class="date-strip-label">Return</div>
+        <div class="date-strip-val">${trip.endDate ? fmtShort(trip.endDate) : '—'}</div>
+      </div>
+      <div class="date-strip-divider"></div>
+      <div>
+        <div class="date-strip-label">Duration</div>
+        <div class="date-strip-val">${trip.startDate && trip.endDate ? Math.round((new Date(trip.endDate+'T00:00:00Z') - new Date(trip.startDate+'T00:00:00Z')) / 86400000) + ' nights' : '—'}</div>
+      </div>
+    </div>` : '';
+
+  const dayCards = days.map((r, i) => {
+    const f = r.fields;
+    const dateLabel = fmtDate(f['Date'] || '');
+    const startLoc = f['Starting Location'] || '';
+    const endLoc   = f['Ending Location']   || '';
+    const locRow   = (startLoc || endLoc) ? `
+      <div class="loc-row">
+        <div class="loc-box">
+          <div class="loc-label">From</div>
+          <div class="loc-val">${startLoc || '—'}</div>
+        </div>
+        <div class="loc-box">
+          <div class="loc-label">To</div>
+          <div class="loc-val">${endLoc || '—'}</div>
+        </div>
+      </div>` : '';
+    const slots = buildSlots(f);
+    const lodgingId = f['Lodging ID'] || '';
+    const lodge = lodgingId && lodgingMap[lodgingId];
+    const lodgingChip = lodge
+      ? `<div><span class="lodging-chip">🏨 ${lodge.name}${lodge.city ? ' · ' + lodge.city : ''}</span></div>`
+      : '';
+    return `<div class="day-card">
+      <div class="day-header">
+        <span class="day-num">Day ${f['Day Number'] || i+1}</span>
+        <span class="day-date">${dateLabel}</span>
+      </div>
+      ${locRow}${slots}${lodgingChip}
+    </div>`;
+  }).join('');
+
+  document.getElementById('app').innerHTML = `
+    <div class="banner">
+      ${bannerImg}
+      <div class="banner-overlay"></div>
+      <div class="banner-body">
+        <div class="banner-eyebrow">Transformed by Travels</div>
+        <div class="banner-title">${trip.name}</div>
+        ${trip.destination ? `<div class="banner-sub">${trip.destination}${trip.country ? ', ' + trip.country : ''}</div>` : ''}
+      </div>
+    </div>
+    <div class="content">
+      ${dateStrip}
+      ${dayCards || '<div class="state-screen"><div class="state-icon">📅</div><div class="state-title">No schedule yet</div><div class="state-text">Your travel advisor is building the day-by-day schedule. Check back soon.</div></div>'}
+    </div>
+    <div class="footer">
+      <div class="footer-logo">Transformed by <span>Travels</span></div>
+    </div>`;
+}
+
+function showError(msg) {
+  document.getElementById('app').innerHTML = `
+    <div class="state-screen">
+      <div class="state-icon">🔒</div>
+      <div class="state-title">Access Denied</div>
+      <div class="state-text">${msg}</div>
+    </div>`;
+}
+
+async function init() {
+  const p      = new URLSearchParams(location.search);
+  const tripId = p.get('tripId');
+  const token  = p.get('token');
+  if (!tripId || !token) { showError('Missing trip or share code in this link.'); return; }
+  try {
+    const resp = await fetch(`/api/trip-share?tripId=${encodeURIComponent(tripId)}&token=${encodeURIComponent(token)}`);
+    const data = await resp.json();
+    if (!resp.ok || data.error) {
+      showError(data.error === 'Invalid share code'
+        ? 'The share code in this link is incorrect. Ask your travel advisor to resend it.'
+        : (data.error || 'Could not load trip.'));
+      return;
+    }
+    render(data);
+  } catch(e) {
+    showError('Could not load trip. Please try again later.');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
