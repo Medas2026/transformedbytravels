@@ -371,9 +371,10 @@ const CATEGORY_ICONS = {
 
 // ── URL params ───────────────────────────────────────────────────────────────
 const params    = new URLSearchParams(location.search);
-const TRIP_ID   = params.get('tripId') || '';
-const USER_EMAIL= params.get('email')  || '';
-const COUNTRY   = params.get('country')|| '';
+const TRIP_ID    = params.get('tripId') || '';
+const USER_EMAIL = params.get('email')  || '';
+const COUNTRY    = params.get('country')|| '';
+const SHARE_TOKEN= params.get('token') || '';
 
 // ── State ───────────────────────────────────────────────────────────────────
 let db            = null;
@@ -1226,6 +1227,25 @@ async function refreshSightings() {
 
 // ── Init ──────────────────────────────────────────────────────────────────
 async function init() {
+  // Validate share token if present in URL
+  if (TRIP_ID && SHARE_TOKEN) {
+    try {
+      const r = await fetch(`/api/trip-share?tripId=${encodeURIComponent(TRIP_ID)}&token=${encodeURIComponent(SHARE_TOKEN)}`);
+      const d = await r.json();
+      if (!r.ok || d.error) {
+        document.getElementById('setup-view').innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:32px 24px;text-align:center;gap:14px;">
+            <div style="font-size:2.5rem;">🔒</div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;">Access Denied</div>
+            <div style="font-size:0.88rem;color:#94a3b8;line-height:1.65;max-width:280px;">The share code in this link is incorrect. Please use the link from your daily journal email.</div>
+          </div>`;
+        return;
+      }
+    } catch(e) {
+      console.warn('[init] token check failed, proceeding anyway:', e.message);
+    }
+  }
+
   db = await openDB();
 
   // Check if we already have species data cached

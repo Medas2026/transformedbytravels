@@ -483,6 +483,7 @@ module.exports = async function handler(req, res) {
               endDate:        r.fields['End Date'] || '',
               tripName:       r.fields['Trip Name'] || r.fields['Destination'] || 'your trip',
               tripPhotoUrl:   r.fields['Trip Photo URL'] || '',
+              shareToken:     r.fields['Share Token']   || '',
               localDate,
               places: [1,2,3,4,5,6,7].map(n => ({
                 name: r.fields['Place ' + n] || '',
@@ -495,7 +496,7 @@ module.exports = async function handler(req, res) {
 
         let sent = 0;
 
-        for (const { email, tripId, destination, country, activationDate, endDate, tripName, tripPhotoUrl, localDate, places } of toSend) {
+        for (const { email, tripId, destination, country, activationDate, endDate, tripName, tripPhotoUrl, shareToken, localDate, places } of toSend) {
           // Traveler info
           const travData = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${email}")`));
           const travRec  = (travData.records || [])[0];
@@ -574,7 +575,7 @@ module.exports = async function handler(req, res) {
 </td></tr>` : '';
 
           const finishLink = `${PORTAL_URL}/portal.html`;
-          const wildlifeUrl = `${PORTAL_URL}/wildlife-tracker.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(email)}&country=${encodeURIComponent(country)}`;
+          const wildlifeUrl = `${PORTAL_URL}/wildlife-tracker.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(email)}&country=${encodeURIComponent(country)}${shareToken ? '&token=' + encodeURIComponent(shareToken) : ''}`;
           const wildlifeBlockHtml = specialVersion === 'Safari' ? `
 <tr><td style="padding:0 40px 28px;text-align:center;">
   <a href="${wildlifeUrl}" style="display:inline-block;background:#7c3aed;color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">🦁 Log Wildlife Sightings</a>
