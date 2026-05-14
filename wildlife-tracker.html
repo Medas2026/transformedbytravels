@@ -590,16 +590,21 @@ function renderToday() {
   const locNameEl = document.getElementById('current-location-name');
   if (locNameEl) locNameEl.textContent = currentParkName || 'In the field';
 
-  // Activities from slots
+  // Activities from slots — also detect game drive days
   const activitiesEl = document.getElementById('today-activities');
   const SLOT_LABELS  = ['Morning', 'Midday', 'Afternoon', 'Evening'];
   let activitiesHtml = '';
+  let hasGameDrive   = false;
   if (todayRec) {
     [1,2,3,4].forEach((n, i) => {
       const raw = todayRec['Slot ' + n];
       if (!raw) return;
       try {
         const slot = JSON.parse(raw);
+        const label = (slot.name || slot.title || '').toLowerCase();
+        if (label.includes('game drive') || label.includes('safari') || label.includes('bush walk') || label.includes('game walk')) {
+          hasGameDrive = true;
+        }
         if (slot.name || slot.title) {
           activitiesHtml += `<div class="activity-card">
             <div class="activity-slot">${SLOT_LABELS[i]}</div>
@@ -611,27 +616,30 @@ function renderToday() {
   }
   activitiesEl.innerHTML = activitiesHtml || '<div style="color:var(--soft);font-size:0.85rem;margin-bottom:12px;">No activities scheduled for today.</div>';
 
-  // Quick-log grid for species in this park
-  const parkSpecies = park !== 'In the field'
-    ? allSpecies.filter(s => s.bestParks && s.bestParks.some(p => p.toLowerCase().includes(park.toLowerCase())))
-    : allSpecies.slice(0, 20);
-
+  // Quick-log grid — only show on game drive / safari days
   const gridEl = document.getElementById('today-species-grid');
-  gridEl.innerHTML = parkSpecies.slice(0, 30).map(s => {
-    const status = getSightingStatus(s.id);
-    const photo  = getLocalPhoto(s) || s.photoUrl || '';
-    const gray   = status === 'unsighted' ? ' unsighted' : '';
-    return `<div class="species-card" onclick="openModal('${s.id}')">
-      ${photo ? `<img class="species-thumb${gray}" src="${photo}" alt="${s.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="species-thumb-placeholder" style="display:none;">${CATEGORY_ICONS[s.category]||'🐾'}</div>`
-      : `<div class="species-thumb-placeholder">${CATEGORY_ICONS[s.category]||'🐾'}</div>`}
-      <div class="species-info">
-        <div class="species-name">${s.name}</div>
-        <div class="species-sci">${s.scientificName || ''}</div>
-      </div>
-      <div class="status-dot ${status}"></div>
-    </div>`;
-  }).join('');
+  if (!hasGameDrive) {
+    gridEl.innerHTML = '<div style="color:var(--soft);font-size:0.82rem;text-align:center;padding:24px 0;">No game drive scheduled today.</div>';
+  } else {
+    const parkSpecies = park !== 'In the field' && park !== 'Unscheduled'
+      ? allSpecies.filter(s => s.bestParks && s.bestParks.some(p => p.toLowerCase().includes(park.toLowerCase())))
+      : allSpecies.slice(0, 20);
+    gridEl.innerHTML = parkSpecies.slice(0, 30).map(s => {
+      const status = getSightingStatus(s.id);
+      const photo  = getLocalPhoto(s) || s.photoUrl || '';
+      const gray   = status === 'unsighted' ? ' unsighted' : '';
+      return `<div class="species-card" onclick="openModal('${s.id}')">
+        ${photo ? `<img class="species-thumb${gray}" src="${photo}" alt="${s.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="species-thumb-placeholder" style="display:none;">${CATEGORY_ICONS[s.category]||'🐾'}</div>`
+        : `<div class="species-thumb-placeholder">${CATEGORY_ICONS[s.category]||'🐾'}</div>`}
+        <div class="species-info">
+          <div class="species-name">${s.name}</div>
+          <div class="species-sci">${s.scientificName || ''}</div>
+        </div>
+        <div class="status-dot ${status}"></div>
+      </div>`;
+    }).join('');
+  }
 }
 
 // ── Current Location panel ────────────────────────────────────────────────
