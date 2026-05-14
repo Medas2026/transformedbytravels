@@ -1193,7 +1193,7 @@ async function refreshSpecies() {
 async function refreshSightings() {
   if (!isOnline || !USER_EMAIL) return;
   try {
-    const resp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(USER_EMAIL)}`);
+    const resp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(USER_EMAIL)}${TRIP_ID ? '&tripId=' + encodeURIComponent(TRIP_ID) : ''}`);
     const data = await resp.json();
     for (const r of (data.records || [])) {
       await dbPut('sightings', {
