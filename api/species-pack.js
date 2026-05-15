@@ -17,7 +17,7 @@ const REGION_PARKS = {
   'indian specialty wildlife':    ['kaziranga', 'gir', 'hemis', 'sundarbans', 'bharatpur', 'little rann', 'sagarmatha', 'langtang', 'kangchenjunga'],
   'sri lanka':                    ['yala', 'wilpattu', 'minneriya', 'udawalawe', 'sinharaja', 'horton plains', 'kumana'],
   'borneo':                       ['kinabatangan', 'danum valley', 'sepilok', 'tanjung puting', 'deramakot', 'maliau basin', 'tabin', 'crocker range'],
-  'indonesian wallacea':          ['komodo', 'raja ampat', 'sulawesi', 'tangkoko', 'lorentz', 'bunaken', 'wakatobi'],
+  'indonesia':                    ['komodo', 'raja ampat', 'sulawesi', 'tangkoko', 'lorentz', 'bunaken', 'wakatobi'],
 
   // ── Americas ─────────────────────────────────────────────────────────────
   'galápagos':                    ['galapagos', 'galápagos', 'santa cruz', 'isabela', 'española', 'fernandina', 'genovesa', 'bartolome'],
