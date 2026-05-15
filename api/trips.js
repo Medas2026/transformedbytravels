@@ -241,7 +241,7 @@ function sendTripHistoryEmail(email, name, b, done) {
   req.end();
 }
 
-function sendTripPlanEmail(email, name, b, done) {
+function sendTripPlanEmail(email, name, b, done, photoUrl) {
   const vars = { name: name || email, destination: b.destination || '', country: b.country || '' };
   fetchTemplate('TRIP_PLAN', (err, tmpl) => {
     if (err) { console.error('Trip plan template error:', err.message); return done(); }
@@ -276,31 +276,10 @@ function sendTripPlanEmail(email, name, b, done) {
         <table cellpadding="0" cellspacing="0" style="width:100%;">${tableRows}</table>
       </div>`;
 
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;background:#f1f5f9;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;">
-  <tr><td align="center" style="padding:32px 16px;">
-    <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
-      <tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
-        <img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" />
-      </td></tr>
-      <tr><td style="padding:36px 40px 28px;">
-        ${para(tmpl.p1)}${para(tmpl.p2)}${para(tmpl.p3)}
-        ${tripBlock}
-      </td></tr>
-      <tr><td style="padding:0 40px 36px;text-align:center;">
-        <a href="https://transformedbytravels.vercel.app/portal.html"
-           style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">
-          Go to My Portal
-        </a>
-      </td></tr>
-      <tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
-        <p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
-      </td></tr>
-    </table>
-  </td></tr>
-</table>
-</body></html>`;
+    const html = buildEmailHTML(subject,
+      substitute(tmpl.p1 || 'Your trip is planned!', vars),
+      `${para(tmpl.p2)}${para(tmpl.p3)}${tripBlock}`,
+      photoUrl || '');
 
     const apiKey = process.env.RESEND_API_KEY;
     const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to: email, subject, html });
@@ -435,10 +414,17 @@ module.exports = function handler(req, res) {
                    </div>`
                 : '';
 
+              const wildlifeUrl = `${PORTAL_URL}/wildlife-tracker.html?tripId=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}&country=${encodeURIComponent(country)}${shareToken ? '&token=' + encodeURIComponent(shareToken) : ''}`;
+              const wildlifeBlock = `<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:12px;padding:18px 20px;margin:16px 0;">
+                   <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Wildlife Tracker</div>
+                   <p style="font-family:Arial,sans-serif;font-size:14px;color:#0f172a;line-height:1.65;margin:0 0 12px;">Log animal sightings in the field — works offline and syncs when you're back in range.</p>
+                   <a href="${wildlifeUrl}" style="display:inline-block;background:#7c3aed;color:#fff;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;text-decoration:none;padding:10px 22px;border-radius:7px;">🦁 Open Wildlife Tracker</a>
+                 </div>`;
+
               const subject = `Your trip to ${tripName} is confirmed!`;
               const html = buildEmailHTML(subject, `You're committed, traveler!`,
                 `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
-                 ${details}${summaryHtml}${tipHtml}${shareBlock}
+                 ${details}${summaryHtml}${tipHtml}${shareBlock}${wildlifeBlock}
                  <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`,
                 photoUrl);
               await sendResendEmail(email, subject, html);
@@ -605,7 +591,7 @@ module.exports = function handler(req, res) {
             } else {
               sendTripPlanEmail(email, b.name || '', b, () => {
                 res.status(200).json({ success: true, record: data, tripsRemaining: Math.max(0, remaining - 1) });
-              });
+              }, data.fields?.['Trip Photo URL'] || b.tripPhotoUrl || '');
             }
           });
         } catch(e) { res.status(500).json({ error: e.message }); }
