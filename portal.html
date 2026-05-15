@@ -4662,7 +4662,7 @@ function renderMyTripActive(r, container, _specialVersion) {
     <a href="#" onclick="openTodayJournal('${_jTripId}','${_jStart}','${encodeURIComponent(_jDest)}');return false;" style="display:block;text-align:center;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">📔 Log Today's Journal Entry</a>
 
     ${_specialVersion === 'Safari' ? `
-    <a href="/wildlife-tracker.html?tripId=${encodeURIComponent(r.id)}&email=${encodeURIComponent(userEmail)}&country=${encodeURIComponent(f['Country']||'')}" style="display:block;text-align:center;background:#7c3aed;color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">🦁 Wildlife Tracker</a>
+    <a href="/wildlife-tracker.html?tripId=${encodeURIComponent(r.id)}&email=${encodeURIComponent(userEmail)}&region=${encodeURIComponent(Array.isArray(f['Region'])?f['Region'].join(','):(f['Region']||f['Country']||''))}" style="display:block;text-align:center;background:#7c3aed;color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">🦁 Wildlife Tracker</a>
     <div style="margin-bottom:24px;">
       <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#a78bfa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Uganda Sweet 16</div>
       <div id="wildlife-dashboard" style="color:var(--soft);font-size:0.88rem;">Loading sightings…</div>

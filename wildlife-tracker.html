@@ -380,6 +380,7 @@ const params    = new URLSearchParams(location.search);
 const TRIP_ID    = params.get('tripId') || '';
 const USER_EMAIL = params.get('email')  || '';
 const COUNTRY    = params.get('country')|| '';
+const REGION     = params.get('region') || COUNTRY; // prefer region, fall back to country
 const SHARE_TOKEN= params.get('token') || '';
 
 // ── State ───────────────────────────────────────────────────────────────────
@@ -471,7 +472,7 @@ async function downloadAll() {
   try {
     // 1. Species pack
     prog.textContent = 'Downloading species database...';
-    const speciesUrl = '/api/species-pack' + (COUNTRY ? `?country=${encodeURIComponent(COUNTRY)}&` : '?') + '_t=' + Date.now();
+    const speciesUrl = '/api/species-pack' + (REGION ? `?region=${encodeURIComponent(REGION)}&` : '?') + '_t=' + Date.now();
     const speciesResp = await fetch(speciesUrl, { cache: 'no-store' });
     const speciesData = await speciesResp.json();
     const species = speciesData.species || [];
@@ -519,7 +520,7 @@ async function downloadAll() {
     // 4. Save meta
     await dbPut('meta', { key: 'tripId',    value: TRIP_ID });
     await dbPut('meta', { key: 'email',     value: USER_EMAIL });
-    await dbPut('meta', { key: 'country',   value: COUNTRY });
+    await dbPut('meta', { key: 'country',   value: REGION });
     await dbPut('meta', { key: 'lastSync',  value: new Date().toISOString() });
 
     if (prog) prog.textContent = '✓ All data ready — you can now go offline';
@@ -1229,8 +1230,8 @@ function showToast(msg) {
 async function refreshSpecies() {
   if (!isOnline) return;
   try {
-    const country   = (await dbGet('meta', 'country'))?.value || COUNTRY;
-    const url       = '/api/species-pack' + (country ? `?country=${encodeURIComponent(country)}&` : '?') + '_t=' + Date.now();
+    const region    = (await dbGet('meta', 'country'))?.value || REGION;
+    const url       = '/api/species-pack' + (region ? `?region=${encodeURIComponent(region)}&` : '?') + '_t=' + Date.now();
     const resp      = await fetch(url, { cache: 'no-store' });
     const data      = await resp.json();
     const species   = data.species || [];

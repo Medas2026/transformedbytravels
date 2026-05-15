@@ -479,6 +479,7 @@ module.exports = async function handler(req, res) {
               tripId:         r.id,
               destination:    r.fields['Destination'] || '',
               country:        r.fields['Country'] || '',
+              region:         Array.isArray(r.fields['Region']) ? r.fields['Region'].join(',') : (r.fields['Region'] || r.fields['Country'] || ''),
               activationDate: r.fields['Activation Date'] || r.fields['Start Date'] || '',
               endDate:        r.fields['End Date'] || '',
               tripName:       r.fields['Trip Name'] || r.fields['Destination'] || 'your trip',
@@ -496,7 +497,7 @@ module.exports = async function handler(req, res) {
 
         let sent = 0;
 
-        for (const { email, tripId, destination, country, activationDate, endDate, tripName, tripPhotoUrl, shareToken, localDate, places } of toSend) {
+        for (const { email, tripId, destination, country, region, activationDate, endDate, tripName, tripPhotoUrl, shareToken, localDate, places } of toSend) {
           // Traveler info
           const travData = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${email}")`));
           const travRec  = (travData.records || [])[0];
@@ -575,7 +576,7 @@ module.exports = async function handler(req, res) {
 </td></tr>` : '';
 
           const finishLink = `${PORTAL_URL}/portal.html`;
-          const wildlifeUrl = `${PORTAL_URL}/wildlife-tracker.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(email)}&country=${encodeURIComponent(country)}${shareToken ? '&token=' + encodeURIComponent(shareToken) : ''}`;
+          const wildlifeUrl = `${PORTAL_URL}/wildlife-tracker.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(email)}&region=${encodeURIComponent(region || country)}${shareToken ? '&token=' + encodeURIComponent(shareToken) : ''}`;
           const wildlifeBlockHtml = specialVersion === 'Safari' ? `
 <tr><td style="padding:0 40px 28px;text-align:center;">
   <a href="${wildlifeUrl}" style="display:inline-block;background:#7c3aed;color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">🦁 Log Wildlife Sightings</a>
