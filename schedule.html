@@ -1150,8 +1150,14 @@ function _slotCardHtml(n, slot) {
         <div><div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">Start</div><select id="sm-s${n}-start" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;"><option value="">—</option>${_timeOpts(startTime)}</select></div>
         <div><div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">End</div><select id="sm-s${n}-end" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 8px;color:var(--text);font-size:0.83rem;"><option value="">—</option>${_timeOpts(endTime)}</select></div>
       </div>
-      <input id="sm-s${n}-name" type="text" placeholder="Activity name" value="${((slot&&slot.name)||'').replace(/"/g,'&quot;')}" oninput="this.dataset.userEdited='true'" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;margin-bottom:8px;box-sizing:border-box;">
-      <input id="sm-s${n}-loc" type="text" placeholder="Location (e.g. Yellowstone National Park)" value="${((slot&&slot.location)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;margin-bottom:${type&&type!=='transfer'?'8px':'0'};box-sizing:border-box;display:${type==='transfer'?'none':'block'};">
+      <div style="margin-bottom:8px;">
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">Activity</div>
+        <input id="sm-s${n}-name" type="text" placeholder="Activity name" value="${((slot&&slot.name)||'').replace(/"/g,'&quot;')}" oninput="this.dataset.userEdited='true'" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:${type&&type!=='transfer'?'8px':'0'};display:${type==='transfer'?'none':'block'};">
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">Location</div>
+        <input id="sm-s${n}-loc" type="text" placeholder="Location (e.g. Yellowstone National Park)" value="${((slot&&slot.location)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+      </div>
       <div id="sm-s${n}-fields">${_slotFieldsHtml(n,slot)}</div>
     </div>`;
 }
@@ -1163,7 +1169,7 @@ function smTypeChange(n) {
   const pseudo = { type, startTime: document.getElementById(`sm-s${n}-start`).value, endTime: document.getElementById(`sm-s${n}-end`).value };
   flds.innerHTML = _slotFieldsHtml(n, pseudo);
   const locEl = document.getElementById(`sm-s${n}-loc`);
-  if (locEl) { locEl.style.display = type === 'transfer' ? 'none' : 'block'; locEl.style.marginBottom = (type&&type!=='transfer')?'8px':'0'; }
+  if (locEl) { const w=locEl.parentElement; w.style.display=type==='transfer'?'none':'block'; w.style.marginBottom=(type&&type!=='transfer')?'8px':'0'; }
   if (nameEl) {
     nameEl.style.marginBottom = '8px';
     if (type === 'passion' && !nameEl.value.trim()) { nameEl.value = 'Passion Activity'; nameEl.dataset.userEdited = 'false'; }
