@@ -1103,11 +1103,7 @@ function _slotFieldsHtml(n, slot) {
     <div id="sm-s${n}-act-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Loading activities…</div>
     <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;"></div>`;
   }
-  if (type === 'game-drive') {
-    return `
-    <div id="sm-s${n}-act-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Loading game drives…</div>
-    <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;"></div>`;
-  }
+  if (type === 'game-drive') return '';
   if (type === 'event') {
     const savedDate = (slot&&slot.eventDate)||'';
     const preSelected = (slot&&slot.name) ? `<div style="font-size:0.82rem;color:var(--teal);padding:4px 0;">✓ ${slot.name}${slot.venue?' · '+slot.venue:''}</div>` : '';
@@ -1173,7 +1169,7 @@ function smTypeChange(n) {
   if (nameEl) {
     nameEl.style.marginBottom = '8px';
     if (type === 'passion' && !nameEl.value.trim()) { nameEl.value = 'Passion Activity'; nameEl.dataset.userEdited = 'false'; }
-    if (type === 'game-drive') { if (!nameEl.value.trim()) { nameEl.value = 'Game Drive'; nameEl.dataset.userEdited = 'false'; } _smLoadGameDriveActivities(n); }
+    if (type === 'game-drive' && !nameEl.value.trim()) { nameEl.value = 'Game Drive'; nameEl.dataset.userEdited = 'false'; }
     if (type === 'event') {
       const dayDate = (_scheduleRecords[_dayModalIdx]?.fields||{})['Date']||'';
       const startEl = document.getElementById('sm-s'+n+'-ev-start');
@@ -1478,7 +1474,6 @@ function openDayModal(idx) {
     if(slot&&slot.type==='game-drive'){_smSelectedActivity[i+1]={name:slot.name||'',passion:'Game Drive',description:slot.description||''};}
   });
   document.getElementById('day-modal-slots').innerHTML=[1,2,3,4].map(n=>_slotCardHtml(n,_dayModalSlots[n-1])).join('');
-  _dayModalSlots.forEach((slot,i)=>{if(slot&&slot.type==='game-drive') _smLoadGameDriveActivities(i+1);});
   document.getElementById('day-modal').style.display='flex';
   const nextBtn=document.getElementById('day-modal-next-btn');
   if(nextBtn) nextBtn.style.display=(idx+1<_scheduleRecords.length)?'':'none';
