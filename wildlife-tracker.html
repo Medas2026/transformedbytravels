@@ -522,13 +522,16 @@ async function downloadAll() {
     await dbPut('meta', { key: 'country',   value: COUNTRY });
     await dbPut('meta', { key: 'lastSync',  value: new Date().toISOString() });
 
-    prog.textContent = '✓ All data ready — you can now go offline';
+    if (prog) prog.textContent = '✓ All data ready — you can now go offline';
+    const refreshBtn = document.getElementById('force-refresh-btn');
+    if (refreshBtn) { refreshBtn.textContent = '↺'; refreshBtn.disabled = false; }
     setTimeout(launchApp, 800);
 
   } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'Retry Download';
-    prog.textContent = '⚠ Download failed: ' + e.message;
+    if (btn) { btn.disabled = false; btn.textContent = 'Retry Download'; }
+    if (prog) prog.textContent = '⚠ Download failed: ' + e.message;
+    const refreshBtn = document.getElementById('force-refresh-btn');
+    if (refreshBtn) { refreshBtn.textContent = '↺'; refreshBtn.disabled = false; }
   }
 }
 
@@ -1247,14 +1250,14 @@ async function forceRefreshSpecies() {
   if (!isOnline) { showToast('Need internet to refresh'); return; }
   const btn = document.getElementById('force-refresh-btn');
   if (btn) { btn.textContent = '↻'; btn.disabled = true; }
-  showToast('Refreshing species data…');
+  showToast('Reloading trip data…');
   try {
     await dbClear('species');
-    await refreshSpecies();
-    showToast('Species database updated');
+    await dbClear('tripDays');
+    await dbClear('sightings');
+    await downloadAll();
   } catch(e) {
     showToast('Refresh failed');
-  } finally {
     if (btn) { btn.textContent = '↺'; btn.disabled = false; }
   }
 }
