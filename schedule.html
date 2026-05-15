@@ -1084,7 +1084,7 @@ function _slotFieldsHtml(n, slot) {
       return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:8px 12px;"><div style="font-size:0.82rem;color:var(--teal);">✓ ${selected} · ${savedName}</div><button onclick="_smReopenPassionPicker(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;">Change</button></div>`;
     }
     const PASSION_GROUPS = [
-      { label:'Nature & Wildlife',    passions:['Wildlife & Safari','Birding','National Parks'] },
+      { label:'Nature & Wildlife',    passions:['Game Drive','Birding','National Parks'] },
       { label:'Adventure & Active',   passions:['Day Hiking & Trekking','Mountain Climbing','Cycling & Mountain Biking','SCUBA & Marine Exploration','Sailing & Boating','Fishing'] },
       { label:'Culture & History',    passions:['Ancient History & Archaeology','Art & Architecture','Local Traditions & Village Life','Religious & Sacred Sites','Music & Performing Arts'] },
       { label:'Food & Drink',         passions:['Culinary Travel & Street Food','Wine & Vineyards','Coffee Culture'] },
@@ -1101,6 +1101,11 @@ function _slotFieldsHtml(n, slot) {
     <div id="sm-s${n}-passion-groups" style="margin-bottom:8px;${selected?'display:none;':''}">${pillsHtml}</div>
     <div id="sm-s${n}-passion-chosen" style="${selected?'':'display:none;'}margin-bottom:8px;">${chosenHtml}</div>
     <div id="sm-s${n}-act-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Loading activities…</div>
+    <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;"></div>`;
+  }
+  if (type === 'game-drive') {
+    return `
+    <div id="sm-s${n}-act-loading" style="display:none;font-size:0.82rem;color:var(--muted);padding:6px 0;">Loading game drives…</div>
     <div id="sm-s${n}-act-list" style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;"></div>`;
   }
   if (type === 'event') {
@@ -1137,6 +1142,7 @@ function _slotCardHtml(n, slot) {
           <option value="transfer"${type==='transfer'?' selected':''}>Transfer</option>
           <option value="passion"${type==='passion'?' selected':''}>Passion Activity</option>
           <option value="event"${type==='event'?' selected':''}>Event</option>
+          <option value="game-drive"${type==='game-drive'?' selected':''}>🦁 Game Drive</option>
           <option value="gyg"${type==='gyg'?' selected':''}>Get Your Guide</option>
         </select>
       </div>
@@ -1161,6 +1167,7 @@ function smTypeChange(n) {
   if (nameEl) {
     nameEl.style.marginBottom = '8px';
     if (type === 'passion' && !nameEl.value.trim()) { nameEl.value = 'Passion Activity'; nameEl.dataset.userEdited = 'false'; }
+    if (type === 'game-drive') { if (!nameEl.value.trim()) { nameEl.value = 'Game Drive'; nameEl.dataset.userEdited = 'false'; } _smLoadGameDriveActivities(n); }
     if (type === 'event') {
       const dayDate = (_scheduleRecords[_dayModalIdx]?.fields||{})['Date']||'';
       const startEl = document.getElementById('sm-s'+n+'-ev-start');
@@ -1274,10 +1281,40 @@ function _smAutoName(n) {
   nameEl.value = mode+' Transfer'+(parts.length===2?': '+parts[0]+' → '+parts[1]:parts.length===1?': '+parts[0]:'');
 }
 
+async function _smLoadGameDriveActivities(n) {
+  const dayFields = _scheduleRecords[_dayModalIdx]?.fields||{};
+  const place   = dayFields['Ending Location']||dayFields['Starting Location']||currentTripDestination||'';
+  const country = dayFields['Ending Country']||dayFields['Starting Country']||currentTripCountry||'';
+  const loading = document.getElementById(`sm-s${n}-act-loading`);
+  const list    = document.getElementById(`sm-s${n}-act-list`);
+  if (!loading||!list) return;
+  if (!place) { list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">Set a day location first to get game drive suggestions.</div>'; return; }
+  loading.style.display='block'; list.innerHTML='';
+  try {
+    const resp = await fetch('/api/activities',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({place,country,type:'game-drive'})});
+    const data = await resp.json();
+    loading.style.display='none';
+    const acts = data.items||data.activities||[];
+    if (!acts.length) { list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">No game drives found near '+place+'.</div>'; return; }
+    const listHtml = acts.map(a => {
+      const nm  = (a.name||'').replace(/"/g,'&quot;');
+      const det = (a.detail||a.highlights||a.description||'').replace(/"/g,'&quot;');
+      const hl  = (a.highlights||a.description||'').slice(0,100);
+      return `<div class="sm-act-card" onclick="_smActCardClick(event,${n},this)"
+        style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;cursor:pointer;"
+        data-name="${nm}" data-desc="${det}" data-passion="Game Drive">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.88rem;color:#fff;">${a.name||''}</div>
+        ${hl?`<div style="font-size:0.82rem;color:var(--muted);margin-top:3px;line-height:1.5;">${hl}…</div>`:''}
+      </div>`;
+    }).join('');
+    list.innerHTML = listHtml;
+  } catch(e) { loading.style.display='none'; list.innerHTML='<div style="font-size:0.82rem;color:#f43f5e;">Error loading game drives.</div>'; }
+}
+
 const _SM_PASSION_TYPE_MAP = {
   'Photography':'photography','Coffee Culture':'coffee','Fishing':'fishing',
   'SCUBA & Marine Exploration':'diving','Sailing & Boating':'sailing',
-  'Cycling & Mountain Biking':'mountain-biking','Wildlife & Safari':'wildlife',
+  'Cycling & Mountain Biking':'mountain-biking','Game Drive':'game-drive',
   'Birding':'birding','Mountain Climbing':'mountaineering',
   'Ancient History & Archaeology':'archaeology','Art & Architecture':'history-art',
   'Culinary Travel & Street Food':'culinary','Wine & Vineyards':'wine',
@@ -1430,8 +1467,12 @@ function openDayModal(idx) {
   document.getElementById('day-modal-status').style.display='none';
   [1,2,3,4].forEach(n=>{delete _smSelectedActivity[n];});
   _dayModalSlots=[1,2,3,4].map(n=>{const raw=f['Slot '+n]; if(!raw) return null; try{return JSON.parse(raw);}catch(e){return null;}});
-  _dayModalSlots.forEach((slot,i)=>{if(slot&&slot.type==='passion'&&slot.passion){_smSelectedActivity[i+1]={name:slot.name||'',passion:slot.passion,description:slot.description||''};}});
+  _dayModalSlots.forEach((slot,i)=>{
+    if(slot&&slot.type==='passion'&&slot.passion){_smSelectedActivity[i+1]={name:slot.name||'',passion:slot.passion,description:slot.description||''};}
+    if(slot&&slot.type==='game-drive'){_smSelectedActivity[i+1]={name:slot.name||'',passion:'Game Drive',description:slot.description||''};}
+  });
   document.getElementById('day-modal-slots').innerHTML=[1,2,3,4].map(n=>_slotCardHtml(n,_dayModalSlots[n-1])).join('');
+  _dayModalSlots.forEach((slot,i)=>{if(slot&&slot.type==='game-drive') _smLoadGameDriveActivities(i+1);});
   document.getElementById('day-modal').style.display='flex';
   const nextBtn=document.getElementById('day-modal-next-btn');
   if(nextBtn) nextBtn.style.display=(idx+1<_scheduleRecords.length)?'':'none';
@@ -1458,6 +1499,7 @@ async function saveDayModal(andNext=false) {
     if(type==='freeform') slot.description=(document.getElementById(`sm-s${n}-desc`)?.value||'').trim();
     else if(type==='passion'){const sel=_smSelectedActivity[n]||{};slot.passion=sel.passion||'';slot.description=sel.description||'';}
     else if(type==='gyg'){slot.url=(document.getElementById('sm-s'+n+'-gyg-url')?.value||'').trim();slot.bookingRef=(document.getElementById('sm-s'+n+'-gyg-ref')?.value||'').trim();}
+    else if(type==='game-drive'){const sel=_smSelectedActivity[n]||{};slot.description=sel.description||'';}
     else if(type==='event'){const sel=_smSelectedActivity[n]||{};slot.eventDate=sel.date||'';slot.eventTime=sel.time||'';slot.venue=sel.venue||'';slot.category=sel.category||'';slot.url=sel.url||'';}
     else if(type==='transfer'){slot.from=(document.getElementById(`sm-s${n}-from`)?.value||'').trim();slot.to=(document.getElementById(`sm-s${n}-to`)?.value||'').trim();slot.mode=(document.getElementById(`sm-s${n}-mode`)?.value||'Road');slot.duration=(document.getElementById(`sm-s${n}-duration`)?.value||'').trim();}
     if(type&&type!=='transfer') slot.location=(document.getElementById(`sm-s${n}-loc`)?.value||'').trim();
