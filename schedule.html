@@ -1350,8 +1350,9 @@ function _smShowPassionGroups(n) {
 
 async function _smPassionPick(n, passion) {
   const dayFields = _scheduleRecords[_dayModalIdx]?.fields||{};
-  const place     = dayFields['Ending Location']||dayFields['Starting Location']||currentTripDestination||'';
-  const country   = dayFields['Ending Country']||dayFields['Starting Country']||currentTripCountry||'';
+  const slotLoc   = (document.getElementById(`sm-s${n}-loc`)?.value||'').trim();
+  const place     = slotLoc || dayFields['Starting Location']||dayFields['Ending Location']||currentTripDestination||'';
+  const country   = dayFields['Starting Country']||dayFields['Ending Country']||currentTripCountry||'';
   const actType   = _SM_PASSION_TYPE_MAP[passion]||passion.toLowerCase().replace(/[\s&,]+/g,'-');
   const loading   = document.getElementById(`sm-s${n}-act-loading`);
   const list      = document.getElementById(`sm-s${n}-act-list`);
@@ -1361,7 +1362,7 @@ async function _smPassionPick(n, passion) {
   if(groups) groups.style.display='none';
   if(chosen){chosen.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;padding:7px 12px;"><span style="font-size:0.82rem;color:var(--teal);">🎯 ${passion}</span><button onclick="_smShowPassionGroups(${n})" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0 4px;white-space:nowrap;">Change</button></div>`;chosen.style.display='block';}
 
-  if (!place) { list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">Set a day location first.</div>'; return; }
+  if (!place) { list.innerHTML='<div style="font-size:0.85rem;color:var(--muted);">Fill in the Location field above to get activity suggestions.</div>'; return; }
   loading.style.display='block'; list.innerHTML='';
   try {
     const resp = await fetch('/api/activities', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({place,country,type:actType}) });
