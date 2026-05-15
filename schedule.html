@@ -1152,7 +1152,7 @@ function _slotCardHtml(n, slot) {
       </div>
       <div style="margin-bottom:${type&&type!=='transfer'?'8px':'0'};display:${type==='transfer'?'none':'block'};">
         <div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;">Location</div>
-        <input id="sm-s${n}-loc" type="text" placeholder="Location (e.g. Yellowstone National Park)" value="${((slot&&slot.location)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
+        <input id="sm-s${n}-loc" type="text" list="sm-loc-datalist" placeholder="Location (e.g. Yellowstone National Park)" value="${((slot&&slot.location)||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s1);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.85rem;box-sizing:border-box;">
       </div>
       <div id="sm-s${n}-fields">${_slotFieldsHtml(n,slot)}</div>
     </div>`;
@@ -1473,6 +1473,15 @@ function openDayModal(idx) {
     if(slot&&slot.type==='passion'&&slot.passion){_smSelectedActivity[i+1]={name:slot.name||'',passion:slot.passion,description:slot.description||''};}
     if(slot&&slot.type==='game-drive'){_smSelectedActivity[i+1]={name:slot.name||'',passion:'Game Drive',description:slot.description||''};}
   });
+  // Build location datalist from all trip day locations
+  const _locSet = new Set();
+  _scheduleRecords.forEach(rec => {
+    ['Starting Location','Ending Location'].forEach(k => { const v=(rec.fields[k]||'').trim(); if(v) _locSet.add(v); });
+  });
+  let dl = document.getElementById('sm-loc-datalist');
+  if (!dl) { dl = document.createElement('datalist'); dl.id='sm-loc-datalist'; document.body.appendChild(dl); }
+  dl.innerHTML = [..._locSet].sort().map(l=>`<option value="${l.replace(/"/g,'&quot;')}">`).join('');
+
   document.getElementById('day-modal-slots').innerHTML=[1,2,3,4].map(n=>_slotCardHtml(n,_dayModalSlots[n-1])).join('');
   document.getElementById('day-modal').style.display='flex';
   const nextBtn=document.getElementById('day-modal-next-btn');
