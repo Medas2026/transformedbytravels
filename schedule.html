@@ -635,7 +635,7 @@ function _cascadeLocation(idx) {
 
 // ── Schedule list ────────────────────────────────────────────────────────────
 
-const _SLOT_ICONS = { freeform: '✦', transfer: '🚗', passion: '🌿', event: '📌', gyg: '🎟' };
+const _SLOT_ICONS = { freeform: '✦', transfer: '🚗', passion: '🌿', event: '📌', gyg: '🎟', 'game-drive': '🦁' };
 
 function _daySlotSummaryHtml(f) {
   const slots = [1,2,3,4].map(n => {
@@ -653,7 +653,21 @@ function _daySlotSummaryHtml(f) {
       <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>${time}
     </div>`;
   }).join('');
-  return `<div style="background:rgba(45,212,191,0.04);border:1px solid rgba(45,212,191,0.12);border-radius:8px;padding:8px 10px;margin-bottom:8px;display:flex;flex-direction:column;gap:4px;">${items}</div>`;
+  return `<div class="day-slot-summary" style="background:rgba(45,212,191,0.04);border:1px solid rgba(45,212,191,0.12);border-radius:8px;padding:8px 10px;margin-bottom:8px;display:flex;flex-direction:column;gap:4px;">${items}</div>`;
+}
+
+function _refreshDaySlotSummary(idx) {
+  const card = document.querySelector(`[data-idx="${idx}"]`);
+  if (!card) return;
+  const f = _scheduleRecords[idx]?.fields;
+  if (!f) return;
+  const existing = card.querySelector('.day-slot-summary');
+  const html = _daySlotSummaryHtml(f);
+  if (existing) existing.outerHTML = html || '';
+  else if (html) {
+    const buttons = card.querySelector('[style*="Copy Down"], [style*="Insert Day"]')?.closest('div[style*="display:flex"]');
+    if (buttons) buttons.insertAdjacentHTML('afterend', html);
+  }
 }
 
 function renderScheduleList() {
@@ -1520,6 +1534,7 @@ async function saveDayModal(andNext=false) {
     const data=await resp.json();
     if(data.success){
       for(let n=1;n<=4;n++) r.fields['Slot '+n]=fields['Slot '+n];
+      _refreshDaySlotSummary(_dayModalIdx);
       status.style.color='var(--teal)'; status.textContent='Saved!';
       const nextIdx=_dayModalIdx+1;
       if(andNext&&nextIdx<_scheduleRecords.length) setTimeout(()=>openDayModal(nextIdx),500);
