@@ -625,8 +625,16 @@ function renderToday() {
   if (!hasGameDrive) {
     gridEl.innerHTML = '<div style="color:var(--soft);font-size:0.82rem;text-align:center;padding:24px 0;">No game drive scheduled today.</div>';
   } else {
+    // Keyword match: extract significant words from location name (>4 chars)
+    // so "Volcanoes National Park" matches "Volcanoes NP" in Best Parks
+    const parkLower = park.toLowerCase();
+    const parkWords = parkLower.split(/\s+/).filter(w => w.length > 4);
+    const matchesPark = s => s.bestParks && s.bestParks.some(bp => {
+      const b = bp.toLowerCase();
+      return b.includes(parkLower) || parkLower.includes(b) || parkWords.some(w => b.includes(w));
+    });
     const parkSpecies = park !== 'In the field' && park !== 'Unscheduled'
-      ? allSpecies.filter(s => s.bestParks && s.bestParks.some(p => p.toLowerCase().includes(park.toLowerCase())))
+      ? allSpecies.filter(matchesPark)
       : allSpecies.slice(0, 20);
     gridEl.innerHTML = parkSpecies.slice(0, 30).map(s => {
       const status = getSightingStatus(s.id);
@@ -663,10 +671,11 @@ function renderLocationList() {
   );
   // Always filter to current park
   if (currentParkName) {
+    const cl = currentParkName.toLowerCase().trim();
+    const cw = cl.split(/\s+/).filter(w => w.length > 4);
     list = list.filter(s => s.bestParks && s.bestParks.some(p => {
       const pl = p.toLowerCase().trim();
-      const cl = currentParkName.toLowerCase().trim();
-      return cl.includes(pl) || pl.includes(cl);
+      return cl.includes(pl) || pl.includes(cl) || cw.some(w => pl.includes(w));
     }));
   }
   if (locationFilter !== 'all') {
