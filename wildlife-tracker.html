@@ -1342,18 +1342,26 @@ async function init() {
 
   db = await openDB();
 
-  // Check if we already have species data cached
-  const cached = await dbGetAll('species');
-  if (cached.length > 0) {
-    // Already have data — go straight to app
+  // Check if we already have species data cached AND it's for the same trip
+  const cached       = await dbGetAll('species');
+  const cachedTripId = (await dbGet('meta', 'tripId'))?.value || '';
+  const tripMismatch = TRIP_ID && cachedTripId && cachedTripId !== TRIP_ID;
+
+  if (cached.length > 0 && !tripMismatch) {
+    // Same trip — go straight to app
     document.getElementById('setup-title').textContent = 'Data ready';
     document.getElementById('setup-text').textContent  = 'Your species database is already downloaded. Launch the tracker.';
     document.getElementById('setup-download-btn').textContent = 'Open Tracker';
     document.getElementById('setup-download-btn').onclick = launchApp;
-    // Auto-launch after a beat
     launchApp();
+  } else if (tripMismatch && isOnline) {
+    // Different trip — auto re-download silently then launch
+    document.getElementById('setup-title').textContent = 'Updating for new trip…';
+    document.getElementById('setup-text').textContent  = 'Downloading your trip schedule and species data.';
+    document.getElementById('setup-download-btn').style.display = 'none';
+    await downloadAll();
   }
-  // else: show setup screen to download
+  // else: no cached data — show setup screen to download
 }
 
 // Register service worker
