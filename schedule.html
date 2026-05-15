@@ -643,17 +643,17 @@ function _daySlotSummaryHtml(f) {
     if (!raw) return null;
     try { return { label: _SLOT_LABELS[n-1], ...JSON.parse(raw) }; } catch(e) { return null; }
   }).filter(s => s && s.type);
-  if (!slots.length) return '';
   const items = slots.map(s => {
     const icon = _SLOT_ICONS[s.type] || '•';
     const name = s.name || s.passion || s.type;
-    const time = s.startTime ? `<span style="color:var(--muted);margin-left:4px;">${s.startTime}</span>` : '';
-    return `<div style="display:flex;align-items:baseline;gap:5px;font-size:0.75rem;color:var(--soft);">
+    const time = s.startTime ? `<span style="color:var(--muted);">${s.startTime}</span>` : '';
+    const loc  = s.location   ? `<span style="color:var(--muted);">· ${s.location}</span>` : '';
+    return `<div style="display:flex;align-items:baseline;gap:5px;font-size:0.75rem;color:var(--soft);flex-wrap:wrap;">
       <span style="color:var(--teal);flex-shrink:0;">${icon} ${s.label}</span>
-      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>${time}
+      <span style="white-space:nowrap;">${name}</span>${time}${loc}
     </div>`;
   }).join('');
-  return `<div class="day-slot-summary" style="background:rgba(45,212,191,0.04);border:1px solid rgba(45,212,191,0.12);border-radius:8px;padding:8px 10px;margin-bottom:8px;display:flex;flex-direction:column;gap:4px;">${items}</div>`;
+  return `<div class="day-slot-summary" style="${slots.length ? 'background:rgba(45,212,191,0.04);border:1px solid rgba(45,212,191,0.12);border-radius:8px;padding:8px 10px;margin-bottom:8px;' : ''}display:flex;flex-direction:column;gap:4px;">${items}</div>`;
 }
 
 function _refreshDaySlotSummary(idx) {
@@ -662,12 +662,7 @@ function _refreshDaySlotSummary(idx) {
   const f = _scheduleRecords[idx]?.fields;
   if (!f) return;
   const existing = card.querySelector('.day-slot-summary');
-  const html = _daySlotSummaryHtml(f);
-  if (existing) existing.outerHTML = html || '';
-  else if (html) {
-    const buttons = card.querySelector('[style*="Copy Down"], [style*="Insert Day"]')?.closest('div[style*="display:flex"]');
-    if (buttons) buttons.insertAdjacentHTML('afterend', html);
-  }
+  if (existing) existing.outerHTML = _daySlotSummaryHtml(f);
 }
 
 function renderScheduleList() {
