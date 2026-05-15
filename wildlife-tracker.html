@@ -606,7 +606,9 @@ function renderToday() {
       try {
         const slot = JSON.parse(raw);
         const label = (slot.name || slot.title || '').toLowerCase();
-        if (label.includes('game drive') || label.includes('safari') || label.includes('bush walk') || label.includes('game walk')) {
+        const type  = (slot.type || '').toLowerCase();
+        if (type === 'game-drive' || type === 'wildlife' ||
+            label.includes('game drive') || label.includes('safari') || label.includes('bush walk') || label.includes('game walk')) {
           hasGameDrive = true;
         }
         if (slot.name || slot.title) {

@@ -144,7 +144,7 @@ Difficulty must be one of: Green, Blue, Black, Double Black.
 If ${loc} has no notable mountain biking, return an empty array [].`;
   }
 
-  if (type === 'wildlife') {
+  if (type === 'wildlife' || type === 'game-drive') {
     return `You are a wildlife viewing expert. List the top 5-7 wildlife viewing spots or experiences near ${loc}.
 
 Return ONLY a JSON array. No explanation before or after. Example format:
