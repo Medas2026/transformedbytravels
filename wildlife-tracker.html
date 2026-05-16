@@ -586,17 +586,25 @@ function renderToday() {
   // Find today's day record — no fallback, only exact date match
   const todayRec = tripDays.find(d => (d['Date'] || d['Day Date'] || '') === isoDate) || null;
 
-  // Use time of day to pick location — afternoon/evening uses ending location
-  // so a morning-to-new-park transition is handled automatically
-  const hour    = new Date().getHours();
-  const park    = todayRec
+  // Use time of day to pick active location for species matching
+  const hour       = new Date().getHours();
+  const startLoc   = todayRec ? (todayRec['Starting Location'] || '') : '';
+  const endLoc     = todayRec ? (todayRec['Ending Location']   || '') : '';
+  const park       = todayRec
     ? (hour >= 13
-        ? (todayRec['Ending Location']   || todayRec['Starting Location'] || 'In the field')
-        : (todayRec['Starting Location'] || todayRec['Ending Location']   || 'In the field'))
+        ? (endLoc   || startLoc || 'In the field')
+        : (startLoc || endLoc   || 'In the field'))
     : 'Unscheduled';
-  const country = todayRec ? (todayRec['Ending Country']  || todayRec['Starting Country']  || '') : '';
+  const country = todayRec ? (todayRec['Ending Country'] || todayRec['Starting Country'] || '') : '';
 
-  document.getElementById('today-park').textContent    = park;
+  // Display: show "Start → End" on travel days, single location otherwise
+  const displayPark = todayRec
+    ? (startLoc && endLoc && startLoc !== endLoc
+        ? `${startLoc} → ${endLoc}`
+        : (startLoc || endLoc || 'In the field'))
+    : 'Unscheduled';
+
+  document.getElementById('today-park').textContent    = displayPark;
   document.getElementById('today-country').textContent = country;
 
   currentParkName = (todayRec && park !== 'In the field') ? park : '';
@@ -621,9 +629,12 @@ function renderToday() {
           hasGameDrive = true;
         }
         if (slot.name || slot.title) {
+          const times = [slot.startTime, slot.endTime].filter(Boolean).join('–');
+          const loc   = slot.location || '';
           activitiesHtml += `<div class="activity-card">
-            <div class="activity-slot">${SLOT_LABELS[i]}</div>
+            <div class="activity-slot">${SLOT_LABELS[i]}${times ? `<span style="font-weight:400;color:var(--soft);margin-left:6px;">${times}</span>` : ''}</div>
             <div class="activity-name">${slot.name || slot.title || ''}</div>
+            ${loc ? `<div style="font-size:0.78rem;color:var(--soft);margin-top:3px;">📍 ${loc}</div>` : ''}
           </div>`;
         }
       } catch(e) {}

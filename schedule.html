@@ -646,7 +646,9 @@ function _daySlotSummaryHtml(f) {
   const items = slots.map(s => {
     const icon = _SLOT_ICONS[s.type] || '•';
     const name = s.name || s.passion || s.type;
-    const time = s.startTime ? `<span style="color:var(--muted);">${s.startTime}</span>` : '';
+    const time = (s.startTime || s.endTime)
+      ? `<span style="color:var(--muted);">${[s.startTime, s.endTime].filter(Boolean).join('–')}</span>`
+      : '';
     const loc  = s.location   ? `<span style="color:var(--muted);">· ${s.location}</span>` : '';
     return `<div style="display:flex;align-items:baseline;gap:5px;font-size:0.75rem;color:var(--soft);flex-wrap:wrap;">
       <span style="color:var(--teal);flex-shrink:0;">${icon} ${s.label}</span>
