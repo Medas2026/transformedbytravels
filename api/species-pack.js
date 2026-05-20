@@ -7,7 +7,7 @@ const REGION_PARKS = {
   'east africa':                  ['serengeti', 'masai mara', 'maasai mara', 'ngorongoro', 'tarangire', 'amboseli', 'tsavo', 'samburu', 'nakuru', 'ol pejeta', 'laikipia', 'manyara', 'selous', 'ruaha', 'mikumi', 'bale mountains'],
   'south africa':                 ['kruger', 'sabi', 'sabi sands', 'hluhluwe', 'addo', 'pilanesberg', 'madikwe', 'timbavati', 'limpopo', 'luangwa', 'kafue', 'liuwa', 'lower zambezi', 'hwange', 'mana pools', 'victoria falls', 'gonarezhou', 'malawi', 'liwonde'],
   'botswana':                     ['okavango', 'chobe', 'moremi', 'makgadikgadi', 'central kalahari', 'linyanti', 'savuti'],
-  'gorilla countries':            ['bwindi', 'volcanoes', 'kibale', 'queen elizabeth', 'mgahinga', 'nyungwe', 'akagera', 'murchison', 'kidepo', 'virunga'],
+  'gorilla countries':            ['bwindi', 'volcanoes', 'kibale', 'queen elizabeth', 'mgahinga', 'nyungwe', 'akagera', 'murchison', 'kidepo', 'virunga', 'ziwa', 'gishwati'],
   'namibia':                      ['etosha', 'skeleton coast', 'damaraland', 'sossusvlei', 'namib', 'caprivi', 'bwabwata', 'mudumu'],
   'madagascar':                   ['ranomafana', 'andasibe', 'tsingy', 'berenty', 'kirindy', 'ankarana', 'isalo', 'masoala'],
   'ethiopia':                     ['simien', 'bale', 'awash', 'omo', 'gambella', 'nechisar'],
@@ -22,7 +22,8 @@ const REGION_PARKS = {
   // ── Americas ─────────────────────────────────────────────────────────────
   'galápagos':                    ['galapagos', 'galápagos', 'santa cruz', 'isabela', 'española', 'fernandina', 'genovesa', 'bartolome'],
   'amazon':                       ['manu', 'tambopata', 'yasuni', 'cristalino', 'pacaya-samiria', 'cuyabeno', 'mamiraua', 'anavilhanas'],
-  'northwest south america':      ['mindo', 'mashpi', 'los llanos', 'sierra nevada', 'tayrona', 'colca', 'cotapaxi', 'antisana', 'cloud forest', 'pacific coast'],
+  'andes':                         ['mindo', 'mashpi', 'los llanos', 'sierra nevada', 'tayrona', 'colca', 'cotapaxi', 'antisana', 'cloud forest', 'pacific coast'],
+  'mozambique':                    ['gorongosa', 'niassa', 'zinave', 'bazaruto', 'quirimbas', 'maputo'],
   'pantanal':                     ['pantanal', 'transpantaneira', 'bonito', 'serra da bodoquena'],
   'yellowstone':                  ['yellowstone', 'grand teton', 'lamar', 'hayden', 'glacier', 'bighorn'],
   'alaska & yukon':               ['denali', 'katmai', 'kenai', 'wrangell', 'tongass', 'kluane', 'arctic refuge', 'kodiak', 'lake clark'],
@@ -34,6 +35,15 @@ const REGION_PARKS = {
   // ── Pacific & Oceania ─────────────────────────────────────────────────────
   'australia':                    ['great barrier reef', 'kangaroo island', 'tasmania', 'kakadu', 'daintree', 'ningaloo', 'shark bay', 'lord howe'],
   'new zealand':                  ['fiordland', 'abel tasman', 'kaikoura', 'otago peninsula', 'stewart island', 'tongariro', 'poor knights'],
+  'fiji':                         ['fiji', 'beqa', 'yasawa', 'taveuni', 'somosomo', 'rainbow reef', 'bligh water'],
+  'micronesia':                   ['palau', 'truk', 'chuuk', 'yap', 'pohnpei', 'kosrae', 'blue corner', 'jellyfish lake'],
+  'philippines':                  ['tubbataha', 'apo island', 'coron', 'el nido', 'anilao', 'moalboal', 'puerto galera', 'palawan'],
+  'papua new guinea':             ['milne bay', 'kimbe bay', 'madang', 'manus', 'kavieng', 'tufi', 'varirata', 'tari'],
+  'canadian rockies':             ['banff', 'jasper', 'yoho', 'kootenay', 'waterton', 'icefields', 'columbia icefield'],
+
+  // ── Europe ───────────────────────────────────────────────────────────────
+  'svalbard':                      ['svalbard', 'longyearbyen', 'spitsbergen', 'nordaustlandet'],
+  'european wildlife':             ['bialowieza', 'białowieża', 'danube delta', 'donana', 'doñana', 'coto donana', 'carpathian', 'camargue', 'neusiedler', 'hortobagy', 'hortobágy'],
 
   // ── Legacy country aliases (backward compatibility) ───────────────────────
   'uganda':         ['bwindi', 'kibale', 'queen elizabeth', 'murchison', 'kidepo'],

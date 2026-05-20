@@ -164,33 +164,17 @@
       <div id="gen-status" style="font-size:0.75rem;color:var(--muted);margin-top:4px;min-height:16px;"></div>
     </div>
 
-    <!-- Best Parks -->
+    <!-- Region selector -->
     <div class="field-row">
-      <label>Where can you see it? <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">check all that apply</span></label>
-      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px;font-style:italic;">Uganda</div>
-      <div class="parks-grid" id="parks-grid" style="margin-bottom:8px;">
-        <label class="park-cb"><input type="checkbox" value="Bwindi" /> Bwindi</label>
-        <label class="park-cb"><input type="checkbox" value="Murchison Falls" /> Murchison Falls</label>
-        <label class="park-cb"><input type="checkbox" value="Queen Elizabeth" /> Queen Elizabeth</label>
-        <label class="park-cb"><input type="checkbox" value="Kibale" /> Kibale</label>
-        <label class="park-cb"><input type="checkbox" value="Mgahinga" /> Mgahinga</label>
-        <label class="park-cb"><input type="checkbox" value="Lake Mburo" /> Lake Mburo</label>
-        <label class="park-cb"><input type="checkbox" value="Kidepo Valley" /> Kidepo Valley</label>
-        <label class="park-cb"><input type="checkbox" value="Ziwa Rhino" /> Ziwa Rhino</label>
-      </div>
-      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px;font-style:italic;">Rwanda</div>
-      <div class="parks-grid" style="margin-bottom:8px;">
-        <label class="park-cb"><input type="checkbox" value="Volcanoes" /> Volcanoes</label>
-        <label class="park-cb"><input type="checkbox" value="Nyungwe" /> Nyungwe</label>
-        <label class="park-cb"><input type="checkbox" value="Akagera" /> Akagera</label>
-      </div>
-      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px;font-style:italic;">Tanzania</div>
-      <div class="parks-grid">
-        <label class="park-cb"><input type="checkbox" value="Serengeti" /> Serengeti</label>
-        <label class="park-cb"><input type="checkbox" value="Ngorongoro" /> Ngorongoro</label>
-        <label class="park-cb"><input type="checkbox" value="Tarangire" /> Tarangire</label>
-        <label class="park-cb"><input type="checkbox" value="Ruaha" /> Ruaha</label>
-        <label class="park-cb"><input type="checkbox" value="Lake Manyara" /> Lake Manyara</label>
+      <label>Animal Regions <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">select all that apply — parks update automatically</span></label>
+      <div id="regions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;margin-bottom:10px;"></div>
+    </div>
+
+    <!-- Best Parks — dynamic based on selected regions -->
+    <div class="field-row">
+      <label>Best Parks <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">check all that apply</span></label>
+      <div id="parks-container">
+        <p style="color:var(--muted);font-size:0.78rem;font-style:italic;">Select a region above to see parks.</p>
       </div>
     </div>
 
@@ -293,6 +277,80 @@ const CLOUDINARY_CLOUD  = 'dporenlvw';
 const CLOUDINARY_PRESET = 'Trip Image';
 
 let ALL_SPECIES = [];
+
+// ── Region → Parks display map ───────────────────────────────────────────────
+const REGION_PARKS = {
+  'East Africa':               { label:'Kenya / Tanzania', parks:['Masai Mara','Amboseli','Tsavo','Samburu','Nakuru','Ol Pejeta','Laikipia','Serengeti','Ngorongoro','Tarangire','Lake Manyara','Ruaha','Selous'] },
+  'South Africa':              { label:'South Africa / Zambia / Zimbabwe / Malawi', parks:['Kruger','Sabi Sands','Hluhluwe','Addo','Pilanesberg','Madikwe','Lower Zambezi','Luangwa','Kafue','Hwange','Mana Pools','Victoria Falls','Liwonde'] },
+  'Botswana':                  { label:'Botswana', parks:['Okavango','Chobe','Moremi','Makgadikgadi','Central Kalahari','Linyanti','Savuti'] },
+  'Gorilla Countries':         { label:'Uganda / Rwanda', parks:['Bwindi','Murchison Falls','Queen Elizabeth','Kibale','Mgahinga','Lake Mburo','Kidepo Valley','Ziwa Rhino','Semuliki','Rwenzori','Volcanoes','Nyungwe','Akagera','Gishwati-Mukura','Virunga'] },
+  'Namibia':                   { label:'Namibia', parks:['Etosha','Skeleton Coast','Damaraland','Sossusvlei','Caprivi','Bwabwata','Mudumu'] },
+  'Madagascar':                { label:'Madagascar', parks:['Ranomafana','Andasibe','Tsingy','Berenty','Kirindy','Ankarana','Isalo','Masoala'] },
+  'Ethiopia':                  { label:'Ethiopia', parks:['Simien Mountains','Bale Mountains','Awash','Omo','Gambella','Nechisar'] },
+  'Mozambique':                { label:'Mozambique', parks:['Gorongosa','Niassa','Zinave','Bazaruto','Quirimbas'] },
+  'Indian Tigers & Rhinos':    { label:'India / Nepal', parks:['Ranthambore','Bandhavgarh','Kanha','Jim Corbett','Pench','Tadoba','Panna','Chitwan','Bardia','Dudhwa'] },
+  'Indian Specialty Wildlife': { label:'India — Specialty', parks:['Kaziranga','Gir','Hemis','Sundarbans','Bharatpur','Little Rann','Sagarmatha','Langtang'] },
+  'Sri Lanka':                 { label:'Sri Lanka', parks:['Yala','Wilpattu','Minneriya','Udawalawe','Sinharaja','Horton Plains','Kumana'] },
+  'Borneo':                    { label:'Borneo', parks:['Kinabatangan','Danum Valley','Sepilok','Tanjung Puting','Deramakot','Maliau Basin','Tabin'] },
+  'Indonesia':                 { label:'Indonesia', parks:['Komodo','Raja Ampat','Tangkoko','Bunaken','Wakatobi'] },
+  'Galápagos':                 { label:'Galápagos', parks:['Santa Cruz','Isabela','Española','Fernandina','Genovesa','Bartolome'] },
+  'Amazon':                    { label:'Amazon Basin', parks:['Manu','Tambopata','Yasuní','Cristalino','Pacaya-Samiria','Cuyabeno','Mamiraua'] },
+  'Andes':                     { label:'Andes / Cloud Forest', parks:['Mindo','Mashpi','Los Llanos','Colca Canyon','Cotapaxi','Antisana','Sierra Nevada'] },
+  'Pantanal':                  { label:'Pantanal', parks:['Transpantaneira','Bonito','Serra da Bodoquena'] },
+  'Central America':           { label:'Central America', parks:['Corcovado','Tortuguero','Monteverde','Manuel Antonio','Soberania','Arenal','Darien'] },
+  'Patagonia':                 { label:'Patagonia', parks:['Torres del Paine','Los Glaciares','Tierra del Fuego','Valdés','Chiloé'] },
+  'Antarctica & Falklands':    { label:'Antarctica & Falklands', parks:['Antarctic Peninsula','South Georgia','Falkland Islands','Deception Island'] },
+  'Yellowstone':               { label:'USA Rockies', parks:['Yellowstone','Grand Teton','Glacier','Lamar Valley'] },
+  'Alaska & Yukon':            { label:'Alaska & Yukon', parks:['Denali','Katmai','Kenai','Kodiak','Tongass','Kluane'] },
+  'Canadian Arctic':           { label:'Canadian Arctic', parks:['Churchill','Wapusk','Baffin Island','Auyuittuq'] },
+  'Australia':                 { label:'Australia', parks:['Great Barrier Reef','Kakadu','Daintree','Ningaloo','Kangaroo Island','Tasmania','Shark Bay'] },
+  'New Zealand':               { label:'New Zealand', parks:['Fiordland','Kaikoura','Otago Peninsula','Abel Tasman','Stewart Island'] },
+  'Svalbard':                  { label:'Svalbard', parks:['Svalbard','Longyearbyen','Nordaustlandet'] },
+  'European Wildlife':         { label:'Europe', parks:['Białowieża','Danube Delta','Doñana','Hortobágy','Neusiedler See','Carpathians','Camargue'] },
+};
+
+const REGION_CONTINENTS = [
+  { label:'Africa',   regions:['East Africa','South Africa','Botswana','Gorilla Countries','Namibia','Madagascar','Ethiopia','Mozambique'] },
+  { label:'Asia',     regions:['Indian Tigers & Rhinos','Indian Specialty Wildlife','Sri Lanka','Borneo','Indonesia'] },
+  { label:'Americas', regions:['Galápagos','Amazon','Andes','Pantanal','Central America','Patagonia','Antarctica & Falklands','Yellowstone','Alaska & Yukon','Canadian Arctic'] },
+  { label:'Pacific',  regions:['Australia','New Zealand'] },
+  { label:'Europe',   regions:['Svalbard','European Wildlife'] },
+];
+
+function initRegionsGrid() {
+  const grid = document.getElementById('regions-grid');
+  grid.innerHTML = REGION_CONTINENTS.map(c =>
+    `<div style="grid-column:1/-1;font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:6px;">${c.label}</div>` +
+    c.regions.map(r =>
+      `<label class="park-cb region-cb">
+        <input type="checkbox" class="region-check" value="${r}" onchange="updateParksDisplay()" />
+        ${r}
+      </label>`
+    ).join('')
+  ).join('');
+}
+
+function updateParksDisplay() {
+  const selected = [...document.querySelectorAll('.region-check:checked')].map(c => c.value);
+  const container = document.getElementById('parks-container');
+  if (!selected.length) {
+    container.innerHTML = '<p style="color:var(--muted);font-size:0.78rem;font-style:italic;">Select a region above to see parks.</p>';
+    return;
+  }
+  // Get currently checked parks so we can preserve them
+  const checkedParks = new Set([...document.querySelectorAll('.park-cb input:checked')].map(c => c.value));
+
+  container.innerHTML = selected.map(region => {
+    const data = REGION_PARKS[region];
+    if (!data) return '';
+    return `<div style="font-size:0.7rem;color:var(--muted);margin:8px 0 4px;font-style:italic;">${data.label}</div>
+      <div class="parks-grid" style="margin-bottom:4px;">
+        ${data.parks.map(p =>
+          `<label class="park-cb"><input type="checkbox" value="${p}"${checkedParks.has(p)?' checked':''} /> ${p}</label>`
+        ).join('')}
+      </div>`;
+  }).join('');
+}
 
 async function generateDetails() {
   const name = document.getElementById('f-name').value.trim();
@@ -419,8 +477,14 @@ function editSpecies(id) {
   document.getElementById('f-photoUrl').value         = f['Photo URL'] || '';
   updatePhotoPreview(f['Photo URL'] || '');
 
-  // Parks checkboxes
+  // Region checkboxes — restore first so parks render correctly
+  const savedRegions = Array.isArray(f['Animal Regions']) ? f['Animal Regions'] : [];
+  document.querySelectorAll('.region-check').forEach(cb => {
+    cb.checked = savedRegions.includes(cb.value);
+  });
+  // Parks checkboxes — rebuild display then restore checked state
   const parks = Array.isArray(f['Best Parks']) ? f['Best Parks'] : (f['Best Parks'] || '').split(',').map(s => s.trim());
+  updateParksDisplay();
   document.querySelectorAll('.park-cb input[type=checkbox]').forEach(cb => {
     cb.checked = parks.includes(cb.value);
   });
@@ -446,7 +510,8 @@ function newSpecies() {
   document.getElementById('f-type').value = '';
   document.getElementById('f-category').value = '';
   document.getElementById('f-conservationStatus').value = '';
-  document.querySelectorAll('.park-cb input, .months-grid input').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.region-check, .months-grid input').forEach(cb => cb.checked = false);
+  updateParksDisplay();
   updatePhotoPreview('');
   renderList(ALL_SPECIES);
   // Scroll form into view and focus the name field
@@ -465,8 +530,9 @@ async function saveSpecies() {
     if (dup) { setStatus('⚠ "' + name + '" already exists in the database.', true); return; }
   }
 
-  const parks  = [...document.querySelectorAll('.park-cb input:checked')].map(c => c.value).join(', ');
-  const months = [...document.querySelectorAll('.months-grid input:checked')].map(c => c.value).join(', ');
+  const parks   = [...document.querySelectorAll('.park-cb input:checked')].map(c => c.value).join(', ');
+  const months  = [...document.querySelectorAll('.months-grid input:checked')].map(c => c.value).join(', ');
+  const regions = [...document.querySelectorAll('.region-check:checked')].map(c => c.value);
 
   const body = {
     name,
@@ -478,6 +544,7 @@ async function saveSpecies() {
     habitat:            document.getElementById('f-habitat').value.trim(),
     bestParks:          parks,
     bestMonths:         months,
+    animalRegions:      regions,
     photoUrl:           document.getElementById('f-photoUrl').value.trim(),
     ebirdCode:          document.getElementById('f-ebirdCode').value.trim(),
     inaturalistId:      document.getElementById('f-inaturalistId').value.trim(),
@@ -555,6 +622,7 @@ function setStatus(msg, isErr) {
   el.className = 'status-bar' + (isErr ? ' err' : msg === 'Saved!' || msg === 'Deleted.' ? ' ok' : '');
 }
 
+initRegionsGrid();
 loadSpecies();
 </script>
 </body>

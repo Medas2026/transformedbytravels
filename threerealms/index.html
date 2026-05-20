@@ -45,31 +45,26 @@
     .nav-cta { background: var(--teal); color: #0a1628 !important; padding: 9px 22px; border-radius: 6px; }
     .nav-cta:hover { background: var(--teal2); color: #0a1628 !important; }
 
-    /* ── HERO TRIPTYCH ── */
+    /* ── HERO CAROUSEL ── */
     .hero {
       height: 100vh; min-height: 600px;
-      display: grid; grid-template-columns: 1fr 1.2fr 1fr;
-      position: relative;
+      position: relative; overflow: hidden;
     }
-    .realm-panel {
-      position: relative; overflow: hidden; cursor: pointer;
+    .slide {
+      position: absolute; inset: 0;
+      opacity: 0; transition: opacity 1.2s ease;
     }
-    .realm-panel img {
+    .slide.active { opacity: 1; }
+    .slide img {
       width: 100%; height: 100%; object-fit: cover; object-position: center;
-      transition: transform 0.6s ease, filter 0.4s ease;
-      filter: brightness(0.55);
+      filter: brightness(0.52);
     }
-    .realm-panel:hover img { transform: scale(1.05); filter: brightness(0.35); }
-    .realm-divider {
-      position: absolute; top: 0; bottom: 0; width: 1px;
-      background: rgba(255,255,255,0.12); z-index: 2;
+    /* gradient scrim at bottom for label readability */
+    .slide::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(10,22,40,0.82) 0%, rgba(10,22,40,0.1) 45%, transparent 100%);
     }
-    .realm-divider.left  { right: 0; }
-    .realm-divider.right { left: 0; }
-    .realm-label {
-      position: absolute; bottom: 80px; left: 0; right: 0;
-      text-align: center; z-index: 3; pointer-events: none;
-    }
+    /* .realm-label positioning now set in hero-headline block above */
     .realm-tag {
       font-family: 'Montserrat', sans-serif; font-weight: 900;
       font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
@@ -87,37 +82,65 @@
       font-family: 'Lora', serif; font-style: italic; font-size: 0.88rem;
       color: rgba(255,255,255,0.7); display: block; margin-top: 4px;
     }
-    .realm-panel:hover .realm-detail {
-      opacity: 1; transform: translateY(0);
+    /* slide dots */
+    .slide-dots {
+      position: absolute; bottom: 56px; left: 50%; transform: translateX(-50%);
+      z-index: 10; display: flex; gap: 10px;
     }
+    .slide-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.35); border: none; padding: 0; cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .slide-dot.active { background: var(--teal); transform: scale(1.3); }
+    /* keep realm-detail as empty rule for compat */
     .realm-detail {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      background: linear-gradient(to top, rgba(10,22,40,0.95) 0%, transparent 100%);
-      padding: 32px 24px 90px;
-      opacity: 0; transform: translateY(20px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      z-index: 3; text-align: center;
-      font-size: 0.88rem; color: var(--soft); line-height: 1.7;
+      display: none;
     }
 
-    /* Hero center headline */
+    /* Hero headline — bottom-left so the animal centre is clear */
     .hero-headline {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      z-index: 10; text-align: center; width: 90%; max-width: 700px;
+      position: absolute; bottom: 108px; left: 48px;
+      z-index: 10; text-align: left; max-width: 520px;
       pointer-events: none;
     }
     .hero-headline h1 {
       font-family: 'Montserrat', sans-serif; font-weight: 900;
-      font-size: clamp(2rem, 5vw, 3.6rem); line-height: 1.1;
+      font-size: clamp(1.7rem, 4vw, 3rem); line-height: 1.1;
       color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,0.8);
       letter-spacing: -0.01em;
     }
     .hero-headline h1 span { color: var(--teal); }
     .hero-headline p {
       font-family: 'Lora', serif; font-style: italic;
-      font-size: clamp(0.95rem, 2vw, 1.15rem); color: rgba(255,255,255,0.85);
-      margin-top: 14px; text-shadow: 0 1px 8px rgba(0,0,0,0.6);
+      font-size: clamp(0.88rem, 1.8vw, 1.05rem); color: rgba(255,255,255,0.82);
+      margin-top: 12px; text-shadow: 0 1px 8px rgba(0,0,0,0.6);
     }
+
+    /* Realm label — top-left so it labels the current slide without crowding centre */
+    .realm-label {
+      position: absolute; top: 88px; left: 48px;
+      text-align: left; z-index: 3; pointer-events: none; white-space: nowrap;
+    }
+
+    /* Mini schedule card — bottom-right, unique per slide */
+    .slide-schedule {
+      position: absolute; bottom: 88px; right: 48px; z-index: 3;
+      background: rgba(10,22,40,0.78); backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.13); border-radius: 14px;
+      padding: 16px 18px; width: 210px; pointer-events: none;
+    }
+    .ss-head {
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.68rem;
+      color: #fff; margin-bottom: 11px; padding-bottom: 9px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .ss-loc { font-weight: 600; font-size: 0.6rem; color: var(--muted); margin-top: 2px; letter-spacing: 0.04em; }
+    .ss-items { display: flex; flex-direction: column; gap: 7px; }
+    .ss-item { display: flex; gap: 9px; }
+    .ss-time { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.6rem; color: var(--muted); min-width: 40px; padding-top: 1px; }
+    .ss-act  { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.7rem; color: var(--soft); line-height: 1.35; }
 
     /* ── SCROLL CUE ── */
     .scroll-cue {
@@ -198,6 +221,62 @@
     .about-image img { width: 100%; height: 100%; object-fit: cover; }
     .about-placeholder { font-size: 4rem; opacity: 0.3; }
 
+    /* ── PRICING ── */
+    .pricing-section { background: var(--dark); padding: 96px 0; }
+    .pricing-inner { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+    .pricing-intro { text-align: center; margin-bottom: 56px; }
+    .pricing-intro h2 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(1.8rem, 3.5vw, 2.6rem); margin-bottom: 14px; }
+    .pricing-intro p { color: var(--soft); font-size: 1rem; max-width: 560px; margin: 0 auto; line-height: 1.7; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start; }
+    .pricing-card { background: var(--s2); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 36px 32px; position: relative; }
+    .pricing-card.active-card { background: var(--s2); border-color: rgba(45,212,191,0.4); transform: translateY(-10px); box-shadow: 0 24px 64px rgba(0,0,0,0.45); }
+    .pricing-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--teal); color: #0a1628; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; white-space: nowrap; }
+    .pricing-tier { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+    .pricing-price { display: flex; align-items: flex-end; gap: 6px; margin-bottom: 6px; }
+    .pricing-amount { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 3rem; color: #fff; line-height: 1; }
+    .pricing-amount.free { color: var(--teal); }
+    .pricing-period { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.78rem; color: var(--muted); padding-bottom: 6px; }
+    .pricing-condition { font-size: 0.82rem; color: var(--soft); margin-bottom: 24px; line-height: 1.5; font-style: italic; min-height: 38px; }
+    .pricing-divider { height: 1px; background: rgba(255,255,255,0.07); margin-bottom: 24px; }
+    .pricing-features { display: flex; flex-direction: column; gap: 11px; margin-bottom: 32px; }
+    .pf-row { display: flex; align-items: flex-start; gap: 10px; font-size: 0.84rem; color: var(--soft); line-height: 1.4; }
+    .pf-icon { flex-shrink: 0; margin-top: 1px; font-size: 0.8rem; }
+    .pf-icon.check { color: #4ade80; }
+    .pf-icon.arrow { color: var(--teal); }
+    .pricing-cta { display: block; text-align: center; padding: 13px 20px; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.82rem; letter-spacing: 0.04em; text-decoration: none; transition: all 0.2s; }
+    .pricing-cta.primary { background: var(--teal); color: #0a1628; }
+    .pricing-cta.primary:hover { background: var(--teal2); }
+    .pricing-cta.outline { border: 1px solid rgba(255,255,255,0.18); color: var(--soft); }
+    .pricing-cta.outline:hover { border-color: var(--teal); color: var(--teal); }
+    .pricing-note { text-align: center; margin-top: 40px; font-size: 0.82rem; color: var(--muted); font-style: italic; }
+    @media (max-width: 768px) {
+      .pricing-grid { grid-template-columns: 1fr; }
+      .pricing-card.active-card { transform: none; }
+      .pricing-inner { padding: 0 20px; }
+    }
+
+    /* ── JOURNEY FLOW ── */
+    .journey-section { background: var(--dark); padding: 96px 0; }
+    .journey-inner { max-width: 1140px; margin: 0 auto; padding: 0 48px; }
+    .journey-intro { text-align: center; margin-bottom: 64px; }
+    .journey-intro h2 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(1.8rem, 3.5vw, 2.6rem); margin-bottom: 14px; }
+    .journey-intro p { color: var(--soft); font-size: 1rem; max-width: 560px; margin: 0 auto; line-height: 1.7; }
+    .journey-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; overflow: hidden; }
+    .journey-step { padding: 40px 36px; border-right: 1px solid rgba(255,255,255,0.07); border-bottom: 1px solid rgba(255,255,255,0.07); position: relative; transition: background 0.25s; }
+    .journey-step:hover { background: rgba(45,212,191,0.04); }
+    .journey-step:nth-child(3n) { border-right: none; }
+    .journey-step:nth-child(n+4) { border-bottom: none; }
+    .js-num { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 2.8rem; color: rgba(45,212,191,0.12); line-height: 1; margin-bottom: 14px; }
+    .js-icon { font-size: 1.8rem; margin-bottom: 14px; }
+    .js-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: #fff; margin-bottom: 10px; }
+    .js-desc { font-size: 0.88rem; color: var(--soft); line-height: 1.65; }
+    @media (max-width: 768px) {
+      .journey-grid { grid-template-columns: 1fr; border-radius: 12px; }
+      .journey-step { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
+      .journey-step:last-child { border-bottom: none; }
+      .journey-inner { padding: 0 20px; }
+    }
+
     /* ── CTA ── */
     .cta-section { text-align: center; padding: 96px 48px; background: var(--s2); }
     .cta-section h2 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(1.8rem, 4vw, 2.8rem); margin-bottom: 16px; }
@@ -207,6 +286,257 @@
     .btn-primary:hover { background: var(--teal2); }
     .btn-secondary { padding: 16px 36px; background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.95rem; text-decoration: none; transition: border-color 0.2s; }
     .btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* ── MAP SECTION ── */
+    .map-section { background: var(--dark); padding: 80px 0 0; }
+    .map-inner   { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+    .realm-filter { display: flex; gap: 10px; margin: 32px 0 20px; flex-wrap: wrap; }
+    .realm-btn {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.8rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 9px 22px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);
+      background: transparent; color: var(--soft); cursor: pointer; transition: all 0.2s;
+    }
+    .realm-btn:hover                    { border-color: var(--teal); color: var(--teal); }
+    .realm-btn.active                   { background: var(--teal); color: #0a1628; border-color: var(--teal); }
+    .realm-btn.active[data-realm=land]  { background: #d97706; border-color: #d97706; }
+    .realm-btn.active[data-realm=ocean] { background: #0ea5e9; border-color: #0ea5e9; }
+    .realm-btn.active[data-realm=sky]   { background: #8b5cf6; border-color: #8b5cf6; }
+    #world-map { height: 560px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+    /* Leaflet overrides */
+    .leaflet-container { background: #0a1628; }
+    .map-tooltip { background: #0f172a; border: 1px solid rgba(45,212,191,0.4); color: #f1f5f9; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.05em; padding: 5px 10px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+    .map-tooltip::before { display: none; }
+    .leaflet-control-attribution { background: rgba(10,22,40,0.8) !important; color: #475569 !important; font-size: 10px; }
+    .leaflet-control-attribution a { color: #64748b !important; }
+    /* Info panel */
+    .map-panel {
+      background: var(--s2); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; margin-top: 16px; padding: 28px 32px;
+      display: none; animation: slideUp 0.3s ease;
+    }
+    .map-panel.open { display: block; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .panel-region  { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.3rem; color: #fff; margin-bottom: 10px; }
+    .panel-badges  { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .panel-content { font-size: 0.9rem; color: var(--soft); line-height: 1.8; }
+    .panel-content p { margin-bottom: 12px; }
+    .panel-content p:last-child { margin-bottom: 0; }
+    .panel-close { float: right; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.2rem; margin-top: -4px; }
+
+    /* ── PLANNING TOGETHER ── */
+    .planning-section { background: var(--dark); padding: 96px 0; }
+    .planning-inner { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+    .planning-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: end; margin-bottom: 64px; }
+    .planning-intro .lead { max-width: none; }
+    .planning-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .role-card {
+      background: var(--s2); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 32px 28px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .role-card:hover { border-color: rgba(45,212,191,0.3); transform: translateY(-4px); }
+    .role-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .role-card.you-card::before    { background: var(--teal); }
+    .role-card.planner-card::before { background: #a78bfa; }
+    .role-card.group-card::before  { background: #fb923c; }
+    .role-who {
+      font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 0.65rem;
+      letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 16px;
+      display: inline-block; padding: 4px 12px; border-radius: 20px;
+    }
+    .you-card    .role-who { background: rgba(45,212,191,0.15);  color: var(--teal); }
+    .planner-card .role-who { background: rgba(167,139,250,0.15); color: #a78bfa; }
+    .group-card  .role-who { background: rgba(251,146,60,0.15);  color: #fb923c; }
+    .role-icon { font-size: 2rem; margin-bottom: 14px; display: block; }
+    .role-card h3 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.05rem; margin-bottom: 12px; }
+    .role-card p { font-size: 0.88rem; color: var(--soft); line-height: 1.75; margin-bottom: 20px; }
+    .role-bullets { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .role-bullets li {
+      font-size: 0.82rem; color: var(--soft); padding-left: 18px; position: relative; line-height: 1.5;
+    }
+    .role-bullets li::before {
+      content: '→'; position: absolute; left: 0;
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem;
+    }
+    .you-card    .role-bullets li::before { color: var(--teal); }
+    .planner-card .role-bullets li::before { color: #a78bfa; }
+    .group-card  .role-bullets li::before { color: #fb923c; }
+    .planning-connect {
+      margin-top: 40px; text-align: center;
+      border: 1px solid rgba(45,212,191,0.2); border-radius: 12px;
+      padding: 22px 32px; background: rgba(45,212,191,0.04);
+      display: flex; align-items: center; justify-content: center; gap: 20px;
+    }
+    .connect-icon { font-size: 1.4rem; }
+    .connect-text { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; color: var(--teal); letter-spacing: 0.03em; }
+    .connect-sub  { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── ITINERARY DEMO ── */
+    .demo-section { background: var(--navy); padding: 96px 0; }
+    .demo-inner { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+    .demo-layout { display: grid; grid-template-columns: 1fr 380px; gap: 32px; align-items: start; margin-top: 56px; }
+    /* Day panel */
+    .day-panel { background: var(--s2); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; }
+    .day-header { background: var(--s3); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .day-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.88rem; }
+    .day-badge { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(217,119,6,0.15); color: #fbbf24; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(217,119,6,0.3); }
+    .day-items { padding: 0; }
+    .day-item { display: flex; gap: 20px; padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .day-item:last-child { border-bottom: none; }
+    .day-time { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.68rem; color: var(--muted); min-width: 52px; padding-top: 3px; letter-spacing: 0.03em; }
+    .day-activity { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; margin-bottom: 5px; }
+    .day-desc { font-size: 0.82rem; color: var(--soft); line-height: 1.65; }
+    .sighting-pills { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+    .sighting-pill { display: flex; align-items: center; gap: 6px; background: var(--s3); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 4px 11px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.68rem; color: var(--soft); }
+    .pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .pill-wish  { border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.08); color: #4ade80; }
+    /* Sidebar */
+    .collab-sidebar { display: flex; flex-direction: column; gap: 14px; }
+    .collab-card { background: var(--s2); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px 20px; }
+    .collab-from { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+    .from-planner { color: #a78bfa; }
+    .from-cotraveler { color: #fb923c; }
+    .from-app { color: var(--teal); }
+    .collab-text { font-size: 0.84rem; color: var(--soft); line-height: 1.72; font-style: italic; }
+    .collab-meta { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.68rem; color: var(--muted); margin-top: 10px; display: flex; align-items: center; gap: 7px; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; flex-shrink: 0; animation: livePulse 1.8s ease-in-out infinite; }
+    @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.65)} }
+    /* Scroll animation */
+    .demo-reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .demo-reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (max-width: 768px) {
+      .demo-layout { grid-template-columns: 1fr; }
+      .demo-inner { padding: 0 20px; }
+    }
+
+    /* ── VALUE SECTION ── */
+    .value-section { background: var(--dark); padding: 96px 0; }
+    .value-inner { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+    .value-intro { max-width: 680px; margin-bottom: 56px; }
+    .value-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: start; }
+    .value-card {
+      background: var(--s2); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 32px 28px;
+    }
+    .value-card.tbt-card {
+      background: var(--s3); border-color: rgba(45,212,191,0.35);
+      transform: translateY(-12px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .value-price {
+      font-family: 'Montserrat', sans-serif; font-weight: 900;
+      font-size: 2rem; color: var(--soft); line-height: 1;
+    }
+    .value-per { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 18px; margin-top: 4px; }
+    .value-eyebrow { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal); background: rgba(45,212,191,0.12); border: 1px solid rgba(45,212,191,0.25); padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 18px; }
+    .value-card h3 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.05rem; margin-bottom: 12px; }
+    .value-card p { font-size: 0.85rem; color: var(--soft); line-height: 1.75; margin-bottom: 22px; }
+    .value-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .value-list li { font-size: 0.82rem; line-height: 1.45; padding-left: 20px; position: relative; }
+    .value-list li::before { position: absolute; left: 0; font-weight: 700; font-size: 0.78rem; }
+    .value-list li.pro { color: var(--soft); }
+    .value-list li.pro::before { content: '✓'; color: #4ade80; }
+    .value-list li.con { color: var(--muted); }
+    .value-list li.con::before { content: '✕'; color: #f87171; }
+    .value-card .value-cta {
+      display: inline-block; margin-top: 24px; padding: 11px 24px;
+      background: var(--teal); color: #0a1628; border-radius: 8px;
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.85rem;
+      text-decoration: none; transition: background 0.2s;
+    }
+    .value-card .value-cta:hover { background: var(--teal2); }
+    .value-divider {
+      display: flex; align-items: center; gap: 16px; margin: 0 -4px;
+      color: var(--muted); font-family: 'Montserrat', sans-serif;
+      font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .value-divider::before, .value-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
+    @media (max-width: 768px) {
+      .value-grid { grid-template-columns: 1fr; }
+      .value-card.tbt-card { transform: none; }
+      .value-inner { padding: 0 20px; }
+    }
+
+    /* ── PARK SPECIES PREVIEW ── */
+    .parks-section { background: var(--navy); padding: 96px 0; }
+    .parks-inner { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+    .parks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 52px; }
+    .park-card { background: var(--s2); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; }
+    .park-header { padding: 20px 22px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .park-realm-badge { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; display: inline-block; margin-bottom: 10px; }
+    .park-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: #fff; margin-bottom: 3px; }
+    .park-loc { font-size: 0.78rem; color: var(--muted); }
+    .park-species { padding: 14px 22px; display: flex; flex-direction: column; gap: 10px; }
+    .ps-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; background: var(--s3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+    .ps-left { display: flex; align-items: center; gap: 10px; }
+    .ps-emoji { font-size: 1.1rem; flex-shrink: 0; }
+    .ps-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; color: var(--text); }
+    .ps-type { font-size: 0.68rem; color: var(--muted); margin-top: 1px; }
+    .ps-status { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.6rem; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; }
+    .ps-EN { background: rgba(248,113,113,0.15); color: #f87171; }
+    .ps-VU { background: rgba(251,146,60,0.15); color: #fb923c; }
+    .ps-NT { background: rgba(250,204,21,0.15); color: #facc15; }
+    .ps-LC { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .park-more { margin: 0 22px 20px; padding: 10px 14px; background: rgba(45,212,191,0.05); border: 1px dashed rgba(45,212,191,0.2); border-radius: 8px; text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; color: var(--muted); }
+    .park-more span { color: var(--teal); }
+    .parks-cta { text-align: center; margin-top: 48px; }
+    .parks-cta p { color: var(--soft); font-size: 0.92rem; margin-bottom: 20px; }
+    @media (max-width: 768px) {
+      .parks-grid { grid-template-columns: 1fr; }
+      .parks-inner { padding: 0 20px; }
+    }
+
+    /* ── JOURNEY BOOK ── */
+    .book-section { background: var(--s2); padding: 96px 0; }
+    .book-inner { max-width: 1200px; margin: 0 auto; padding: 0 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+    .book-visual { display: flex; justify-content: center; align-items: center; }
+    .book-mockup {
+      position: relative; width: 280px;
+    }
+    .book-spine {
+      position: absolute; left: 0; top: 8px; bottom: 8px; width: 22px;
+      background: linear-gradient(to right, #0a1628, #1e293b);
+      border-radius: 3px 0 0 3px;
+      border: 1px solid rgba(45,212,191,0.2);
+    }
+    .book-cover {
+      margin-left: 18px;
+      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid rgba(45,212,191,0.25);
+      border-radius: 0 10px 10px 0;
+      padding: 28px 28px 24px;
+      box-shadow: 8px 12px 40px rgba(0,0,0,0.5), 2px 4px 12px rgba(0,0,0,0.3);
+      min-height: 360px; display: flex; flex-direction: column;
+    }
+    .book-cover-tag { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); margin-bottom: 16px; }
+    .book-cover-title { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.2rem; color: #fff; line-height: 1.25; margin-bottom: 6px; }
+    .book-cover-sub { font-family: 'Lora', serif; font-style: italic; font-size: 0.78rem; color: var(--muted); margin-bottom: 20px; }
+    .book-cover-divider { height: 1px; background: rgba(45,212,191,0.2); margin-bottom: 20px; }
+    .book-cover-rows { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .book-cover-row { display: flex; gap: 10px; }
+    .book-img-block { border-radius: 6px; background: var(--s3); flex: 1; }
+    .book-img-tall { height: 80px; }
+    .book-img-wide { height: 52px; }
+    .book-img-block.accent { background: linear-gradient(135deg, rgba(45,212,191,0.15), rgba(45,212,191,0.05)); border: 1px solid rgba(45,212,191,0.2); }
+    .book-cover-footer { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; }
+    .book-cover-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    .book-cover-badge { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(45,212,191,0.12); border: 1px solid rgba(45,212,191,0.3); color: var(--teal); padding: 3px 9px; border-radius: 10px; }
+    /* Shadow page edges */
+    .book-pages { position: absolute; right: -4px; top: 8px; bottom: 8px; width: 6px; background: repeating-linear-gradient(to right, #1e293b, #263348 1px, #1e293b 1px); border-radius: 0 3px 3px 0; opacity: 0.6; }
+    /* Text column */
+    .book-features { display: flex; flex-direction: column; gap: 22px; margin-top: 36px; }
+    .book-feature { display: flex; gap: 16px; align-items: flex-start; }
+    .book-feature-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+    .book-feature h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.92rem; margin-bottom: 4px; }
+    .book-feature p { font-size: 0.85rem; color: var(--soft); line-height: 1.7; }
+    @media (max-width: 768px) {
+      .book-inner { grid-template-columns: 1fr; gap: 48px; padding: 0 20px; }
+      .book-visual { order: -1; }
+    }
 
     /* ── FOOTER ── */
     footer { background: var(--dark); padding: 40px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: gap; }
@@ -218,12 +548,18 @@
     @media (max-width: 768px) {
       nav { padding: 16px 20px; }
       .nav-links { display: none; }
-      .hero { grid-template-columns: 1fr; grid-template-rows: repeat(3, 1fr); height: auto; min-height: 100vh; }
+      .hero { height: 100svh; min-height: 500px; }
       .realm-name { font-size: 1.4rem; }
-      .hero-headline { display: none; }
+      .hero-headline { bottom: 80px; left: 20px; }
+      .hero-headline p { display: none; }
+      .realm-label { top: 80px; left: 20px; }
+      .slide-schedule { display: none; }
       section { padding: 64px 20px; }
       .why-grid, .network-inner, .about-inner { grid-template-columns: 1fr; gap: 40px; }
       .services-grid { grid-template-columns: 1fr; }
+      .planning-intro { grid-template-columns: 1fr; gap: 32px; }
+      .planning-roles { grid-template-columns: 1fr; }
+      .planning-inner { padding: 0 20px; }
       .network-stats { grid-template-columns: 1fr 1fr; }
       footer { flex-direction: column; gap: 12px; text-align: center; padding: 32px 20px; }
     }
@@ -238,58 +574,83 @@
     <a href="#realms">The Realms</a>
     <a href="#network">The Network</a>
     <a href="#services">Services</a>
+    <a href="#explore">Explore</a>
     <a href="#about">About</a>
     <a href="#cta" class="nav-cta">Get Started</a>
   </div>
 </nav>
 
-<!-- HERO TRIPTYCH -->
-<div class="hero">
-  <!-- Land -->
-  <div class="realm-panel">
+<!-- HERO CAROUSEL -->
+<div class="hero" id="hero-carousel">
+
+  <!-- Slide 1 — Land -->
+  <div class="slide active" id="slide-0">
     <img src="../images/realms/Land.jpg" alt="Leopard — Land Realm">
-    <div class="realm-divider left"></div>
     <div class="realm-label">
       <span class="realm-tag land-tag">Land Realm</span>
       <span class="realm-name">Safari & Wildlife</span>
       <span class="realm-sub">Africa's great wilderness</span>
     </div>
-    <div class="realm-detail">
-      Big cats, primates, elephants, and the drama of the African bush. Track the Big Five, witness the great migration, sit ten feet from a mountain gorilla.
+    <div class="slide-schedule">
+      <div class="ss-head">Day 3 · Masai Mara<div class="ss-loc">Kenya, East Africa</div></div>
+      <div class="ss-items">
+        <div class="ss-item"><span class="ss-time">6:00am</span><span class="ss-act">Morning game drive — Mara River</span></div>
+        <div class="ss-item"><span class="ss-time">12:30pm</span><span class="ss-act">Lunch &amp; rest at camp</span></div>
+        <div class="ss-item"><span class="ss-time">4:00pm</span><span class="ss-act">Afternoon drive — Bila Shaka</span></div>
+        <div class="ss-item"><span class="ss-time">7:30pm</span><span class="ss-act">Dinner &amp; sighting debrief</span></div>
+      </div>
     </div>
   </div>
 
-  <!-- Ocean -->
-  <div class="realm-panel">
+  <!-- Slide 2 — Ocean -->
+  <div class="slide" id="slide-1">
     <img src="../images/realms/Ocean.jpg" alt="Whale Shark — Ocean Realm" style="object-position: center 30%;">
     <div class="realm-label">
       <span class="realm-tag ocean-tag">Ocean Realm</span>
       <span class="realm-name">Underwater World</span>
-      <span class="realm-sub">From whale sharks to coral reefs</span>
+      <span class="realm-sub">From reef sharks to coral gardens</span>
     </div>
-    <div class="realm-detail">
-      Manta rays, whale sharks, sea turtles, and the impossible colors of a coral reef. The ocean holds the largest wildlife encounters on earth.
+    <div class="slide-schedule">
+      <div class="ss-head">Day 4 · Jean-Michel Cousteau Resort<div class="ss-loc">Savusavu, Fiji</div></div>
+      <div class="ss-items">
+        <div class="ss-item"><span class="ss-time">7:15am</span><span class="ss-act">Dive 1 — Dreamhouse (pelagics)</span></div>
+        <div class="ss-item"><span class="ss-time">1:00pm</span><span class="ss-act">Dive 2 — Coral Corner</span></div>
+        <div class="ss-item"><span class="ss-time">4:00pm</span><span class="ss-act">Dive 3 — Annie's Bommie</span></div>
+        <div class="ss-item"><span class="ss-time">6:30pm</span><span class="ss-act">Species log &amp; sunset drinks</span></div>
+      </div>
     </div>
   </div>
 
-  <!-- Sky -->
-  <div class="realm-panel">
+  <!-- Slide 3 — Sky -->
+  <div class="slide" id="slide-2">
     <img src="../images/realms/Sky.png" alt="Lilac-Breasted Roller — Sky Realm">
-    <div class="realm-divider right"></div>
     <div class="realm-label">
       <span class="realm-tag sky-tag">Sky Realm</span>
       <span class="realm-name">Birds in Flight</span>
       <span class="realm-sub">5,000 species worth finding</span>
     </div>
-    <div class="realm-detail">
-      Shoebills, fish eagles, rollers, flamingos, and raptors on the wing. Birds are everywhere — once you start looking you can't stop.
+    <div class="slide-schedule">
+      <div class="ss-head">Day 2 · Mindo Cloud Forest<div class="ss-loc">Ecuador, Andes</div></div>
+      <div class="ss-items">
+        <div class="ss-item"><span class="ss-time">5:30am</span><span class="ss-act">Dawn birding walk — valley trail</span></div>
+        <div class="ss-item"><span class="ss-time">8:30am</span><span class="ss-act">Breakfast &amp; species log</span></div>
+        <div class="ss-item"><span class="ss-time">9:30am</span><span class="ss-act">Hummingbird feeders &amp; tanagers</span></div>
+        <div class="ss-item"><span class="ss-time">4:00pm</span><span class="ss-act">Evening antpitta station</span></div>
+      </div>
     </div>
   </div>
 
-  <!-- Center headline -->
+  <!-- Center headline (always visible) -->
   <div class="hero-headline">
     <h1>The world's wildlife<br>across <span>three realms</span></h1>
     <p>Animals are the most memorable moment of every trip.<br>So why isn't your whole trip built around them?</p>
+  </div>
+
+  <!-- Dot indicators -->
+  <div class="slide-dots">
+    <button class="slide-dot active" onclick="goSlide(0)" aria-label="Land"></button>
+    <button class="slide-dot"        onclick="goSlide(1)" aria-label="Ocean"></button>
+    <button class="slide-dot"        onclick="goSlide(2)" aria-label="Sky"></button>
   </div>
 
   <div class="scroll-cue">
@@ -298,144 +659,921 @@
   </div>
 </div>
 
-<!-- WHY SECTION -->
-<section id="realms">
-  <div class="section-tag">The philosophy</div>
-  <h2>Wildlife travel done seriously</h2>
-  <div class="why-grid">
-    <div class="why-quote">
-      "Every traveler I know remembers the animals. The elephant at dusk. The leopard in the tree. The whale shark emerging from the blue. Why not make that the whole point?"
-    </div>
-    <div class="why-points">
-      <div class="why-point">
-        <div class="why-icon">🎯</div>
-        <div>
-          <h3>Animal-first itineraries</h3>
-          <p>We build your trip around the wildlife calendar — migrations, breeding seasons, optimal sighting windows — not around hotel availability.</p>
-        </div>
-      </div>
-      <div class="why-point">
-        <div class="why-icon">🌍</div>
-        <div>
-          <h3>All three realms</h3>
-          <p>Most travel companies specialise in one. We work across land, ocean, and sky — and the best trips combine all three.</p>
-        </div>
-      </div>
-      <div class="why-point">
-        <div class="why-icon">📱</div>
-        <div>
-          <h3>Technology that travels with you</h3>
-          <p>Purpose-built wildlife tracking software so every sighting is captured, every species identified, every moment remembered.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+<script>
+  (function() {
+    var current = 0;
+    var total = 3;
+    var timer;
+    function goSlide(n) {
+      document.getElementById('slide-' + current).classList.remove('active');
+      document.querySelectorAll('.slide-dot')[current].classList.remove('active');
+      current = (n + total) % total;
+      document.getElementById('slide-' + current).classList.add('active');
+      document.querySelectorAll('.slide-dot')[current].classList.add('active');
+      clearInterval(timer);
+      timer = setInterval(function(){ goSlide(current + 1); }, 5000);
+    }
+    window.goSlide = goSlide;
+    timer = setInterval(function(){ goSlide(current + 1); }, 5000);
+  })();
+</script>
 
-<!-- NETWORK SECTION -->
-<div class="network-section" id="network">
-  <div class="network-inner">
-    <div>
-      <div class="section-tag">The community</div>
-      <h2>A global network of wildlife travelers</h2>
-      <p class="lead">Every sighting logged by every traveler builds a living map of the world's wildlife. See where the leopards are showing right now. Know which reef is peaking. Find the birding hotspot no guidebook lists.</p>
-      <div class="network-stats">
-        <div class="stat-card">
-          <div class="stat-num">3</div>
-          <div class="stat-label">Realms covered — land, ocean, sky</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num">24</div>
-          <div class="stat-label">Wildlife regions worldwide</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num">100s</div>
-          <div class="stat-label">Species tracked and identified</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num">Live</div>
-          <div class="stat-label">Real sightings from real travelers</div>
-        </div>
-      </div>
+<!-- JOURNEY FLOW -->
+<div class="journey-section" id="journey">
+  <div class="journey-inner">
+    <div class="journey-intro">
+      <div class="section-tag">How it works</div>
+      <h2>From first wonder to lasting memory</h2>
+      <p class="lead">Three Realms is built around the full arc of a wildlife trip — from the moment you start dreaming to the day you open your Journey Book and relive it all.</p>
     </div>
-    <div class="network-visual">
-      <div class="section-tag" style="margin-bottom:20px;">Recent sightings</div>
-      <div class="sighting-mock">
-        <div class="sighting-row">
-          <div class="sighting-icon">🦁</div>
-          <div class="sighting-info">
-            <div class="sighting-name">African Lion</div>
-            <div class="sighting-meta">Masai Mara, Kenya · 2 hours ago</div>
-          </div>
-          <div class="sighting-dot"></div>
-        </div>
-        <div class="sighting-row">
-          <div class="sighting-icon">🦈</div>
-          <div class="sighting-info">
-            <div class="sighting-name">Whale Shark</div>
-            <div class="sighting-meta">Ningaloo Reef, Australia · yesterday</div>
-          </div>
-          <div class="sighting-dot"></div>
-        </div>
-        <div class="sighting-row">
-          <div class="sighting-icon">🦍</div>
-          <div class="sighting-info">
-            <div class="sighting-name">Mountain Gorilla</div>
-            <div class="sighting-meta">Bwindi, Uganda · 3 days ago</div>
-          </div>
-          <div class="sighting-dot"></div>
-        </div>
-        <div class="sighting-row">
-          <div class="sighting-icon">🐋</div>
-          <div class="sighting-info">
-            <div class="sighting-name">Humpback Whale</div>
-            <div class="sighting-meta">Tonga · this week</div>
-          </div>
-          <div class="sighting-dot"></div>
-        </div>
-        <div class="sighting-row">
-          <div class="sighting-icon">🐆</div>
-          <div class="sighting-info">
-            <div class="sighting-name">Leopard</div>
-            <div class="sighting-meta">Volcanoes NP, Rwanda · today</div>
-          </div>
-          <div class="sighting-dot"></div>
-        </div>
+    <div class="journey-grid">
+
+      <div class="journey-step">
+        <div class="js-num">01</div>
+        <div class="js-icon">🔍</div>
+        <h3 class="js-title">Discover</h3>
+        <p class="js-desc">Explore 32 wildlife regions across land, ocean, and sky. Browse species by park, build your wish-list, and know exactly what's waiting before you arrive.</p>
       </div>
+
+      <div class="journey-step">
+        <div class="js-num">02</div>
+        <div class="js-icon">📋</div>
+        <h3 class="js-title">Plan</h3>
+        <p class="js-desc">Build a day-by-day itinerary with expert wildlife timing notes — right park, right position, right time of day for each species on your list.</p>
+      </div>
+
+      <div class="journey-step">
+        <div class="js-num">03</div>
+        <div class="js-icon">👥</div>
+        <h3 class="js-title">Connect</h3>
+        <p class="js-desc">Bring in your travel planner and co-travelers. Everyone sees the same trip, shares the same species targets, and stays aligned — before and during the journey.</p>
+      </div>
+
+      <div class="journey-step">
+        <div class="js-num">04</div>
+        <div class="js-icon">📍</div>
+        <h3 class="js-title">Experience</h3>
+        <p class="js-desc">Log sightings, notes, and photos in the field. Your planner sees every update live. Every encounter is captured the moment it happens.</p>
+      </div>
+
+      <div class="journey-step">
+        <div class="js-num">05</div>
+        <div class="js-icon">🧠</div>
+        <h3 class="js-title">Understand</h3>
+        <p class="js-desc">Go deeper on every animal you encounter — behavior, conservation status, the science behind what you're seeing. Wildlife travel becomes transformational travel.</p>
+      </div>
+
+      <div class="journey-step">
+        <div class="js-num">06</div>
+        <div class="js-icon">📖</div>
+        <h3 class="js-title">Remember</h3>
+        <p class="js-desc">Your Journey Book captures it all — sightings, photos, notes, the full story — printed and delivered as a keepsake you'll return to for the rest of your life.</p>
+      </div>
+
     </div>
   </div>
 </div>
 
-<!-- SERVICES -->
-<section id="services">
-  <div class="section-tag">What we offer</div>
-  <h2>Three ways to travel deeper</h2>
-  <p class="lead">Whether you want the software, the coaching, or to travel with us — we meet you where you are.</p>
-  <div class="services-grid">
-    <div class="service-card">
-      <div class="service-icon">📱</div>
-      <div class="service-tag">Software</div>
-      <h3>Wildlife Tracker</h3>
-      <p>The only travel app built specifically for wildlife travelers. Track sightings, identify species, log locations, and build a personal record of every animal encounter — across all three realms.</p>
-      <p style="font-size:0.82rem;color:var(--muted);margin-top:8px;">Works offline in the bush. Syncs when you reconnect.</p>
-      <a href="#cta" class="btn">Learn more →</a>
+<!-- PARK SPECIES PREVIEW -->
+<div class="parks-section" id="parks">
+  <div class="parks-inner">
+    <div style="text-align:center;">
+      <div class="section-tag">Wildlife by park</div>
+      <h2>Know exactly what's waiting for you</h2>
+      <p class="lead" style="max-width:620px;margin:14px auto 0;">Every national park and marine reserve in our network has a curated species list — with conservation status, best sighting times, and the behavioral details that make encounters unforgettable.</p>
     </div>
-    <div class="service-card">
-      <div class="service-icon">🧭</div>
-      <div class="service-tag">Coaching</div>
-      <h3>Travel Coaching</h3>
-      <p>One-on-one guidance to plan and execute the wildlife trip you've always imagined. From choosing the right park at the right time, to knowing exactly where to position yourself for the best sighting.</p>
-      <a href="#cta" class="btn">Book a call →</a>
+
+    <div class="parks-grid">
+
+      <!-- Land — Bwindi -->
+      <div class="park-card">
+        <div class="park-header">
+          <div class="park-realm-badge" style="background:rgba(217,119,6,0.15);color:#d97706;">🌿 Land Realm</div>
+          <div class="park-name">Bwindi Impenetrable Forest</div>
+          <div class="park-loc">Uganda · East Africa</div>
+        </div>
+        <div class="park-species">
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦍</span>
+              <div>
+                <div class="ps-name">Mountain Gorilla</div>
+                <div class="ps-type">Great ape · Ground-dwelling</div>
+              </div>
+            </div>
+            <span class="ps-status ps-EN">EN</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐒</span>
+              <div>
+                <div class="ps-name">Chimpanzee</div>
+                <div class="ps-type">Great ape · Forest canopy</div>
+              </div>
+            </div>
+            <span class="ps-status ps-EN">EN</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐵</span>
+              <div>
+                <div class="ps-name">Golden Monkey</div>
+                <div class="ps-type">Cercopithecidae · Bamboo forest</div>
+              </div>
+            </div>
+            <span class="ps-status ps-VU">VU</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦜</span>
+              <div>
+                <div class="ps-name">African Green Broadbill</div>
+                <div class="ps-type">Passerine · Afromontane endemic</div>
+              </div>
+            </div>
+            <span class="ps-status ps-VU">VU</span>
+          </div>
+        </div>
+        <div class="park-more">+ <span>47 more species</span> when you sign up →</div>
+      </div>
+
+      <!-- Ocean — Jean-Michel Cousteau Resort, Fiji -->
+      <div class="park-card">
+        <div class="park-header">
+          <div class="park-realm-badge" style="background:rgba(14,165,233,0.15);color:#0ea5e9;">🌊 Ocean Realm</div>
+          <div class="park-name">Jean-Michel Cousteau Resort</div>
+          <div class="park-loc">Savusavu, Fiji · Pacific</div>
+        </div>
+        <div class="park-species">
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦈</span>
+              <div>
+                <div class="ps-name">Grey Reef Shark</div>
+                <div class="ps-type">Elasmobranch · Reef-associated</div>
+              </div>
+            </div>
+            <span class="ps-status ps-NT">NT</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐠</span>
+              <div>
+                <div class="ps-name">Bumphead Parrotfish</div>
+                <div class="ps-type">Scaridae · Coral-grazer</div>
+              </div>
+            </div>
+            <span class="ps-status ps-VU">VU</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐢</span>
+              <div>
+                <div class="ps-name">Green Sea Turtle</div>
+                <div class="ps-type">Cheloniidae · Nesting beaches</div>
+              </div>
+            </div>
+            <span class="ps-status ps-EN">EN</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦑</span>
+              <div>
+                <div class="ps-name">Reef Manta Ray</div>
+                <div class="ps-type">Mobulidae · Pelagic filter-feeder</div>
+              </div>
+            </div>
+            <span class="ps-status ps-VU">VU</span>
+          </div>
+        </div>
+        <div class="park-more">+ <span>38 more species</span> when you sign up →</div>
+      </div>
+
+      <!-- Sky — Mindo Cloud Forest -->
+      <div class="park-card">
+        <div class="park-header">
+          <div class="park-realm-badge" style="background:rgba(139,92,246,0.15);color:#8b5cf6;">🐦 Sky Realm</div>
+          <div class="park-name">Mindo Cloud Forest</div>
+          <div class="park-loc">Ecuador · Andes</div>
+        </div>
+        <div class="park-species">
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦜</span>
+              <div>
+                <div class="ps-name">Resplendent Quetzal</div>
+                <div class="ps-type">Trogonidae · Cloud forest canopy</div>
+              </div>
+            </div>
+            <span class="ps-status ps-NT">NT</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐦</span>
+              <div>
+                <div class="ps-name">Booted Racket-tail</div>
+                <div class="ps-type">Hummingbird · Understory</div>
+              </div>
+            </div>
+            <span class="ps-status ps-LC">LC</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦅</span>
+              <div>
+                <div class="ps-name">Plate-billed Mountain Toucan</div>
+                <div class="ps-type">Ramphastidae · Montane forest</div>
+              </div>
+            </div>
+            <span class="ps-status ps-LC">LC</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐓</span>
+              <div>
+                <div class="ps-name">Andean Cock-of-the-rock</div>
+                <div class="ps-type">Cotingidae · Lek displayer</div>
+              </div>
+            </div>
+            <span class="ps-status ps-LC">LC</span>
+          </div>
+        </div>
+        <div class="park-more">+ <span>312 more species</span> when you sign up →</div>
+      </div>
+
     </div>
-    <div class="service-card">
-      <div class="service-icon">🌍</div>
-      <div class="service-tag">Tours</div>
-      <h3>Guided Expeditions</h3>
-      <p>Travel with an expert who has done it all — gorilla trekking in Uganda, whale sharks in the Galápagos, big cats across East Africa. Small groups, serious wildlife focus.</p>
-      <a href="#cta" class="btn">See upcoming trips →</a>
+
+    <div class="parks-cta">
+      <p>Species lists, sighting times, and behavioral notes across all 32 wildlife regions — available when you sign up.</p>
+      <a href="portal.html" class="hero-cta" style="display:inline-block;">Explore the full database →</a>
     </div>
   </div>
-</section>
+</div>
+
+<!-- ITINERARY DEMO -->
+<div class="demo-section" id="demo">
+  <div class="demo-inner">
+    <div class="section-tag">See it in action</div>
+    <h2>A day in the field</h2>
+    <p class="lead" style="max-width:640px;margin-top:14px;">This is what a trip looks like inside the app — your planner's expert notes, your co-traveler's live sightings, and your personal wish-list all updating together in real time.</p>
+
+    <div class="demo-tabs" style="display:flex;gap:10px;margin:36px 0 28px;flex-wrap:wrap;">
+      <button class="realm-btn active" data-realm="land"  onclick="showRealmDemo('land')">🌿 Land — Safari</button>
+      <button class="realm-btn"        data-realm="ocean" onclick="showRealmDemo('ocean')">🌊 Ocean — Diving</button>
+      <button class="realm-btn"        data-realm="sky"   onclick="showRealmDemo('sky')">🐦 Sky — Birding</button>
+    </div>
+
+    <!-- ── LAND ── -->
+    <div class="demo-layout demo-day" id="demo-land">
+      <div class="day-panel demo-reveal">
+        <div class="day-header">
+          <span class="day-title">Day 3 &nbsp;·&nbsp; Masai Mara, Kenya</span>
+          <span class="day-badge">🌿 Land Realm</span>
+        </div>
+        <div class="day-items">
+          <div class="day-item">
+            <div class="day-time">5:30am</div>
+            <div>
+              <div class="day-activity">Wake-up call &amp; packed breakfast</div>
+              <div class="day-desc">Early start to catch first light on the plains. Predator activity peaks in the two hours after dawn.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">6:00am</div>
+            <div>
+              <div class="day-activity">Morning game drive — Mara River</div>
+              <div class="day-desc">Head directly to the crossing point. Migration timing is peak — wildebeest are massing on the north bank.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill pill-wish">● African Lion — on your list</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#d97706"></span>Cheetah</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#d97706"></span>Wildebeest</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">12:30pm</div>
+            <div>
+              <div class="day-activity">Lunch &amp; rest at camp</div>
+              <div class="day-desc">Wildlife slows in the midday heat. Review this morning's sightings and update your log before the afternoon drive.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">4:00pm</div>
+            <div>
+              <div class="day-activity">Afternoon drive — Bila Shaka area</div>
+              <div class="day-desc">Best light of the day. Highest cheetah density in the Mara — and where leopard are often found at dusk.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Lilac-breasted Roller</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#d97706"></span>Leopard</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">7:30pm</div>
+            <div>
+              <div class="day-activity">Dinner &amp; debrief at camp</div>
+              <div class="day-desc">Log your sightings. Tomorrow: early departure south toward Amboseli and Kilimanjaro views.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="collab-sidebar">
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-planner">🧭 Your travel planner</div>
+          <div class="collab-text">"Be at the Mara River by 6:30am. Watch for the herd massing on the north bank — when the lead animals start pacing the water's edge, a crossing is usually 20 minutes away. Don't leave early."</div>
+          <div class="collab-meta">Added to Day 3 · 4 days ago</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-cotraveler">👤 Sarah · co-traveler</div>
+          <div class="collab-text">"Cheetah with 3 cubs in the Bila Shaka grass. They were watching the zebra. Just sitting there. Unbelievable."</div>
+          <div class="collab-meta"><span class="live-dot"></span>Logged 7:42am · Morning game drive</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-app">✓ Wildlife tracker</div>
+          <div class="collab-text" style="font-style:normal;color:var(--text);">Cheetah matched your wish-list. <strong>4 of 12 species</strong> sighted so far.</div>
+          <div class="sighting-pills" style="margin-top:12px;">
+            <span class="sighting-pill pill-wish">● Cheetah ✓</span>
+            <span class="sighting-pill pill-wish">● African Lion ✓</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Leopard</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Wild Dog</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OCEAN ── -->
+    <div class="demo-layout demo-day" id="demo-ocean" style="display:none;">
+      <div class="day-panel demo-reveal">
+        <div class="day-header">
+          <span class="day-title">Day 4 &nbsp;·&nbsp; Jean-Michel Cousteau Resort, Fiji</span>
+          <span class="day-badge" style="background:rgba(14,165,233,0.15);color:#38bdf8;border-color:rgba(14,165,233,0.3);">🌊 Ocean Realm</span>
+        </div>
+        <div class="day-items">
+          <div class="day-item">
+            <div class="day-time">6:30am</div>
+            <div>
+              <div class="day-activity">Pre-dive briefing — Dreamhouse conditions</div>
+              <div class="day-desc">Current is running well this morning — ideal for pelagics. Visibility 20m+. The dive team recommends descending along the drop-off edge and holding position mid-water to let the sharks come to you.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">7:15am</div>
+            <div>
+              <div class="day-activity">Dive 1 — Dreamhouse</div>
+              <div class="day-desc">A prime pelagic site on a good current day. Gorgonian sea fans sway along the drop-off edges as barracuda school overhead. Grey reef and white tip sharks patrol the wall while turtles glide through the current below. Recommended for seasoned divers.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill pill-wish">● Grey Reef Shark — on your list</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>White Tip Reef Shark</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Green Sea Turtle</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Barracuda</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">10:00am</div>
+            <div>
+              <div class="day-activity">Surface interval — resort beach</div>
+              <div class="day-desc">Rest and rehydrate. Review this morning's sightings and log species while the detail is fresh. The house reef is walkable from the beach if you want a gentle snorkel.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">1:00pm</div>
+            <div>
+              <div class="day-activity">Dive 2 — Coral Corner</div>
+              <div class="day-desc">Shallower afternoon dive into Fiji's famous soft coral gardens. Staghorn and table corals carpeted in purple, orange, and red. Bumphead parrotfish work the reef — you can hear them crunching coral from 10 metres away.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill pill-wish">● Bumphead Parrotfish — on your list</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Napoleonfish</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Clownfish</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">4:00pm</div>
+            <div>
+              <div class="day-activity">Dive 3 — Annie's Bommie</div>
+              <div class="day-desc">Late afternoon light through the water makes this bommie extraordinary. Mandarin fish emerge at dusk. Sea kraits coil in the coral heads. End the dive as the reef begins its evening shift change.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Mandarin Fish</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Banded Sea Krait</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Lionfish</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">6:30pm</div>
+            <div>
+              <div class="day-activity">Species log &amp; sunset drinks</div>
+              <div class="day-desc">Log all three dives before dinner. Three dives, three completely different ecosystems — all within a few kilometres of the resort.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="collab-sidebar">
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-planner">🧭 Your travel planner</div>
+          <div class="collab-text">"Dreamhouse needs the right current to perform — and today it's perfect. Stay mid-water on the drop-off and let the sharks work around you. Don't chase them. The ones that come closest are the ones you stayed still for."</div>
+          <div class="collab-meta">Added to Day 4 · 5 days ago</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-cotraveler">👤 Emma · family</div>
+          <div class="collab-text">"The bumphead parrotfish at Coral Corner — there must have been 40 of them. You could feel the sound through your whole body. I had no idea fish could be that big."</div>
+          <div class="collab-meta"><span class="live-dot"></span>Logged 1:48pm · Dive 2 Coral Corner</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-app">✓ Wildlife tracker</div>
+          <div class="collab-text" style="font-style:normal;color:var(--text);">Bumphead Parrotfish matched your wish-list. <strong>4 of 10 species</strong> sighted so far.</div>
+          <div class="sighting-pills" style="margin-top:12px;">
+            <span class="sighting-pill pill-wish">● Grey Reef Shark ✓</span>
+            <span class="sighting-pill pill-wish">● Bumphead Parrotfish ✓</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Manta Ray</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Hammerhead</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SKY ── -->
+    <div class="demo-layout demo-day" id="demo-sky" style="display:none;">
+      <div class="day-panel demo-reveal">
+        <div class="day-header">
+          <span class="day-title">Day 2 &nbsp;·&nbsp; Mindo Cloud Forest, Ecuador</span>
+          <span class="day-badge" style="background:rgba(139,92,246,0.15);color:#a78bfa;border-color:rgba(139,92,246,0.3);">🐦 Sky Realm</span>
+        </div>
+        <div class="day-items">
+          <div class="day-item">
+            <div class="day-time">5:00am</div>
+            <div>
+              <div class="day-activity">Pre-dawn departure from lodge</div>
+              <div class="day-desc">In position on the trail before first light. The dawn chorus begins 20 minutes before sunrise — this is when the cloud forest comes alive.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">5:30am</div>
+            <div>
+              <div class="day-activity">Dawn birding walk — Mindo valley trail</div>
+              <div class="day-desc">The fruiting aguacatillo trees at km 3.2 are the quetzal hotspot right now. Move slowly, speak quietly, let the forest settle around you.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill pill-wish">● Resplendent Quetzal — on your list</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Plate-billed Mountain Toucan</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Cock-of-the-rock</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">8:30am</div>
+            <div>
+              <div class="day-activity">Breakfast at lodge &amp; species log</div>
+              <div class="day-desc">Record this morning's sightings while memory is fresh. Cloud forest birds are notoriously difficult to confirm by description alone.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">9:30am</div>
+            <div>
+              <div class="day-activity">Hummingbird feeders &amp; tanager trail</div>
+              <div class="day-desc">The lodge feeders attract up to 14 hummingbird species. The trail behind draws tanagers in extraordinary variety — up to 40 species in a morning.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Violet-tailed Sylph</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Paradise Tanager</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Booted Racket-tail</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">4:00pm</div>
+            <div>
+              <div class="day-activity">Evening walk — antpitta feeding station</div>
+              <div class="day-desc">The lodge's habituated Giant Antpitta comes to the same spot every evening at 4:15. One of the most reliable encounters in birding.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="collab-sidebar">
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-planner">🧭 Your travel planner</div>
+          <div class="collab-text">"The quetzal is most active in the 45 minutes after first light. Your guide knows the exact fruiting tree — trust his positioning. If you don't see it by 7am, move to the ridge trail. A second male has been working the area above the waterfall."</div>
+          <div class="collab-meta">Added to Day 2 · 3 days ago</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-cotraveler">👤 David · co-traveler</div>
+          <div class="collab-text">"QUETZAL. Right at eye level, three metres away, full tail feathers catching the light. I didn't breathe for about three minutes. Best bird of my life."</div>
+          <div class="collab-meta"><span class="live-dot"></span>Logged 6:08am · Dawn valley walk</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-app">✓ Wildlife tracker</div>
+          <div class="collab-text" style="font-style:normal;color:var(--text);">Resplendent Quetzal matched your wish-list. <strong>5 of 15 species</strong> sighted so far.</div>
+          <div class="sighting-pills" style="margin-top:12px;">
+            <span class="sighting-pill pill-wish">● Resplendent Quetzal ✓</span>
+            <span class="sighting-pill pill-wish">● Cock-of-the-rock ✓</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Harpy Eagle</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Andean Condor</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- JOURNEY BOOK -->
+<div class="book-section" id="journey-book">
+  <div class="book-inner">
+
+    <div>
+      <div class="section-tag">Your trip, captured forever</div>
+      <h2>The Journey Book</h2>
+      <p class="lead" style="margin-top:14px;">Every trip you take becomes a beautifully assembled photo book — your photos, your sightings, your itinerary, all in one place. Browse it online the moment you're home. Order a printed copy to keep on your shelf forever.</p>
+
+      <div class="book-features">
+        <div class="book-feature">
+          <div class="book-feature-icon">📸</div>
+          <div>
+            <h3>Built from your trip photos</h3>
+            <p>Upload photos as you go or all at once when you're back. The app assembles them into a beautifully laid-out book alongside your itinerary and sighting log.</p>
+          </div>
+        </div>
+        <div class="book-feature">
+          <div class="book-feature-icon">🦁</div>
+          <div>
+            <h3>Your sightings, not just your photos</h3>
+            <p>Every species you logged on the trip appears in your book — with the date, the location, and the park. Your wildlife record, beautifully presented.</p>
+          </div>
+        </div>
+        <div class="book-feature">
+          <div class="book-feature-icon">📖</div>
+          <div>
+            <h3>Digital first, print on demand</h3>
+            <p>Your Journey Book lives in the app from the moment the trip ends. When you're ready, order a premium printed copy — hardcover, lay-flat binding, ready for the coffee table.</p>
+          </div>
+        </div>
+        <div class="book-feature">
+          <div class="book-feature-icon">👥</div>
+          <div>
+            <h3>Shared with everyone on the trip</h3>
+            <p>Co-travelers see the same book. Everyone's photos can go in. One book tells the whole story — from every angle, every vehicle, every perspective.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-visual">
+      <div class="book-mockup">
+        <div class="book-spine"></div>
+        <div class="book-cover">
+          <div class="book-cover-tag">Journey Book</div>
+          <div class="book-cover-title">East Africa<br>Safari 2025</div>
+          <div class="book-cover-sub">Masai Mara · Amboseli · Samburu</div>
+          <div class="book-cover-divider"></div>
+          <div class="book-cover-rows">
+            <div class="book-cover-row">
+              <div class="book-img-block book-img-tall accent"></div>
+              <div class="book-img-block book-img-tall" style="flex:0.7"></div>
+            </div>
+            <div class="book-cover-row">
+              <div class="book-img-block book-img-wide" style="flex:0.7"></div>
+              <div class="book-img-block book-img-wide accent"></div>
+            </div>
+            <div class="book-cover-row">
+              <div class="book-img-block book-img-tall"></div>
+              <div class="book-img-block book-img-tall accent" style="flex:0.7"></div>
+            </div>
+          </div>
+          <div class="book-cover-footer">
+            <div class="book-cover-label">34 species · 12 days</div>
+            <div class="book-cover-badge">🌿 Land Realm</div>
+          </div>
+        </div>
+        <div class="book-pages"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MAP SECTION -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="map-section" id="explore">
+  <div class="map-inner">
+    <div class="section-tag">Explore the realms</div>
+    <h2><span id="region-count">27</span> wildlife regions. One world.</h2>
+    <p class="lead">Every dot is a place worth going. Filter by realm — then click any region to discover what waits there.</p>
+
+    <div class="realm-filter">
+      <button class="realm-btn active" data-realm="all"   onclick="setRealm('all')">All Regions</button>
+      <button class="realm-btn"        data-realm="land"  onclick="setRealm('land')">🌿 Land</button>
+      <button class="realm-btn"        data-realm="ocean" onclick="setRealm('ocean')">🌊 Ocean</button>
+      <button class="realm-btn"        data-realm="sky"   onclick="setRealm('sky')">🐦 Sky</button>
+    </div>
+
+    <div id="world-map"></div>
+
+    <div class="map-panel" id="map-panel">
+      <button class="panel-close" onclick="closePanel()">✕</button>
+      <div class="panel-region" id="panel-region"></div>
+      <div class="panel-badges" id="panel-badges"></div>
+      <div class="panel-content" id="panel-content"></div>
+    </div>
+  </div>
+  <div style="height:80px;"></div>
+</div>
+
+<script>
+// ── Highlight text lives in Airtable (Animal Regions: Land/Ocean/Sky Description fields) ──
+const _UNUSED = {
+  'East Africa': {
+    land:  'The Serengeti-Mara ecosystem hosts the greatest wildlife spectacle on earth. Two million wildebeest, zebra and gazelle move in an endless circuit — and where the herds go, the predators follow. Lion, leopard, cheetah and wild dog are all within reach on a single day\'s drive.',
+    sky:   'East Africa\'s Rift Valley lakes turn pink with a million flamingos. The acacia savannahs hold an extraordinary density of raptors and storks, while Samburu\'s northern arid zone holds endemic species found nowhere else — Grevy\'s zebra, reticulated giraffe, and the vulturine guineafowl.',
+  },
+  'Gorilla Countries': {
+    land:  'Uganda and Rwanda share more than half the world\'s remaining mountain gorillas. Tracking a habituated family through dense cloud forest is among the most profound wildlife encounters on earth. The same forests hold chimpanzees, golden monkeys, and the elusive L\'Hoest\'s monkey.',
+    sky:   'The Albertine Rift holds more endemic bird species than any other region in Africa — over 40 found nowhere else. Bwindi and Nyungwe are among the continent\'s premier birding destinations, with the African green broadbill, Grauer\'s warbler, and the shoebill waiting for those who look.',
+  },
+  'South Africa': {
+    land:  'Kruger and the Greater Kruger private reserves offer the most reliable Big Five sightings in Africa. The white rhino population here is the world\'s largest, and the predator diversity — lion, leopard, cheetah, wild dog, hyena — is unmatched. Luxury lodges sit inside the wildlife, not beside it.',
+    ocean: 'The South African coast is one of the world\'s great whale watching destinations. Southern right whales calve in the bays of Hermanus from June to November. Great white sharks patrol the cold Atlantic. And the Sardine Run off the Eastern Cape is one of the ocean\'s most dramatic feeding events.',
+    sky:   'The Cape Floral Region is a global biodiversity hotspot with extraordinary endemic birdlife. Hluhluwe and the KwaZulu-Natal wetlands hold southern Africa\'s finest concentrations of waterbirds, and the endangered wattled crane and blue crane both call this region home.',
+  },
+  'Botswana': {
+    land:  'The Okavango Delta is one of the world\'s last great wildlife sanctuaries — a vast inland sea that floods the Kalahari each year, drawing every large mammal in southern Africa. Elephant herds of 100 move through Chobe. Wild dog packs hunt the open floodplains of Linyanti. Botswana has chosen exclusivity over volume, and the wildlife reflects it.',
+    sky:   'The Okavango\'s papyrus channels and floodplains attract an extraordinary diversity of waterbirds — African skimmer, slaty egret, Pel\'s fishing owl, and wattled crane among them. The Makgadikgadi salt pans host flamingo and migrant waders in their millions after rains.',
+  },
+  'Namibia': {
+    land:  'Namibia\'s desert-adapted elephants navigate ancient river corridors in the Kunene. Etosha\'s waterholes concentrate wildlife with extraordinary efficiency — lion, rhino and elephant all visible in an afternoon. And the coastline holds the largest Cape fur seal colony in the world, with brown hyena and black-backed jackal hunting the beach at dawn.',
+    ocean: 'The cold Benguela Current makes Namibia\'s coast one of Africa\'s richest marine environments. Whale watching, dolphin encounters, and the annual sardine migrations draw seabirds in staggering numbers. The skeleton coast is one of earth\'s most dramatic wilderness coastlines.',
+    sky:   'Etosha and the Caprivi Strip hold southern Africa\'s most spectacular concentrations of raptors and waterbirds. The Caprivi in particular — wedged between Angola, Zambia and Botswana — punches far above its size for birding diversity.',
+  },
+  'Madagascar': {
+    land:  'Madagascar split from Africa 160 million years ago and evolved in total isolation — 90% of its wildlife exists nowhere else on earth. Lemurs, chameleons, fossas, and extraordinary insects fill ecosystems that feel genuinely alien. Every national park is a window into a separate evolutionary experiment.',
+    ocean: 'Humpback whales calve in Madagascar\'s sheltered bays from July to September. The coral reefs of the northeast hold spectacular biodiversity, and whale sharks patrol the outer reefs seasonally.',
+    sky:   'Madagascar holds over 100 endemic bird species, including five families found nowhere else. The ground rollers, asities, vangas and couas are all uniquely Malagasy — making it one of the world\'s premier birding destinations for those chasing life list firsts.',
+  },
+  'Ethiopia': {
+    land:  'The Simien Mountains hold the world\'s largest population of gelada baboons — the only grass-grazing primate on earth. Ethiopian wolves, Africa\'s rarest carnivore, hunt the Bale Mountains afroalpine meadows. The Omo Valley\'s national parks hold Africa\'s most intact assemblage of large mammals south of the Sahara.',
+    sky:   'Ethiopia\'s highland endemic birds — the thick-billed raven, blue-winged goose, and wattled ibis — are found nowhere else. The Rift Valley lakes hold vast concentrations of flamingos and pelicans, and the country\'s diversity of habitats produces a spectacular species count for visiting birders.',
+  },
+  'Mozambique': {
+    land:  'Gorongosa National Park is one of Africa\'s great conservation success stories — a park devastated by civil war that has been restored to extraordinary wildlife density in under two decades. Buffalo, lion, elephant, and hippo have all returned in numbers, and the recovery continues.',
+    ocean: 'The Bazaruto Archipelago holds the last viable population of dugongs in the western Indian Ocean. Whale sharks feed in the Quirimbas. Humpback whales pass the coast on their annual migration. And the coral reefs here are among the most intact in Africa — warm, clear water with visibility to match.',
+    sky:   'Gorongosa\'s floodplains attract spectacular concentrations of waterbirds during the rainy season, and the restored woodland habitats have brought back species that disappeared during the conflict years.',
+  },
+  'Indian Tigers & Rhinos': {
+    land:  'India holds the largest remaining population of wild tigers on earth, concentrated in a network of national parks across central and northern India. Ranthambore\'s tigers hunt in the ruins of a 10th-century fort. Kanha\'s meadows are where Jim Corbett wrote. Chitwan in Nepal has the densest concentration of one-horned rhinos anywhere.',
+    sky:   'India\'s tiger reserves hold exceptional birdlife alongside the big mammals. Keoladeo Ghana — formerly Bharatpur — is one of Asia\'s legendary birding wetlands. And the forests of central India hold an extraordinary diversity of raptors, hornbills, and forest birds.',
+  },
+  'Indian Specialty Wildlife': {
+    land:  'Kaziranga holds two-thirds of the world\'s remaining one-horned rhinos and one of India\'s densest tiger populations. Gir in Gujarat protects the last wild Asiatic lions on earth. Hemis in Ladakh is the world\'s best location to track snow leopards in winter.',
+    sky:   'Bharatpur\'s Keoladeo wetland was once considered the finest waterbird sanctuary in Asia. The Sundarbans mangroves hold specialist species found nowhere else. And India\'s extreme diversity of habitats — from the Himalayan treeline to the tropical south — produces an extraordinary national species count.',
+  },
+  'Sri Lanka': {
+    land:  'Sri Lanka has one of the highest leopard densities in the world, concentrated in Yala National Park. Minneriya hosts the annual elephant gathering — hundreds of Asian elephants converging on a single tank as the dry season reduces water availability. Small, compact, and extraordinarily productive for wildlife.',
+    ocean: 'The waters off Mirissa host one of the most reliable blue whale watching experiences in the world. Sperm whales, spinner dolphins, and whale sharks are all encountered regularly. The combination of pelagic megafauna so close to a tropical coast is genuinely rare.',
+    sky:   'Sri Lanka\'s endemic bird list includes 34 species found nowhere else on earth. The island sits on the migratory flyway between Europe and Australia, making it exceptional for passage species as well as residents.',
+  },
+  'Borneo': {
+    land:  'Borneo is the last stronghold of the orangutan — the great ape most closely related to us in expression and personality. The Kinabatangan River corridor holds pygmy elephants, proboscis monkeys, and sun bears in dense riverine forest. Danum Valley is among the most intact primary rainforest remaining in Southeast Asia.',
+    ocean: 'Sipadan Island is consistently rated among the world\'s top five dive sites — a sheer wall dropping into the deep ocean, circled by hawksbill turtles and schooling barracuda. The Celebes Sea surrounding Borneo holds extraordinary marine biodiversity.',
+    sky:   'Borneo holds eight hornbill species, including the spectacular rhinoceros hornbill. The rainforest bird diversity rivals anything on earth — pittas, broadbills, kingfishers, and the bizarre oriental bay owl all find sanctuary in the remaining primary forest.',
+  },
+  'Indonesia': {
+    land:  'Komodo dragons are the largest lizards on earth and exist only on a handful of Indonesian islands. Tangkoko in Sulawesi holds spectral tarsiers — nocturnal primates with eyes larger than their brains. Each Indonesian island has its own suite of endemic species found nowhere else.',
+    ocean: 'Raja Ampat has the highest marine biodiversity ever recorded anywhere on earth — more fish species in a single dive than most reefs hold in total. The manta ray aggregations at Komodo are legendary. Whale sharks patrol the outer reefs of Cendrawasih Bay.',
+    sky:   'New Guinea and the eastern islands hold birds of paradise — among the most extraordinary animals on earth. The Wallacea region produces a remarkable concentration of endemic species, and Indonesia\'s island chain functions as a series of isolated evolutionary laboratories.',
+  },
+  'Galápagos': {
+    land:  'The Galápagos is the only place on earth where wildlife has no evolutionary fear of humans — marine iguanas bask inches from your feet, sea lions sleep on your path. Giant tortoises weighing 250kg wander the highlands. Darwin observed here and nothing has changed.',
+    ocean: 'The convergence of cold and warm currents makes the Galápagos one of the world\'s premier dive destinations. Hammerhead sharks school in the hundreds at Darwin and Wolf islands. Whale sharks pass regularly. Penguins, sea lions and marine iguanas all hunt underwater alongside you.',
+    sky:   'The waved albatross nests only on Española island. Blue-footed, red-footed and Nazca boobies each occupy different islands and niches. The finches that inspired Darwin\'s theory of natural selection are still here, still diverging.',
+  },
+  'Amazon': {
+    land:  'The Amazon holds 10% of all species on earth in a continuous forest the size of a continent. Jaguar, giant river otter, giant anteater, tapir and three species of monkey are all possible in a single week. The flooded varzea forests of Mamiraua host pink dolphins that hunt among the tree trunks.',
+    sky:   'The Amazon basin holds the greatest bird diversity on earth — over 1,300 species. Macaw licks at clay cliffs draw hundreds of scarlet, red-and-green and blue-and-yellow macaws simultaneously. The harpy eagle, largest raptor in the Americas, nests in the emergent canopy.',
+  },
+  'Andes': {
+    land:  'The spectacled bear — South America\'s only bear — roams the cloud forest slopes of Ecuador and Peru. Andean condors thermal over the Colca Canyon with wingspans reaching three metres. The high-altitude páramo holds the spectacled bear and the puma in landscapes that feel like the edge of the world.',
+    ocean: 'Humpback whales breed off the Pacific coast of Colombia and Ecuador from June to October. The cold Humboldt Current brings extraordinary productivity to the coastal waters, supporting vast seabird colonies on the offshore islands.',
+    sky:   'The cloud forests of Ecuador and Colombia hold the most extraordinary concentration of hummingbirds on earth — over 130 species in some valleys. Mindo alone lists over 400 bird species. The tanagers, antpittas and cotingas of the Andes are among the most spectacular birds in the world.',
+  },
+  'Pantanal': {
+    land:  'The Pantanal is the best place on earth to see a jaguar. The open floodplain habitat and concentrated prey make sightings almost routine — multiple individuals in a single boat ride is common at peak season. Giant anteaters, giant otters and capybara are all abundant. This is wildlife watching at its most accessible.',
+    sky:   'The Pantanal holds the world\'s largest population of hyacinth macaws — the largest parrot on earth. Jabiru storks nest in the open grasslands and thousands of wading birds concentrate around the drying lagoons as the dry season advances.',
+  },
+  'Central America': {
+    land:  'Costa Rica pioneered wildlife tourism and the infrastructure remains exceptional. Corcovado holds all four monkey species, all six cat species, and tapir in primary rainforest. Tortuguero is the most important leatherback sea turtle nesting beach in the Caribbean. Sloths hang from trees in Manuel Antonio. The density of wildlife per square kilometre is hard to match.',
+    ocean: 'Cocos Island, 500km off the Costa Rican coast, is one of the world\'s great dive destinations — hammerhead sharks, whale sharks, and schooling fish in extraordinary abundance. The Caribbean reef system runs the length of the coast.',
+    sky:   'The resplendent quetzal — arguably the most spectacular bird in the Americas — nests in the cloud forests of Costa Rica and Guatemala. Tanagers, toucans, trogons and motmots fill forests that hold 900 species in a country smaller than Ireland.',
+  },
+  'Patagonia': {
+    land:  'Pumas hunt guanacos across the open steppe of Torres del Paine. Península Valdés hosts the only orca population in the world known to intentionally beach itself to catch sea lions. Magellanic penguin colonies of 200,000 nest along the Atlantic coast. Patagonia is wild in a way that feels ancient.',
+    ocean: 'Southern right whales calve in the sheltered bays of Patagonia from May to December. Orcas hunt in the kelp forests of Tierra del Fuego. Elephant seals, fur seals and sea lions share the cold rocky coastline with an extraordinary diversity of seabirds.',
+    sky:   'The wandering albatross has the largest wingspan of any bird on earth and nests on the sub-Antarctic islands. Andean condors thermal over the Andean foothills. The Valdés peninsula hosts spectacular concentrations of seabirds alongside the marine mammals.',
+  },
+  'Antarctica & Falklands': {
+    land:  'The Falkland Islands hold five penguin species, including king and rockhopper, nesting within walking distance of each other. South Georgia is the single most extraordinary wildlife island on earth — 300,000 king penguins at Salisbury Plain, and 400,000 fur seals on the beaches below.',
+    ocean: 'The Southern Ocean is the world\'s most productive marine environment. Humpback, minke and fin whales feed in the krill-rich waters. Leopard seals hunt penguin at the ice edge. Blue whales — the largest animals that have ever lived — are seen regularly on expeditions south.',
+    sky:   'South Georgia holds 22 million macaroni penguins and the world\'s largest colony of wandering albatrosses. The sub-Antarctic islands host extraordinary concentrations of seabirds — petrels, skuas, prions and diving petrels in their millions.',
+  },
+  'Yellowstone': {
+    land:  'Yellowstone is one of the few places in the lower 48 states where grizzly bears, wolves, bison, elk, pronghorn, and bighorn sheep coexist at scale. The reintroduction of wolves in 1995 created a textbook case of trophic cascade — changing not just the animals but the rivers and forests. The Lamar Valley is called America\'s Serengeti.',
+    sky:   'Yellowstone and the surrounding Greater Yellowstone Ecosystem hold exceptional raptor diversity — golden eagle, bald eagle, osprey, and great grey owl. The geothermal areas attract unique micro-habitats and the open landscapes make observation straightforward.',
+  },
+  'Alaska & Yukon': {
+    land:  'Brown bears fish for salmon at Katmai\'s Brooks Falls in numbers that have to be seen to be believed. Denali holds grizzly, wolf, caribou and Dall sheep in a landscape larger than Switzerland with no roads. The Pacific coast holds sea otters, Steller sea lions and the largest concentration of bald eagles in the world.',
+    ocean: 'The Gulf of Alaska and the Inside Passage hold humpback whales, orcas, Steller sea lions and Dall\'s porpoise in cold, productive waters. Glacier Bay is one of the world\'s great wilderness marine experiences — ice calving into water where humpbacks surface.',
+    sky:   'Alaska holds North America\'s greatest seabird colonies — puffins, murres, kittiwakes and fulmars nest on the offshore islands. The Chilkat Valley hosts the world\'s largest concentration of bald eagles each November. Shorebird migrations through the Copper River Delta are on a scale that defies belief.',
+  },
+  'Canadian Arctic': {
+    land:  'Churchill, Manitoba, is the polar bear capital of the world. Every October and November, 900 bears congregate on the Hudson Bay shore waiting for the ice to form. Beluga whales summer in the estuary below town. Caribou migrate through in herds of thousands.',
+    ocean: 'Narwhals surface in the bays of Nunavut — the most mythic of all whales, their spiral tusks breaking the Arctic surface. Bowhead whales, the longest-lived mammals on earth, travel the same routes they have navigated for millennia. The Arctic seas remain among the least disturbed marine environments on the planet.',
+    sky:   'The tundra hosts extraordinary concentrations of breeding shorebirds and waterfowl in summer. Snow geese migrate through in flocks of hundreds of thousands. Snowy owls hunt the open landscape and rough-legged hawks nest on the coastal cliffs.',
+  },
+  'Australia': {
+    land:  'Australia\'s mammal fauna is found nowhere else on earth. Kangaroos, wombats, quolls, echidnas and the duck-billed platypus are all uniquely Australian. Kakadu in the Northern Territory combines ancient Aboriginal culture with extraordinary wildlife density. Kangaroo Island is a wildlife sanctuary with sea lions, echidnas and koalas in wild numbers.',
+    ocean: 'The Great Barrier Reef is the largest living structure on earth. Ningaloo Reef in Western Australia offers the world\'s most reliable whale shark snorkelling — guaranteed encounters from March to July. Humpback whales pass the southern coasts on their annual migration.',
+    sky:   'Australia holds 800 bird species, 45% of which are endemic. The cassowary — a 60kg remnant dinosaur — stalks the Daintree rainforest. Budgerigars and cockatoos move in flocks of tens of thousands across the outback. The country\'s bird diversity rewards every level of interest.',
+  },
+  'New Zealand': {
+    land:  'New Zealand evolved for 80 million years without land mammals — its birds filled every ecological niche. The kiwi is the most unusual bird on earth. The kea is the world\'s only alpine parrot. Fiordland holds takahe, moose-sized birds once thought extinct, and the kākāpō — the world\'s heaviest parrot.',
+    ocean: 'Kaikoura sits above a submarine canyon where the cold Humboldt Current surfaces — creating a nutrient upwelling that supports sperm whales year-round. Dusky dolphins school in hundreds. Hector\'s dolphin, the world\'s smallest and rarest marine dolphin, is found only in New Zealand waters.',
+    sky:   'The Otago Peninsula hosts royal albatrosses nesting within walking distance of a city — the only mainland albatross colony in the world. The sub-Antarctic islands of New Zealand hold extraordinary seabird diversity, and the forests of the South Island are among the world\'s great birding destinations.',
+  },
+  'Svalbard': {
+    land:  'Svalbard holds roughly 3,000 polar bears — one for every resident human. Walrus haul out on the beaches of remote fjords. Arctic foxes in pure white winter coats hunt ptarmigan across the tundra. In July, the midnight sun means wildlife watching around the clock.',
+    ocean: 'Svalbard\'s fjords fill with bowhead whales, beluga whales and bearded seals as the sea ice retreats in summer. The cold waters are extraordinarily productive, feeding seabird colonies of millions and the bears that patrol the ice edge.',
+    sky:   'Little auks nest in talus slopes in colonies of hundreds of thousands — one of the great seabird spectacles of the Arctic. Ivory gulls, sabine\'s gulls and long-tailed skuas follow the ice edge. Barnacle geese breed in extraordinary numbers on the steep cliff faces.',
+  },
+  'European Wildlife': {
+    land:  'Białowieża Forest on the Poland-Belarus border is the last remaining fragment of primeval European lowland forest — the ecosystem that once covered the continent. European bison, wolves, lynx and the rare European mink all survive here. The Danube Delta in Romania is one of the world\'s great wetland wildernesses, holding pelicans, cormorants and rare waterbirds in staggering numbers.',
+    sky:   'The Danube Delta hosts the world\'s largest Dalmatian pelican colony. Doñana in Spain is a critical wintering ground for millions of migratory birds moving between Europe and Africa. The Hungarian Puszta holds great bustards — the world\'s heaviest flying bird — in one of their last European strongholds.',
+  },
+};
+
+// (HIGHLIGHTS removed — text now served from Airtable via /api/animal-regions)
+const REALM_COLORS = { land: '#d97706', ocean: '#0ea5e9', sky: '#8b5cf6', all: '#2dd4bf' };
+const REALM_LABELS = { land: '🌿 Land', ocean: '🌊 Ocean', sky: '🐦 Sky' };
+
+let map, markers = [], activeRealm = 'all';
+
+async function initMap() {
+  map = L.map('world-map', {
+    center: [15, 15], zoom: 2,
+    minZoom: 2, maxZoom: 8,
+    worldCopyJump: true,
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    subdomains: 'abcd', maxZoom: 20
+  }).addTo(map);
+
+  try {
+    const resp = await fetch('/api/animal-regions');
+    const data = await resp.json();
+    buildMarkers(data.regions || []);
+  } catch(e) {
+    console.error('Map load error:', e);
+  }
+}
+
+function buildMarkers(regions) {
+  markers.forEach(m => map.removeLayer(m.marker));
+  markers = [];
+
+  regions.forEach(r => {
+    const color = dotColor(r);
+    const m = L.circleMarker([r.lat, r.lng], {
+      radius: 8, color: '#0a1628', weight: 2,
+      fillColor: color, fillOpacity: 0.9,
+    }).addTo(map);
+
+    m.on('click', () => openPanel(r));
+    m.bindTooltip(r.name, { permanent: false, direction: 'top', offset: [0, -8], className: 'map-tooltip' });
+    m.on('mouseover', function() { this.setStyle({ radius: 11 }); });
+    m.on('mouseout',  function() { this.setStyle({ radius: 8 }); });
+
+    markers.push({ marker: m, region: r });
+  });
+
+  applyRealmFilter();
+}
+
+function dotColor(r) {
+  if (activeRealm !== 'all') return REALM_COLORS[activeRealm];
+  // Multi-realm: use first matching realm for color
+  if (r.land)  return REALM_COLORS.land;
+  if (r.ocean) return REALM_COLORS.ocean;
+  return REALM_COLORS.sky;
+}
+
+function setRealm(realm) {
+  activeRealm = realm;
+  document.querySelectorAll('.realm-btn').forEach(b => b.classList.toggle('active', b.dataset.realm === realm));
+  applyRealmFilter();
+  closePanel();
+}
+
+function applyRealmFilter() {
+  let count = 0;
+  markers.forEach(({ marker, region: r }) => {
+    const visible = activeRealm === 'all' || r[activeRealm];
+    if (visible) {
+      marker.setStyle({ fillColor: dotColor(r), fillOpacity: 0.9, color: '#0a1628', weight: 2 });
+      if (!map.hasLayer(marker)) marker.addTo(map);
+      count++;
+    } else {
+      if (map.hasLayer(marker)) map.removeLayer(marker);
+    }
+  });
+  const countEl = document.getElementById('region-count');
+  if (countEl) countEl.textContent = count;
+}
+
+function openPanel(region) {
+  const descMap = { land: region.landDesc, ocean: region.oceanDesc, sky: region.skyDesc };
+  const panel      = document.getElementById('map-panel');
+  const nameEl     = document.getElementById('panel-region');
+  const badgeEl    = document.getElementById('panel-badges');
+  const contentEl  = document.getElementById('panel-content');
+
+  nameEl.textContent = region.name;
+
+  const badges = [];
+  if (region.land)  badges.push(`<span class="realm-badge badge-land">🌿 Land</span>`);
+  if (region.ocean) badges.push(`<span class="realm-badge badge-ocean">🌊 Ocean</span>`);
+  if (region.sky)   badges.push(`<span class="realm-badge badge-sky">🐦 Sky</span>`);
+  badgeEl.innerHTML = badges.join('');
+
+  const realmsToShow = activeRealm === 'all'
+    ? ['land','ocean','sky'].filter(rl => region[rl])
+    : (region[activeRealm] ? [activeRealm] : ['land','ocean','sky'].filter(rl => region[rl]));
+
+  const descHtml = realmsToShow
+    .filter(rl => descMap[rl])
+    .map(rl => `<p><strong style="color:${REALM_COLORS[rl]};font-family:'Montserrat',sans-serif;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;">${REALM_LABELS[rl]}</strong><br>${descMap[rl]}</p>`)
+    .join('') || `<p style="color:var(--muted);font-style:italic;">Highlights coming soon.</p>`;
+
+  const exploreUrl = `region.html?name=${encodeURIComponent(region.name)}`;
+  contentEl.innerHTML = descHtml + `<p style="margin-top:18px;"><a href="${exploreUrl}" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--teal);text-decoration:none;border:1px solid rgba(45,212,191,0.35);padding:8px 18px;border-radius:6px;display:inline-block;transition:background 0.2s;" onmouseover="this.style.background='rgba(45,212,191,0.1)'" onmouseout="this.style.background='transparent'">Explore ${region.name} →</a></p>`;
+
+  panel.classList.add('open');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closePanel() {
+  document.getElementById('map-panel').classList.remove('open');
+}
+
+window.goSlide = window.goSlide || function(){};
+initMap();
+
+// Demo section: realm tab switching + scroll-reveal
+function showRealmDemo(realm) {
+  document.querySelectorAll('.demo-tabs .realm-btn').forEach(b => b.classList.toggle('active', b.dataset.realm === realm));
+  document.querySelectorAll('.demo-day').forEach(panel => {
+    const isTarget = panel.id === 'demo-' + realm;
+    if (!isTarget) { panel.style.display = 'none'; return; }
+    panel.style.display = 'grid';
+    panel.style.opacity = '0';
+    // Reset and re-run reveal animations
+    panel.querySelectorAll('.demo-reveal').forEach(el => {
+      el.classList.remove('visible');
+      el.style.transitionDelay = '0s';
+    });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      panel.style.transition = 'opacity 0.3s ease';
+      panel.style.opacity = '1';
+      panel.querySelectorAll('.demo-reveal').forEach((el, i) => {
+        el.style.transitionDelay = (i * 0.13) + 's';
+        setTimeout(() => el.classList.add('visible'), 60 + i * 130);
+      });
+    }));
+  });
+}
+window.showRealmDemo = showRealmDemo;
+
+// Initial scroll-reveal for the land panel (visible on load)
+(function() {
+  if ('IntersectionObserver' in window) {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const panel = e.target.closest('.demo-day');
+        if (panel && panel.style.display === 'none') return;
+        e.target.querySelectorAll('.demo-reveal').forEach((el, i) => {
+          el.style.transitionDelay = (i * 0.13) + 's';
+          setTimeout(() => el.classList.add('visible'), i * 130);
+        });
+        obs.unobserve(e.target);
+      });
+    }, { threshold: 0.15 });
+    const landPanel = document.getElementById('demo-land');
+    if (landPanel) obs.observe(landPanel);
+  } else {
+    document.querySelectorAll('#demo-land .demo-reveal').forEach(el => el.classList.add('visible'));
+  }
+})();
+</script>
 
 <!-- ABOUT -->
 <div class="about-section" id="about">
@@ -453,8 +1591,82 @@
       </div>
     </div>
     <div class="about-image">
-      <div class="about-placeholder">🌍</div>
+      <img src="https://res.cloudinary.com/dporenlvw/image/upload/v1777399899/Screenshot_2026-04-28_at_1.10.16_PM_cm1nri" alt="Michael Emerson — Three Realms Travel">
     </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="pricing-section" id="pricing">
+  <div class="pricing-inner">
+    <div class="pricing-intro">
+      <div class="section-tag">Membership</div>
+      <h2>Join for $10 through June 15</h2>
+      <p>A founding member offer — $10 to become a member, regular price $30. Log at least one sighting day per year and your membership stays active. Log two days and it renews free.</p>
+    </div>
+
+    <div class="pricing-grid">
+
+      <!-- Launch offer — active card -->
+      <div class="pricing-card active-card">
+        <div class="pricing-badge">Launch Offer — through June 15</div>
+        <div class="pricing-tier">Founding Member</div>
+        <div class="pricing-price">
+          <span class="pricing-amount">$10</span>
+          <span class="pricing-period">/ become a member</span>
+        </div>
+        <div class="pricing-condition">Regular price $30 — founding members locked in at $10</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pf-row"><span class="pf-icon check">✓</span>A global three realm database</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>Species wish-list builder</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>Trip itinerary planner</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>Co-traveler collaboration</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>Journey Book creation</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>Travel planner connection</div>
+        </div>
+        <a href="portal.html" class="pricing-cta primary">Join for $10 →</a>
+      </div>
+
+      <!-- Renewal mechanic -->
+      <div class="pricing-card">
+        <div class="pricing-tier">How Renewal Works</div>
+        <div class="pricing-price">
+          <span class="pricing-amount free">Free</span>
+        </div>
+        <div class="pricing-condition">Log sightings on 2 days during the year — membership renews free, every year</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pf-row"><span class="pf-icon arrow">→</span>Log 0 sighting days: renews at $30</div>
+          <div class="pf-row"><span class="pf-icon arrow">→</span>Log sightings on 1 day: renews at $20</div>
+          <div class="pf-row"><span class="pf-icon arrow">→</span>Log sightings on 2 days: renews free</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>Your sightings enrich the whole community</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>Membership lives as long as you keep traveling</div>
+        </div>
+        <a href="portal.html" class="pricing-cta outline">Get started →</a>
+      </div>
+
+      <!-- Planners -->
+      <div class="pricing-card">
+        <div class="pricing-tier">Travel Planners & Safari Companies</div>
+        <div class="pricing-price">
+          <span class="pricing-amount" style="font-size:2rem;padding-bottom:6px;">20% off</span>
+        </div>
+        <div class="pricing-condition">Professional discount for planners who bring clients into Three Realms</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pf-row"><span class="pf-icon check">✓</span>Set yourself apart</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>Improve the experience</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>Build referrals</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>Shared itinerary visible to your whole group</div>
+          <div class="pf-row"><span class="pf-icon check">✓</span>They leave with a Journey Book — and credit you for it</div>
+        </div>
+        <a href="mailto:MichaelE@transformedbytravels.com" class="pricing-cta outline">Get in touch →</a>
+      </div>
+
+    </div>
+
+    <p class="pricing-note">All memberships include the full database from day one. No feature gates, no paywalls mid-trip. Launch offer ($10) expires June 15 — regular price $30.</p>
   </div>
 </div>
 
@@ -464,8 +1676,8 @@
   <h2>Start your wildlife journey</h2>
   <p>Join a growing community of travelers who've made animals the heart of how they explore the world.</p>
   <div class="cta-buttons">
-    <a href="#" class="btn-primary">Try the Wildlife Tracker</a>
-    <a href="#" class="btn-secondary">Book a coaching call</a>
+    <a href="portal.html" class="btn-primary">Join Three Realms →</a>
+    <a href="mailto:MichaelE@transformedbytravels.com" class="btn-secondary">Get in touch</a>
   </div>
 </div>
 

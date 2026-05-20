@@ -22,6 +22,10 @@
       ]
     }
   ],
+  "redirects": [
+    { "source": "/", "destination": "/threerealms/", "permanent": false, "has": [{ "type": "host", "value": "threerealmsTravel.com" }] },
+    { "source": "/", "destination": "/threerealms/", "permanent": false, "has": [{ "type": "host", "value": "www.threerealmsTravel.com" }] }
+  ],
   "rewrites": [
     { "source": "/blog-post.html", "destination": "/api/blog-post" }
   ],
@@ -51,7 +55,9 @@
     "api/species-pack.js":   { "maxDuration": 30 },
     "api/sightings.js":      { "maxDuration": 20 },
     "api/sighting-map.js":   { "maxDuration": 15 },
-    "api/species-generate.js": { "maxDuration": 20 }
+    "api/species-generate.js": { "maxDuration": 20 },
+    "api/animal-regions.js":      { "maxDuration": 15 },
+    "api/wildlife-locations.js":  { "maxDuration": 15 }
   },
   "crons": [
     {
