@@ -572,6 +572,7 @@ const REGION_CONTINENTS = {
   'Yellowstone':              'Americas',
   'Canadian Arctic':          'Americas',
   'Canadian Rockies':         'Americas',
+  'Pacific Coast':            'Americas',
   'Australia':                'Pacific',
   'New Zealand':              'Pacific',
   'Fiji':                     'Pacific',
@@ -773,11 +774,28 @@ function filterRegions(realm) {
   closeSpeciesPanel();
 }
 
+function realmBadge(realm, score) {
+  if (!score) return '';
+  const cfg = {
+    land:  { icon: '🌿', cls: 'badge-land' },
+    ocean: { icon: '🌊', cls: 'badge-ocean' },
+    sky:   { icon: '🐦', cls: 'badge-sky' },
+  }[realm];
+  const label = score === 3 ? 'World-class' : score === 2 ? 'Notable' : 'Marginal';
+  const dim = score === 1 ? 'opacity:0.55;' : '';
+  return `<span class="realm-badge ${cfg.cls}" style="${dim}">${cfg.icon} ${label}</span>`;
+}
+
 function renderRegionGrid() {
   const grid = document.getElementById('region-grid');
-  let visible = activeRealm === 'all' ? allRegions : allRegions.filter(r => r[activeRealm]);
+  let visible = activeRealm === 'all' ? allRegions : allRegions.filter(r => r[activeRealm] > 0);
   if (activeContinent !== 'all') {
     visible = visible.filter(r => REGION_CONTINENTS[r.name] === activeContinent);
+  }
+
+  // Sort by active realm rating descending, then name
+  if (activeRealm !== 'all') {
+    visible = [...visible].sort((a, b) => (b[activeRealm] - a[activeRealm]) || a.name.localeCompare(b.name));
   }
 
   if (!visible.length) {
@@ -786,14 +804,15 @@ function renderRegionGrid() {
   }
 
   grid.innerHTML = visible.map(r => {
-    const badges = [];
-    if (r.land)  badges.push('<span class="realm-badge badge-land">🌿 Land</span>');
-    if (r.ocean) badges.push('<span class="realm-badge badge-ocean">🌊 Ocean</span>');
-    if (r.sky)   badges.push('<span class="realm-badge badge-sky">🐦 Sky</span>');
+    const badges = [
+      realmBadge('land',  r.land),
+      realmBadge('ocean', r.ocean),
+      realmBadge('sky',   r.sky),
+    ].filter(Boolean).join('');
     const desc = (r.landDesc || r.oceanDesc || r.skyDesc || '').slice(0, 110);
     return `
       <div class="region-card" onclick="openRegion(${JSON.stringify(r.name).replace(/"/g,'&quot;')})">
-        <div class="region-badges">${badges.join('')}</div>
+        <div class="region-badges">${badges}</div>
         <h4>${r.name}</h4>
         <div class="region-desc">${desc}${desc.length === 110 ? '…' : ''}</div>
       </div>`;
@@ -812,11 +831,11 @@ async function openRegion(name) {
   document.getElementById('sp-region-name').textContent  = region.name;
   document.getElementById('sp-explore-link').href = `region.html?name=${encodeURIComponent(region.name)}`;
 
-  const badges = [];
-  if (region.land)  badges.push('<span class="realm-badge badge-land">🌿 Land</span>');
-  if (region.ocean) badges.push('<span class="realm-badge badge-ocean">🌊 Ocean</span>');
-  if (region.sky)   badges.push('<span class="realm-badge badge-sky">🐦 Sky</span>');
-  document.getElementById('sp-realm-badges').innerHTML = badges.join('');
+  document.getElementById('sp-realm-badges').innerHTML = [
+    realmBadge('land',  region.land),
+    realmBadge('ocean', region.ocean),
+    realmBadge('sky',   region.sky),
+  ].filter(Boolean).join('');
 
   const desc = [region.landDesc, region.oceanDesc, region.skyDesc].filter(Boolean)[0] || '';
   document.getElementById('sp-description').textContent = desc;
