@@ -128,8 +128,16 @@
     .species-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 16px; }
     @media (max-width: 600px) { .species-grid { grid-template-columns: 1fr; } }
     .sp-card { background: var(--s3); border: 1px solid var(--bd); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .sp-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--s2); }
-    .sp-thumb-placeholder { width: 48px; height: 48px; border-radius: 6px; background: var(--s2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+    .sp-thumb-wrap { position: relative; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .sp-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: var(--s2); display: block; }
+    .sp-thumb-placeholder { width: 48px; height: 48px; border-radius: 6px; background: var(--s2); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+    .sp-pos-btns { display: none; gap: 2px; }
+    .sp-edit-mode .sp-pos-btns { display: flex; }
+    .sp-pos-btn { width: 18px; height: 14px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; color: rgba(255,255,255,0.65); font-size: 0.55rem; cursor: pointer; padding: 0; line-height: 1; }
+    .sp-pos-btn:hover { background: rgba(45,212,191,0.35); color: #fff; }
+    .sp-pos-btn.sp-pos-active { background: var(--teal,#2dd4bf); color: #0d1520; border-color: var(--teal,#2dd4bf); }
+    .sp-edit-toggle { font-size: 0.7rem; padding: 3px 9px; background: transparent; border: 1px solid rgba(255,255,255,0.25); color: #94a3b8; border-radius: 4px; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+    .sp-edit-toggle.active { border-color: var(--teal,#2dd4bf); color: var(--teal,#2dd4bf); }
     .sp-name { font-weight: 700; font-size: 0.82rem; color: var(--text); }
     .sp-type { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
     .sp-status { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; }
@@ -368,7 +376,10 @@
           <button class="sp-close" onclick="closeSpeciesPanel()">✕</button>
         </div>
         <div id="sp-description" style="font-size:0.84rem;color:var(--soft);line-height:1.65;margin-bottom:16px;"></div>
-        <div class="section-label" style="margin-bottom:10px;">Species in this region</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="section-label">Species in this region</div>
+          <button id="sp-edit-btn" class="sp-edit-toggle" onclick="spToggleEdit()" title="Adjust photo crop positions">⊙ Adjust</button>
+        </div>
         <div id="sp-species-list" class="loading">Loading species…</div>
         <div style="margin-top:14px;">
           <a id="sp-explore-link" href="#" class="btn-outline" style="font-size:0.78rem;">Full region page →</a>
@@ -561,6 +572,7 @@ const REGION_CONTINENTS = {
   'Sri Lanka':                'Asia',
   'Borneo':                   'Asia',
   'Indonesia':                'Asia',
+  'Japan':                    'Asia',
   'Philippines':              'Asia',
   'Galápagos':                'Americas',
   'Amazon':                   'Americas',
@@ -573,12 +585,15 @@ const REGION_CONTINENTS = {
   'Canadian Arctic':          'Americas',
   'Canadian Rockies':         'Americas',
   'Pacific Coast':            'Americas',
+  'Lake Superior':            'Americas',
+  'Mexico':                   'Americas',
   'Australia':                'Pacific',
   'New Zealand':              'Pacific',
   'Fiji':                     'Pacific',
   'Micronesia':               'Pacific',
   'Papua New Guinea':         'Pacific',
   'European Wildlife':        'Europe',
+  'Iceland':                  'Europe',
   'Svalbard':                 'Polar',
   'Antarctica & Falklands':   'Polar',
 };
@@ -586,6 +601,11 @@ let realmInterests = { land: null, ocean: null, sky: null };
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 async function initAuth() {
+  // Save params before Auth0 overwrites the URL (handles post-Stripe redirect)
+  const preParams = new URLSearchParams(window.location.search);
+  const pendingSubscribed = preParams.get('subscribed');
+  const pendingSession    = preParams.get('session_id');
+
   auth0Client = await auth0.createAuth0Client({
     domain:         AUTH0_DOMAIN,
     clientId:       AUTH0_CLIENT_ID,
@@ -601,6 +621,10 @@ async function initAuth() {
 
   const isAuthenticated = await auth0Client.isAuthenticated();
   if (!isAuthenticated) {
+    // Preserve session_id across Auth0 redirect
+    if (pendingSubscribed && pendingSession) {
+      sessionStorage.setItem('tr_pending_session', pendingSession);
+    }
     await auth0Client.loginWithRedirect();
     return;
   }
@@ -609,10 +633,25 @@ async function initAuth() {
   userEmail  = user.email;
   document.getElementById('nav-user').textContent = user.name || user.email;
 
+  // Verify Stripe session if returning from checkout (or from sessionStorage after Auth0 redirect)
+  const sessionId = pendingSession || sessionStorage.getItem('tr_pending_session');
+  sessionStorage.removeItem('tr_pending_session');
+  if ((pendingSubscribed === '1' || sessionId) && sessionId) {
+    try {
+      const r = await fetch(`/api/stripe?action=verify&session_id=${encodeURIComponent(sessionId)}`);
+      const d = await r.json();
+      if (d.success) localStorage.setItem('tr_access', '1');
+    } catch(e) { console.error('TR payment verify failed', e); }
+  }
+
+  // Any authenticated portal user has access (gates can be tightened later)
+  localStorage.setItem('tr_access', '1');
+
   await loadHome();
 }
 
 async function logout() {
+  localStorage.removeItem('tr_access');
   await auth0Client.logout({ logoutParams: { returnTo: window.location.origin + '/threerealms/index.html' } });
 }
 
@@ -850,25 +889,53 @@ async function openRegion(name) {
       spList.innerHTML = '<p style="color:var(--muted);font-size:0.82rem;padding:8px 0;">Species data coming soon for this region.</p>';
       return;
     }
-    spList.innerHTML = `<div class="species-grid">${species.slice(0, 12).map(s => {
-      const name      = s.name || s['Species Name'] || '—';
-      const status    = s.status || '';
-      const statusClass = 'st-' + status;
-      const slug      = name.toLowerCase().replace(/['']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      const imgSrc    = `/images/wildlife/${slug}.jpg`;
-      const imgHtml   = `<img class="sp-thumb" src="${imgSrc}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="sp-thumb-placeholder" style="display:none;">🐾</div>`;
-      return `
-        <div class="sp-card">
-          ${imgHtml}
-          <div style="flex:1;min-width:0;">
-            <div class="sp-name">${name}</div>
-            <div class="sp-type">${s.type || s['Type'] || ''}</div>
-            <span class="sp-confirmed expected">Expected</span>
-          </div>
-          ${status ? `<span class="sp-status ${statusClass}">${status}</span>` : ''}
-        </div>`;
-    }).join('')}</div>
-    ${species.length > 12 ? `<p style="color:var(--muted);font-size:0.76rem;margin-top:10px;">+ ${species.length - 12} more species in this region</p>` : ''}`;
+    // Group by type for organised display
+    const byType = {};
+    species.forEach(s => {
+      const t = s.type || 'Other';
+      if (!byType[t]) byType[t] = [];
+      byType[t].push(s);
+    });
+    const typeOrder = ['Mammal','Bird','Reptile','Amphibian','Insect','Other'];
+    const sections = typeOrder.filter(t => byType[t]);
+
+    const STATUS_COLOR = { LC:'#4caf50', NT:'#8bc34a', VU:'#ff9800', EN:'#f44336', CR:'#9c27b0' };
+    const POS_BTNS = [['left center','◀'],['center top','▲'],['center center','⊙'],['center bottom','▼'],['right center','▶']];
+
+    spList.innerHTML = sections.map(type => `
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">${type}s (${byType[type].length})</div>
+        <div class="species-grid">${byType[type].map(s => {
+          const name   = s.name || '—';
+          const status = s.status || '';
+          const cat    = s.category || '';
+          const color  = STATUS_COLOR[status] || '#888';
+          const pos    = s.photoPosition || 'center center';
+          const slug   = name.toLowerCase().replace(/['']/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+          const imgSrc = s.photoUrl || `/images/wildlife/${slug}.jpg`;
+          const hasPhoto = !!(s.photoUrl || true);
+          const posBtns = `<div class="sp-pos-btns">${POS_BTNS.map(([v,l]) =>
+            `<button class="sp-pos-btn${pos===v?' sp-pos-active':''}" data-pos="${v}" onclick="spSetPos('${s.id}','${v}',this)">${l}</button>`
+          ).join('')}</div>`;
+          const thumb = `<div class="sp-thumb-wrap">
+            <img class="sp-thumb" src="${imgSrc}" alt="${name}" style="object-position:${pos}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="sp-thumb-placeholder" style="display:none;">🐾</div>
+            ${posBtns}
+          </div>`;
+          return `
+            <div class="sp-card" data-sp-id="${s.id}" title="${s.description || ''}" style="cursor:default;">
+              ${thumb}
+              <div style="flex:1;min-width:0;">
+                <div class="sp-name">${name}</div>
+                <div class="sp-type">${cat}</div>
+              </div>
+              ${status ? `<span class="sp-status" style="background:${color};color:#fff;font-size:0.68rem;padding:2px 5px;border-radius:3px;flex-shrink:0;">${status}</span>` : ''}
+            </div>`;
+        }).join('')}</div>
+      </div>`).join('');
+
+    const total = species.length;
+    spList.insertAdjacentHTML('beforeend', `<p style="color:var(--muted);font-size:0.76rem;margin-top:6px;">${total} species documented in this region</p>`);
   } catch(e) {
     spList.innerHTML = '<p style="color:var(--muted);font-size:0.82rem;">Could not load species.</p>';
   }
@@ -876,6 +943,36 @@ async function openRegion(name) {
 
 function closeSpeciesPanel() {
   document.getElementById('species-panel').classList.remove('open');
+  // Reset edit mode on close
+  document.getElementById('sp-species-list').classList.remove('sp-edit-mode');
+  const btn = document.getElementById('sp-edit-btn');
+  if (btn) btn.classList.remove('active');
+}
+
+function spToggleEdit() {
+  const list = document.getElementById('sp-species-list');
+  const btn  = document.getElementById('sp-edit-btn');
+  list.classList.toggle('sp-edit-mode');
+  btn.classList.toggle('active', list.classList.contains('sp-edit-mode'));
+}
+
+function spSetPos(id, pos, clickedBtn) {
+  // Update image position immediately
+  const card = clickedBtn.closest('[data-sp-id]');
+  if (card) {
+    const img = card.querySelector('.sp-thumb');
+    if (img) img.style.objectPosition = pos;
+    // Update active state on buttons
+    card.querySelectorAll('.sp-pos-btn').forEach(b => {
+      b.classList.toggle('sp-pos-active', b.getAttribute('data-pos') === pos);
+    });
+  }
+  // Save to Airtable (fire and forget)
+  fetch('/api/species-position', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, position: pos }),
+  }).catch(() => {});
 }
 
 // ── TRIPS ─────────────────────────────────────────────────────────────────────

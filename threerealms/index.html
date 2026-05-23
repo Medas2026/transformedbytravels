@@ -323,8 +323,14 @@
     .panel-content p { margin-bottom: 12px; }
     .panel-content p:last-child { margin-bottom: 0; }
     .panel-close { float: right; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.2rem; margin-top: -4px; }
+    /* Mini map */
+    #region-mini-map { height: 200px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px; }
+    /* Realm description blocks with photos */
+    .realm-desc-block { margin-bottom: 22px; }
+    .realm-desc-photo { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: block; }
+    .realm-desc-photo-ph { width: 100%; height: 0; margin-bottom: 0; } /* hidden until photo loads */
 
-    /* ── PLANNING TOGETHER ── */
+/* ── PLANNING TOGETHER ── */
     .planning-section { background: var(--dark); padding: 96px 0; }
     .planning-inner { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
     .planning-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: end; margin-bottom: 64px; }
@@ -585,7 +591,7 @@
 
   <!-- Slide 1 — Land -->
   <div class="slide active" id="slide-0">
-    <img src="../images/realms/Land.jpg" alt="Leopard — Land Realm">
+    <img src="images/Land.jpg" alt="Leopard — Land Realm">
     <div class="realm-label">
       <span class="realm-tag land-tag">Land Realm</span>
       <span class="realm-name">Safari & Wildlife</span>
@@ -604,7 +610,7 @@
 
   <!-- Slide 2 — Ocean -->
   <div class="slide" id="slide-1">
-    <img src="../images/realms/Ocean.jpg" alt="Whale Shark — Ocean Realm" style="object-position: center 30%;">
+    <img src="images/Ocean.jpg" alt="Whale Shark — Ocean Realm" style="object-position: center 30%;">
     <div class="realm-label">
       <span class="realm-tag ocean-tag">Ocean Realm</span>
       <span class="realm-name">Underwater World</span>
@@ -623,7 +629,7 @@
 
   <!-- Slide 3 — Sky -->
   <div class="slide" id="slide-2">
-    <img src="../images/realms/Sky.png" alt="Lilac-Breasted Roller — Sky Realm">
+    <img src="images/Sky.png" alt="Lilac-Breasted Roller — Sky Realm">
     <div class="realm-label">
       <span class="realm-tag sky-tag">Sky Realm</span>
       <span class="realm-name">Birds in Flight</span>
@@ -1272,6 +1278,7 @@
     <div class="map-panel" id="map-panel">
       <button class="panel-close" onclick="closePanel()">✕</button>
       <div class="panel-region" id="panel-region"></div>
+      <div id="region-mini-map"></div>
       <div class="panel-badges" id="panel-badges"></div>
       <div class="panel-content" id="panel-content"></div>
     </div>
@@ -1413,7 +1420,60 @@ const _UNUSED = {
 const REALM_COLORS = { land: '#d97706', ocean: '#0ea5e9', sky: '#8b5cf6', all: '#2dd4bf' };
 const REALM_LABELS = { land: '🌿 Land', ocean: '🌊 Ocean', sky: '🐦 Sky' };
 
+// Wikipedia article titles for realm photos per region
+const WIKI_PHOTOS = {
+  'East Africa':              { land: 'Serengeti',            sky: 'African fish eagle' },
+  'South Africa':             { land: 'Kruger National Park', ocean: 'Great white shark', sky: 'Blue crane' },
+  'Botswana':                 { land: 'Okavango Delta',        sky: "Pel's fishing owl" },
+  'Gorilla Countries':        { land: 'Mountain gorilla',      sky: 'Shoebill' },
+  'Namibia':                  { land: 'Etosha National Park',  ocean: 'Cape fur seal', sky: 'Sociable weaver' },
+  'Madagascar':               { land: 'Lemur',                 ocean: 'Humpback whale',  sky: 'Coquerel\'s sifaka' },
+  'Ethiopia':                 { land: 'Gelada',                sky: 'Ethiopian wolf' },
+  'Mozambique':               { land: 'Gorongosa National Park', ocean: 'Dugong',         sky: 'African skimmer' },
+  'Indian Tigers & Rhinos':   { land: 'Bengal tiger',          sky: 'Indian peafowl' },
+  'Indian Specialty Wildlife':{ land: 'Indian one-horned rhinoceros', sky: 'Bar-headed goose' },
+  'Sri Lanka':                { land: 'Sri Lanka leopard',     ocean: 'Blue whale',      sky: 'Sri Lanka junglefowl' },
+  'Borneo':                   { land: 'Bornean orangutan',     ocean: 'Sipadan Island',  sky: 'Rhinoceros hornbill' },
+  'Indonesia':                { land: 'Komodo dragon',         ocean: 'Raja Ampat',       sky: 'Bird-of-paradise' },
+  'Galápagos':                { land: 'Galápagos Islands',     ocean: 'Galápagos shark',  sky: 'Blue-footed booby' },
+  'Amazon':                   { land: 'Amazon rainforest',     sky: 'Scarlet macaw' },
+  'Andes':                    { land: 'Andean condor',         ocean: 'Humpback whale',  sky: 'Sword-billed hummingbird' },
+  'Pantanal':                 { land: 'Jaguar',                sky: 'Hyacinth macaw' },
+  'Central America':          { land: 'Corcovado National Park', ocean: 'Hammerhead shark', sky: 'Resplendent quetzal' },
+  'Patagonia':                { land: 'Torres del Paine National Park', ocean: 'Orca',   sky: 'Andean condor' },
+  'Antarctica & Falklands':   { land: 'King penguin',          ocean: 'Leopard seal',    sky: 'Wandering albatross' },
+  'Australia':                { land: 'Kangaroo Island',       ocean: 'Great Barrier Reef', sky: 'Cassowary' },
+  'New Zealand':              { land: 'Kiwi (bird)',           ocean: 'Sperm whale',     sky: 'Kea (bird)' },
+  'Philippines':              { land: 'Philippine eagle',      ocean: 'Tubbataha Reef',   sky: 'Philippine cockatoo' },
+  'Papua New Guinea':         { land: 'Tree kangaroo',         ocean: 'Kimbe Bay',        sky: 'Raggiana bird-of-paradise' },
+  'Micronesia':               { land: 'Palau',                 ocean: 'Blue corner',      sky: 'Micronesian kingfisher' },
+  'Fiji':                     { land: 'Fiji',                  ocean: 'Beqa Lagoon',      sky: 'Collared lory' },
+  'Canadian Rockies':         { land: 'Banff National Park',   sky: 'Grizzly bear' },
+  'Yellowstone':              { land: 'Yellowstone National Park', sky: 'American bison' },
+  'Alaska & Yukon':           { land: 'Denali National Park and Preserve', ocean: 'Glacier Bay National Park', sky: 'Bald eagle' },
+  'Canadian Arctic':          { land: 'Polar bear',            ocean: 'Narwhal',          sky: 'Snowy owl' },
+  'Svalbard':                 { land: 'Svalbard',              ocean: 'Beluga whale',     sky: 'Little auk' },
+  'European Wildlife':        { land: 'Białowieża Forest',     sky: 'Dalmatian pelican' },
+  'Iceland':                  { land: 'Iceland',               ocean: 'Humpback whale',   sky: 'Atlantic puffin' },
+  'Pacific Coast':            { land: 'Pacific Coast Highway', ocean: 'Gray whale',        sky: 'Brown pelican' },
+  'Lake Superior':            { land: 'Lake Superior',         sky: 'Common loon' },
+};
+
+const photoCache = {};
+
+async function fetchWikiPhoto(article) {
+  if (photoCache[article] !== undefined) return photoCache[article];
+  try {
+    const resp = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(article)}`, { cache: 'force-cache' });
+    const data = await resp.json();
+    const url = data?.thumbnail?.source?.replace(/\/\d+px-/, '/800px-') || null;
+    photoCache[article] = url;
+    return url;
+  } catch(e) { photoCache[article] = null; return null; }
+}
+
 let map, markers = [], activeRealm = 'all';
+let miniMap = null, miniMarker = null;
 
 async function initMap() {
   map = L.map('world-map', {
@@ -1460,7 +1520,6 @@ function buildMarkers(regions) {
 
 function dotColor(r) {
   if (activeRealm !== 'all') return REALM_COLORS[activeRealm];
-  // Multi-realm: use first matching realm for color
   if (r.land)  return REALM_COLORS.land;
   if (r.ocean) return REALM_COLORS.ocean;
   return REALM_COLORS.sky;
@@ -1490,11 +1549,11 @@ function applyRealmFilter() {
 }
 
 function openPanel(region) {
-  const descMap = { land: region.landDesc, ocean: region.oceanDesc, sky: region.skyDesc };
-  const panel      = document.getElementById('map-panel');
-  const nameEl     = document.getElementById('panel-region');
-  const badgeEl    = document.getElementById('panel-badges');
-  const contentEl  = document.getElementById('panel-content');
+  const descMap   = { land: region.landDesc, ocean: region.oceanDesc, sky: region.skyDesc };
+  const panel     = document.getElementById('map-panel');
+  const nameEl    = document.getElementById('panel-region');
+  const badgeEl   = document.getElementById('panel-badges');
+  const contentEl = document.getElementById('panel-content');
 
   nameEl.textContent = region.name;
 
@@ -1508,20 +1567,100 @@ function openPanel(region) {
     ? ['land','ocean','sky'].filter(rl => region[rl])
     : (region[activeRealm] ? [activeRealm] : ['land','ocean','sky'].filter(rl => region[rl]));
 
+  // Build descriptions with photo placeholders (photos load async below)
   const descHtml = realmsToShow
     .filter(rl => descMap[rl])
-    .map(rl => `<p><strong style="color:${REALM_COLORS[rl]};font-family:'Montserrat',sans-serif;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;">${REALM_LABELS[rl]}</strong><br>${descMap[rl]}</p>`)
+    .map(rl => `
+      <div class="realm-desc-block" id="rdblock-${rl}">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:${REALM_COLORS[rl]};margin-bottom:8px;">${REALM_LABELS[rl]}</div>
+        <div id="rdphoto-${rl}" style="width:100%;height:160px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:10px;overflow:hidden;"></div>
+        <p style="margin:0;font-size:0.9rem;color:var(--soft);line-height:1.8;">${descMap[rl]}</p>
+      </div>`)
     .join('') || `<p style="color:var(--muted);font-style:italic;">Highlights coming soon.</p>`;
 
-  const exploreUrl = `region.html?name=${encodeURIComponent(region.name)}`;
-  contentEl.innerHTML = descHtml + `<p style="margin-top:18px;"><a href="${exploreUrl}" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--teal);text-decoration:none;border:1px solid rgba(45,212,191,0.35);padding:8px 18px;border-radius:6px;display:inline-block;transition:background 0.2s;" onmouseover="this.style.background='rgba(45,212,191,0.1)'" onmouseout="this.style.background='transparent'">Explore ${region.name} →</a></p>`;
+  contentEl.innerHTML = descHtml + `
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.07);">
+      <button onclick="tryExplore('${region.name.replace(/'/g,"\\'")}')"
+        style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--teal);background:none;border:1px solid rgba(45,212,191,0.35);padding:10px 22px;border-radius:6px;cursor:pointer;transition:background 0.2s;"
+        onmouseover="this.style.background='rgba(45,212,191,0.1)'" onmouseout="this.style.background='none'">
+        Explore ${region.name} →
+      </button>
+    </div>`;
 
   panel.classList.add('open');
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // Initialize / update mini-map (needs panel to be visible first)
+  setTimeout(() => {
+    const miniEl = document.getElementById('region-mini-map');
+    if (!miniEl) return;
+    if (!miniMap) {
+      miniMap = L.map('region-mini-map', {
+        center: [region.lat, region.lng], zoom: 5,
+        zoomControl: false, attributionControl: false,
+        dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
+        keyboard: false, touchZoom: false,
+      });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd', maxZoom: 18
+      }).addTo(miniMap);
+    } else {
+      const zoom = Math.abs(region.lat) > 55 ? 4 : 5;
+      miniMap.setView([region.lat, region.lng], zoom);
+    }
+    miniMap.invalidateSize();
+    if (miniMarker) miniMap.removeLayer(miniMarker);
+    miniMarker = L.circleMarker([region.lat, region.lng], {
+      radius: 7, color: '#0a1628', weight: 2, fillColor: '#2dd4bf', fillOpacity: 0.95,
+    }).addTo(miniMap);
+  }, 80);
+
+  // Fetch Wikipedia photos for each realm asynchronously
+  const wikiMap = WIKI_PHOTOS[region.name] || {};
+  realmsToShow.forEach(rl => {
+    const article = wikiMap[rl];
+    const photoEl = document.getElementById('rdphoto-' + rl);
+    if (!article || !photoEl) return;
+    fetchWikiPhoto(article).then(url => {
+      if (!url || !photoEl.isConnected) return;
+      photoEl.innerHTML = `<img src="${url}" alt="${article}"
+        style="width:100%;height:160px;object-fit:cover;display:block;"
+        onerror="this.parentElement.style.display='none'">`;
+    });
+  });
 }
 
 function closePanel() {
   document.getElementById('map-panel').classList.remove('open');
+}
+
+// ── Subscription gate ─────────────────────────────────────────────────────
+async function tryExplore(regionName) {
+  const hasAccess = localStorage.getItem('tr_access') === '1';
+  if (hasAccess) {
+    window.location.href = `region.html?name=${encodeURIComponent(regionName)}`;
+    return;
+  }
+  // No subscription — go straight to Stripe checkout (email collected by Stripe)
+  const btn = document.querySelector(`[onclick="tryExplore('${regionName}')"]`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+  try {
+    const resp = await fetch('/api/stripe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: 'tr_launch' }),
+    });
+    const data = await resp.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert(data.error || 'Could not start checkout. Please try again.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Explore →'; }
+    }
+  } catch(e) {
+    alert('Could not connect. Please try again.');
+    if (btn) { btn.disabled = false; btn.textContent = 'Explore →'; }
+  }
 }
 
 window.goSlide = window.goSlide || function(){};
@@ -1689,6 +1828,7 @@ window.showRealmDemo = showRealmDemo;
   </div>
   <p style="font-size:0.78rem;color:var(--muted);">© 2026 Three Realms Travel</p>
 </footer>
+
 
 </body>
 </html>

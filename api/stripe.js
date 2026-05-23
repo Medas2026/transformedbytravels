@@ -8,12 +8,16 @@ const CANCEL_URL     = 'https://app.transformedbytravels.com/portal.html';
 
 // Plan config — single source of truth
 const PLANS = {
-  annual:   { label: 'Annual',   dna: 10, trips: 1, status: 'Annual',  mode: 'subscription' },
-  premium:  { label: 'Premium',  dna: 25, trips: 5, status: 'Premium', mode: 'subscription' },
-  couples:  { label: 'Couples',  dna: 50, trips: 5, status: 'Couples', mode: 'subscription' },
-  monthly:  { label: 'Monthly',  dna:  5, trips: 1, status: 'Monthly', mode: 'subscription' },
-  dna_topup:{ label: 'DNA Top-up', dna: 25, trips: 0, status: null,   mode: 'payment' }
+  annual:    { label: 'Annual',                dna: 10, trips: 1, status: 'Annual',    mode: 'subscription' },
+  premium:   { label: 'Premium',               dna: 25, trips: 5, status: 'Premium',   mode: 'subscription' },
+  couples:   { label: 'Couples',               dna: 50, trips: 5, status: 'Couples',   mode: 'subscription' },
+  monthly:   { label: 'Monthly',               dna:  5, trips: 1, status: 'Monthly',   mode: 'subscription' },
+  dna_topup: { label: 'DNA Top-up',            dna: 25, trips: 0, status: null,        mode: 'payment' },
+  tr_launch: { label: 'Three Realms Launch',   dna:  0, trips: 0, status: 'TR Launch', mode: 'payment' }
 };
+
+const TR_SUCCESS_URL = 'https://app.transformedbytravels.com/threerealms/portal.html?subscribed=1&session_id={CHECKOUT_SESSION_ID}';
+const TR_CANCEL_URL  = 'https://app.transformedbytravels.com/threerealms/index.html';
 
 function priceIdForPlan(plan) {
   const map = {
@@ -21,7 +25,8 @@ function priceIdForPlan(plan) {
     premium:   process.env.STRIPE_PRICE_ID_PREMIUM,
     couples:   process.env.STRIPE_PRICE_ID_COUPLES,
     monthly:   process.env.STRIPE_PRICE_ID_MONTHLY,
-    dna_topup: process.env.STRIPE_PRICE_ID_DNA_TOPUP
+    dna_topup: process.env.STRIPE_PRICE_ID_DNA_TOPUP,
+    tr_launch: process.env.STRIPE_PRICE_ID_TR_LAUNCH
   };
   return map[plan] || null;
 }
@@ -92,7 +97,8 @@ module.exports = async function handler(req, res) {
     const b     = req.body || {};
     const plan  = (b.plan  || '').toLowerCase();
     const email = (b.email || '').toLowerCase().trim();
-    if (!plan || !email) return res.status(400).json({ error: 'plan and email required' });
+    if (!plan) return res.status(400).json({ error: 'plan required' });
+    if (!email && plan !== 'tr_launch') return res.status(400).json({ error: 'email required' });
 
     const planConfig = PLANS[plan];
     if (!planConfig) return res.status(400).json({ error: 'Unknown plan: ' + plan });
@@ -101,16 +107,18 @@ module.exports = async function handler(req, res) {
     console.log('stripe checkout: plan=', plan, 'priceId=', priceId ? priceId.slice(0,20) : 'none');
     if (!priceId) return res.status(500).json({ error: 'Price ID not configured for plan: ' + plan });
 
+    const isTR = plan === 'tr_launch';
     try {
-      const session = await stripe.checkout.sessions.create({
+      const sessionParams = {
         mode:                 planConfig.mode,
         payment_method_types: ['card'],
-        customer_email:       email,
         line_items:           [{ price: priceId, quantity: 1 }],
-        success_url:          SUCCESS_URL,
-        cancel_url:           CANCEL_URL,
+        success_url:          isTR ? TR_SUCCESS_URL : SUCCESS_URL,
+        cancel_url:           isTR ? TR_CANCEL_URL  : CANCEL_URL,
         metadata:             { email, plan }
-      });
+      };
+      if (email) sessionParams.customer_email = email;
+      const session = await stripe.checkout.sessions.create(sessionParams);
       return res.status(200).json({ url: session.url });
     } catch(e) {
       return res.status(500).json({ error: e.message, type: e.type, code: e.code });
@@ -135,6 +143,11 @@ module.exports = async function handler(req, res) {
       const plan       = (session.metadata.plan || 'annual').toLowerCase();
       const planConfig = PLANS[plan] || PLANS.annual;
       const customerId = session.customer;
+
+      // Three Realms launch — no TBT Airtable record needed
+      if (plan === 'tr_launch') {
+        return res.status(200).json({ success: true, plan: 'tr_launch', email });
+      }
 
       // Subscription end date (recurring) or null (one-time)
       const sub     = session.subscription;
