@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Wildlife Region — Three Realms Travel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:   #2dd4bf;
+      --teal2:  #14b8a6;
+      --dark:   #0a1628;
+      --navy:   #0f172a;
+      --s2:     #1e293b;
+      --s3:     #263348;
+      --text:   #f1f5f9;
+      --soft:   #cbd5e1;
+      --muted:  #64748b;
+      --land:   #d97706;
+      --ocean:  #0ea5e9;
+      --sky:    #8b5cf6;
+      --hero-color: #2dd4bf;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--text); font-family: 'Lora', Georgia, serif; overflow-x: hidden; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(10,22,40,0.95), transparent);
+      backdrop-filter: blur(4px);
+    }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); letter-spacing: 0.04em; text-decoration: none; }
+    .nav-brand span { color: var(--teal); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { color: var(--soft); text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-back { display: flex; align-items: center; gap: 8px; color: var(--soft) !important; }
+    .nav-back:hover { color: var(--teal) !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 65vh;
+      position: relative;
+      display: flex; align-items: flex-end;
+      padding: 0 48px 64px;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: var(--dark);
+    }
+    .hero-bg-img {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      opacity: 0.18;
+    }
+    .hero-glow {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 70% 50%, var(--hero-color) 0%, transparent 65%);
+      opacity: 0.12;
+    }
+    .hero-scrim {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(10,22,40,0.98) 0%, rgba(10,22,40,0.5) 50%, rgba(10,22,40,0.2) 100%);
+    }
+    .hero-content { position: relative; z-index: 2; max-width: 800px; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.78rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+      text-decoration: none; margin-bottom: 28px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--teal); }
+    .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .realm-badge { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.75rem; padding: 6px 16px; border-radius: 20px; letter-spacing: 0.06em; }
+    .badge-land  { background: rgba(217,119,6,0.2);  border: 1px solid rgba(217,119,6,0.5);  color: #fbbf24; }
+    .badge-ocean { background: rgba(14,165,233,0.2); border: 1px solid rgba(14,165,233,0.5); color: #38bdf8; }
+    .badge-sky   { background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.5); color: #a78bfa; }
+    .hero-region {
+      font-family: 'Montserrat', sans-serif; font-weight: 900;
+      font-size: clamp(2.4rem, 6vw, 4.2rem); line-height: 1.05;
+      color: #fff; letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .hero-sub {
+      font-family: 'Lora', serif; font-style: italic;
+      font-size: 1.05rem; color: rgba(255,255,255,0.65);
+      max-width: 520px; line-height: 1.6;
+    }
+
+    /* ── REALM TABS ── */
+    .tabs-section {
+      background: var(--dark); border-bottom: 1px solid rgba(255,255,255,0.07);
+      position: sticky; top: 64px; z-index: 50;
+    }
+    .tabs-inner { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+    .tab-bar { display: flex; gap: 0; }
+    .tab-btn {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.8rem;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 18px 28px; background: none; border: none;
+      color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn[data-realm=land].active  { border-color: #d97706; color: #fbbf24; }
+    .tab-btn[data-realm=ocean].active { border-color: #0ea5e9; color: #38bdf8; }
+    .tab-btn[data-realm=sky].active   { border-color: #8b5cf6; color: #a78bfa; }
+
+    /* ── TAB CONTENT ── */
+    .tab-content-section { background: var(--dark); padding: 64px 0; }
+    .tab-inner { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .tab-desc { font-size: 1.05rem; color: var(--soft); line-height: 1.85; }
+    .tab-desc + .tab-desc { margin-top: 20px; }
+    .realm-heading {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.5rem; margin-bottom: 20px;
+    }
+    .realm-heading.land-head  { color: #fbbf24; }
+    .realm-heading.ocean-head { color: #38bdf8; }
+    .realm-heading.sky-head   { color: #a78bfa; }
+    .tab-aside { display: flex; flex-direction: column; gap: 16px; }
+    .aside-card {
+      background: var(--s2); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 20px 24px;
+    }
+    .aside-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 10px; }
+    .aside-text  { font-size: 0.88rem; color: var(--soft); line-height: 1.7; }
+
+    /* Months bar */
+    .months-bar { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+    .month-pill {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.62rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 4px 8px; border-radius: 4px;
+      background: var(--s3); color: var(--muted);
+      transition: background 0.2s, color 0.2s;
+    }
+    .month-pill.peak { background: rgba(45,212,191,0.2); color: var(--teal); }
+
+    /* ── MINI MAP ── */
+    .mini-map-section { background: var(--navy); padding: 0 0 64px; }
+    .mini-map-inner { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+    #mini-map { height: 280px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+    .leaflet-container { background: #0a1628; }
+    .map-tooltip { background: #0f172a; border: 1px solid rgba(45,212,191,0.4); color: #f1f5f9; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.05em; padding: 5px 10px; border-radius: 6px; }
+    .map-tooltip::before { display: none; }
+
+    /* ── SPECIES ── */
+    .species-section { background: var(--s2); padding: 80px 0; }
+    .species-inner { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+    .section-tag { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); margin-bottom: 12px; }
+    h2 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: clamp(1.6rem, 3.5vw, 2.4rem); line-height: 1.15; }
+    .species-subhead { font-size: 0.95rem; color: var(--soft); line-height: 1.7; margin: 14px 0 40px; max-width: 560px; }
+    .species-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
+    .filter-btn {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.75rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 7px 18px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);
+      background: transparent; color: var(--soft); cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .filter-btn.active { background: var(--teal); color: #0a1628; border-color: var(--teal); }
+    .species-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+    }
+    .species-card {
+      background: var(--s3); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .species-card:hover { border-color: rgba(45,212,191,0.3); transform: translateY(-3px); }
+    .species-photo-wrap { position: relative; }
+    .species-photo {
+      width: 100%; height: 160px; object-fit: cover;
+      background: var(--dark); display: block;
+    }
+    .species-photo-placeholder {
+      width: 100%; height: 160px;
+      background: linear-gradient(135deg, var(--dark) 0%, var(--s2) 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem;
+    }
+    .species-body { padding: 16px 18px 18px; }
+    .species-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; margin-bottom: 3px; }
+    .species-sci  { font-family: 'Lora', serif; font-style: italic; font-size: 0.78rem; color: var(--muted); margin-bottom: 10px; }
+    .species-status {
+      display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.62rem; letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 4px; margin-bottom: 10px;
+    }
+    .status-LC { background: rgba(74,222,128,0.15);  color: #4ade80; }
+    .status-NT { background: rgba(250,204,21,0.15);  color: #facc15; }
+    .status-VU { background: rgba(251,146,60,0.15);  color: #fb923c; }
+    .status-EN { background: rgba(248,113,113,0.15); color: #f87171; }
+    .status-CR { background: rgba(220,38,38,0.2);    color: #fca5a5; }
+    .status-default { background: rgba(100,116,139,0.15); color: var(--muted); }
+    .species-desc { font-size: 0.82rem; color: var(--soft); line-height: 1.65; }
+    .species-type-tag {
+      display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 600;
+      font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .species-months { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 10px; }
+    .species-month { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.58rem; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: rgba(45,212,191,0.15); color: var(--teal); }
+    .no-species { text-align: center; padding: 48px 20px; color: var(--muted); font-style: italic; grid-column: 1 / -1; }
+    .loading-msg { text-align: center; padding: 48px 20px; color: var(--muted); font-style: italic; grid-column: 1 / -1; }
+    .location-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .loc-chip { padding: 5px 13px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: #64748b; font-family: 'Montserrat', sans-serif; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .loc-chip:hover { border-color: rgba(45,212,191,0.4); color: #94a3b8; }
+    .loc-chip.active { background: rgba(45,212,191,0.15); border-color: #2dd4bf; color: #2dd4bf; }
+    .sp-pos-btns { position: absolute; bottom: 6px; left: 6px; display: none; gap: 2px; }
+    .sp-edit-mode .sp-pos-btns { display: flex; }
+    .sp-pos-btn { width: 22px; height: 20px; background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; color: rgba(255,255,255,0.85); font-size: 0.65rem; cursor: pointer; padding: 0; line-height: 1; }
+    .sp-pos-btn:hover { background: rgba(45,212,191,0.45); }
+    .sp-pos-btn.sp-pos-active { background: #2dd4bf; color: #0d1520; border-color: #2dd4bf; }
+    .sp-adjust-btn { font-size: 0.75rem; padding: 4px 12px; background: transparent; border: 1px solid rgba(255,255,255,0.25); color: #94a3b8; border-radius: 5px; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+    .sp-adjust-btn.active { border-color: #2dd4bf; color: #2dd4bf; }
+
+    /* ── CTA ── */
+    .cta-section { text-align: center; padding: 96px 48px; background: var(--dark); }
+    .cta-section h2 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(1.8rem, 4vw, 2.6rem); margin-bottom: 16px; }
+    .cta-section p { color: var(--soft); font-size: 1rem; margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+    .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { padding: 16px 36px; background: var(--teal); color: #0a1628; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; text-decoration: none; transition: background 0.2s; }
+    .btn-primary:hover { background: var(--teal2); }
+    .btn-secondary { padding: 16px 36px; background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.95rem; text-decoration: none; transition: border-color 0.2s; }
+    .btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* ── FOOTER ── */
+    footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.06); padding: 40px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .footer-brand { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--soft); }
+    .footer-brand span { color: var(--teal); }
+    footer p { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 0 20px 48px; min-height: 50vh; }
+      .hero-region { font-size: 2.2rem; }
+      .tabs-inner, .tab-inner, .species-inner, .mini-map-inner { padding: 0 20px; }
+      .tab-pane.active { grid-template-columns: 1fr; gap: 32px; }
+      .tab-aside { order: -1; }
+      .cta-section { padding: 64px 20px; }
+      footer { flex-direction: column; align-items: flex-start; padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="index.html">THREE <span>REALMS</span> TRAVEL</a>
+  <div class="nav-links">
+    <a class="nav-back" href="index.html#explore">← All Regions</a>
+    <a href="index.html#services">Services</a>
+    <a href="index.html#cta" style="background:var(--teal);color:#0a1628;padding:9px 22px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-decoration:none;letter-spacing:0.05em;">Get Started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="region-hero">
+  <div class="hero-bg"></div>
+  <div class="hero-bg-img" id="hero-bg-img"></div>
+  <div class="hero-glow" id="hero-glow"></div>
+  <div class="hero-scrim"></div>
+  <div class="hero-content">
+    <a class="back-link" href="index.html#explore">← All wildlife regions</a>
+    <div class="hero-badges" id="hero-badges"></div>
+    <h1 class="hero-region" id="region-name">Loading…</h1>
+    <p class="hero-sub" id="region-sub"></p>
+  </div>
+</div>
+
+<!-- REALM TABS -->
+<div class="tabs-section">
+  <div class="tabs-inner">
+    <div class="tab-bar" id="tab-bar"></div>
+  </div>
+</div>
+
+<!-- TAB CONTENT -->
+<div class="tab-content-section">
+  <div class="tab-inner">
+    <div id="tab-content"></div>
+  </div>
+</div>
+
+<!-- MINI MAP -->
+<div class="mini-map-section">
+  <div class="mini-map-inner">
+    <div id="mini-map"></div>
+  </div>
+</div>
+
+<!-- SPECIES -->
+<div class="species-section">
+  <div class="species-inner">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+      <div>
+        <div class="section-tag">Wildlife</div>
+        <h2>Species to look for</h2>
+      </div>
+      <button id="sp-adjust-btn" class="sp-adjust-btn" onclick="spToggleEdit()" title="Adjust photo crop positions" style="margin-top:28px;flex-shrink:0;">⊙ Adjust</button>
+    </div>
+    <p class="species-subhead" id="species-subhead">Loading…</p>
+    <div class="location-filter" id="location-filter" style="display:none;"></div>
+    <div class="species-filter" id="species-filter" style="display:none;"></div>
+    <div class="species-grid" id="species-grid">
+      <div class="loading-msg">Loading species…</div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="section-tag">Plan your trip</div>
+  <h2 id="cta-heading">Ready to visit?</h2>
+  <p id="cta-sub">Get expert guidance from someone who has been there — and knows how to get you the wildlife encounters that matter.</p>
+  <div class="cta-buttons">
+    <a href="https://transformedbytravels.com" class="btn-primary">Plan a trip with TBT</a>
+    <a href="index.html#cta" class="btn-secondary">Book a coaching call</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-brand">THREE <span>REALMS</span> TRAVEL</div>
+    <p>Wildlife travel for the serious adventurer — land, ocean, sky.</p>
+  </div>
+  <p>© 2026 Three Realms Travel</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const REALM_COLORS = { land: '#d97706', ocean: '#0ea5e9', sky: '#8b5cf6' };
+const REALM_LABELS = { land: '🌿 Land', ocean: '🌊 Ocean', sky: '🐦 Sky' };
+const REALM_BADGE  = { land: 'badge-land', ocean: 'badge-ocean', sky: 'badge-sky' };
+const STATUS_CLASS = { LC:'status-LC', NT:'status-NT', VU:'status-VU', EN:'status-EN', CR:'status-CR' };
+const TYPE_EMOJI   = { Mammal:'🦁', Bird:'🦅', Reptile:'🐢', Fish:'🐠', Insect:'🦋', 'Marine Mammal':'🐋', Amphibian:'🐸' };
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Peak months aggregated from species
+let regionPeakMonths = {};
+
+const params      = new URLSearchParams(window.location.search);
+const regionName  = (params.get('name') || '').trim();
+
+if (!regionName) {
+  document.getElementById('region-name').textContent = 'Region not found';
+  document.getElementById('region-sub').textContent  = 'No region specified in URL.';
+}
+
+async function init() {
+  if (!regionName) return;
+
+  // Fetch all regions
+  let region = null;
+  try {
+    const resp = await fetch('/api/animal-regions');
+    const data = await resp.json();
+    region = (data.regions || []).find(r => r.name.toLowerCase() === regionName.toLowerCase());
+  } catch(e) {
+    console.error('Failed to load region data:', e);
+  }
+
+  if (!region) {
+    document.getElementById('region-name').textContent = regionName;
+    document.getElementById('region-sub').textContent  = 'Region details not yet available.';
+    renderSpecies(regionName, null);
+    return;
+  }
+
+  // Determine primary realm color for hero
+  const primaryRealm = region.land ? 'land' : region.ocean ? 'ocean' : 'sky';
+  const heroColor    = REALM_COLORS[primaryRealm];
+  document.documentElement.style.setProperty('--hero-color', heroColor);
+  document.getElementById('hero-glow').style.background =
+    `radial-gradient(ellipse at 70% 50%, ${heroColor} 0%, transparent 65%)`;
+
+  // Hero realm image hint
+  const imgEl = document.getElementById('hero-bg-img');
+  if (region.land)  imgEl.style.backgroundImage = "url('../images/realms/Land.jpg')";
+  else if (region.ocean) imgEl.style.backgroundImage = "url('../images/realms/Ocean.jpg')";
+  else imgEl.style.backgroundImage = "url('../images/realms/Sky.png')";
+
+  // Page title
+  document.title = `${region.name} Wildlife — Three Realms Travel`;
+  document.getElementById('page-title').textContent = `${region.name} Wildlife — Three Realms Travel`;
+
+  // Hero content
+  document.getElementById('region-name').textContent = region.name;
+
+  // Realm badges
+  const badgeEl = document.getElementById('hero-badges');
+  ['land','ocean','sky'].filter(r => region[r]).forEach(r => {
+    const span = document.createElement('span');
+    span.className = `realm-badge ${REALM_BADGE[r]}`;
+    span.textContent = REALM_LABELS[r];
+    badgeEl.appendChild(span);
+  });
+
+  // Hero sub (first line of primary realm desc)
+  const primaryDesc = region[primaryRealm + 'Desc'] || '';
+  const subText = primaryDesc ? primaryDesc.split('.')[0] + '.' : '';
+  document.getElementById('region-sub').textContent = subText;
+
+  // CTA heading
+  document.getElementById('cta-heading').textContent = `Ready to visit ${region.name}?`;
+
+  // Build realm tabs
+  const activeRealms = ['land','ocean','sky'].filter(r => region[r]);
+  buildTabs(region, activeRealms);
+
+  // Mini map
+  initMiniMap(region);
+
+  // Species
+  await renderSpecies(regionName, activeRealms);
+}
+
+function buildTabs(region, activeRealms) {
+  const tabBar     = document.getElementById('tab-bar');
+  const tabContent = document.getElementById('tab-content');
+
+  if (activeRealms.length === 0) return;
+
+  activeRealms.forEach((realm, i) => {
+    const btn = document.createElement('button');
+    btn.className = `tab-btn${i === 0 ? ' active' : ''}`;
+    btn.dataset.realm = realm;
+    btn.textContent = REALM_LABELS[realm];
+    btn.onclick = () => switchTab(realm);
+    tabBar.appendChild(btn);
+  });
+
+  activeRealms.forEach((realm, i) => {
+    const desc  = region[realm + 'Desc'] || '';
+    const pane  = document.createElement('div');
+    pane.className = `tab-pane${i === 0 ? ' active' : ''}`;
+    pane.id = `pane-${realm}`;
+
+    const headClass = `realm-heading ${realm}-head`;
+    const color     = REALM_COLORS[realm];
+
+    pane.innerHTML = `
+      <div class="tab-main">
+        <h3 class="${headClass}">${REALM_LABELS[realm]}</h3>
+        <div class="tab-desc">${desc || '<em style="color:var(--muted)">Highlights coming soon.</em>'}</div>
+      </div>
+      <div class="tab-aside" id="aside-${realm}">
+        <div class="aside-card">
+          <div class="aside-label">Best months</div>
+          <div class="months-bar" id="months-${realm}">
+            ${MONTHS_SHORT.map(m => `<span class="month-pill" data-month="${m}">${m}</span>`).join('')}
+          </div>
+        </div>
+        <div class="aside-card" id="aside-parks-${realm}" style="display:none;">
+          <div class="aside-label">Key parks &amp; reserves</div>
+          <div class="aside-text" id="parks-text-${realm}"></div>
+        </div>
+      </div>`;
+
+    tabContent.appendChild(pane);
+  });
+}
+
+function switchTab(realm) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.realm === realm));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === `pane-${realm}`));
+}
+
+function highlightMonths(realm, months) {
+  const bar = document.getElementById(`months-${realm}`);
+  if (!bar) return;
+  bar.querySelectorAll('.month-pill').forEach(pill => {
+    pill.classList.toggle('peak', months.has(pill.dataset.month));
+  });
+}
+
+function setParksAside(realm, parks) {
+  const card  = document.getElementById(`aside-parks-${realm}`);
+  const text  = document.getElementById(`parks-text-${realm}`);
+  if (!card || !parks.length) return;
+  text.textContent = parks.slice(0, 8).join(', ');
+  card.style.display = '';
+}
+
+function initMiniMap(region) {
+  const miniMap = L.map('mini-map', {
+    center: [region.lat, region.lng],
+    zoom: 4, zoomControl: true, scrollWheelZoom: false,
+    dragging: true,
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    subdomains: 'abcd', maxZoom: 20
+  }).addTo(miniMap);
+
+  const color = region.land ? REALM_COLORS.land : region.ocean ? REALM_COLORS.ocean : REALM_COLORS.sky;
+  L.circleMarker([region.lat, region.lng], {
+    radius: 10, color: '#0a1628', weight: 2,
+    fillColor: color, fillOpacity: 0.9,
+  }).addTo(miniMap).bindTooltip(region.name, { permanent: true, direction: 'top', offset: [0, -12], className: 'map-tooltip' });
+}
+
+let _allSpecies    = [];
+let _activeLocId   = null;
+let _activeType    = 'all';
+let _regionName    = '';
+
+async function renderSpecies(name, activeRealms) {
+  const grid    = document.getElementById('species-grid');
+  const subhead = document.getElementById('species-subhead');
+  _regionName   = name;
+  _allSpecies   = [];
+  _activeLocId  = null;
+  _activeType   = 'all';
+
+  try {
+    const [specResp, locResp] = await Promise.all([
+      fetch(`/api/species-pack?region=${encodeURIComponent(name)}`),
+      fetch(`/api/wildlife-locations?region=${encodeURIComponent(name)}`),
+    ]);
+    _allSpecies = (await specResp.json()).species || [];
+    const locations = (await locResp.json()).locations || [];
+
+    if (!_allSpecies.length) {
+      subhead.textContent = 'Species data for this region is coming soon.';
+      grid.innerHTML = `<div class="no-species">No species listed yet for this region.</div>`;
+      return;
+    }
+
+    // Build location chips
+    if (locations.length > 1) {
+      const locEl = document.getElementById('location-filter');
+      locEl.style.display = '';
+      locEl.innerHTML = `<button class="loc-chip active" onclick="setLocation(null,this)">All locations</button>` +
+        locations.map(l => `<button class="loc-chip" onclick="setLocation('${l.id}',this)">${l.name}</button>`).join('');
+    }
+
+    // Aggregate months for calendar sidebar
+    const allMonths = new Set(_allSpecies.flatMap(s => (s.bestMonths || []).map(m => m.slice(0,3))));
+    if (activeRealms) activeRealms.forEach(realm => highlightMonths(realm, allMonths));
+
+    // Parks aside
+    const allParks = [...new Set(_allSpecies.flatMap(s => s.bestParks || []))].sort();
+    if (activeRealms) activeRealms.forEach(r => setParksAside(r, allParks));
+
+    // Build type filter
+    const types = [...new Set(_allSpecies.map(s => s.type || s.category).filter(Boolean))].sort();
+    if (types.length > 1) {
+      const filterEl = document.getElementById('species-filter');
+      filterEl.style.display = '';
+      filterEl.innerHTML = `<button class="filter-btn active" onclick="setTypeFilter('all',this)">All (${_allSpecies.length})</button>` +
+        types.map(t => {
+          const count = _allSpecies.filter(s => (s.type || s.category) === t).length;
+          return `<button class="filter-btn" onclick="setTypeFilter('${t}',this)">${t} (${count})</button>`;
+        }).join('');
+    }
+
+    applyFilters();
+  } catch(e) {
+    grid.innerHTML = `<div class="no-species">Could not load species data.</div>`;
+  }
+}
+
+function setLocation(id, btn) {
+  _activeLocId = id;
+  document.querySelectorAll('.loc-chip').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  applyFilters();
+}
+
+function setTypeFilter(type, btn) {
+  _activeType = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const grid    = document.getElementById('species-grid');
+  const subhead = document.getElementById('species-subhead');
+  let filtered  = _allSpecies;
+
+  if (_activeLocId) {
+    filtered = filtered.filter(s => (s.locationIds || []).includes(_activeLocId));
+  }
+  if (_activeType !== 'all') {
+    filtered = filtered.filter(s => (s.type || s.category) === _activeType);
+  }
+
+  const locLabel = _activeLocId ? 'at this location' : `across ${_regionName}`;
+  subhead.textContent = `${filtered.length} species recorded ${locLabel}${_activeLocId ? '' : ' — from the iconic to the hidden gem'}.`;
+  renderSpeciesCards(filtered, grid);
+}
+
+function renderSpeciesCards(species, grid) {
+  if (!species.length) {
+    grid.innerHTML = `<div class="no-species">No species for this filter.</div>`;
+    return;
+  }
+
+  grid.innerHTML = species.map(s => {
+    const emoji  = TYPE_EMOJI[s.type] || TYPE_EMOJI[s.category] || '🐾';
+    const status = s.conservationStatus || '';
+    const statusClass = STATUS_CLASS[status] || 'status-default';
+    const monthsHtml = (s.bestMonths || []).length
+      ? `<div class="species-months">${s.bestMonths.map(m => `<span class="species-month">${m.slice(0,3)}</span>`).join('')}</div>`
+      : '';
+    const pos = s.photoPosition || 'center center';
+    const POS_BTNS = [['left center','◀'],['center top','▲'],['center center','⊙'],['center bottom','▼'],['right center','▶']];
+    const posBtns = s.photoUrl ? `<div class="sp-pos-btns">${POS_BTNS.map(([v,l]) =>
+      `<button class="sp-pos-btn${pos===v?' sp-pos-active':''}" data-pos="${v}" onclick="spSetPos('${s.id}','${v}',this)">${l}</button>`
+    ).join('')}</div>` : '';
+    const photoHtml = s.photoUrl
+      ? `<div class="species-photo-wrap"><img class="species-photo" src="${s.photoUrl}" alt="${s.name}" loading="lazy" style="object-position:${pos}">${posBtns}</div>`
+      : `<div class="species-photo-placeholder">${emoji}</div>`;
+    const descSnippet = (s.description || '').split('.').slice(0, 2).join('.') + (s.description ? '.' : '');
+
+    return `
+      <div class="species-card" data-sp-id="${s.id}">
+        ${photoHtml}
+        <div class="species-body">
+          <div class="species-type-tag">${s.type || s.category || ''}</div>
+          <div class="species-name">${s.name}</div>
+          ${s.scientificName ? `<div class="species-sci">${s.scientificName}</div>` : ''}
+          ${status ? `<span class="species-status ${statusClass}">${status}</span>` : ''}
+          <div class="species-desc">${descSnippet}</div>
+          ${monthsHtml}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+window.addEventListener('load', init);
+
+function spToggleEdit() {
+  const grid = document.getElementById('species-grid');
+  const btn  = document.getElementById('sp-adjust-btn');
+  grid.classList.toggle('sp-edit-mode');
+  btn.classList.toggle('active', grid.classList.contains('sp-edit-mode'));
+}
+
+function spSetPos(id, pos, clickedBtn) {
+  const card = clickedBtn.closest('[data-sp-id]');
+  if (card) {
+    const img = card.querySelector('.species-photo');
+    if (img) img.style.objectPosition = pos;
+    card.querySelectorAll('.sp-pos-btn').forEach(b => {
+      b.classList.toggle('sp-pos-active', b.getAttribute('data-pos') === pos);
+    });
+  }
+  fetch('/api/species-position', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, position: pos }),
+  }).catch(() => {});
+}
+</script>
+
+</body>
+</html>
