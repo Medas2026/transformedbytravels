@@ -169,7 +169,25 @@
       <h1 style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.3rem;color:var(--text);">Coach Dashboard</h1>
       <p style="font-size:0.83rem;color:var(--muted);margin-top:4px;">Your connected travelers</p>
     </div>
-    <button class="btn-sm" onclick="refreshRoster()" style="display:flex;align-items:center;gap:6px;"><i class="ph ph-arrows-clockwise"></i> Refresh</button>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button class="btn-sm" onclick="refreshRoster()" style="display:flex;align-items:center;gap:6px;"><i class="ph ph-arrows-clockwise"></i> Refresh</button>
+      <button class="btn-sm" onclick="toggleInviteForm()" style="background:var(--teal);color:#0d1520;border-color:var(--teal);display:flex;align-items:center;gap:6px;"><i class="ph ph-user-plus"></i> Invite Traveler</button>
+    </div>
+  </div>
+
+  <!-- Invite form -->
+  <div id="invite-form" style="display:none;background:var(--s1);border:1px solid rgba(45,212,191,0.3);border-radius:12px;padding:18px 20px;margin-bottom:20px;">
+    <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;color:var(--text);margin-bottom:12px;">Invite a Traveler</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <input id="invite-email-input" type="email" placeholder="Traveler's email address"
+        style="flex:1;min-width:220px;background:var(--bg);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.88rem;outline:none;"
+        onkeydown="if(event.key==='Enter') sendInvite()" />
+      <button onclick="sendInvite()"
+        style="background:var(--teal);color:#0d1520;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;white-space:nowrap;">
+        Send Invite
+      </button>
+    </div>
+    <div id="invite-msg" style="margin-top:8px;font-size:0.82rem;"></div>
   </div>
 
   <div class="layout">
@@ -249,6 +267,38 @@ async function init() {
 
   document.getElementById('app').style.display = 'block';
   await loadRoster();
+}
+
+function toggleInviteForm() {
+  const form = document.getElementById('invite-form');
+  const showing = form.style.display !== 'none';
+  form.style.display = showing ? 'none' : 'block';
+  if (!showing) document.getElementById('invite-email-input').focus();
+}
+
+async function sendInvite() {
+  const input   = document.getElementById('invite-email-input');
+  const msgEl   = document.getElementById('invite-msg');
+  const email   = (input.value || '').trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msgEl.style.color = '#f87171'; msgEl.textContent = 'Please enter a valid email address.'; return;
+  }
+  msgEl.style.color = 'var(--muted)'; msgEl.textContent = 'Sending invitation…';
+
+  const resp = await fetch('/api/coach?action=invite', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ coachEmail, customerEmail: email })
+  });
+  const data = await resp.json();
+
+  if (data.success) {
+    msgEl.style.color = '#86efac';
+    msgEl.textContent = `Invitation sent to ${email}. They'll appear in your roster once they accept.`;
+    input.value = '';
+  } else {
+    msgEl.style.color = '#f87171';
+    msgEl.textContent = data.error || 'Could not send invitation.';
+  }
 }
 
 async function loadRoster() {

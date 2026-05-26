@@ -293,7 +293,15 @@ module.exports = async function handler(req, res) {
     if (!coach.fields['Is Coach']) return res.status(403).json({ error: 'Account is not a coach' });
 
     const customer = await getByEmail(customerEmail.toLowerCase());
-    if (!customer) return res.status(404).json({ error: 'Customer account not found' });
+    if (!customer) return res.status(404).json({ error: 'No Transformed by Travels account found for that email' });
+
+    const cf = customer.fields;
+    if (cf['Is Coach'])
+      return res.status(400).json({ error: 'That traveler is a coach and cannot be invited as a customer' });
+    const existingCoach  = (cf['Coach Email'] || '').toLowerCase();
+    const pairingStatus  = cf['Coach Pairing Status'] || '';
+    if (existingCoach && pairingStatus === 'Linked' && existingCoach !== coachEmail.toLowerCase())
+      return res.status(400).json({ error: 'That traveler is already connected with another coach' });
 
     const coachName = coach.fields['Traveler Name'] || coachEmail;
     const token     = crypto.randomBytes(24).toString('hex');
