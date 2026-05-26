@@ -525,6 +525,7 @@
             <div class="profile-field"><span class="field-label">DNA Guides Remaining</span><span class="field-value" id="pf-dna-remaining">—</span></div>
             <div class="profile-field"><span class="field-label">Subscription Plan</span><span class="field-value" id="pf-workshops">—</span></div>
             <div class="profile-field"><span class="field-label">Special Version</span><span class="field-value" id="pf-special-version">—</span></div>
+            <div class="profile-field" id="pf-coach-row" style="display:none;"><span class="field-label">Current Coach</span><span class="field-value" id="pf-coach-name" style="color:#2dd4bf;">—</span></div>
             <div class="profile-field" id="pf-active-trip-row" style="display:none;"><span class="field-label">Active Trip</span><span class="field-value" id="pf-active-trip-name" style="color:#2dd4bf;">—</span></div>
             <div class="profile-field" id="pf-ws-pretrip-row" style="display:none;"><span class="field-label">Pre-Trip Workshop</span><span class="field-value" id="pf-ws-pretrip-status">—</span></div>
             <div class="profile-field" id="pf-ws-integration-row" style="display:none;"><span class="field-label">Integration Workshop</span><span class="field-value" id="pf-ws-integration-status">—</span></div>
@@ -4085,9 +4086,30 @@ function renderPartnerStatus(f) {
 }
 
 function updateCoachMenuVisibility(fields) {
-  const status = fields['Coach Pairing Status'] || '';
+  const status     = fields['Coach Pairing Status'] || '';
+  const coachEmail = (fields['Coach Email'] || '').toLowerCase();
+  const isLinked   = status === 'Linked' && coachEmail;
+
   const menuItem = document.getElementById('my-coach-menu-item');
-  if (menuItem) menuItem.style.display = (status === 'Linked') ? 'flex' : 'none';
+  if (menuItem) menuItem.style.display = isLinked ? 'flex' : 'none';
+
+  const coachRow  = document.getElementById('pf-coach-row');
+  const coachName = document.getElementById('pf-coach-name');
+  if (coachRow && coachName) {
+    if (isLinked) {
+      coachRow.style.display = '';
+      coachName.textContent  = 'Loading…';
+      fetch(`/api/airtable-traveler?email=${encodeURIComponent(coachEmail)}`)
+        .then(r => r.json())
+        .then(d => {
+          const name = d.record && d.record.fields['Traveler Name'];
+          coachName.textContent = name || coachEmail;
+        })
+        .catch(() => { coachName.textContent = coachEmail; });
+    } else {
+      coachRow.style.display = 'none';
+    }
+  }
 }
 
 async function loadMyCoachSection() {
