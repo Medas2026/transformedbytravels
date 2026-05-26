@@ -480,11 +480,12 @@ module.exports = async function handler(req, res) {
               destination:    r.fields['Destination'] || '',
               country:        r.fields['Country'] || '',
               region:         Array.isArray(r.fields['Region']) ? r.fields['Region'].join(',') : (r.fields['Region'] || r.fields['Country'] || ''),
-              activationDate: r.fields['Activation Date'] || r.fields['Start Date'] || '',
-              endDate:        r.fields['End Date'] || '',
-              tripName:       r.fields['Trip Name'] || r.fields['Destination'] || 'your trip',
-              tripPhotoUrl:   r.fields['Trip Photo URL'] || '',
-              shareToken:     r.fields['Share Token']   || '',
+              activationDate:    r.fields['Activation Date'] || r.fields['Start Date'] || '',
+              endDate:           r.fields['End Date'] || '',
+              tripName:          r.fields['Trip Name'] || r.fields['Destination'] || 'your trip',
+              tripPhotoUrl:      r.fields['Trip Photo URL'] || '',
+              shareToken:        r.fields['Share Token']   || '',
+              coachTipOverride:  r.fields['Coach Tip Override'] || '',
               localDate,
               places: [1,2,3,4,5,6,7].map(n => ({
                 name: r.fields['Place ' + n] || '',
@@ -497,7 +498,7 @@ module.exports = async function handler(req, res) {
 
         let sent = 0;
 
-        for (const { email, tripId, destination, country, region, activationDate, endDate, tripName, tripPhotoUrl, shareToken, localDate, places } of toSend) {
+        for (const { email, tripId, destination, country, region, activationDate, endDate, tripName, tripPhotoUrl, shareToken, coachTipOverride, localDate, places } of toSend) {
           // Traveler info
           const travData = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${email}")`));
           const travRec  = (travData.records || [])[0];
@@ -535,11 +536,12 @@ module.exports = async function handler(req, res) {
           const isLastDay  = !!(endDate && localDate >= endDate);
           const isFirstDay = dayNum === 1;
           const tipNum = getTipNumber(dayNum, null, tripId, isLastDay);
-          const [weather, lunar, tipText] = await Promise.all([
+          const [weather, lunar, generatedTip] = await Promise.all([
             getWeatherForecast(weatherPlace, country),
             Promise.resolve(getLunarPhase(tomorrowDate)),
-            getDailyTip(archetype, tipNum, tomorrowPlace, country)
+            coachTipOverride ? Promise.resolve(null) : getDailyTip(archetype, tipNum, tomorrowPlace, country)
           ]);
+          const tipText = coachTipOverride || generatedTip;
           const dayType    = isLastDay ? 'LAST' : isFirstDay ? 'FIRST' : 'MIDDLE';
           const dayLabel   = dayNum ? `Day ${dayNum}` : 'Today';
           const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(email)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}&daytype=${dayType}&tip=${tipNum}`;
@@ -649,6 +651,14 @@ ${wildlifeBlockHtml}${tipBlockHtml}${tomorrowBlockHtml}
 
           sent++;
           console.log('[send-daily] sent to', email, dayLabel, currentPlace);
+
+          // Clear coach tip override after it's been consumed
+          if (coachTipOverride) {
+            airtablePatch(TRIPS_TABLE, tripId, { 'Coach Tip Override': '' }, (err) => {
+              if (err) console.error('[send-daily] failed to clear coach tip override for', tripId, ':', err.message);
+              else console.log('[send-daily] cleared coach tip override for', tripId);
+            });
+          }
         }
 
         res.status(200).json({ success: true, sent, checked: toSend.length });

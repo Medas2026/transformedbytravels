@@ -57,7 +57,9 @@
     "api/sighting-map.js":   { "maxDuration": 15 },
     "api/species-generate.js": { "maxDuration": 20 },
     "api/animal-regions.js":      { "maxDuration": 15 },
-    "api/wildlife-locations.js":  { "maxDuration": 15 }
+    "api/wildlife-locations.js":  { "maxDuration": 15 },
+    "api/species-position.js":   { "maxDuration": 10 },
+    "api/coach.js":              { "maxDuration": 20 }
   },
   "crons": [
     {

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coach Portal | Transformed by Travels</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:    #0d1520;
+      --s1:    #131f30;
+      --s2:    #1a2a40;
+      --bd:    rgba(255,255,255,0.07);
+      --teal:  #2dd4bf;
+      --tdim:  rgba(45,212,191,0.11);
+      --text:  #e2e8f0;
+      --muted: #64748b;
+      --soft:  #94a3b8;
+      --green: #22c55e;
+    }
+    body { font-family: 'Open Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .nav { background: rgba(13,21,32,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--bd); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; color: #fff; }
+    .nav-logo span { color: var(--teal); }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
+    .nav-user { font-size: 0.82rem; color: var(--soft); }
+    .btn-sm { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.78rem; background: none; border: 1px solid var(--teal); color: var(--teal); border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+    .btn-sm:hover { background: var(--tdim); }
+
+    /* Loading */
+    #loading-screen { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 56px); }
+    .loader { width: 40px; height: 40px; border: 3px solid var(--bd); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #not-coach-msg { display: none; padding: 80px 20px; text-align: center; }
+
+    /* Layout */
+    #app { display: none; max-width: 1100px; margin: 0 auto; padding: 28px 20px 80px; }
+    .layout { display: grid; grid-template-columns: 320px 1fr; gap: 24px; min-height: 70vh; }
+    @media (max-width: 700px) { .layout { grid-template-columns: 1fr; } }
+
+    /* Roster panel */
+    .roster-panel { background: var(--s1); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+    .roster-header { padding: 16px 20px; border-bottom: 1px solid var(--bd); display: flex; align-items: center; justify-content: space-between; }
+    .roster-header h2 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--text); }
+    .roster-filter { display: flex; align-items: center; gap: 8px; }
+    .toggle-archived { font-size: 0.75rem; color: var(--muted); cursor: pointer; background: none; border: 1px solid var(--bd); border-radius: 5px; padding: 4px 10px; }
+    .toggle-archived:hover { color: var(--soft); }
+    .roster-list { overflow-y: auto; flex: 1; }
+    .customer-card { padding: 14px 20px; border-bottom: 1px solid var(--bd); cursor: pointer; transition: background 0.15s; display: flex; align-items: flex-start; gap: 12px; }
+    .customer-card:hover { background: var(--s2); }
+    .customer-card.active { background: var(--tdim); border-left: 3px solid var(--teal); }
+    .customer-card.archived-card { opacity: 0.5; }
+    .ccard-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--teal); flex-shrink: 0; }
+    .ccard-body { flex: 1; min-width: 0; }
+    .ccard-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.88rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ccard-arch { font-size: 0.75rem; color: var(--soft); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ccard-trip { font-size: 0.75rem; margin-top: 5px; }
+    .trip-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.7rem; }
+    .trip-badge.active { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .trip-badge.upcoming { background: rgba(45,212,191,0.12); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
+    .trip-badge.none { background: var(--s2); color: var(--muted); border: 1px solid var(--bd); }
+    .override-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; margin-left: 6px; vertical-align: middle; title: "Tip override set"; }
+    .no-customers { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 0.88rem; }
+
+    /* Detail panel */
+    .detail-panel { background: var(--s1); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+    .detail-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 60px 20px; text-align: center; color: var(--muted); gap: 12px; }
+    .detail-empty i { font-size: 2.5rem; color: var(--bd); }
+
+    .detail-header { padding: 18px 24px; border-bottom: 1px solid var(--bd); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .detail-name-row { display: flex; align-items: center; gap: 12px; }
+    .detail-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--s2); border: 1px solid rgba(45,212,191,0.3); display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--teal); flex-shrink: 0; }
+    .detail-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--text); }
+    .detail-arch { font-size: 0.8rem; color: var(--soft); margin-top: 2px; }
+    .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-action { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.75rem; padding: 6px 14px; border-radius: 6px; cursor: pointer; border: 1px solid var(--bd); background: none; color: var(--soft); }
+    .btn-action:hover { background: var(--s2); color: var(--text); }
+    .btn-action.danger { border-color: rgba(239,68,68,0.4); color: #ef4444; }
+    .btn-action.danger:hover { background: rgba(239,68,68,0.1); }
+    .btn-action.primary { border-color: rgba(45,212,191,0.4); color: var(--teal); }
+    .btn-action.primary:hover { background: var(--tdim); }
+
+    .detail-body { overflow-y: auto; flex: 1; padding: 0; }
+    .section { padding: 20px 24px; border-bottom: 1px solid var(--bd); }
+    .section:last-child { border-bottom: none; }
+    .section-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .section-title button { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.7rem; padding: 3px 10px; border-radius: 5px; cursor: pointer; background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.3); color: var(--teal); margin-left: auto; }
+    .section-title button:hover { background: rgba(45,212,191,0.2); }
+
+    /* Trip info */
+    .trip-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .trip-info-item { background: var(--s2); border-radius: 8px; padding: 10px 14px; }
+    .tip-label { font-size: 0.7rem; color: var(--muted); font-family: 'Montserrat', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+    .tip-value { font-size: 0.9rem; color: var(--text); margin-top: 4px; font-weight: 600; }
+
+    /* Tip override */
+    .tip-override-box { background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; padding: 14px 16px; }
+    .tip-override-current { font-family: Georgia, serif; font-size: 0.9rem; color: var(--text); line-height: 1.7; padding: 10px 14px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 8px; margin-bottom: 10px; }
+    .tip-override-current.empty { color: var(--muted); font-style: italic; font-family: inherit; font-size: 0.85rem; }
+    #tip-override-textarea { width: 100%; background: var(--bg); border: 1px solid var(--bd); color: var(--text); border-radius: 8px; padding: 10px 14px; font-family: Georgia, serif; font-size: 0.9rem; line-height: 1.7; resize: vertical; min-height: 90px; }
+    #tip-override-textarea:focus { outline: none; border-color: rgba(45,212,191,0.4); }
+    .tip-override-actions { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+    .tip-cutoff-note { font-size: 0.73rem; color: var(--muted); margin-left: auto; }
+    #tip-override-msg { font-size: 0.8rem; margin-top: 6px; }
+
+    /* Journal entries */
+    .journal-list { display: flex; flex-direction: column; gap: 8px; }
+    .journal-entry { background: var(--s2); border-radius: 8px; padding: 12px 14px; cursor: pointer; }
+    .journal-entry-header { display: flex; align-items: center; gap: 10px; }
+    .je-day { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.75rem; color: var(--teal); }
+    .je-date { font-size: 0.75rem; color: var(--muted); }
+    .je-feeling { font-size: 0.75rem; color: var(--soft); margin-left: auto; }
+    .journal-entry-text { font-size: 0.85rem; color: var(--text); line-height: 1.6; margin-top: 8px; display: none; }
+    .journal-entry.open .journal-entry-text { display: block; }
+    .je-toggle { color: var(--muted); font-size: 0.7rem; margin-top: 4px; }
+
+    /* Follow-ups */
+    .fu-list { display: flex; flex-direction: column; gap: 10px; }
+    .fu-item { background: var(--s2); border-radius: 8px; padding: 12px 14px; }
+    .fu-question { font-family: Georgia, serif; font-size: 0.88rem; color: var(--text); line-height: 1.65; }
+    .fu-meta { font-size: 0.73rem; color: var(--muted); margin-top: 6px; }
+    .fu-reply { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--bd); font-family: Georgia, serif; font-size: 0.88rem; color: #86efac; line-height: 1.65; }
+    .fu-reply-meta { font-size: 0.73rem; color: var(--muted); margin-top: 4px; }
+    .fu-pending { font-size: 0.78rem; color: var(--muted); font-style: italic; margin-top: 8px; }
+
+    /* Compose follow-up */
+    .compose-box { margin-top: 14px; }
+    #fu-compose-textarea { width: 100%; background: var(--bg); border: 1px solid var(--bd); color: var(--text); border-radius: 8px; padding: 10px 14px; font-family: Georgia, serif; font-size: 0.9rem; line-height: 1.7; resize: vertical; min-height: 80px; }
+    #fu-compose-textarea:focus { outline: none; border-color: rgba(45,212,191,0.4); }
+    .compose-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+    #fu-send-btn { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.82rem; padding: 8px 20px; background: var(--teal); color: #0d1520; border: none; border-radius: 7px; cursor: pointer; }
+    #fu-send-btn:hover { background: #5eead4; }
+    #fu-send-btn:disabled { opacity: 0.5; cursor: default; }
+    #fu-msg { font-size: 0.8rem; margin-top: 6px; text-align: right; }
+
+    /* Passions tags */
+    .passion-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .passion-tag { font-size: 0.75rem; padding: 3px 10px; border-radius: 20px; background: var(--s2); border: 1px solid var(--bd); color: var(--soft); }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e293b; border: 1px solid var(--teal); color: var(--text); font-size: 0.88rem; padding: 10px 20px; border-radius: 8px; display: none; z-index: 999; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">Transformed by <span>Travels</span> · Coach</div>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-email"></span>
+    <button class="btn-sm" onclick="logout()">Log out</button>
+  </div>
+</nav>
+
+<div id="loading-screen"><div class="loader"></div></div>
+
+<div id="not-coach-msg">
+  <i class="ph ph-prohibit" style="font-size:2.5rem;color:var(--muted);"></i>
+  <p style="margin-top:12px;color:var(--soft);">This portal is for coaches only. <a href="/portal.html" style="color:var(--teal);">Go to My Portal →</a></p>
+</div>
+
+<div id="app">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <h1 style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.3rem;color:var(--text);">Coach Dashboard</h1>
+      <p style="font-size:0.83rem;color:var(--muted);margin-top:4px;">Your connected travelers</p>
+    </div>
+    <button class="btn-sm" onclick="refreshRoster()" style="display:flex;align-items:center;gap:6px;"><i class="ph ph-arrows-clockwise"></i> Refresh</button>
+  </div>
+
+  <div class="layout">
+    <!-- Roster -->
+    <div class="roster-panel">
+      <div class="roster-header">
+        <h2>Travelers</h2>
+        <div class="roster-filter">
+          <button class="toggle-archived" id="toggle-archived-btn" onclick="toggleArchivedView()">Show archived</button>
+        </div>
+      </div>
+      <div class="roster-list" id="roster-list">
+        <div class="no-customers">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Detail -->
+    <div class="detail-panel" id="detail-panel">
+      <div class="detail-empty" id="detail-empty">
+        <i class="ph ph-user-circle"></i>
+        <p style="font-size:0.9rem;">Select a traveler to view their details</p>
+      </div>
+      <div id="detail-content" style="display:none;display:flex;flex-direction:column;height:100%;">
+        <div class="detail-header" id="detail-header"></div>
+        <div class="detail-body" id="detail-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const AUTH0_DOMAIN    = 'dev-oys4h8z7qa7irffk.us.auth0.com';
+const AUTH0_CLIENT_ID = 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd';
+
+let auth0Client    = null;
+let coachEmail     = '';
+let customers      = [];
+let selectedEmail  = null;
+let showArchived   = false;
+
+async function init() {
+  auth0Client = await auth0.createAuth0Client({
+    domain:       AUTH0_DOMAIN,
+    clientId:     AUTH0_CLIENT_ID,
+    useRefreshTokens: true,
+    cacheLocation: 'localstorage',
+    authorizationParams: { redirect_uri: window.location.origin + '/coach-portal.html' }
+  });
+
+  if (window.location.search.includes('code=')) {
+    await auth0Client.handleRedirectCallback();
+    window.history.replaceState({}, document.title, '/coach-portal.html');
+  }
+
+  const isAuthenticated = await auth0Client.isAuthenticated();
+  if (!isAuthenticated) {
+    await auth0Client.loginWithRedirect();
+    return;
+  }
+
+  const user  = await auth0Client.getUser();
+  coachEmail  = (user.email || '').toLowerCase();
+  document.getElementById('nav-email').textContent = user.email;
+
+  // Verify coach status
+  const resp = await fetch(`/api/airtable-traveler?email=${encodeURIComponent(coachEmail)}`);
+  const data = await resp.json();
+  const isCoach = data && data.record && data.record.fields && data.record.fields['Is Coach'];
+
+  document.getElementById('loading-screen').style.display = 'none';
+  if (!isCoach) {
+    document.getElementById('not-coach-msg').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('app').style.display = 'block';
+  await loadRoster();
+}
+
+async function loadRoster() {
+  document.getElementById('roster-list').innerHTML = '<div class="no-customers">Loading…</div>';
+  const resp = await fetch(`/api/coach?action=dashboard&email=${encodeURIComponent(coachEmail)}`);
+  const data = await resp.json();
+  customers  = data.customers || [];
+  renderRoster();
+}
+
+function refreshRoster() { loadRoster(); }
+
+function renderRoster() {
+  const list    = document.getElementById('roster-list');
+  const visible = customers.filter(c => showArchived ? c.archived : !c.archived);
+  if (!visible.length) {
+    list.innerHTML = `<div class="no-customers">${showArchived ? 'No archived travelers.' : 'No active travelers.'}</div>`;
+    return;
+  }
+  list.innerHTML = visible.map(c => {
+    const initials = c.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    let tripBadge  = '';
+    let tripLabel  = '';
+    if (c.trip && c.trip.status === 'active') {
+      const day = c.trip.dayNum ? `Day ${c.trip.dayNum}` : 'Active';
+      const dot = c.trip.coachTipOverride ? '<span class="override-dot" title="Tip override pending"></span>' : '';
+      tripBadge = `<span class="trip-badge active">${day} · ${c.trip.destination}</span>${dot}`;
+    } else if (c.trip && c.trip.status === 'upcoming') {
+      const days = c.trip.daysUntil != null ? `${c.trip.daysUntil}d away` : 'Upcoming';
+      tripBadge = `<span class="trip-badge upcoming">${c.trip.destination} · ${days}</span>`;
+    } else {
+      tripBadge = `<span class="trip-badge none">No active trip</span>`;
+    }
+    return `
+      <div class="customer-card${c.archived ? ' archived-card' : ''}${selectedEmail === c.email ? ' active' : ''}"
+           onclick="selectCustomer('${c.email}')">
+        <div class="ccard-avatar">${initials}</div>
+        <div class="ccard-body">
+          <div class="ccard-name">${esc(c.name)}</div>
+          <div class="ccard-arch">${esc(c.archetype || '—')}</div>
+          <div class="ccard-trip">${tripBadge}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleArchivedView() {
+  showArchived = !showArchived;
+  document.getElementById('toggle-archived-btn').textContent = showArchived ? 'Show active' : 'Show archived';
+  renderRoster();
+  if (selectedEmail) {
+    const still = customers.find(c => c.email === selectedEmail);
+    if (!still || (showArchived ? !still.archived : still.archived)) {
+      selectedEmail = null;
+      document.getElementById('detail-empty').style.display = 'flex';
+      document.getElementById('detail-content').style.display = 'none';
+    }
+  }
+}
+
+async function selectCustomer(email) {
+  selectedEmail = email;
+  renderRoster();
+  document.getElementById('detail-empty').style.display = 'none';
+  document.getElementById('detail-content').style.removeProperty('display');
+  document.getElementById('detail-header').innerHTML = '<div style="color:var(--muted);font-size:0.85rem;">Loading…</div>';
+  document.getElementById('detail-body').innerHTML   = '';
+
+  const resp = await fetch(`/api/coach?action=customer&coach=${encodeURIComponent(coachEmail)}&email=${encodeURIComponent(email)}`);
+  const data = await resp.json();
+  if (data.error) { showToast('Error: ' + data.error); return; }
+
+  renderDetail(data);
+}
+
+function renderDetail({ customer, trip, journalEntries, followups }) {
+  const c        = customer;
+  const initials = c.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+  // Header
+  document.getElementById('detail-header').innerHTML = `
+    <div class="detail-name-row">
+      <div class="detail-avatar">${initials}</div>
+      <div>
+        <div class="detail-name">${esc(c.name)}</div>
+        <div class="detail-arch">${esc(c.archetype || '—')}</div>
+      </div>
+    </div>
+    <div class="detail-actions">
+      <button class="btn-action${c.archived ? ' primary' : ''}"
+        onclick="toggleArchive('${c.email}', ${!c.archived})">${c.archived ? 'Unarchive' : 'Archive'}</button>
+      <button class="btn-action danger"
+        onclick="confirmTerminate('${c.email}', '${esc(c.name)}')">End Relationship</button>
+    </div>`;
+
+  // Body
+  let html = '';
+
+  // Profile
+  const passionsHtml = c.passions
+    ? c.passions.split(',').map(p => `<span class="passion-tag">${esc(p.trim())}</span>`).join('')
+    : '<span style="color:var(--muted);font-size:0.83rem;">Not specified</span>';
+
+  html += `<div class="section">
+    <div class="section-title">Profile</div>
+    <div class="passion-tags">${passionsHtml}</div>
+  </div>`;
+
+  // Trip info
+  if (trip) {
+    const now     = new Date();
+    const tz      = trip.timeZone || 'UTC';
+    const localHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', hour12: false }).format(now));
+    const cutoffPassed = localHour >= 21;
+
+    html += `<div class="section">
+      <div class="section-title">Active Trip</div>
+      <div class="trip-info-grid">
+        <div class="trip-info-item"><div class="tip-label">Destination</div><div class="tip-value">${esc(trip.destination)}</div></div>
+        <div class="trip-info-item"><div class="tip-label">Day</div><div class="tip-value">${trip.dayNum ? 'Day ' + trip.dayNum : '—'}</div></div>
+        <div class="trip-info-item"><div class="tip-label">Start</div><div class="tip-value">${trip.startDate || '—'}</div></div>
+        <div class="trip-info-item"><div class="tip-label">End</div><div class="tip-value">${trip.endDate || '—'}</div></div>
+      </div>
+    </div>`;
+
+    // Tip override
+    html += `<div class="section">
+      <div class="section-title">Tomorrow's Tip Override
+        <span style="margin-left:auto;font-size:0.7rem;color:${cutoffPassed ? '#f59e0b' : 'var(--muted)'};font-family:inherit;font-weight:400;">
+          ${cutoffPassed ? '⚠️ Past 9 PM cutoff — locked until tomorrow' : 'Editable until 9 PM at destination'}
+        </span>
+      </div>
+      <div class="tip-override-box">
+        ${trip.coachTipOverride
+          ? `<div class="tip-override-current">${esc(trip.coachTipOverride)}</div>`
+          : `<div class="tip-override-current empty">No override set — traveler will receive their regular tip</div>`}
+        <textarea id="tip-override-textarea" placeholder="Write a custom tip for tomorrow's daily email…" ${cutoffPassed ? 'disabled' : ''}>${esc(trip.coachTipOverride)}</textarea>
+        <div class="tip-override-actions">
+          <button class="btn-sm" onclick="saveTipOverride('${trip.id}')" ${cutoffPassed ? 'disabled' : ''}>Save Tip</button>
+          ${trip.coachTipOverride ? `<button class="btn-action" onclick="clearTipOverride('${trip.id}')" ${cutoffPassed ? 'disabled' : ''} style="margin-left:4px;">Clear</button>` : ''}
+        </div>
+        <div id="tip-override-msg"></div>
+      </div>
+    </div>`;
+  }
+
+  // Follow-ups
+  const fuHtml = followups.length
+    ? followups.map(fu => `
+        <div class="fu-item">
+          <div class="fu-question">${esc(fu.question)}</div>
+          <div class="fu-meta">Sent ${fmtDate(fu.sentAt)}</div>
+          ${fu.reply
+            ? `<div class="fu-reply">${esc(fu.reply)}</div><div class="fu-reply-meta">Replied ${fmtDate(fu.repliedAt)}</div>`
+            : `<div class="fu-pending">Awaiting reply…</div>`}
+        </div>`).join('')
+    : '<p style="font-size:0.83rem;color:var(--muted);">No follow-ups yet.</p>';
+
+  html += `<div class="section">
+    <div class="section-title">Follow-ups
+      <button onclick="toggleCompose()">+ New Question</button>
+    </div>
+    <div id="compose-section" class="compose-box" style="display:none;">
+      <textarea id="fu-compose-textarea" placeholder="Write your follow-up question…"></textarea>
+      <div class="compose-actions">
+        <button id="fu-send-btn" onclick="sendFollowup('${c.email}', '${trip ? trip.id : ''}')">Send</button>
+      </div>
+      <div id="fu-msg"></div>
+    </div>
+    <div class="fu-list" id="fu-list">${fuHtml}</div>
+  </div>`;
+
+  // Journal entries
+  const jeHtml = journalEntries.length
+    ? journalEntries.map((je, i) => `
+        <div class="journal-entry" onclick="this.classList.toggle('open')">
+          <div class="journal-entry-header">
+            ${je.day ? `<span class="je-day">Day ${je.day}</span>` : ''}
+            <span class="je-date">${fmtDate(je.date)}</span>
+            ${je.feeling ? `<span class="je-feeling">${esc(je.feeling)}</span>` : ''}
+          </div>
+          <div class="je-toggle" style="font-size:0.7rem;color:var(--muted);margin-top:4px;">Tap to expand</div>
+          <div class="journal-entry-text">${esc(je.entry || '(No entry text)')}</div>
+        </div>`).join('')
+    : '<p style="font-size:0.83rem;color:var(--muted);">No journal entries yet.</p>';
+
+  html += `<div class="section">
+    <div class="section-title">Journal Entries (last 14)</div>
+    <div class="journal-list">${jeHtml}</div>
+  </div>`;
+
+  document.getElementById('detail-body').innerHTML = html;
+}
+
+function toggleCompose() {
+  const box = document.getElementById('compose-section');
+  if (!box) return;
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+async function sendFollowup(custEmail, tripId) {
+  const textarea = document.getElementById('fu-compose-textarea');
+  const msg      = document.getElementById('fu-msg');
+  const btn      = document.getElementById('fu-send-btn');
+  const question = textarea.value.trim();
+  if (!question) { msg.style.color = '#f87171'; msg.textContent = 'Please enter a question.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Sending…';
+  msg.textContent = '';
+
+  const resp = await fetch('/api/coach?action=followup', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ coachEmail, customerEmail: custEmail, tripId: tripId || null, question })
+  });
+  const data = await resp.json();
+
+  btn.disabled = false; btn.textContent = 'Send';
+  if (data.success) {
+    msg.style.color = '#86efac'; msg.textContent = 'Question sent!';
+    textarea.value = '';
+    setTimeout(() => selectCustomer(custEmail), 800);
+  } else {
+    msg.style.color = '#f87171'; msg.textContent = data.error || 'Failed to send.';
+  }
+}
+
+async function saveTipOverride(tripId) {
+  const textarea = document.getElementById('tip-override-textarea');
+  const msgEl    = document.getElementById('tip-override-msg');
+  const tipText  = textarea.value.trim();
+
+  msgEl.textContent = '';
+  const resp = await fetch('/api/coach?action=tip-override', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ coachEmail, tripId, tipText })
+  });
+  const data = await resp.json();
+  if (data.success) {
+    msgEl.style.color = '#86efac'; msgEl.textContent = tipText ? 'Tip override saved.' : 'Tip override cleared.';
+    // Refresh customer data after short delay
+    setTimeout(() => selectCustomer(selectedEmail), 600);
+    loadRoster();
+  } else {
+    msgEl.style.color = '#f87171'; msgEl.textContent = data.error || 'Failed to save.';
+  }
+}
+
+async function clearTipOverride(tripId) {
+  const textarea = document.getElementById('tip-override-textarea');
+  textarea.value = '';
+  await saveTipOverride(tripId);
+}
+
+async function toggleArchive(custEmail, archived) {
+  const resp = await fetch('/api/coach?action=archive', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ coachEmail, customerEmail: custEmail, archived })
+  });
+  const data = await resp.json();
+  if (data.success) {
+    showToast(archived ? 'Customer archived.' : 'Customer unarchived.');
+    await loadRoster();
+    const still = customers.find(c => c.email === custEmail);
+    if (still) selectCustomer(custEmail);
+    else { selectedEmail = null; document.getElementById('detail-empty').style.display = 'flex'; document.getElementById('detail-content').style.display = 'none'; }
+  } else {
+    showToast('Error: ' + (data.error || 'Could not update.'));
+  }
+}
+
+function confirmTerminate(custEmail, custName) {
+  if (!confirm(`End coaching relationship with ${custName}? This cannot be undone.`)) return;
+  terminateRelationship(custEmail);
+}
+
+async function terminateRelationship(custEmail) {
+  const resp = await fetch('/api/coach?action=terminate', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initiatorEmail: coachEmail, customerEmail: custEmail })
+  });
+  const data = await resp.json();
+  if (data.success) {
+    showToast('Relationship ended.');
+    selectedEmail = null;
+    document.getElementById('detail-empty').style.display = 'flex';
+    document.getElementById('detail-content').style.display = 'none';
+    await loadRoster();
+  } else {
+    showToast('Error: ' + (data.error || 'Could not terminate.'));
+  }
+}
+
+async function logout() {
+  await auth0Client.logout({ logoutParams: { returnTo: window.location.origin + '/coach-portal.html' } });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  catch(e) { return iso.slice(0,10); }
+}
+
+init().catch(e => {
+  console.error('init error:', e);
+  document.getElementById('loading-screen').innerHTML = '<p style="color:#f87171;padding:20px;">Failed to load. Please refresh.</p>';
+});
+</script>
+</body>
+</html>

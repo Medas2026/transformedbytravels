@@ -372,6 +372,9 @@
       <div class="menu-item" onclick="showPage('partners')" data-page="partners" data-tooltip="Invite and connect with your travel partner and view your compatibility report.">
         <i class="ph ph-users menu-icon"></i> Travel Partners
       </div>
+      <div class="menu-item" id="my-coach-menu-item" onclick="showPage('my-coach')" data-page="my-coach" style="display:none;" data-tooltip="View messages and follow-up questions from your travel coach.">
+        <i class="ph ph-chalkboard-teacher menu-icon"></i> My Coach
+      </div>
       <div class="menu-item" onclick="showPage('store')" data-page="store" data-tooltip="Unlock workshops, trip planning, and DNA Guides with an Annual or Premium subscription.">
         <i class="ph ph-crown menu-icon"></i> Subscribe
       </div>
@@ -556,6 +559,11 @@
             <div id="pf-trips-list"></div>
           </div>
 
+          <div class="profile-section" id="pf-wildlife-section" style="display:none;">
+            <div class="profile-section-title">🦁 Lifetime Wildlife</div>
+            <div id="pf-wildlife-list" style="color:var(--soft);font-size:0.88rem;">Loading…</div>
+          </div>
+
           <div style="text-align:center;margin-top:8px;">
             <button onclick="showPage('planning')" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;border:none;border-radius:8px;padding:12px 40px;cursor:pointer;">Done</button>
           </div>
@@ -604,6 +612,17 @@
 
         <!-- Compatibility Report Panel -->
         <div id="pf-compatibility-panel" style="display:none;"></div>
+      </div>
+
+      <!-- My Coach Page -->
+      <div class="page" id="page-my-coach">
+        <div style="margin-bottom:20px;">
+          <h2 style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.4rem;color:#fff;margin-bottom:6px;">My Coach</h2>
+          <p style="font-size:0.88rem;color:var(--muted);">Stay connected with your travel coach — view follow-up questions and reply directly here.</p>
+        </div>
+        <div id="my-coach-content">
+          <div style="text-align:center;padding:40px 0;color:var(--muted);">Loading…</div>
+        </div>
       </div>
 
       <!-- Assessment Page -->
@@ -2656,6 +2675,7 @@ async function initAuth0() {
       if (_cbResult.appState.acceptTripEmail)  sessionStorage.setItem('acceptTripEmail',   _cbResult.appState.acceptTripEmail);
       if (_cbResult.appState.acceptPartnerToken) sessionStorage.setItem('acceptPartnerToken', _cbResult.appState.acceptPartnerToken);
       if (_cbResult.appState.acceptPartnerTripId) sessionStorage.setItem('acceptPartnerTripId', _cbResult.appState.acceptPartnerTripId);
+      if (_cbResult.appState.acceptCoachToken) sessionStorage.setItem('acceptCoachToken', _cbResult.appState.acceptCoachToken);
     }
     window.history.replaceState({}, document.title, '/portal.html');
   }
@@ -2672,7 +2692,8 @@ async function initAuth0() {
         acceptTripToken:      _lrParams.get('accept-trip')         || null,
         acceptTripEmail:      _lrParams.get('email')               || null,
         acceptPartnerToken:   _lrParams.get('accept-partner')      || null,
-        acceptPartnerTripId:  _lrParams.get('accept-partner-trip') || null
+        acceptPartnerTripId:  _lrParams.get('accept-partner-trip') || null,
+        acceptCoachToken:     _lrParams.get('accept-coach')        || null
       }
     });
     return;
@@ -2793,6 +2814,7 @@ async function loadProfile(email) {
         document.getElementById('pf-tgi-row').style.display = 'flex';
       }
       renderPartnerStatus(f);
+      updateCoachMenuVisibility(f);
       initDNAPartnerToggle();
       checkActiveTripBanner();
       loadProfileTrips();
@@ -2840,6 +2862,18 @@ async function loadProfile(email) {
     if (_partnerToken) {
       sessionStorage.removeItem('acceptPartnerToken');
       acceptPartnerInvite(_partnerToken);
+    }
+    // Handle coach accept deep link
+    const _coachToken = sessionStorage.getItem('acceptCoachToken');
+    if (_coachToken) {
+      sessionStorage.removeItem('acceptCoachToken');
+      acceptCoachInvite(_coachToken);
+    }
+    // Handle follow-up deep link — route to My Coach
+    const _pendingFollowup = sessionStorage.getItem('pendingFollowupId');
+    if (_pendingFollowup) {
+      sessionStorage.removeItem('pendingFollowupId');
+      showPage('my-coach');
     }
     // Handle trip invite accept deep link (token-based, then email-based fallback)
     _handleAcceptTripInvite();
@@ -4050,6 +4084,128 @@ function renderPartnerStatus(f) {
   }
 }
 
+function updateCoachMenuVisibility(fields) {
+  const status = fields['Coach Pairing Status'] || '';
+  const menuItem = document.getElementById('my-coach-menu-item');
+  if (menuItem) menuItem.style.display = (status === 'Linked') ? 'flex' : 'none';
+}
+
+async function loadMyCoachSection() {
+  const container = document.getElementById('my-coach-content');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);">Loading…</div>';
+
+  try {
+    const [coachResp, fuResp] = await Promise.all([
+      fetch(`/api/coach?action=coach-info&email=${encodeURIComponent(userEmail)}`),
+      fetch(`/api/coach?action=followups&email=${encodeURIComponent(userEmail)}`)
+    ]);
+    const coachData = await coachResp.json();
+    const fuData    = await fuResp.json();
+    const coach     = coachData.coach;
+    const followups = fuData.followups || [];
+
+    if (!coach) {
+      container.innerHTML = '<p style="color:var(--muted);font-size:0.88rem;">No coach connected.</p>';
+      return;
+    }
+
+    const fuHtml = followups.length
+      ? followups.map(fu => `
+          <div style="background:var(--s2);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+            <div style="font-family:Georgia,serif;font-size:0.9rem;color:var(--text);line-height:1.7;">${escHtml(fu.question)}</div>
+            <div style="font-size:0.73rem;color:var(--muted);margin-top:6px;">From ${escHtml(coach.name)} · ${fmtDateShort(fu.sentAt)}</div>
+            ${fu.reply
+              ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-family:Georgia,serif;font-size:0.88rem;color:#86efac;line-height:1.7;">${escHtml(fu.reply)}</div>
+                 <div style="font-size:0.73rem;color:var(--muted);margin-top:4px;">Your reply · ${fmtDateShort(fu.repliedAt)}</div>`
+              : `<div style="margin-top:12px;" id="fu-reply-area-${fu.id}">
+                   <textarea id="fu-reply-${fu.id}"
+                     style="width:100%;background:var(--bg);border:1px solid rgba(255,255,255,0.1);color:var(--text);border-radius:8px;padding:10px 14px;font-family:Georgia,serif;font-size:0.88rem;line-height:1.7;resize:vertical;min-height:70px;"
+                     placeholder="Write your reply…"></textarea>
+                   <div style="display:flex;justify-content:flex-end;margin-top:6px;align-items:center;gap:10px;">
+                     <span id="fu-reply-msg-${fu.id}" style="font-size:0.78rem;"></span>
+                     <button onclick="submitFollowupReply('${fu.id}')"
+                       style="background:var(--teal);color:#0d1520;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;border:none;border-radius:7px;padding:7px 18px;cursor:pointer;">
+                       Send Reply
+                     </button>
+                   </div>
+                 </div>`}
+          </div>`).join('')
+      : '<p style="font-size:0.85rem;color:var(--muted);">No follow-up questions yet.</p>';
+
+    container.innerHTML = `
+      <div class="profile-section" style="margin-bottom:16px;">
+        <div class="profile-section-title">Your Coach</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#86efac;flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:0.9rem;color:var(--text);font-weight:600;">${escHtml(coach.name)}</div>
+            <div style="font-size:0.78rem;color:var(--muted);">${escHtml(coach.email)}</div>
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <button onclick="confirmTerminateCoach()"
+            style="background:none;border:1px solid rgba(239,68,68,0.35);color:#ef4444;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.78rem;border-radius:6px;padding:6px 14px;cursor:pointer;">
+            End Coaching Relationship
+          </button>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">Follow-up Questions</div>
+        ${fuHtml}
+      </div>`;
+  } catch(e) {
+    container.innerHTML = '<p style="color:#f87171;font-size:0.85rem;">Error loading coach data.</p>';
+  }
+}
+
+async function submitFollowupReply(followupId) {
+  const textarea = document.getElementById('fu-reply-' + followupId);
+  const msgEl    = document.getElementById('fu-reply-msg-' + followupId);
+  const reply    = (textarea.value || '').trim();
+  if (!reply) { msgEl.style.color='#f87171'; msgEl.textContent='Please write a reply.'; return; }
+
+  msgEl.style.color = 'var(--muted)'; msgEl.textContent = 'Sending…';
+  const resp = await fetch('/api/coach?action=reply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ followupId, customerEmail: userEmail, reply })
+  });
+  const data = await resp.json();
+  if (data.success) {
+    msgEl.style.color = '#86efac'; msgEl.textContent = 'Reply sent!';
+    setTimeout(loadMyCoachSection, 800);
+  } else {
+    msgEl.style.color = '#f87171'; msgEl.textContent = data.error || 'Failed to send.';
+  }
+}
+
+async function confirmTerminateCoach() {
+  if (!confirm('End your coaching relationship? Your coach will lose access to your journal and trips.')) return;
+  const resp = await fetch('/api/coach?action=terminate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initiatorEmail: userEmail, customerEmail: userEmail })
+  });
+  const data = await resp.json();
+  if (data.success) {
+    document.getElementById('my-coach-menu-item').style.display = 'none';
+    showPage('profile');
+  } else {
+    alert(data.error || 'Could not end relationship.');
+  }
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDateShort(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+  catch(e) { return iso.slice(0,10); }
+}
+
 async function sendPartnerInvite() {
   const partnerEmail = (document.getElementById('partner-email-input').value || '').trim().toLowerCase();
   const msg = document.getElementById('partner-invite-msg');
@@ -4195,6 +4351,28 @@ async function acceptPartnerInvite(token) {
     }
   } catch(e) {
     console.error('accept partner error:', e.message);
+  }
+}
+
+async function acceptCoachInvite(token) {
+  try {
+    const resp = await fetch('/api/coach?action=accept', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, acceptorEmail: userEmail })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      showPage('my-coach');
+      await loadMyCoachSection();
+      showConfirm('🎉', 'Coach Connected!',
+        `You're now connected with ${data.coachName || 'your coach'}. View your coaching details in My Coach.`,
+        'View My Coach', 'var(--teal)', () => { showPage('my-coach'); loadMyCoachSection(); });
+    } else {
+      showConfirm('⚠️', 'Invitation Issue', data.error || 'Could not accept coaching invitation.', 'OK', 'var(--teal)', () => {});
+    }
+  } catch(e) {
+    console.error('accept coach error:', e.message);
   }
 }
 
@@ -4464,11 +4642,12 @@ function showPage(name) {
   if (name === 'integration')  loadWorkshop('INTEGRATION');
   if (name === 'admin')        loadAdminCustomers();
   if (name === 'planner')      loadPlannerPage();
-  if (name === 'profile')      { loadProfileWorkshopStatus(); loadProfileTrips(); }
+  if (name === 'profile')      { loadProfileWorkshopStatus(); loadProfileTrips(); loadLifetimeSightings(userEmail); }
   if (name === 'support')      prefillSupportForm();
   if (name === 'report')       loadReportPage();
   if (name === 'dreaming')     loadDreamingPage();
   if (name === 'passionhub')   initPassionHub();
+  if (name === 'my-coach')     loadMyCoachSection();
 }
 
 async function logout() {
@@ -4500,7 +4679,6 @@ function loadMyTrip() {
         title.textContent = 'Trip in Progress';
         const _sv = specialVersion || (portalProfile?.fields?.['Special Version']) || '';
         renderMyTripActive(active, content, _sv);
-        if (_sv === 'Safari') loadWildlifeDashboard(active.id, userEmail);
       } else if (planning.length) {
         title.textContent = 'Start Your Trip';
         renderMyTripPlanning(planning[0], content);
@@ -4663,10 +4841,10 @@ function renderMyTripActive(r, container, _specialVersion) {
     </div>
     <a href="#" onclick="openTodayJournal('${_jTripId}','${_jStart}','${encodeURIComponent(_jDest)}');return false;" style="display:block;text-align:center;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">📔 Log Today's Journal Entry</a>
 
-    ${_specialVersion === 'Safari' ? `
-    <a href="/wildlife-tracker.html?tripId=${encodeURIComponent(r.id)}&email=${encodeURIComponent(userEmail)}&region=${encodeURIComponent(_animalRegion)}" style="display:block;text-align:center;background:#7c3aed;color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">🦁 Wildlife Tracker</a>
+    ${_animalRegion ? `
+    <a href="/wildlife-tracker.html?tripId=${encodeURIComponent(r.id)}&email=${encodeURIComponent(userEmail)}&region=${encodeURIComponent(_animalRegion)}" style="display:block;text-align:center;background:#7c3aed;color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">🦁 Open Wildlife Tracker</a>
     <div style="margin-bottom:24px;">
-      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#a78bfa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Uganda Sweet 16</div>
+      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#a78bfa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Wildlife Sightings</div>
       <div id="wildlife-dashboard" style="color:var(--soft);font-size:0.88rem;">Loading sightings…</div>
     </div>` : ''}
 
@@ -4680,6 +4858,8 @@ function renderMyTripActive(r, container, _specialVersion) {
       <button onclick="doTripAction('${r.id}','end')" style="background:none;border:1.5px solid #f43f5e;color:#f43f5e;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:10px 24px;cursor:pointer;">End My Trip 🏠</button>
     </div>`;
   }
+
+  if (_animalRegion && !isLastDay) setTimeout(() => loadWildlifeDashboard(r.id, userEmail, _animalRegion, f['Start Date']), 50);
 
   // Load journal history
   if (f['Start Date']) loadJournalHistory(r.id, f['Start Date'], today, dest || name);
@@ -4737,85 +4917,179 @@ function loadJournalHistory(tripId, startDate, today, destName, containerId) {
     });
 }
 
-// ── Wildlife dashboard ────────────────────────────────────────────────────
-const SWEET16 = [
-  { label: 'African Bush Elephant', key: 'elephant',       file: 'elephant.jpg' },
-  { label: 'White Rhino',           key: 'rhino',          file: 'white-rhino.jpg' },
-  { label: 'African Buffalo',       key: 'buffalo',        file: 'african-buffalo.jpg' },
-  { label: 'African Leopard',       key: 'leopard',        file: 'african-leopard.jpg' },
-  { label: 'African Lion',          key: 'lion',           file: 'african-lion.jpg' },
-  { label: 'Mountain Gorilla',      key: 'gorilla',        file: 'mountain-gorilla.jpg' },
-  { label: 'Chimpanzee',            key: 'chimpanzee',     file: 'chimpanzee.jpg' },
-  { label: 'Plains Zebra',          key: 'zebra',          file: 'plains-zebra.jpg' },
-  { label: "Rothschild's Giraffe",  key: 'giraffe',        file: 'rothschild-giraffe.jpg' },
-  { label: 'Hippopotamus',          key: 'hippo',          file: 'hippopotamus.jpg' },
-  { label: 'Grey Crowned Crane',    key: 'crowned crane',  file: 'gray-crowned-crane.jpg' },
-  { label: 'Shoebill Stork',        key: 'shoebill',       file: 'shoebill-stork.jpg' },
-  { label: 'Golden Monkey',         key: 'golden monkey',  file: 'golden-monkey.jpg' },
-  { label: 'African Fish Eagle',    key: 'fish eagle',     file: 'african-fish-eagle.jpg' },
-  { label: "Jackson's Hartebeest", key: 'hartebeest',     file: 'jacksons-hartebeest.jpg' },
-  { label: 'Nile Crocodile',        key: 'crocodile',      file: 'nile-crocodile.jpg' },
-];
-
-async function loadWildlifeDashboard(tripId, email) {
-  const el = document.getElementById('wildlife-dashboard');
+// ── Wildlife dashboard ─────────────────────────────────────────────────────
+async function loadWildlifeDashboard(tripId, email, region, startDate, mode) {
+  const elId = (mode === 'completed') ? 'wildlife-dashboard-completed' : 'wildlife-dashboard';
+  const el   = document.getElementById(elId);
   if (!el) return;
-  try {
-    const resp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(email)}&tripId=${encodeURIComponent(tripId)}`);
-    const data = await resp.json();
-    const sightings = data.records || [];
 
-    // Map keyword → sighting record
-    const sighted = {};
+  try {
+    const [sResp, spResp] = await Promise.all([
+      fetch(`/api/sightings?travelerEmail=${encodeURIComponent(email)}&tripId=${encodeURIComponent(tripId)}`),
+      region ? fetch(`/api/species-pack?region=${encodeURIComponent(region)}`) : Promise.resolve(null),
+    ]);
+    const sData   = await sResp.json();
+    const spData  = spResp ? await spResp.json() : { species: [] };
+    const sightings = (sData.records || []).sort((a, b) => (b.fields['Date'] || '').localeCompare(a.fields['Date'] || ''));
+    const species   = spData.species || [];
+
+    // Build species lookups
+    const spById = {}, spByName = {};
+    species.forEach(s => { spById[s.id] = s; spByName[s.name.toLowerCase()] = s; });
+
+    // Unique species count
+    const seenIds = new Set(), seenNames = new Set();
     sightings.forEach(s => {
-      const name = (s.fields['Species Name'] || '').toLowerCase();
-      SWEET16.forEach(sp => { if (name.includes(sp.key) && !sighted[sp.key]) sighted[sp.key] = s.fields; });
+      const f = s.fields;
+      if (f['Species ID']) seenIds.add(f['Species ID']);
+      if (f['Species Name']) seenNames.add(f['Species Name'].toLowerCase());
+    });
+    const totalSeen = seenIds.size || seenNames.size;
+
+    // Category breakdown
+    const catCounts = {};
+    sightings.forEach(s => {
+      const f  = s.fields;
+      const sp = spById[f['Species ID']] || spByName[(f['Species Name'] || '').toLowerCase()];
+      const cat = sp ? (sp.type || 'Other') : 'Other';
+      catCounts[cat] = (catCounts[cat] || 0) + 1;
     });
 
-    const seen = Object.keys(sighted).length;
+    // Group by date
+    const byDate = {};
+    sightings.forEach(s => {
+      const date = (s.fields['Date'] || '').slice(0, 10);
+      if (!date) return;
+      if (!byDate[date]) byDate[date] = [];
+      byDate[date].push(s.fields);
+    });
+    const sortedDates = Object.keys(byDate).sort().reverse();
 
-    // Progress bar
-    const pips = SWEET16.map((sp, i) =>
-      `<div style="flex:1;height:5px;border-radius:3px;background:${sighted[sp.key] ? '#7c3aed' : '#3b1f80'};"></div>`
-    ).join('');
-
-    // Photo grid
-    const grid = SWEET16.map(sp => {
-      const hit  = sighted[sp.key];
-      const img  = `/images/wildlife/${sp.file}`;
-      const dot  = hit ? 'background:#22c55e;' : 'background:#475569;';
-      const filt = hit ? '' : 'filter:grayscale(80%);opacity:0.55;';
-      return `<div style="position:relative;text-align:center;">
-        <img src="${img}" onerror="this.style.display='none'"
-          style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;${filt}">
-        <div style="position:absolute;top:5px;right:5px;width:10px;height:10px;border-radius:50%;${dot}border:1.5px solid rgba(0,0,0,0.4);"></div>
-        <div style="font-size:0.6rem;color:var(--soft);margin-top:4px;line-height:1.2;">${sp.label}</div>
+    // Stats summary
+    const pct       = species.length ? Math.min(100, Math.round(totalSeen / species.length * 100)) : 0;
+    const catChips  = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,5)
+      .map(([cat,n]) => `<span style="font-size:0.75rem;background:rgba(45,212,191,0.1);color:var(--teal);padding:2px 9px;border-radius:10px;white-space:nowrap;">${n} ${cat}${n>1&&cat!=='Other'?'s':''}</span>`)
+      .join('');
+    const statsHtml = `
+      <div style="background:rgba(45,212,191,0.06);border:1px solid rgba(45,212,191,0.2);border-radius:10px;padding:14px 16px;margin-bottom:${mode==='completed'?'0':'4px'};">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:${species.length?'8':'0'}px;">
+          <span style="font-size:1.8rem;font-weight:800;color:#fff;font-family:'Montserrat',sans-serif;">${totalSeen}</span>
+          <span style="font-size:0.85rem;color:var(--soft);">unique species${species.length?' of '+species.length+' in region':''}</span>
+        </div>
+        ${species.length?`<div style="background:rgba(255,255,255,0.07);border-radius:4px;height:5px;margin-bottom:10px;overflow:hidden;"><div style="height:100%;background:var(--teal);width:${pct}%;border-radius:4px;"></div></div>`:''}
+        ${catChips?`<div style="display:flex;flex-wrap:wrap;gap:6px;">${catChips}</div>`:''}
+        ${!totalSeen?`<p style="font-size:0.82rem;color:var(--muted);margin-top:4px;">No sightings recorded yet.</p>`:''}
       </div>`;
-    }).join('');
 
-    // Recent sightings log
-    const log = sightings.slice(0, 8).map(s => {
-      const f = s.fields;
-      const name = f['Species Name'] || 'Unknown';
-      const date = f['Date'] ? new Date(f['Date']).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '';
-      const loc  = f['Location'] || '';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);">
-        <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;"></div>
-        <div style="flex:1;font-size:0.82rem;color:var(--text);">${name}</div>
-        <div style="font-size:0.75rem;color:var(--soft);">${loc}${loc && date ? ' · ' : ''}${date}</div>
+    // Day-by-day HTML
+    const dayHtml = sortedDates.length ? sortedDates.map(date => {
+      const rows = byDate[date];
+      let dayLabel = '';
+      if (startDate) {
+        const diff = Math.round((new Date(date+'T12:00:00') - new Date(startDate+'T12:00:00')) / 86400000) + 1;
+        if (diff > 0) dayLabel = `Day ${diff} · `;
+      }
+      const d       = new Date(date+'T12:00:00');
+      const dateStr = d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+      const rowsHtml = rows.map(f => {
+        const sp      = spById[f['Species ID']] || spByName[(f['Species Name']||'').toLowerCase()];
+        const name    = f['Species Name'] || 'Unknown';
+        const count   = f['Count'] > 1 ? ` ×${f['Count']}` : '';
+        const beh     = f['Behavior'] ? ` · ${f['Behavior']}` : '';
+        const loc     = f['Location'] ? ` · ${f['Location']}` : '';
+        const thumb   = sp?.photoUrl ? sp.photoUrl.replace(/\/image\/upload\//, '/image/upload/w_72,h_72,c_fill,q_auto,f_jpg/') : '';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          ${thumb
+            ? `<img src="${thumb}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`
+            : `<div style="width:36px;height:36px;border-radius:6px;background:var(--s2,#1a2840);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">🐾</div>`}
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.85rem;color:var(--text);font-weight:600;">${name}${count}</div>
+            <div style="font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${(beh+loc).replace(/^ · /,'')}</div>
+          </div>
+        </div>`;
+      }).join('');
+      return `<div style="margin-bottom:16px;">
+        <div style="font-size:0.7rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid rgba(45,212,191,0.15);">${dayLabel}${dateStr} · ${rows.length} sighting${rows.length>1?'s':''}</div>
+        ${rowsHtml}
       </div>`;
-    }).join('');
+    }).join('')
+    : `<p style="color:var(--muted);font-size:0.85rem;padding:8px 0;">No sightings logged yet.</p>`;
+
+    if (mode === 'completed') {
+      // Completed trip: just show stats + all-days list
+      el.innerHTML = statsHtml + (sortedDates.length
+        ? `<div style="margin-top:14px;">${dayHtml}</div>`
+        : '');
+      return;
+    }
+
+    // Active trip: tab switcher
+    const tBtn = (id, label, active) =>
+      `<button onclick="wldTab('${id}')" id="wld-btn-${id}" style="padding:5px 12px;border-radius:20px;font-size:0.72rem;font-family:'Montserrat',sans-serif;font-weight:700;border:1px solid;cursor:pointer;${active?'background:var(--teal);border-color:var(--teal);color:#0d1520;':'background:none;border-color:rgba(255,255,255,0.15);color:var(--soft);'}">${label}</button>`;
 
     el.innerHTML = `
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
-        <span style="font-size:0.82rem;color:var(--soft);">Sighted</span>
-        <span style="font-size:1.1rem;font-weight:700;color:#fff;">${seen} <span style="font-size:0.8rem;color:#a78bfa;font-weight:400;">of 16</span></span>
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        ${tBtn('stats','Summary',true)}
+        ${tBtn('days',`By Day${sortedDates.length?' ('+sortedDates.length+')':''}`,false)}
       </div>
-      <div style="display:flex;gap:3px;margin-bottom:16px;">${pips}</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">${grid}</div>
-      ${sightings.length ? `<div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Recent Sightings</div>${log}` : ''}`;
+      <div id="wld-panel-stats">${statsHtml}</div>
+      <div id="wld-panel-days" style="display:none;">${dayHtml}</div>`;
+
   } catch(e) {
-    if (el) el.textContent = 'Could not load sightings.';
+    if (el) el.innerHTML = '<p style="color:var(--muted);font-size:0.82rem;">Could not load wildlife data.</p>';
+  }
+}
+
+function wldTab(tab) {
+  ['stats','days'].forEach(t => {
+    const btn   = document.getElementById('wld-btn-' + t);
+    const panel = document.getElementById('wld-panel-' + t);
+    const active = t === tab;
+    if (btn) {
+      btn.style.background  = active ? 'var(--teal)' : 'none';
+      btn.style.borderColor = active ? 'var(--teal)' : 'rgba(255,255,255,0.15)';
+      btn.style.color       = active ? '#0d1520'     : 'var(--soft)';
+    }
+    if (panel) panel.style.display = active ? '' : 'none';
+  });
+}
+
+async function loadLifetimeSightings(email) {
+  if (!email) return;
+  const el = document.getElementById('pf-wildlife-list');
+  if (!el) return;
+  try {
+    const resp = await fetch(`/api/sightings?travelerEmail=${encodeURIComponent(email)}`);
+    const data = await resp.json();
+    const all  = data.records || [];
+    if (!all.length) {
+      document.getElementById('pf-wildlife-section').style.display = 'none';
+      return;
+    }
+
+    const uniqueNames = new Set();
+    const byTrip      = {};
+    all.forEach(r => {
+      const f   = r.fields;
+      const tid = f['Trip ID'] || '';
+      if (f['Species Name']) uniqueNames.add(f['Species Name']);
+      if (tid) { if (!byTrip[tid]) byTrip[tid] = new Set(); if (f['Species Name']) byTrip[tid].add(f['Species Name']); }
+    });
+
+    const tripCount    = Object.keys(byTrip).length;
+    const totalSpecies = uniqueNames.size;
+    const recentNames  = [...uniqueNames].slice(0, 6).join(', ');
+
+    document.getElementById('pf-wildlife-section').style.display = '';
+    el.innerHTML = `
+      <div style="display:flex;gap:24px;margin-bottom:12px;flex-wrap:wrap;">
+        <div><div style="font-size:1.5rem;font-weight:800;color:#fff;font-family:'Montserrat',sans-serif;">${totalSpecies}</div><div style="font-size:0.72rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.06em;">Species</div></div>
+        <div><div style="font-size:1.5rem;font-weight:800;color:#fff;font-family:'Montserrat',sans-serif;">${all.length}</div><div style="font-size:0.72rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.06em;">Sightings</div></div>
+        ${tripCount > 1 ? `<div><div style="font-size:1.5rem;font-weight:800;color:#fff;font-family:'Montserrat',sans-serif;">${tripCount}</div><div style="font-size:0.72rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.06em;">Trips</div></div>` : ''}
+      </div>
+      ${recentNames ? `<div style="font-size:0.8rem;color:var(--soft);">${recentNames}${uniqueNames.size > 6 ? ` <span style="color:var(--muted);">+${uniqueNames.size - 6} more</span>` : ''}</div>` : ''}`;
+  } catch(e) {
+    document.getElementById('pf-wildlife-section').style.display = 'none';
   }
 }
 
@@ -4872,6 +5146,10 @@ function renderMyTripCompleted(r, container) {
   const name     = f['Trip Name'] || f['Destination'] || 'Unnamed Trip';
   const dest     = [f['Destination'], f['Country']].filter(Boolean).join(', ');
   const endLabel = f['End Date'] ? new Date(f['End Date']).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}) : '';
+  const _completedRegion = (typeof DESTINATIONS !== 'undefined'
+    ? DESTINATIONS.find(d => d[0] === f['Destination'] && d[1] === f['Country'])
+    : null)?.[15] || f['Region'] || '';
+
   container.innerHTML = `
     <div style="text-align:center;padding:24px 0 20px;">
       <div style="font-size:2.5rem;margin-bottom:12px;">🌍</div>
@@ -4880,6 +5158,11 @@ function renderMyTripCompleted(r, container) {
       <p style="color:var(--soft);font-size:0.88rem;line-height:1.75;max-width:400px;margin:14px auto 20px;">Before starting your Integration Workshop, take a moment to fill in any journal entries you may have missed.</p>
       <button onclick="showPageGated('integration')" style="background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;border:none;border-radius:10px;padding:14px 32px;cursor:pointer;">Open Integration Workshop →</button>
     </div>
+    ${_completedRegion ? `
+    <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--bd);">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#a78bfa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Wildlife Summary</div>
+      <div id="wildlife-dashboard-completed" style="color:var(--soft);font-size:0.88rem;">Loading…</div>
+    </div>` : ''}
     <div style="margin-top:8px;">
       <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--soft);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Journal History</div>
       <div id="journal-history-completed" style="color:var(--soft);font-size:0.88rem;">Loading entries…</div>
@@ -4889,6 +5172,7 @@ function renderMyTripCompleted(r, container) {
     const endDate = f['End Date'] || new Date().toISOString().split('T')[0];
     loadJournalHistory(r.id, f['Start Date'], endDate, dest || name, 'journal-history-completed');
   }
+  if (_completedRegion) setTimeout(() => loadWildlifeDashboard(r.id, userEmail, _completedRegion, f['Start Date'], 'completed'), 50);
 }
 
 // ═══════════════════════════════════════════════
@@ -5350,6 +5634,14 @@ window._pmClearPassions = function() {
   if (p.get('accept-trip')) {
     sessionStorage.setItem('acceptTripToken', p.get('accept-trip'));
     sessionStorage.setItem('acceptTripEmail', p.get('email') || '');
+  }
+  // Stash coach invite token
+  if (p.get('accept-coach')) {
+    sessionStorage.setItem('acceptCoachToken', p.get('accept-coach'));
+  }
+  // Stash follow-up deep link
+  if (p.get('followup')) {
+    sessionStorage.setItem('pendingFollowupId', p.get('followup'));
   }
 })();
 
