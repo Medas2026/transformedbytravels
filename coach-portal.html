@@ -478,7 +478,7 @@ function renderDetail({ customer, trip, journalEntries, followups }) {
           <div class="journal-entry-header">
             ${je.day ? `<span class="je-day">Day ${je.day}</span>` : ''}
             <span class="je-date">${fmtDate(je.date)}</span>
-            ${je.feeling ? `<span class="je-feeling">${esc(je.feeling)}</span>` : ''}
+            ${je.feeling ? `<span class="je-feeling">⭐ ${esc(je.feeling)}</span>` : ''}
           </div>
           <div class="je-toggle" style="font-size:0.7rem;color:var(--muted);margin-top:4px;">Tap to expand</div>
           <div class="journal-entry-text">${esc(je.entry || '(No entry text)')}</div>

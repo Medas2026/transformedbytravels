@@ -187,14 +187,14 @@ module.exports = async function handler(req, res) {
     let journalEntries = [];
     if (active) {
       const jData = await at(JOURNAL_TABLE,
-        `?filterByFormula=${encodeURIComponent(`({Trip ID}="${active.id}")`)}&sort[0][field]=Date&sort[0][direction]=desc&maxRecords=14`
+        `?filterByFormula=${encodeURIComponent(`({Trip ID}="${active.id}")`)}&sort[0][field]=Entry%20Date&sort[0][direction]=desc&maxRecords=14`
       );
       journalEntries = (jData.records || []).map(r => ({
         id:      r.id,
-        date:    r.fields['Date']          || '',
-        day:     r.fields['Day']           || '',
-        entry:   r.fields['Journal Entry'] || r.fields['Entry'] || '',
-        feeling: r.fields['Feeling']       || r.fields['Feelings'] || ''
+        date:    r.fields['Entry Date']  || '',
+        day:     r.fields['Day Number']  || '',
+        entry:   r.fields['Reflection']  || '',
+        feeling: r.fields['Day Rating']  ? `${r.fields['Day Rating']}/5` : ''
       }));
     }
 
