@@ -534,11 +534,20 @@ module.exports = async function handler(req, res) {
       return res.status(403).json({ error: 'Not authorized' });
 
     // 9 PM cutoff in destination timezone
-    const tz        = tripData.fields['Time Zone'] || 'UTC';
-    const localHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', hour12: false }).format(new Date()));
+    const tz = tripData.fields['Time Zone'] || 'UTC';
+    let localHour = 0;
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', hour12: false }).formatToParts(new Date());
+      const hp = parts.find(p => p.type === 'hour');
+      localHour = hp ? Number(hp.value) : 0;
+    } catch(tzErr) {
+      console.warn('coach tip-override: invalid timezone', tz, tzErr.message);
+      localHour = 0; // unrecognised timezone — allow the edit
+    }
+    console.log('coach tip-override: tz=', tz, 'localHour=', localHour);
     if (localHour >= 21) {
       return res.status(400).json({
-        error: 'Past 9 PM cutoff in destination timezone. Tip locked until tomorrow.'
+        error: `Past 9 PM cutoff in destination timezone (${tz}, currently ${localHour}:00). Tip locked until tomorrow.`
       });
     }
 
