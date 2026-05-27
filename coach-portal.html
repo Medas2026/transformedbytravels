@@ -482,13 +482,27 @@ function renderDetail({ customer, trip, journalEntries, followups }) {
           </div>
           <div class="je-toggle" style="font-size:0.7rem;color:var(--muted);margin-top:4px;">Tap to expand</div>
           <div class="journal-entry-text">
-            ${je.entry ? `<p style="margin:0 0 ${je.claudeReflection ? '12px' : '0'};">${esc(je.entry)}</p>` : ''}
+            ${je.reflection ? `
+              <div style="margin-bottom:10px;">
+                <div style="font-family:'Montserrat',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--soft);margin-bottom:4px;">Reflection</div>
+                <p style="margin:0;">${esc(je.reflection)}</p>
+              </div>` : ''}
+            ${je.barriers ? `
+              <div style="margin-bottom:10px;">
+                <div style="font-family:'Montserrat',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--soft);margin-bottom:4px;">Barriers</div>
+                <p style="margin:0;">${esc(je.barriers)}</p>
+              </div>` : ''}
+            ${je.bestMemory ? `
+              <div style="margin-bottom:10px;">
+                <div style="font-family:'Montserrat',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--soft);margin-bottom:4px;">Best Memory</div>
+                <p style="margin:0;">${esc(je.bestMemory)}</p>
+              </div>` : ''}
             ${je.claudeReflection ? `
-              <div style="border-top:1px solid rgba(45,212,191,0.2);padding-top:10px;margin-top:${je.entry ? '0' : '0'};">
+              <div style="border-top:1px solid rgba(45,212,191,0.2);padding-top:10px;margin-top:2px;">
                 <div style="font-family:'Montserrat',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--teal);margin-bottom:6px;">Claude Reflection</div>
                 <p style="margin:0;color:#94a3b8;font-style:italic;">${esc(je.claudeReflection)}</p>
               </div>` : ''}
-            ${!je.entry && !je.claudeReflection ? '(No entry text)' : ''}
+            ${!je.reflection && !je.barriers && !je.bestMemory && !je.claudeReflection ? '(No entry)' : ''}
           </div>
         </div>`).join('')
     : '<p style="font-size:0.83rem;color:var(--muted);">No journal entries yet.</p>';
