@@ -481,7 +481,15 @@ function renderDetail({ customer, trip, journalEntries, followups }) {
             ${je.feeling ? `<span class="je-feeling">⭐ ${esc(je.feeling)}</span>` : ''}
           </div>
           <div class="je-toggle" style="font-size:0.7rem;color:var(--muted);margin-top:4px;">Tap to expand</div>
-          <div class="journal-entry-text">${esc(je.entry || '(No entry text)')}</div>
+          <div class="journal-entry-text">
+            ${je.entry ? `<p style="margin:0 0 ${je.claudeReflection ? '12px' : '0'};">${esc(je.entry)}</p>` : ''}
+            ${je.claudeReflection ? `
+              <div style="border-top:1px solid rgba(45,212,191,0.2);padding-top:10px;margin-top:${je.entry ? '0' : '0'};">
+                <div style="font-family:'Montserrat',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--teal);margin-bottom:6px;">Claude Reflection</div>
+                <p style="margin:0;color:#94a3b8;font-style:italic;">${esc(je.claudeReflection)}</p>
+              </div>` : ''}
+            ${!je.entry && !je.claudeReflection ? '(No entry text)' : ''}
+          </div>
         </div>`).join('')
     : '<p style="font-size:0.83rem;color:var(--muted);">No journal entries yet.</p>';
 

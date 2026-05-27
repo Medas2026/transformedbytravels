@@ -190,11 +190,12 @@ module.exports = async function handler(req, res) {
         `?filterByFormula=${encodeURIComponent(`({Trip ID}="${active.id}")`)}&sort[0][field]=Entry%20Date&sort[0][direction]=desc&maxRecords=14`
       );
       journalEntries = (jData.records || []).map(r => ({
-        id:      r.id,
-        date:    r.fields['Entry Date']  || '',
-        day:     r.fields['Day Number']  || '',
-        entry:   r.fields['Reflection']  || '',
-        feeling: r.fields['Day Rating']  ? `${r.fields['Day Rating']}/5` : ''
+        id:              r.id,
+        date:            r.fields['Entry Date']            || '',
+        day:             r.fields['Day Number']            || '',
+        entry:           r.fields['Reflection']            || '',
+        claudeReflection: r.fields['Reflection from Claude'] || '',
+        feeling:         r.fields['Day Rating'] ? `${r.fields['Day Rating']}/5` : ''
       }));
     }
 
