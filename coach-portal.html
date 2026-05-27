@@ -409,11 +409,6 @@ function renderDetail({ customer, trip, journalEntries, followups }) {
 
   // Trip info
   if (trip) {
-    const now     = new Date();
-    const tz      = trip.timeZone || 'UTC';
-    const localHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', hour12: false }).format(now));
-    const cutoffPassed = localHour >= 21;
-
     html += `<div class="section">
       <div class="section-title">Active Trip</div>
       <div class="trip-info-grid">
@@ -424,21 +419,19 @@ function renderDetail({ customer, trip, journalEntries, followups }) {
       </div>
     </div>`;
 
-    // Tip override
+    // Tip override — cutoff enforced server-side only
     html += `<div class="section">
       <div class="section-title">Tomorrow's Tip Override
-        <span style="margin-left:auto;font-size:0.7rem;color:${cutoffPassed ? '#f59e0b' : 'var(--muted)'};font-family:inherit;font-weight:400;">
-          ${cutoffPassed ? '⚠️ Past 9 PM cutoff — locked until tomorrow' : 'Editable until 9 PM at destination'}
-        </span>
+        <span style="margin-left:auto;font-size:0.7rem;color:var(--muted);font-family:inherit;font-weight:400;">Editable until 9 PM at destination</span>
       </div>
       <div class="tip-override-box">
         ${trip.coachTipOverride
           ? `<div class="tip-override-current">${esc(trip.coachTipOverride)}</div>`
           : `<div class="tip-override-current empty">No override set — traveler will receive their regular tip</div>`}
-        <textarea id="tip-override-textarea" placeholder="Write a custom tip for tomorrow's daily email…" ${cutoffPassed ? 'disabled' : ''}>${esc(trip.coachTipOverride)}</textarea>
+        <textarea id="tip-override-textarea" placeholder="Write a custom tip for tomorrow's daily email…">${esc(trip.coachTipOverride)}</textarea>
         <div class="tip-override-actions">
-          <button class="btn-sm" onclick="saveTipOverride('${trip.id}')" ${cutoffPassed ? 'disabled' : ''}>Save Tip</button>
-          ${trip.coachTipOverride ? `<button class="btn-action" onclick="clearTipOverride('${trip.id}')" ${cutoffPassed ? 'disabled' : ''} style="margin-left:4px;">Clear</button>` : ''}
+          <button class="btn-sm" onclick="saveTipOverride('${trip.id}')">Save Tip</button>
+          ${trip.coachTipOverride ? `<button class="btn-action" onclick="clearTipOverride('${trip.id}')" style="margin-left:4px;">Clear</button>` : ''}
         </div>
         <div id="tip-override-msg"></div>
       </div>
