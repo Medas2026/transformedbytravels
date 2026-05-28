@@ -859,7 +859,6 @@
           </div>
           <div id="pending-invites-banner" style="display:none;margin-bottom:16px;"></div>
           <div id="trip-list-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading trips…</div>
-          <div id="trip-list-debug"></div>
           <div id="trip-list"></div>
 
           <!-- Taken / History Trips -->
@@ -5693,10 +5692,6 @@ function loadTrips() {
   document.getElementById('trip-list-section').style.display = 'block';
   document.getElementById('trip-detail').style.display = 'none';
 
-  // DEBUG — show immediately so we know the function ran
-  const _dbg = document.getElementById('trip-list-debug');
-  if (_dbg) _dbg.innerHTML = `<div style="font-size:0.85rem;color:#0f172a;background:#fbbf24;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-family:monospace;font-weight:700;">🔍 DEBUG: loadTrips called. tripsLoaded=${tripsLoaded} email=${userEmail}</div>`;
-
   if (tripsLoaded) return;
 
   Promise.all([
@@ -5744,14 +5739,10 @@ function loadTrips() {
       return new Date(db) - new Date(da);
     });
 
-    // DEBUG — update with results
-    if (_dbg) _dbg.innerHTML = `<div style="font-size:0.85rem;color:#0f172a;background:#fbbf24;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-family:monospace;font-weight:700;">🔍 DEBUG: own=${ownRecords.length} | memberships=${memberData.records?.length||0} | shared=${sharedRecords.length} | active=${active.length} | history=${history.length}<br>email=${userEmail}</div>`;
-
     renderTripList(active);
     renderHistoryTripList(history);
-  }).catch((e) => {
+  }).catch(() => {
     document.getElementById('trip-list-loading').textContent = 'Could not load trips.';
-    if (_dbg) _dbg.innerHTML = `<div style="font-size:0.85rem;color:#fff;background:#dc2626;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-family:monospace;font-weight:700;">🔍 DEBUG ERROR: ${e?.message||'unknown'} | email=${userEmail}</div>`;
   });
 }
 
