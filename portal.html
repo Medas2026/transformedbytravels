@@ -5740,7 +5740,7 @@ function loadTrips() {
 
     // DEBUG — remove after diagnosing Kathy's missing trips
     const _dbg = document.getElementById('trip-list-debug');
-    if (_dbg) _dbg.innerHTML = `<div style="font-size:0.75rem;color:#f59e0b;padding:8px 0;font-family:monospace;">Debug: own=${ownRecords.length} memberships=${memberData.records?.length||0} shared=${sharedRecords.length} active=${active.length} history=${history.length}</div>`;
+    if (_dbg) _dbg.innerHTML = `<div style="font-size:0.85rem;color:#0f172a;background:#fbbf24;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-family:monospace;font-weight:700;">🔍 DEBUG: own=${ownRecords.length} | memberships=${memberData.records?.length||0} | shared=${sharedRecords.length} | active=${active.length} | history=${history.length}<br>email=${userEmail}</div>`;
 
     renderTripList(active);
     renderHistoryTripList(history);
