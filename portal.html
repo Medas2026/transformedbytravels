@@ -5706,7 +5706,7 @@ function loadTrips() {
     tripsLoaded = true;
     document.getElementById('trip-list-loading').style.display = 'none';
 
-    const ownRecords = ownData.records || [];
+    const ownRecords = (ownData.records || []).filter(r => r && r.fields);
     const ownIds     = new Set(ownRecords.map(r => r.id));
 
     // Fetch shared trip records (accepted memberships that aren't already owned)
@@ -5722,12 +5722,13 @@ function loadTrips() {
           fetch('/api/trips?id=' + encodeURIComponent(m.fields['Trip ID']))
             .then(r => r.json())
             .then(d => {
-              if (d.record) {
+              if (d.record && d.record.fields) {
                 d.record._fromName   = m.fields['Invited By Name'] || m.fields['Invited By'] || '';
                 d.record._shared     = true;
                 d.record._memberRole = m.fields['Role'] || 'Viewer';
+                return d.record;
               }
-              return d.record || null;
+              return null;
             })
             .catch(() => null)
         )
