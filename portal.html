@@ -5692,6 +5692,11 @@ function loadTrips() {
   // Always reset section visibility when navigating to planning page
   document.getElementById('trip-list-section').style.display = 'block';
   document.getElementById('trip-detail').style.display = 'none';
+
+  // DEBUG — show immediately so we know the function ran
+  const _dbg = document.getElementById('trip-list-debug');
+  if (_dbg) _dbg.innerHTML = `<div style="font-size:0.85rem;color:#0f172a;background:#fbbf24;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-family:monospace;font-weight:700;">🔍 DEBUG: loadTrips called. tripsLoaded=${tripsLoaded} email=${userEmail}</div>`;
+
   if (tripsLoaded) return;
 
   Promise.all([
@@ -5738,14 +5743,14 @@ function loadTrips() {
       return new Date(db) - new Date(da);
     });
 
-    // DEBUG — remove after diagnosing Kathy's missing trips
-    const _dbg = document.getElementById('trip-list-debug');
+    // DEBUG — update with results
     if (_dbg) _dbg.innerHTML = `<div style="font-size:0.85rem;color:#0f172a;background:#fbbf24;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-family:monospace;font-weight:700;">🔍 DEBUG: own=${ownRecords.length} | memberships=${memberData.records?.length||0} | shared=${sharedRecords.length} | active=${active.length} | history=${history.length}<br>email=${userEmail}</div>`;
 
     renderTripList(active);
     renderHistoryTripList(history);
-  }).catch(() => {
+  }).catch((e) => {
     document.getElementById('trip-list-loading').textContent = 'Could not load trips.';
+    if (_dbg) _dbg.innerHTML = `<div style="font-size:0.85rem;color:#fff;background:#dc2626;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-family:monospace;font-weight:700;">🔍 DEBUG ERROR: ${e?.message||'unknown'} | email=${userEmail}</div>`;
   });
 }
 
