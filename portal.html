@@ -859,6 +859,7 @@
           </div>
           <div id="pending-invites-banner" style="display:none;margin-bottom:16px;"></div>
           <div id="trip-list-loading" style="color:var(--soft);font-size:0.9rem;padding:20px 0;">Loading trips…</div>
+          <div id="trip-list-debug"></div>
           <div id="trip-list"></div>
 
           <!-- Taken / History Trips -->
@@ -5736,6 +5737,11 @@ function loadTrips() {
       const db = b.fields['End Date'] || b.fields['Start Date'] || '0';
       return new Date(db) - new Date(da);
     });
+
+    // DEBUG — remove after diagnosing Kathy's missing trips
+    const _dbg = document.getElementById('trip-list-debug');
+    if (_dbg) _dbg.innerHTML = `<div style="font-size:0.75rem;color:#f59e0b;padding:8px 0;font-family:monospace;">Debug: own=${ownRecords.length} memberships=${memberData.records?.length||0} shared=${sharedRecords.length} active=${active.length} history=${history.length}</div>`;
+
     renderTripList(active);
     renderHistoryTripList(history);
   }).catch(() => {
