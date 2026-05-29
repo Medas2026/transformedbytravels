@@ -135,14 +135,26 @@ const US_STATES = { AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'Cali
 
 async function getWeatherForecast(place, country) {
   try {
-    const cityName  = place.split(',')[0].trim();
-    const rawSuffix = (place.split(',')[1] || '').trim().toUpperCase();
+    const parts     = place.trim().split(',');
+    const cityName  = parts[0].trim();
+    const rawSuffix = (parts[1] || '').trim().toUpperCase();
     const fullState = US_STATES[rawSuffix];
 
-    // Build candidates: expanded state name first (most precise), then city alone
-    const namesToTry = fullState
-      ? [`${cityName}, ${fullState}`, cityName]
-      : (cityName !== place.trim() ? [cityName, place.trim()] : [cityName]);
+    // Also check if last word of a space-only place is a US state name (e.g. "Bayfield Wisconsin")
+    const words      = cityName.split(/\s+/);
+    const lastWord   = words[words.length - 1];
+    const stateByName = Object.values(US_STATES).find(s => s.toLowerCase() === lastWord.toLowerCase());
+    const cityOnly   = stateByName ? words.slice(0, -1).join(' ') : cityName;
+
+    // Build candidates: most specific first, city-only last
+    let namesToTry;
+    if (fullState) {
+      namesToTry = [`${cityName}, ${fullState}`, cityName];
+    } else if (stateByName) {
+      namesToTry = [`${cityOnly}, ${stateByName}`, cityOnly, place.trim()];
+    } else {
+      namesToTry = cityName !== place.trim() ? [cityName, place.trim()] : [cityName];
+    }
 
     let geoData = null;
     for (const name of namesToTry) {
