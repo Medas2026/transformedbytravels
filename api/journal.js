@@ -132,14 +132,28 @@ const WMO_EMOJI = {
 
 async function getWeatherForecast(place, country) {
   try {
-    // Strip state abbreviation for geocoding (e.g. "Bayfield, WI" → "Bayfield")
+    // Try full place name first, then fall back to just the city (before first comma)
+    const fullName = place.trim();
     const cityName = place.split(',')[0].trim();
-    const geoResp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=5&language=en&format=json`);
-    const geoData = await geoResp.json();
-    if (!geoData.results || !geoData.results.length) return null;
+    const namesToTry = fullName !== cityName ? [fullName, cityName] : [cityName];
+
+    let geoData = null;
+    for (const name of namesToTry) {
+      const geoResp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=5&language=en&format=json`);
+      const parsed = await geoResp.json();
+      if (parsed.results && parsed.results.length) { geoData = parsed; break; }
+    }
+    if (!geoData) return null;
+
     // Prefer result matching the trip's country
-    const loc = country
-      ? (geoData.results.find(r => r.country && r.country.toLowerCase().includes(country.toLowerCase().split(',')[0].trim())) || geoData.results[0])
+    const countryKey = (country || '').toLowerCase().split(',')[0].trim();
+    const COUNTRY_ALIASES = { 'usa': ['united states'], 'us': ['united states'], 'uk': ['united kingdom'] };
+    const loc = countryKey
+      ? (geoData.results.find(r => {
+          const rc = (r.country || '').toLowerCase();
+          const aliases = COUNTRY_ALIASES[countryKey] || [];
+          return rc.includes(countryKey) || aliases.some(a => rc.includes(a));
+        }) || geoData.results[0])
       : geoData.results[0];
     if (!loc) return null;
     const wResp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&temperature_unit=fahrenheit&timezone=auto&forecast_days=2`);
