@@ -5,6 +5,7 @@ const JOURNAL_TABLE   = 'Journal Entries';
 const TRIPS_TABLE     = 'Trips';
 const TRAVELER_TABLE  = 'Traveler';
 const EMAILS_TABLE    = 'Emails';
+const MEMBERS_TABLE   = 'Trip Members';
 const PORTAL_URL      = 'https://transformedbytravels.vercel.app';
 
 function airtableGet(table, filter, callback) {
@@ -665,6 +666,63 @@ ${wildlifeBlockHtml}${tipBlockHtml}${tomorrowBlockHtml}
 
           sent++;
           console.log('[send-daily] sent to', email, dayLabel, currentPlace);
+
+          // Send to accepted trip members (partners, co-travelers)
+          try {
+            const membersData = await airtableGetP(MEMBERS_TABLE, '?filterByFormula=' + encodeURIComponent(`AND({Trip ID}="${tripId}",{Status}="Accepted")`));
+            const members = (membersData.records || []).filter(m => {
+              const mEmail = (m.fields['Email'] || '').toLowerCase();
+              return mEmail && mEmail !== email.toLowerCase();
+            });
+            for (const member of members) {
+              const memberEmail = member.fields['Email'];
+              const mTravData   = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${memberEmail}")`));
+              const mTravRec    = (mTravData.records || [])[0];
+              const memberName  = mTravRec ? (mTravRec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
+              const memberLink  = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(memberEmail)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}&daytype=${dayType}&tip=${tipNum}`;
+              if (isLastDay) {
+                const subject = `Last Day — ${currentPlace} 🏁`;
+                const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+${tripPhotoHtml}
+<tr><td style="padding:36px 40px 28px;">
+<h1 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">Last Day in ${currentPlace}, ${memberName}!</h1>
+<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 16px;">Today marks the final day of <strong>${tripName}</strong>. Before the journey fades, take a moment to capture any final reflections.</p>
+</td></tr>
+<tr><td style="padding:0 40px 36px;text-align:center;">
+<a href="${finishLink}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Go to My Portal 🏁</a>
+</td></tr>
+<tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
+</td></tr></table></td></tr></table></body></html>`;
+                await sendEmail(memberEmail, subject, html);
+              } else {
+                const subject = `${dayLabel} Journal — ${currentPlace}`;
+                const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+${tripPhotoHtml}
+<tr><td style="padding:36px 40px 28px;">
+<h1 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">Hello ${memberName},</h1>
+<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">Hoping your ${ordinal(dayNum)} day in ${currentPlace} is going well. Take a moment to capture your reflection before the day slips by.</p>
+</td></tr>
+<tr><td style="padding:0 40px 28px;text-align:center;">
+<a href="${memberLink}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Write Today's Journal →</a>
+</td></tr>
+${tipBlockHtml}${tomorrowBlockHtml}
+<tr><td style="background:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
+</td></tr></table></td></tr></table></body></html>`;
+                await sendEmail(memberEmail, subject, html);
+              }
+              console.log('[send-daily] sent to partner', memberEmail, dayLabel, currentPlace);
+            }
+          } catch(e) {
+            console.error('[send-daily] partner email error:', e.message);
+          }
 
           // Clear coach tip override after it's been consumed
           if (coachTipOverride) {
