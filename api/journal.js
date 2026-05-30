@@ -133,7 +133,7 @@ const WMO_EMOJI = {
 
 const US_STATES = { AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming' };
 
-async function getWeatherForecast(place, country) {
+async function getWeatherForecast(place, country, tomorrowDate) {
   try {
     const parts     = place.trim().split(',');
     const cityName  = parts[0].trim();
@@ -175,16 +175,48 @@ async function getWeatherForecast(place, country) {
         }) || geoData.results[0])
       : geoData.results[0];
     if (!loc) return null;
-    const wResp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&temperature_unit=fahrenheit&timezone=auto&forecast_days=2`);
+
+    const wResp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,sunrise,sunset&temperature_unit=fahrenheit&timezone=auto&forecast_days=2`);
     const wData = await wResp.json();
     if (!wData.daily) return null;
-    const code    = wData.daily.weathercode[1];
+    const code = wData.daily.weathercode[1];
+    const tz   = wData.timezone || 'UTC';
+
+    // "2024-05-31T05:43" → "5:43 AM"
+    function fmtLocalTime(isoStr) {
+      const t = ((isoStr || '').split('T')[1] || '').substring(0, 5);
+      if (!t) return '';
+      const [h, m] = t.split(':').map(Number);
+      return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+    }
+    const sunriseTime = fmtLocalTime((wData.daily.sunrise || [])[1] || '');
+    const sunsetTime  = fmtLocalTime((wData.daily.sunset  || [])[1] || '');
+
+    // Moonrise / moonset from sunrisesunset.io (free, no key required)
+    let moonriseTime = '', moonsetTime = '';
+    try {
+      const moonDateStr = tomorrowDate ? new Date(tomorrowDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+      const moonResp = await fetch(`https://api.sunrisesunset.io/json?lat=${loc.latitude}&lng=${loc.longitude}&timezone=${encodeURIComponent(tz)}&date=${moonDateStr}`);
+      const moonData = await moonResp.json();
+      if (moonData.status === 'OK' && moonData.results) {
+        const fmt = t => (t || '').replace(/:00 (AM|PM)$/, ' $1').trim();
+        const mr = fmt(moonData.results.moonrise);
+        const ms = fmt(moonData.results.moonset);
+        if (mr && !mr.toLowerCase().includes('no ')) moonriseTime = mr;
+        if (ms && !ms.toLowerCase().includes('no ')) moonsetTime  = ms;
+      }
+    } catch(e) { /* moon times optional */ }
+
     return {
-      emoji:   WMO_EMOJI[code] || '🌡',
-      desc:    WMO_DESC[code]  || 'Variable',
-      maxTemp: Math.round(wData.daily.temperature_2m_max[1]),
-      minTemp: Math.round(wData.daily.temperature_2m_min[1]),
-      precip:  Math.round(wData.daily.precipitation_sum[1] * 10) / 10
+      emoji:    WMO_EMOJI[code] || '🌡',
+      desc:     WMO_DESC[code]  || 'Variable',
+      maxTemp:  Math.round(wData.daily.temperature_2m_max[1]),
+      minTemp:  Math.round(wData.daily.temperature_2m_min[1]),
+      precip:   Math.round(wData.daily.precipitation_sum[1] * 10) / 10,
+      sunrise:  sunriseTime,
+      sunset:   sunsetTime,
+      moonrise: moonriseTime,
+      moonset:  moonsetTime
     };
   } catch(e) {
     console.error('[getWeather]', e.message);
@@ -570,14 +602,14 @@ module.exports = async function handler(req, res) {
           const isFirstDay = dayNum === 1;
           const tipNum = getTipNumber(dayNum, null, tripId, isLastDay);
           const [weather, lunar, generatedTip] = await Promise.all([
-            getWeatherForecast(weatherPlace, country),
+            getWeatherForecast(weatherPlace, country, tomorrowDate),
             Promise.resolve(getLunarPhase(tomorrowDate)),
             coachTipOverride ? Promise.resolve(null) : getDailyTip(archetype, tipNum, tomorrowPlace, country)
           ]);
           const tipText = coachTipOverride || generatedTip;
           const dayType    = isLastDay ? 'LAST' : isFirstDay ? 'FIRST' : 'MIDDLE';
           const dayLabel   = dayNum ? `Day ${dayNum}` : 'Today';
-          const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(email)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}&daytype=${dayType}&tip=${tipNum}`;
+          const link = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(email)}&tab=journal`;
 
           // ── Tomorrow section HTML ──────────────────────────────────
           const tomorrowLabel = tomorrowDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -594,11 +626,18 @@ module.exports = async function handler(req, res) {
               <div style="font-family:Arial,sans-serif;font-size:12px;color:#64748b;margin-top:2px;">${lunar.illumination}% illuminated</div>
             </td>`;
 
+          const sunMoonItems = weather ? [
+            weather.sunrise  ? { emoji:'🌅', time:weather.sunrise,  label:'Sunrise'  } : null,
+            weather.sunset   ? { emoji:'🌇', time:weather.sunset,   label:'Sunset'   } : null,
+            weather.moonrise ? { emoji:'🌙', time:weather.moonrise, label:'Moonrise' } : null,
+            weather.moonset  ? { emoji:'🌑', time:weather.moonset,  label:'Moonset'  } : null,
+          ].filter(Boolean) : [];
+          const sunMoonHtml = sunMoonItems.length ? `<tr><td colspan="2" style="padding-top:14px;"><div style="border-top:1px solid #e2e8f0;padding-top:12px;"><table cellpadding="0" cellspacing="0" style="width:100%;"><tr>${sunMoonItems.map((c,i) => `<td style="text-align:center;padding:0 4px;${i>0?'border-left:1px solid #e2e8f0;':''}" ><div style="font-size:1.1rem;">${c.emoji}</div><div style="font-family:Arial,sans-serif;font-size:12px;font-weight:bold;color:#0f172a;margin-top:3px;">${c.time}</div><div style="font-family:Arial,sans-serif;font-size:10px;color:#94a3b8;margin-top:1px;">${c.label}</div></td>`).join('')}</tr></table></div></td></tr>` : '';
           const tomorrowBlockHtml = `
 <tr><td style="padding:0 40px 28px;">
   <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;">
     <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:14px;">Tomorrow · ${tomorrowLabel}</div>
-    <table cellpadding="0" cellspacing="0" style="width:100%;"><tr>${weatherHtml}${lunarHtml}</tr></table>
+    <table cellpadding="0" cellspacing="0" style="width:100%;"><tr>${weatherHtml}${lunarHtml}</tr>${sunMoonHtml}</table>
   </div>
 </td></tr>`;
 
@@ -697,7 +736,7 @@ ${wildlifeBlockHtml}${tipBlockHtml}${tomorrowBlockHtml}
               const mTravData   = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${memberEmail}")`));
               const mTravRec    = (mTravData.records || [])[0];
               const memberName  = mTravRec ? (mTravRec.fields['Traveler Name'] || 'Traveler') : 'Traveler';
-              const memberLink  = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(memberEmail)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}&daytype=${dayType}&tip=${tipNum}`;
+              const memberLink  = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(memberEmail)}&tab=journal`;
               if (isLastDay) {
                 const subject = `Last Day — ${currentPlace} 🏁`;
                 const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
@@ -810,14 +849,14 @@ ${tipBlockHtml}${tomorrowBlockHtml}
         const isFirstDay = dayNum === 1;
         const dayType    = isLastDay ? 'LAST' : isFirstDay ? 'FIRST' : 'MIDDLE';
         const dayLabel   = `Day ${dayNum}`;
-        const link = `${PORTAL_URL}/journal.html?email=${encodeURIComponent(previewEmail)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${activationDate ? '&start=' + encodeURIComponent(activationDate) : ''}&dest=${encodeURIComponent(currentPlace)}&daytype=${dayType}`;
+        const link = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(previewEmail)}&tab=journal`;
         const finishLink = `${PORTAL_URL}/portal.html`;
 
         const tomorrowDate = new Date(localDate + 'T12:00:00');
         tomorrowDate.setDate(tomorrowDate.getDate() + 1);
         const weatherPlace = currentPlace !== tripName ? currentPlace : (destination || tripName);
         const [weather, lunar] = await Promise.all([
-          getWeatherForecast(weatherPlace, country),
+          getWeatherForecast(weatherPlace, country, tomorrowDate),
           Promise.resolve(getLunarPhase(tomorrowDate))
         ]);
 
@@ -833,11 +872,18 @@ ${tipBlockHtml}${tomorrowBlockHtml}
             <div style="font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#0f172a;margin-top:6px;">${lunar.name}</div>
             <div style="font-family:Arial,sans-serif;font-size:12px;color:#64748b;margin-top:2px;">${lunar.illumination}% illuminated</div>
           </td>`;
+        const previewSunMoonItems = weather ? [
+          weather.sunrise  ? { emoji:'🌅', time:weather.sunrise,  label:'Sunrise'  } : null,
+          weather.sunset   ? { emoji:'🌇', time:weather.sunset,   label:'Sunset'   } : null,
+          weather.moonrise ? { emoji:'🌙', time:weather.moonrise, label:'Moonrise' } : null,
+          weather.moonset  ? { emoji:'🌑', time:weather.moonset,  label:'Moonset'  } : null,
+        ].filter(Boolean) : [];
+        const previewSunMoonHtml = previewSunMoonItems.length ? `<tr><td colspan="2" style="padding-top:14px;"><div style="border-top:1px solid #e2e8f0;padding-top:12px;"><table cellpadding="0" cellspacing="0" style="width:100%;"><tr>${previewSunMoonItems.map((c,i) => `<td style="text-align:center;padding:0 4px;${i>0?'border-left:1px solid #e2e8f0;':''}" ><div style="font-size:1.1rem;">${c.emoji}</div><div style="font-family:Arial,sans-serif;font-size:12px;font-weight:bold;color:#0f172a;margin-top:3px;">${c.time}</div><div style="font-family:Arial,sans-serif;font-size:10px;color:#94a3b8;margin-top:1px;">${c.label}</div></td>`).join('')}</tr></table></div></td></tr>` : '';
         const tomorrowBlockHtml = `
 <tr><td style="padding:0 40px 28px;">
   <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;">
     <div style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:14px;">Tomorrow · ${tomorrowLabel}</div>
-    <table cellpadding="0" cellspacing="0" style="width:100%;"><tr>${weatherHtml}${lunarHtml}</tr></table>
+    <table cellpadding="0" cellspacing="0" style="width:100%;"><tr>${weatherHtml}${lunarHtml}</tr>${previewSunMoonHtml}</table>
   </div>
 </td></tr>`;
 

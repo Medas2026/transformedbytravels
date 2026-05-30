@@ -125,6 +125,7 @@ html, body { height: 100%; background: #060d16; color: var(--text); font-family:
 const params  = new URLSearchParams(location.search);
 const TRIP_ID = params.get('tripId') || '';
 const EMAIL   = (params.get('email') || '').toLowerCase();
+const TAB     = params.get('tab') || '';
 const CACHE_KEY = 'tbt_trip_' + TRIP_ID;
 const QUEUE_KEY = 'tbt_jq_'   + TRIP_ID;
 
@@ -462,8 +463,10 @@ async function init() {
   renderSchedule();
   renderJournalForm();
   renderPastEntries();
-  // Default to Today if trip is active
-  if(tripMeta&&tripMeta['Status of Trip']==='Active'){switchTab('today');}
+  // URL ?tab= overrides default; otherwise auto-switch to Today when trip is active
+  if(TAB==='journal'){switchTab('journal');}
+  else if(TAB==='today'){switchTab('today');}
+  else if(tripMeta&&tripMeta['Status of Trip']==='Active'){switchTab('today');}
 }
 
 init();
