@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1520">
+<title>My Trip</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg:     #0d1520;
+  --s1:     #131f2e;
+  --s2:     #1a2840;
+  --teal:   #2dd4bf;
+  --text:   #f1f5f9;
+  --soft:   #94a3b8;
+  --muted:  #475569;
+  --border: #1e3a5f;
+  --amber:  #f59e0b;
+}
+html, body { height: 100%; background: #060d16; color: var(--text); font-family: Arial, sans-serif; }
+#app { max-width: 480px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; background: var(--bg); }
+@media (min-width: 520px) { #app { box-shadow: 0 0 60px rgba(0,0,0,0.7); } }
+
+/* ── Banner ── */
+.trip-banner { position: relative; background: var(--s1); flex-shrink: 0; overflow: hidden; }
+.trip-banner-photo { width: 100%; height: 160px; object-fit: cover; display: block; }
+.trip-banner-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.78)); padding: 24px 16px 14px; }
+.trip-banner-nophoto { padding: 18px 16px 15px; }
+.banner-name  { font-family: Georgia, serif; font-size: 1.1rem; font-weight: bold; color: #fff; line-height: 1.3; }
+.banner-dates { font-size: 0.78rem; color: rgba(255,255,255,0.72); margin-top: 3px; }
+
+/* ── Offline bar ── */
+.offline-bar { background: #7c3aed; color: #fff; font-size: 0.78rem; font-weight: 700; text-align: center; padding: 6px 12px; display: none; flex-shrink: 0; }
+.offline-bar.show { display: block; }
+
+/* ── Tabs ── */
+.tab-bar { background: var(--s1); border-bottom: 1px solid var(--border); display: flex; flex-shrink: 0; }
+.tab { flex: 1; padding: 13px 4px; text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; text-transform: uppercase; letter-spacing: 0.06em; user-select: none; }
+.tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+/* ── Content ── */
+.page-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.tab-panel { display: none; padding: 14px 14px 40px; }
+.tab-panel.active { display: block; }
+.loading-msg { color: var(--muted); font-size: 0.88rem; padding: 32px 0; text-align: center; }
+.section-heading { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em; margin: 18px 0 12px; }
+.section-heading:first-child { margin-top: 4px; }
+
+/* ── Day cards ── */
+.day-card { background: var(--s2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 15px; margin-bottom: 12px; }
+.day-card.is-today { border-color: rgba(45,212,191,0.45); }
+.day-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.day-num  { font-family: Georgia, serif; font-size: 0.98rem; font-weight: bold; color: var(--teal); }
+.today-badge { display: inline-block; background: var(--teal); color: #0d1520; border-radius: 4px; font-family: Arial, sans-serif; font-size: 0.68rem; font-weight: 700; padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
+.day-date { font-size: 0.75rem; color: var(--muted); text-align: right; line-height: 1.4; }
+.loc-row  { display: grid; grid-template-columns: 1fr 22px 1fr; gap: 5px; align-items: center; margin-bottom: 10px; }
+.loc-box  { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 0.77rem; color: var(--soft); min-height: 34px; display: flex; align-items: center; word-break: break-word; }
+.loc-arrow { color: var(--muted); font-size: 1rem; text-align: center; }
+.slot-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
+.slot-item { display: flex; gap: 8px; align-items: flex-start; }
+.slot-icon { font-size: 0.95rem; flex-shrink: 0; margin-top: 1px; }
+.slot-body { flex: 1; }
+.slot-text { font-size: 0.83rem; color: var(--soft); line-height: 1.4; }
+.slot-time { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+.lodging-chip { display: flex; align-items: center; gap: 7px; font-size: 0.8rem; color: var(--amber); background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.22); border-radius: 8px; padding: 7px 11px; margin-top: 4px; }
+
+/* ── Journal ── */
+.j-label { font-size: 0.72rem; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+.j-field { margin-bottom: 16px; }
+.j-textarea { width: 100%; background: var(--s2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 0.9rem; font-family: Arial, sans-serif; padding: 10px 12px; resize: vertical; line-height: 1.6; min-height: 80px; outline: none; }
+.j-textarea:focus { border-color: var(--teal); }
+.star-row { display: flex; gap: 8px; }
+.star { font-size: 1.5rem; cursor: pointer; color: var(--muted); line-height: 1; }
+.star.on { color: var(--amber); }
+.save-btn { width: 100%; padding: 13px; background: var(--teal); border: none; border-radius: 10px; color: #0d1520; font-family: Arial, sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 6px; }
+.save-btn:disabled { background: var(--muted); cursor: default; }
+.save-status { font-size: 0.82rem; text-align: center; margin-top: 8px; min-height: 20px; }
+.entry-card { background: var(--s2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 15px; margin-bottom: 12px; }
+.entry-meta { font-size: 0.7rem; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+.entry-stars { color: var(--amber); font-size: 0.95rem; margin-bottom: 8px; }
+.entry-section { font-size: 0.68rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; margin-top: 10px; }
+.entry-section:first-of-type { margin-top: 0; }
+.entry-body { font-size: 0.87rem; color: var(--soft); line-height: 1.65; }
+.entry-claude { background: rgba(45,212,191,0.06); border-top: 1px solid rgba(45,212,191,0.2); padding-top: 10px; margin-top: 10px; }
+.entry-claude-label { font-size: 0.68rem; color: var(--teal); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="trip-banner" class="trip-banner">
+    <div class="trip-banner-nophoto">
+      <div class="banner-name" id="banner-name">Loading…</div>
+    </div>
+  </div>
+
+  <div class="offline-bar" id="offline-bar">Offline — showing cached data</div>
+
+  <div class="tab-bar">
+    <div class="tab active" id="tab-schedule" onclick="switchTab('schedule')">Schedule</div>
+    <div class="tab"        id="tab-today"    onclick="switchTab('today')">Today</div>
+    <div class="tab"        id="tab-journal"  onclick="switchTab('journal')">Journal</div>
+  </div>
+
+  <div class="page-content">
+    <div id="panel-schedule" class="tab-panel active">
+      <div id="schedule-loading" class="loading-msg">Loading schedule…</div>
+      <div id="schedule-list"></div>
+    </div>
+    <div id="panel-today" class="tab-panel">
+      <div id="today-content" class="loading-msg">Loading…</div>
+    </div>
+    <div id="panel-journal" class="tab-panel">
+      <div id="journal-form-wrap"></div>
+      <div id="past-entries-wrap"></div>
+    </div>
+  </div>
+
+</div>
+<script>
+const params  = new URLSearchParams(location.search);
+const TRIP_ID = params.get('tripId') || '';
+const EMAIL   = (params.get('email') || '').toLowerCase();
+const CACHE_KEY = 'tbt_trip_' + TRIP_ID;
+const QUEUE_KEY = 'tbt_jq_'   + TRIP_ID;
+
+let tripMeta    = null;
+let tripDays    = [];
+let lodgingById = {};
+let journalEntries  = [];
+let travelerProfile = null;
+let currentRating   = 0;
+let isOnline = navigator.onLine;
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00Z');
+  return DAYS_FULL[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
+}
+function fmtShort(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00Z');
+  return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
+}
+function todayIso() { return new Date().toLocaleDateString('en-CA'); }
+function dayNum() {
+  const start = tripMeta && (tripMeta['Activation Date'] || tripMeta['Start Date']);
+  if (!start) return null;
+  const diff = Math.round((new Date(todayIso()) - new Date(start)) / 86400000);
+  return diff >= 0 ? diff + 1 : null;
+}
+
+// ── Slots ─────────────────────────────────────────────────────────────────────
+const XFER_EMOJI = { Road:'🚗', Air:'✈️', Sea:'⛵', Water:'⛵', Rail:'🚂', Walk:'🚶', Taxi:'🚕' };
+const TYPE_EMOJI = { passion:'🎯', freeform:'📌', gyg:'🎫', event:'🎭', 'game-drive':'🦁' };
+
+function parseSlots(f) {
+  const out = [];
+  for (let n = 1; n <= 4; n++) {
+    const raw = f['Slot ' + n];
+    if (!raw) continue;
+    try { out.push(JSON.parse(raw)); } catch(e) {}
+  }
+  return out;
+}
+
+function slotHtml(slot) {
+  if (!slot || !slot.type) return '';
+  const timeHtml = slot.startTime
+    ? `<div class="slot-time">${esc(slot.startTime)}${slot.endTime ? ' – ' + esc(slot.endTime) : ''}</div>` : '';
+  let icon = TYPE_EMOJI[slot.type] || '📌';
+  let text = '';
+  if (slot.type === 'transfer') {
+    icon = XFER_EMOJI[slot.mode] || '🚗';
+    text = slot.from && slot.to ? slot.from + ' → ' + slot.to : (slot.name || 'Transfer');
+  } else if (slot.type === 'passion')     { text = slot.name || slot.passion || 'Activity'; }
+  else if (slot.type === 'freeform')      { text = slot.name || slot.description || 'Activity'; }
+  else if (slot.type === 'gyg')           { text = slot.name || 'Guided Tour'; }
+  else if (slot.type === 'event')         { text = slot.name || 'Event'; if (slot.venue) text += ' · ' + slot.venue; }
+  else if (slot.type === 'game-drive')    { text = slot.name || 'Game Drive'; }
+  else                                    { text = slot.name || slot.type; }
+  if (slot.location && slot.type !== 'transfer') text += ' · ' + slot.location;
+  return `<div class="slot-item">
+    <div class="slot-icon">${icon}</div>
+    <div class="slot-body"><div class="slot-text">${esc(text)}</div>${timeHtml}</div>
+  </div>`;
+}
+
+// ── Day card ──────────────────────────────────────────────────────────────────
+function dayCardHtml(r, isToday) {
+  const f      = r.fields;
+  const num    = f['Day Number'] || '?';
+  const start  = f['Starting Location'] || '';
+  const end    = f['Ending Location']   || '';
+  const slots  = parseSlots(f);
+  const lodgId = f['Lodging ID'] || '';
+  const lodging = lodgId ? lodgingById[lodgId] : null;
+  const todayBadge = isToday ? '<span class="today-badge">Today</span>' : '';
+  const dateLabel = fmtDate(f['Date']);
+  const slotsHtml = slots.length
+    ? `<div class="slot-list">${slots.map(slotHtml).join('')}</div>` : '';
+  const lodgHtml = lodging
+    ? `<div class="lodging-chip">🏨 <span>${esc(lodging['Name'] || 'Lodging')}</span></div>` : '';
+  return `<div class="day-card${isToday ? ' is-today' : ''}">
+    <div class="day-header">
+      <div class="day-num">Day ${num}${todayBadge}</div>
+      <div class="day-date">${esc(dateLabel)}</div>
+    </div>
+    <div class="loc-row">
+      <div class="loc-box">${esc(start) || '<span style="opacity:0.35">—</span>'}</div>
+      <div class="loc-arrow">→</div>
+      <div class="loc-box">${esc(end)   || '<span style="opacity:0.35">—</span>'}</div>
+    </div>
+    ${slotsHtml}
+    ${lodgHtml}
+  </div>`;
+}
+
+// ── Renders ───────────────────────────────────────────────────────────────────
+function renderBanner() {
+  if (!tripMeta) return;
+  const name  = tripMeta['Trip Name'] || tripMeta['Destination'] || 'My Trip';
+  const photo = tripMeta['Trip Photo URL'] || '';
+  const s = tripMeta['Start Date'], e = tripMeta['End Date'];
+  const dates = s && e ? fmtShort(s) + ' – ' + fmtShort(e) : '';
+  const banner = document.getElementById('trip-banner');
+  if (photo) {
+    banner.innerHTML = `<img class="trip-banner-photo" src="${esc(photo)}" alt="${esc(name)}">
+      <div class="trip-banner-overlay">
+        <div class="banner-name">${esc(name)}</div>
+        ${dates ? `<div class="banner-dates">${esc(dates)}</div>` : ''}
+      </div>`;
+  } else {
+    banner.innerHTML = `<div class="trip-banner-nophoto">
+      <div class="banner-name">${esc(name)}</div>
+      ${dates ? `<div class="banner-dates">${esc(dates)}</div>` : ''}
+    </div>`;
+  }
+}
+
+function renderSchedule() {
+  document.getElementById('schedule-loading').style.display = 'none';
+  const list = document.getElementById('schedule-list');
+  if (!tripDays.length) { list.innerHTML = '<div class="loading-msg">No schedule yet.</div>'; return; }
+  const today = dayNum();
+  list.innerHTML = tripDays.map(r => dayCardHtml(r, r.fields['Day Number'] === today)).join('');
+}
+
+function renderToday() {
+  const el  = document.getElementById('today-content');
+  const today = dayNum();
+  const rec = today ? tripDays.find(r => r.fields['Day Number'] === today) : null;
+  if (!rec) {
+    el.innerHTML = '<div class="loading-msg">No schedule entry for today.</div>';
+    el.className = 'loading-msg';
+    return;
+  }
+  el.className = '';
+  el.innerHTML = dayCardHtml(rec, true);
+}
+
+function renderJournalForm() {
+  const wrap = document.getElementById('journal-form-wrap');
+  const today = todayIso();
+  const existing = journalEntries.find(e => (e.fields['Entry Date'] || '').slice(0,10) === today);
+  const dn = dayNum();
+  const dateLabel = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  if (existing) currentRating = existing.fields['Day Rating'] || 0;
+
+  const starsHtml = [1,2,3,4,5].map(n =>
+    `<span class="star${currentRating >= n ? ' on' : ''}" data-v="${n}" onclick="setRating(${n})">★</span>`
+  ).join('');
+
+  wrap.innerHTML = `
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:14px;">${esc(dateLabel)}${dn ? ' · Day ' + dn : ''}</div>
+    <div class="j-field">
+      <div class="j-label">Reflection *</div>
+      <textarea id="j-reflection" class="j-textarea" placeholder="What stood out today? What moved you?" rows="4">${existing ? esc(existing.fields['Reflection'] || '') : ''}</textarea>
+    </div>
+    <div class="j-field">
+      <div class="j-label">Barriers</div>
+      <textarea id="j-barriers" class="j-textarea" placeholder="What got in the way or was challenging?" rows="2">${existing ? esc(existing.fields['Barriers'] || '') : ''}</textarea>
+    </div>
+    <div class="j-field">
+      <div class="j-label">Best Memory</div>
+      <textarea id="j-memory" class="j-textarea" placeholder="One moment you want to remember forever" rows="2">${existing ? esc(existing.fields['Best Memory'] || '') : ''}</textarea>
+    </div>
+    <div class="j-field">
+      <div class="j-label">Day Rating</div>
+      <div class="star-row" id="star-row">${starsHtml}</div>
+    </div>
+    <button class="save-btn" id="j-btn" onclick="saveJournal()">${existing ? 'Update Entry' : 'Save Journal Entry'}</button>
+    <div class="save-status" id="j-status"></div>`;
+}
+
+function renderPastEntries() {
+  const wrap = document.getElementById('past-entries-wrap');
+  const today = todayIso();
+  const past = journalEntries
+    .filter(e => (e.fields['Entry Date'] || '').slice(0,10) !== today)
+    .sort((a,b) => (b.fields['Entry Date']||'').localeCompare(a.fields['Entry Date']||''));
+  if (!past.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = '<div class="section-heading">Past Entries</div>' + past.map(e => {
+    const f = e.fields;
+    const meta = [f['Day Number'] ? 'Day ' + f['Day Number'] : '', fmtDate((f['Entry Date']||'').slice(0,10))].filter(Boolean).join(' · ');
+    const stars = f['Day Rating'] ? '★'.repeat(f['Day Rating']) + '☆'.repeat(5 - f['Day Rating']) : '';
+    return `<div class="entry-card">
+      <div class="entry-meta">${esc(meta)}</div>
+      ${stars ? `<div class="entry-stars">${stars}</div>` : ''}
+      ${f['Reflection'] ? `<div class="entry-section">Reflection</div><div class="entry-body">${esc(f['Reflection'])}</div>` : ''}
+      ${f['Barriers']   ? `<div class="entry-section">Barriers</div><div class="entry-body">${esc(f['Barriers'])}</div>` : ''}
+      ${f['Best Memory']? `<div class="entry-section">Best Memory</div><div class="entry-body">${esc(f['Best Memory'])}</div>` : ''}
+      ${f['Reflection from Claude'] ? `<div class="entry-claude"><div class="entry-claude-label">Reflection from Claude</div><div class="entry-body" style="margin:0;">${esc(f['Reflection from Claude'])}</div></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── Journal actions ───────────────────────────────────────────────────────────
+function setRating(n) {
+  currentRating = n;
+  document.querySelectorAll('#star-row .star').forEach(s =>
+    s.classList.toggle('on', Number(s.dataset.v) <= n)
+  );
+}
+
+async function saveJournal() {
+  const btn    = document.getElementById('j-btn');
+  const status = document.getElementById('j-status');
+  const ref    = document.getElementById('j-reflection').value.trim();
+  const bar    = document.getElementById('j-barriers').value.trim();
+  const mem    = document.getElementById('j-memory').value.trim();
+  if (!ref) { status.style.color='#f43f5e'; status.textContent='Reflection is required.'; return; }
+  btn.disabled = true;
+  status.style.color = 'var(--muted)'; status.textContent = 'Saving…';
+  const start   = tripMeta && (tripMeta['Activation Date'] || tripMeta['Start Date']);
+  const profile = travelerProfile || {};
+  const payload = {
+    email: EMAIL, tripId: TRIP_ID,
+    reflection: ref, barriers: bar, memory: mem,
+    dayRating: currentRating || 0,
+    entryDate: todayIso(), startDate: start || '',
+    tripName:  tripMeta ? (tripMeta['Trip Name'] || tripMeta['Destination'] || '') : '',
+    archetype: profile['Archetype'] || '',
+    hopes:     profile['Hopes to Experience'] || ''
+  };
+  if (isOnline) {
+    try {
+      const r = await fetch('/api/journal', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      const d = await r.json();
+      if (d.success || d.id) {
+        status.style.color = 'var(--teal)'; status.textContent = 'Saved!';
+        await loadJournal(); renderJournalForm(); renderPastEntries();
+        btn.disabled = false; return;
+      }
+      throw new Error(d.error || 'error');
+    } catch(e) {}
+  }
+  queueEntry(payload);
+  status.style.color = 'var(--amber)'; status.textContent = 'Saved locally — will sync when online.';
+  btn.disabled = false;
+}
+
+// ── Offline queue ─────────────────────────────────────────────────────────────
+function queueEntry(p) {
+  try { const q=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]'); q.push({p,ts:Date.now()}); localStorage.setItem(QUEUE_KEY,JSON.stringify(q)); } catch(e) {}
+}
+async function flushQueue() {
+  try {
+    const q=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]'); if(!q.length)return;
+    const rem=[];
+    for(const item of q){
+      try{const r=await fetch('/api/journal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(item.p)});const d=await r.json();if(!d.success&&!d.id)rem.push(item);}catch(e){rem.push(item);}
+    }
+    localStorage.setItem(QUEUE_KEY,JSON.stringify(rem));
+    if(rem.length<q.length){await loadJournal();renderJournalForm();renderPastEntries();}
+  } catch(e) {}
+}
+
+// ── Cache ─────────────────────────────────────────────────────────────────────
+function saveCache() {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ tripMeta, tripDays, lodgingById })); } catch(e) {}
+}
+function loadCache() {
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY)||'null'); } catch(e) { return null; }
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+async function loadTrip() {
+  const r=await fetch('/api/trips?id='+encodeURIComponent(TRIP_ID));
+  const d=await r.json();
+  if(d.record&&d.record.fields){tripMeta=d.record.fields;}
+}
+async function loadDays() {
+  const r=await fetch('/api/trip-days?tripId='+encodeURIComponent(TRIP_ID));
+  const d=await r.json();
+  tripDays=(d.records||[]).sort((a,b)=>(a.fields['Day Number']||0)-(b.fields['Day Number']||0));
+}
+async function loadLodging() {
+  const r=await fetch('/api/lodging?tripId='+encodeURIComponent(TRIP_ID));
+  const d=await r.json();
+  lodgingById={};
+  (d.records||[]).forEach(rec=>{if(rec.id)lodgingById[rec.id]=rec.fields;});
+}
+async function loadJournal() {
+  if(!EMAIL)return;
+  const r=await fetch(`/api/journal?action=entries&email=${encodeURIComponent(EMAIL)}&tripId=${encodeURIComponent(TRIP_ID)}`);
+  const d=await r.json();
+  journalEntries=(d.records||[]);
+}
+async function loadProfile() {
+  if(!EMAIL)return;
+  const r=await fetch('/api/airtable-traveler?email='+encodeURIComponent(EMAIL));
+  const d=await r.json();
+  if(d.record&&d.record.fields)travelerProfile=d.record.fields;
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name) {
+  ['schedule','today','journal'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+    document.getElementById('panel-'+t).classList.toggle('active',t===name);
+  });
+  if(name==='today')renderToday();
+}
+
+// ── Online/offline ────────────────────────────────────────────────────────────
+function updateOnline() {
+  isOnline=navigator.onLine;
+  document.getElementById('offline-bar').classList.toggle('show',!isOnline);
+  if(isOnline)flushQueue();
+}
+window.addEventListener('online',updateOnline);
+window.addEventListener('offline',updateOnline);
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  if(!TRIP_ID){document.getElementById('schedule-loading').textContent='No trip ID in URL.';return;}
+  updateOnline();
+  if(isOnline){
+    try {
+      await Promise.all([loadTrip(),loadDays(),loadLodging(),loadProfile()]);
+      saveCache();
+      flushQueue();
+    } catch(e) {}
+  }
+  if(!tripMeta){
+    const c=loadCache();
+    if(c){tripMeta=c.tripMeta;tripDays=c.tripDays||[];lodgingById=c.lodgingById||{};}
+  }
+  if(isOnline){try{await loadJournal();}catch(e){}}
+  renderBanner();
+  renderSchedule();
+  renderJournalForm();
+  renderPastEntries();
+  // Default to Today if trip is active
+  if(tripMeta&&tripMeta['Status of Trip']==='Active'){switchTab('today');}
+}
+
+init();
+</script>
+</body>
+</html>
