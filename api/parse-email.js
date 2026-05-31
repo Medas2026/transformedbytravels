@@ -137,6 +137,7 @@ function buildConfirmationHtml(travelerName, tripName, parsed) {
     if (parsed.check_out_date)  detailRows.push(['Check-out',  parsed.check_out_date]);
     if (parsed.room_type)       detailRows.push(['Room',       parsed.room_type]);
     if (parsed.guests)          detailRows.push(['Guests',     parsed.guests]);
+    if (parsed.meal_plan)       detailRows.push(['Meals',      parsed.meal_plan]);
   } else if (parsed.type === 'car_rental') {
     if (parsed.rental_company) detailRows.push(['Company',    parsed.rental_company]);
     if (parsed.car_type)       detailRows.push(['Vehicle',    parsed.car_type]);
@@ -460,6 +461,7 @@ Return JSON in this exact format (use null for any field you cannot determine):
   "check_out_date": "YYYY-MM-DD",
   "room_type": "...",
   "guests": "...",
+  "meal_plan": "e.g. All-Inclusive, Full Board, Half Board, Breakfast Included, or null",
   "total_cost": "...",
   "rental_company": "...",
   "car_type": "...",
