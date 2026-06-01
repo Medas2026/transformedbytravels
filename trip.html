@@ -258,11 +258,18 @@ function renderBanner() {
 }
 
 function renderSchedule() {
-  document.getElementById('schedule-loading').style.display = 'none';
-  const list = document.getElementById('schedule-list');
+  const loading = document.getElementById('schedule-loading');
+  const list    = document.getElementById('schedule-list');
+  if(loading) loading.style.display = 'none';
+  console.log('[renderSchedule] tripDays count:', tripDays.length);
   if (!tripDays.length) { list.innerHTML = '<div class="loading-msg">No schedule yet.</div>'; return; }
-  const today = dayNum();
-  list.innerHTML = tripDays.map(r => dayCardHtml(r, r.fields['Day Number'] === today)).join('');
+  try {
+    const today = dayNum();
+    list.innerHTML = tripDays.map(r => dayCardHtml(r, r.fields['Day Number'] === today)).join('');
+  } catch(e) {
+    console.error('[renderSchedule]', e.message);
+    list.innerHTML = '<div class="loading-msg">Error loading schedule.</div>';
+  }
 }
 
 function renderToday() {
@@ -512,17 +519,21 @@ async function init() {
   if(!TRIP_ID){document.getElementById('schedule-loading').textContent='No trip ID in URL.';return;}
   updateOnline();
   if(isOnline){
-    try {
-      await Promise.all([loadTrip(),loadDays(),loadLodging(),loadProfile()]);
-      saveCache();
-      flushQueue();
-    } catch(e) {}
+    // Run each call independently so one failure doesn't kill the others
+    await Promise.allSettled([
+      loadTrip().catch(e=>console.error('[init] loadTrip:',e.message)),
+      loadDays().catch(e=>console.error('[init] loadDays:',e.message)),
+      loadLodging().catch(e=>console.error('[init] loadLodging:',e.message)),
+      loadProfile().catch(e=>console.error('[init] loadProfile:',e.message))
+    ]);
+    try{saveCache();}catch(e){}
+    flushQueue();
   }
   if(!tripMeta){
     const c=loadCache();
     if(c){tripMeta=c.tripMeta;tripDays=c.tripDays||[];lodgingById=c.lodgingById||{};}
   }
-  if(isOnline){try{await loadJournal();}catch(e){}}
+  if(isOnline){try{await loadJournal();}catch(e){console.error('[init] loadJournal:',e.message);}}
   renderBanner();
   renderSchedule();
   renderJournalForm();
