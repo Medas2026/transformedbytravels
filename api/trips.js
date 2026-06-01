@@ -566,7 +566,7 @@ module.exports = function handler(req, res) {
                       }).join('')
                     : '';
                   const subject = `Your trip to ${tripName} is confirmed!`;
-                  const tripUrl2 = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}`;
+                  const tripUrl2 = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(email)}`;
                   const html = buildEmailHTML(subject, `You're committed, traveler!`,
                     `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
                      ${details}${summaryHtml}
@@ -575,7 +575,7 @@ module.exports = function handler(req, res) {
                   await sendResendEmail(email, subject, html);
 
                   if (coEmail && coEmail !== email) {
-                    const coTripUrl2 = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(id)}&email=${encodeURIComponent(coEmail)}`;
+                    const coTripUrl2 = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(coEmail)}`;
                     const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
                       `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
                        ${details}${summaryHtml}
