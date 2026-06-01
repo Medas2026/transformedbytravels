@@ -422,11 +422,12 @@ module.exports = function handler(req, res) {
                  </div>`;
 
               const subject = `Your trip to ${tripName} is confirmed!`;
+              const tripUrl = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}`;
               const html = buildEmailHTML(subject, `You're committed, traveler!`,
                 `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
                  ${details}${summaryHtml}${tipHtml}${shareBlock}${wildlifeBlock}
                  <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`,
-                photoUrl);
+                photoUrl, tripUrl, 'View My Trip →');
               await sendResendEmail(email, subject, html);
               if (coEmail && coEmail !== email.toLowerCase().trim()) {
                 const exists = await coTravelerCopyExists(tripName, coEmail);
@@ -438,11 +439,12 @@ module.exports = function handler(req, res) {
                        <a href="${shareUrl}" style="display:inline-block;background:#0284c7;color:#fff;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;text-decoration:none;padding:10px 22px;border-radius:7px;">View Trip Schedule →</a>
                      </div>`
                   : '';
+                const coTripUrl = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(id)}&email=${encodeURIComponent(coEmail)}`;
                 const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
                   `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
                    ${details}${summaryHtml}${coShareBlock}
                    <p>Get ready for an incredible journey!</p>`,
-                  photoUrl);
+                  photoUrl, coTripUrl, 'View My Trip →');
                 await sendResendEmail(coEmail, subject, coHtml);
               }
             }
@@ -564,19 +566,21 @@ module.exports = function handler(req, res) {
                       }).join('')
                     : '';
                   const subject = `Your trip to ${tripName} is confirmed!`;
+                  const tripUrl2 = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}`;
                   const html = buildEmailHTML(subject, `You're committed, traveler!`,
                     `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
                      ${details}${summaryHtml}
                      <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`,
-                    photoUrl);
+                    photoUrl, tripUrl2, 'View My Trip →');
                   await sendResendEmail(email, subject, html);
 
                   if (coEmail && coEmail !== email) {
+                    const coTripUrl2 = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(id)}&email=${encodeURIComponent(coEmail)}`;
                     const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
                       `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
                        ${details}${summaryHtml}
                        <p>Get ready for an incredible journey!</p>`,
-                      photoUrl);
+                      photoUrl, coTripUrl2, 'View My Trip →');
                     await sendResendEmail(coEmail, subject, coHtml);
                   }
                 } catch(e) {
