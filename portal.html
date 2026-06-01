@@ -4861,7 +4861,7 @@ function renderMyTripActive(r, container, _specialVersion) {
       <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.05rem;color:#fff;margin-bottom:4px;">${name}</div>
       ${dest ? `<div style="font-size:0.85rem;color:var(--soft);">${dest}${start ? ' · Started ' + start : ''}</div>` : ''}
     </div>
-    <a href="#" onclick="openTodayJournal('${_jTripId}','${_jStart}','${encodeURIComponent(_jDest)}');return false;" style="display:block;text-align:center;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">📔 Log Today's Journal Entry</a>
+    <a href="#" onclick="openTodayJournal('${_jTripId}');return false;" style="display:block;text-align:center;background:var(--teal);color:#0f172a;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">📔 Log Today's Journal Entry</a>
 
     ${_animalRegion ? `
     <a href="/wildlife-tracker.html?tripId=${encodeURIComponent(r.id)}&email=${encodeURIComponent(userEmail)}&region=${encodeURIComponent(_animalRegion)}" style="display:block;text-align:center;background:#7c3aed;color:#fff;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;text-decoration:none;padding:14px;border-radius:10px;margin-bottom:20px;">🦁 Open Wildlife Tracker</a>
@@ -4887,10 +4887,8 @@ function renderMyTripActive(r, container, _specialVersion) {
   if (f['Start Date']) loadJournalHistory(r.id, f['Start Date'], today, dest || name);
 }
 
-function openTodayJournal(tripId, startDate, encodedDest) {
-  const localDate = new Date().toLocaleDateString('en-CA');
-  console.log('[openTodayJournal] localDate:', localDate, 'browser time:', new Date().toString());
-  window.location.href = `/journal.html?email=${encodeURIComponent(userEmail)}&trip=${encodeURIComponent(tripId)}&date=${localDate}${startDate ? '&start=' + encodeURIComponent(startDate) : ''}&dest=${encodedDest}`;
+function openTodayJournal(tripId) {
+  window.location.href = `/trip.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(userEmail)}&tab=journal`;
 }
 
 function loadJournalHistory(tripId, startDate, today, destName, containerId) {

@@ -649,7 +649,7 @@ module.exports = async function handler(req, res) {
   </div>
 </td></tr>` : '';
 
-          const finishLink = `${PORTAL_URL}/portal.html`;
+          const finishLink = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(email)}&tab=journal`;
           const wildlifeUrl = `${PORTAL_URL}/wildlife-tracker.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(email)}&region=${encodeURIComponent(region || country)}${shareToken ? '&token=' + encodeURIComponent(shareToken) : ''}`;
           const wildlifeBlockHtml = specialVersion === 'Safari' ? `
 <tr><td style="padding:0 40px 28px;text-align:center;">

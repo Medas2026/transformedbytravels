@@ -59,7 +59,8 @@
     "api/animal-regions.js":      { "maxDuration": 15 },
     "api/wildlife-locations.js":  { "maxDuration": 15 },
     "api/species-position.js":   { "maxDuration": 10 },
-    "api/coach.js":              { "maxDuration": 20 }
+    "api/coach.js":              { "maxDuration": 20 },
+    "api/trip-action.js":        { "maxDuration": 30 }
   },
   "crons": [
     {

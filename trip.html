@@ -87,6 +87,13 @@ html, body { height: 100%; background: #060d16; color: var(--text); font-family:
 .entry-body { font-size: 0.87rem; color: var(--soft); line-height: 1.65; }
 .entry-claude { background: rgba(45,212,191,0.06); border-top: 1px solid rgba(45,212,191,0.2); padding-top: 10px; margin-top: 10px; }
 .entry-claude-label { font-size: 0.68rem; color: var(--teal); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+.finish-card { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 18px 16px; margin-top: 20px; }
+.finish-card-label { font-size: 0.7rem; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 8px; }
+.finish-btn { width: 100%; padding: 13px; background: var(--amber); border: none; border-radius: 10px; color: #0d1520; font-family: Arial, sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 10px; }
+.finish-btn:disabled { background: var(--muted); cursor: default; }
+.rating-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+.rating-btn { background: rgba(245,158,11,0.1); border: 1.5px solid rgba(245,158,11,0.3); color: var(--amber); border-radius: 8px; padding: 7px 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: Arial, sans-serif; }
+.rating-btn.selected { background: var(--amber); color: #0d1520; }
 </style>
 </head>
 <body>
@@ -116,6 +123,7 @@ html, body { height: 100%; background: #060d16; color: var(--text); font-family:
     </div>
     <div id="panel-journal" class="tab-panel">
       <div id="journal-form-wrap"></div>
+      <div id="finish-trip-wrap"></div>
       <div id="past-entries-wrap"></div>
     </div>
   </div>
@@ -434,6 +442,62 @@ function switchTab(name) {
   if(name==='today')renderToday();
 }
 
+// ── Finish Trip ───────────────────────────────────────────────────────────────
+let selectedTripRating = '';
+
+function renderFinishTrip() {
+  const wrap = document.getElementById('finish-trip-wrap');
+  if (!tripMeta || tripMeta['Status of Trip'] !== 'Active') { wrap.innerHTML = ''; return; }
+  const endDate = tripMeta['End Date'] || '';
+  if (!endDate || todayIso() < endDate) { wrap.innerHTML = ''; return; }
+
+  const ratings = ['Disappointing','So So','Met Expectations','Outstanding','Top 3 Ever'];
+  wrap.innerHTML = `<div class="finish-card">
+    <div class="finish-card-label">🏁 Last Day — Finish Your Trip</div>
+    <p style="font-size:0.83rem;color:var(--soft);line-height:1.5;margin:0 0 10px;">Ready to wrap up? Rate your overall trip and mark it complete.</p>
+    <div class="rating-row" id="trip-rating-row">
+      ${ratings.map(r => `<button class="rating-btn" onclick="selectTripRating('${r}')">${r}</button>`).join('')}
+    </div>
+    <button class="finish-btn" id="finish-trip-btn" onclick="finishTrip()">Mark Trip Complete 🏁</button>
+    <div id="finish-trip-status" style="font-size:0.82rem;text-align:center;margin-top:8px;min-height:20px;"></div>
+  </div>`;
+}
+
+function selectTripRating(r) {
+  selectedTripRating = r;
+  document.querySelectorAll('#trip-rating-row .rating-btn').forEach(b =>
+    b.classList.toggle('selected', b.textContent === r)
+  );
+}
+
+async function finishTrip() {
+  const btn    = document.getElementById('finish-trip-btn');
+  const status = document.getElementById('finish-trip-status');
+  btn.disabled = true;
+  status.style.color = 'var(--muted)'; status.textContent = 'Finishing your trip…';
+  try {
+    const r = await fetch('/api/trip-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'end', tripId: TRIP_ID, email: EMAIL, tripRating: selectedTripRating || undefined })
+    });
+    const d = await r.json();
+    if (d.success) {
+      document.getElementById('finish-trip-wrap').innerHTML = `<div class="finish-card" style="text-align:center;padding:24px 16px;">
+        <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
+        <div style="font-weight:700;color:#fff;margin-bottom:6px;">Trip Complete!</div>
+        <div style="font-size:0.83rem;color:var(--soft);line-height:1.5;">${d.tripName || 'Your trip'} is now part of your travel story. Check your portal for the Integration Workshop.</div>
+      </div>`;
+    } else {
+      status.style.color = '#f43f5e'; status.textContent = d.error || 'Something went wrong. Try again.';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    status.style.color = '#f43f5e'; status.textContent = 'Could not connect. Try again.';
+    btn.disabled = false;
+  }
+}
+
 // ── Online/offline ────────────────────────────────────────────────────────────
 function updateOnline() {
   isOnline=navigator.onLine;
@@ -462,6 +526,7 @@ async function init() {
   renderBanner();
   renderSchedule();
   renderJournalForm();
+  renderFinishTrip();
   renderPastEntries();
   // URL ?tab= overrides default; otherwise auto-switch to Today when trip is active
   if(TAB==='journal'){switchTab('journal');}

@@ -696,9 +696,11 @@ module.exports = async function handler(req, res) {
              ${details}${summaryHtml}
              <p>Safe travels — we hope this journey transforms you!</p>`,
             null, null, tripPhotoUrl);
-          sendEmail(email, name, subject, html, async () => {
-            await sendToTripMembers(tripId, email, subject, html);
+          sendEmail(email, name, subject, html, () => {
             res.status(200).json({ success: true, action, tripName });
+            sendToTripMembers(tripId, email, subject, html).catch(e =>
+              console.error('[start] member email error:', e.message)
+            );
           });
         })().catch(err => {
           console.error('[start email]', err.message);
@@ -706,14 +708,17 @@ module.exports = async function handler(req, res) {
         });
 
       } else {
-        // End trip email (unchanged)
+        // End trip email
         const subject = `Welcome home from ${tripName}!`;
         const html = emailHTML(subject, `Welcome Home, ${name}!`,
           `<p>Your trip to <strong>${tripName}</strong> is now complete.</p>
            <p>We hope it was everything you imagined and more. Head to your portal to begin your Integration Workshop and capture the insights from your journey while they're still fresh.</p>`);
-        sendEmail(email, name, subject, html, async () => {
-          await sendToTripMembers(tripId, email, subject, html);
+        sendEmail(email, name, subject, html, () => {
+          // Respond immediately — don't make the browser wait for member emails
           res.status(200).json({ success: true, action, tripName });
+          sendToTripMembers(tripId, email, subject, html).catch(e =>
+            console.error('[end] member email error:', e.message)
+          );
         });
       }
     });
