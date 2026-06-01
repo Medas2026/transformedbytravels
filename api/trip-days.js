@@ -107,11 +107,14 @@ module.exports = async function handler(req, res) {
   if (req.method === 'PATCH') {
     const { id, ...fields } = req.body || {};
     if (!id) return res.status(400).json({ error: 'id required' });
+    console.log('[trip-days PATCH] id:', id, '| fields:', JSON.stringify(fields));
     try {
       const r = await airtableRequest('PATCH', `/${id}`, { fields });
-      if (r.body.error) return res.status(500).json({ error: r.body.error });
+      console.log('[trip-days PATCH] airtable status:', r.status, '| error:', r.body.error ? JSON.stringify(r.body.error) : 'none');
+      if (r.body.error) return res.status(500).json({ error: typeof r.body.error === 'object' ? (r.body.error.message || JSON.stringify(r.body.error)) : r.body.error });
       return res.status(200).json({ success: true, record: r.body });
     } catch(e) {
+      console.error('[trip-days PATCH] exception:', e.message);
       return res.status(500).json({ error: e.message });
     }
   }

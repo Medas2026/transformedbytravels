@@ -1513,6 +1513,11 @@ async function saveDayModal(andNext=false) {
   const status=document.getElementById('day-modal-status');
   status.style.display='block'; status.style.color='var(--teal)'; status.textContent='Saving…';
   const r=_scheduleRecords[_dayModalIdx];
+  if(!r||!r.id){
+    status.style.color='#f43f5e'; status.textContent='Error: Day record not yet created — try again in a moment.';
+    console.error('[saveDayModal] record missing or id not set', {idx:_dayModalIdx, r});
+    return;
+  }
   const fields={id:r.id};
   for(let n=1;n<=4;n++){
     const type=document.getElementById(`sm-s${n}-type`).value;
@@ -1527,18 +1532,28 @@ async function saveDayModal(andNext=false) {
     if(type&&type!=='transfer') slot.location=(document.getElementById(`sm-s${n}-loc`)?.value||'').trim();
     fields['Slot '+n]=JSON.stringify(slot);
   }
+  console.log('[saveDayModal] PATCH fields:', JSON.stringify(fields));
   try {
     const resp=await fetch('/api/trip-days',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(fields)});
     const data=await resp.json();
+    console.log('[saveDayModal] response status:', resp.status, '| body:', JSON.stringify(data));
     if(data.success){
-      for(let n=1;n<=4;n++) r.fields['Slot '+n]=fields['Slot '+n];
-      _refreshDaySlotSummary(_dayModalIdx);
+      const savedIdx=_dayModalIdx;
+      for(let n=1;n<=4;n++) _scheduleRecords[savedIdx].fields['Slot '+n]=fields['Slot '+n];
+      _refreshDaySlotSummary(savedIdx);
       status.style.color='var(--teal)'; status.textContent='Saved!';
-      const nextIdx=_dayModalIdx+1;
+      const nextIdx=savedIdx+1;
       if(andNext&&nextIdx<_scheduleRecords.length) setTimeout(()=>openDayModal(nextIdx),500);
       else setTimeout(closeDayModal,800);
-    } else { status.style.color='#f43f5e'; status.textContent='Error: '+(data.error||'Could not save'); }
-  } catch(e) { status.style.color='#f43f5e'; status.textContent='Error: '+e.message; }
+    } else {
+      const errMsg=typeof data.error==='object'?JSON.stringify(data.error):(data.error||'Could not save');
+      console.error('[saveDayModal] save failed:', errMsg);
+      status.style.color='#f43f5e'; status.textContent='Error: '+errMsg;
+    }
+  } catch(e) {
+    console.error('[saveDayModal] exception:', e);
+    status.style.color='#f43f5e'; status.textContent='Error: '+e.message;
+  }
 }
 
 // ── Trip days refresh (preserves unsaved location dirty state) ───────────────
