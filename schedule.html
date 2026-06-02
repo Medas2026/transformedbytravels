@@ -1539,6 +1539,16 @@ async function saveDayModal(andNext=false) {
     console.log('[saveDayModal] response status:', resp.status, '| body:', JSON.stringify(data));
     if(data.success){
       const savedIdx=_dayModalIdx;
+      // Verify Airtable actually stored what we sent
+      const returnedFields = data.record?.fields || {};
+      const firstSentSlot = [1,2,3,4].map(n=>fields['Slot '+n]).find(v=>v&&v!=='');
+      const firstRetSlot  = [1,2,3,4].map(n=>returnedFields['Slot '+n]).find(v=>v&&v!=='');
+      if(firstSentSlot && !firstRetSlot) {
+        console.warn('[saveDayModal] Airtable did not persist slot data! Sent:', firstSentSlot, '| Returned fields:', JSON.stringify(returnedFields));
+        status.style.color='#f59e0b'; status.textContent='Warning: save may not have persisted — check console';
+        setTimeout(closeDayModal, 3000);
+        return;
+      }
       for(let n=1;n<=4;n++) _scheduleRecords[savedIdx].fields['Slot '+n]=fields['Slot '+n];
       _refreshDaySlotSummary(savedIdx);
       status.style.color='var(--teal)'; status.textContent='Saved!';
