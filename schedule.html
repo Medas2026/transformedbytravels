@@ -482,6 +482,11 @@ async function loadSchedule() {
       ? fmtDate(currentTripStart) + ' – ' + fmtDate(currentTripEnd) : '';
 
     _scheduleRecords = daysData.records || [];
+    console.log('[loadSchedule] fetched', _scheduleRecords.length, 'trip days');
+    _scheduleRecords.forEach((r,i)=>{
+      const slots=[1,2,3,4].map(n=>r.fields['Slot '+n]).filter(Boolean);
+      if(slots.length) console.log('[loadSchedule] day',i+1,'id:',r.id,'slots:',slots);
+    });
     _lodgingRecords  = lodgingData.records || [];
     _lodgingMap      = {};
     _lodgingRecords.forEach(r => { _lodgingMap[r.id] = r.fields['Name'] || 'Lodging'; });
