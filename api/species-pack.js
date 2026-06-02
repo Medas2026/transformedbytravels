@@ -7,7 +7,7 @@ const REGION_PARKS = {
   'east africa':                  ['serengeti', 'masai mara', 'maasai mara', 'ngorongoro', 'tarangire', 'amboseli', 'tsavo', 'samburu', 'nakuru', 'ol pejeta', 'laikipia', 'manyara', 'selous', 'ruaha', 'mikumi', 'bale mountains'],
   'south africa':                 ['kruger', 'sabi', 'sabi sands', 'hluhluwe', 'addo', 'pilanesberg', 'madikwe', 'timbavati', 'limpopo', 'luangwa', 'kafue', 'liuwa', 'lower zambezi', 'hwange', 'mana pools', 'victoria falls', 'gonarezhou', 'malawi', 'liwonde'],
   'botswana':                     ['okavango', 'chobe', 'moremi', 'makgadikgadi', 'central kalahari', 'linyanti', 'savuti'],
-  'gorilla countries':            ['bwindi', 'volcanoes', 'kibale', 'queen elizabeth', 'mgahinga', 'nyungwe', 'akagera', 'murchison', 'kidepo', 'virunga', 'ziwa', 'gishwati'],
+  'gorilla countries':            ['bwindi', 'volcanoes', 'kibale', 'queen elizabeth', 'mgahinga', 'nyungwe', 'akagera', 'murchison', 'kidepo', 'virunga', 'ziwa', 'gishwati', 'lake mburo', 'mburo'],
   'namibia':                      ['etosha', 'skeleton coast', 'damaraland', 'sossusvlei', 'namib', 'caprivi', 'bwabwata', 'mudumu'],
   'madagascar':                   ['ranomafana', 'andasibe', 'tsingy', 'berenty', 'kirindy', 'ankarana', 'isalo', 'masoala'],
   'ethiopia':                     ['simien', 'bale', 'awash', 'omo', 'gambella', 'nechisar'],
@@ -46,7 +46,7 @@ const REGION_PARKS = {
   'european wildlife':             ['bialowieza', 'białowieża', 'danube delta', 'donana', 'doñana', 'coto donana', 'carpathian', 'camargue', 'neusiedler', 'hortobagy', 'hortobágy'],
 
   // ── Legacy country aliases (backward compatibility) ───────────────────────
-  'uganda':         ['bwindi', 'kibale', 'queen elizabeth', 'murchison', 'kidepo'],
+  'uganda':         ['bwindi', 'kibale', 'queen elizabeth', 'murchison', 'kidepo', 'lake mburo', 'mburo'],
   'rwanda':         ['volcanoes', 'nyungwe', 'akagera'],
   'uganda/rwanda':  ['bwindi', 'kibale', 'queen elizabeth', 'murchison', 'kidepo', 'volcanoes', 'nyungwe', 'akagera'],
   'kenya':          ['masai mara', 'amboseli', 'tsavo', 'samburu', 'nakuru'],
@@ -80,11 +80,27 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  const STATUS_ABBR = {
+    'least concern':         'LC',
+    'near threatened':       'NT',
+    'vulnerable':            'VU',
+    'endangered':            'EN',
+    'critically endangered': 'CR',
+  };
+
   try {
-    // Page through all species
+    // Fetch species — filter server-side by Animal Regions when possible
+    const regionStr = (region || country || '').toLowerCase();
+    let filter = '';
+    if (regionStr) {
+      filter = `&filterByFormula=${encodeURIComponent(`FIND(${JSON.stringify(region || country)},ARRAYJOIN({Animal Regions},","))`)}`;
+    }
+
     let all = [], offset = '';
     do {
-      const data = await at('tblYtFaj6UYMUEwFQ', `?sort[0][field]=Species Name&sort[0][direction]=asc${offset ? '&offset=' + offset : ''}`);
+      const data = await at('tblYtFaj6UYMUEwFQ',
+        `?sort[0][field]=Species%20Name&sort[0][direction]=asc${filter}${offset ? '&offset=' + encodeURIComponent(offset) : ''}`);
+      if (data.error) throw new Error(data.error.message);
       all = all.concat(data.records || []);
       offset = data.offset || '';
     } while (offset);
@@ -94,13 +110,16 @@ module.exports = async function handler(req, res) {
         const f = r.fields;
         const bestParks = Array.isArray(f['Best Parks']) ? f['Best Parks'] : (f['Best Parks'] || '').split(',').map(s => s.trim()).filter(Boolean);
 
-        // Filter by parks if requested
-        if (parkFilter && parkFilter.length) {
+        // If server-side region filter didn't apply, fall back to Best Parks keyword match
+        if (regionStr && !filter && parkFilter && parkFilter.length) {
           const match = bestParks.some(p => parkFilter.some(pf => p.toLowerCase().includes(pf)));
           if (!match) return null;
         }
 
-        // Downsize Cloudinary photo to thumbnail for offline storage
+        // Map full conservation status name → abbreviation for badge display
+        const rawStatus = (f['Conservation Status'] || '').toLowerCase();
+        const status = STATUS_ABBR[rawStatus] || f['Conservation Status'] || '';
+
         let thumbUrl = f['Photo URL'] || '';
         if (thumbUrl.includes('cloudinary.com')) {
           thumbUrl = thumbUrl.replace('/image/upload/', '/image/upload/w_400,h_300,c_fill,q_auto,f_jpg/');
@@ -112,12 +131,15 @@ module.exports = async function handler(req, res) {
           scientificName:     f['Scientific Name'] || '',
           type:               f.Type || '',
           category:           f.Category || '',
+          status,
           conservationStatus: f['Conservation Status'] || '',
           description:        f.Description || '',
           habitat:            f.Habitat || '',
           bestParks,
           bestMonths:         Array.isArray(f['Best Months']) ? f['Best Months'] : (f['Best Months'] || '').split(',').map(s => s.trim()).filter(Boolean),
           photoUrl:           thumbUrl,
+          photoPosition:      f['Photo Position'] || 'center center',
+          locationIds:        Array.isArray(f['Locations']) ? f['Locations'] : [],
           ebirdCode:          f['eBird Code'] || '',
           inaturalistId:      f['iNaturalist ID'] || '',
         };
