@@ -241,7 +241,7 @@ function sendTripHistoryEmail(email, name, b, done) {
   req.end();
 }
 
-function sendTripPlanEmail(email, name, b, done, photoUrl) {
+function sendTripPlanEmail(email, name, b, done, photoUrl, tripId) {
   const vars = { name: name || email, destination: b.destination || '', country: b.country || '' };
   fetchTemplate('TRIP_PLAN', (err, tmpl) => {
     if (err) { console.error('Trip plan template error:', err.message); return done(); }
@@ -276,10 +276,11 @@ function sendTripPlanEmail(email, name, b, done, photoUrl) {
         <table cellpadding="0" cellspacing="0" style="width:100%;">${tableRows}</table>
       </div>`;
 
+    const scheduleUrl = tripId ? `${PORTAL_URL}/schedule.html?trip=${encodeURIComponent(tripId)}` : null;
     const html = buildEmailHTML(subject,
       substitute(tmpl.p1 || 'Your trip is planned!', vars),
       `${para(tmpl.p2)}${para(tmpl.p3)}${tripBlock}`,
-      photoUrl || '');
+      photoUrl || '', scheduleUrl, 'View My Schedule →');
 
     const apiKey = process.env.RESEND_API_KEY;
     const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to: email, subject, html });
@@ -595,7 +596,7 @@ module.exports = function handler(req, res) {
             } else {
               sendTripPlanEmail(email, b.name || '', b, () => {
                 res.status(200).json({ success: true, record: data, tripsRemaining: Math.max(0, remaining - 1) });
-              }, data.fields?.['Trip Photo URL'] || b.tripPhotoUrl || '');
+              }, data.fields?.['Trip Photo URL'] || b.tripPhotoUrl || '', tripId);
             }
           });
         } catch(e) { res.status(500).json({ error: e.message }); }
