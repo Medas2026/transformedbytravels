@@ -403,6 +403,7 @@ const _SLOT_LABELS = ['Morning','Lunch','Afternoon','Evening'];
 let _dayModalIdx   = null;
 let _dayModalSlots = [null,null,null,null];
 const _smSelectedActivity = {};
+const _smSlotTypes = {};
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
@@ -1176,6 +1177,7 @@ function _slotCardHtml(n, slot) {
 
 function smTypeChange(n) {
   const type   = document.getElementById(`sm-s${n}-type`).value;
+  _smSlotTypes[n] = type;
   const flds   = document.getElementById(`sm-s${n}-fields`);
   const nameEl = document.getElementById(`sm-s${n}-name`);
   const pseudo = { type, startTime: document.getElementById(`sm-s${n}-start`).value, endTime: document.getElementById(`sm-s${n}-end`).value };
@@ -1484,9 +1486,10 @@ function openDayModal(idx) {
   else if (startLoc||endLoc) locLabel=startLoc||endLoc;
   document.getElementById('day-modal-sub').textContent=[dateLabel,locLabel].filter(Boolean).join(' · ');
   document.getElementById('day-modal-status').style.display='none';
-  [1,2,3,4].forEach(n=>{delete _smSelectedActivity[n];});
+  [1,2,3,4].forEach(n=>{delete _smSelectedActivity[n]; delete _smSlotTypes[n];});
   _dayModalSlots=[1,2,3,4].map(n=>{const raw=f['Slot '+n]; if(!raw) return null; try{return JSON.parse(raw);}catch(e){return null;}});
   _dayModalSlots.forEach((slot,i)=>{
+    _smSlotTypes[i+1] = slot?.type || '';
     if(slot&&slot.type==='passion'&&slot.passion){_smSelectedActivity[i+1]={name:slot.name||'',passion:slot.passion,description:slot.description||''};}
     if(slot&&slot.type==='game-drive'){_smSelectedActivity[i+1]={name:slot.name||'',passion:'Game Drive',description:slot.description||''};}
   });
@@ -1525,7 +1528,9 @@ async function saveDayModal(andNext=false) {
   }
   const fields={id:r.id};
   for(let n=1;n<=4;n++){
-    const type=document.getElementById(`sm-s${n}-type`).value;
+    const domType = document.getElementById(`sm-s${n}-type`)?.value ?? '';
+    const type = _smSlotTypes[n] || domType;
+    console.log(`[saveDayModal] slot ${n}: _smSlotTypes=${_smSlotTypes[n]||''} dom=${domType} → using=${type}`);
     if(!type){fields['Slot '+n]='';continue;}
     const slot={type,startTime:document.getElementById(`sm-s${n}-start`).value,endTime:document.getElementById(`sm-s${n}-end`).value,name:(document.getElementById(`sm-s${n}-name`)?.value||'').trim()};
     if(type==='freeform') slot.description=(document.getElementById(`sm-s${n}-desc`)?.value||'').trim();
@@ -1537,7 +1542,13 @@ async function saveDayModal(andNext=false) {
     if(type&&type!=='transfer') slot.location=(document.getElementById(`sm-s${n}-loc`)?.value||'').trim();
     fields['Slot '+n]=JSON.stringify(slot);
   }
-  console.log('[saveDayModal] PATCH fields:', JSON.stringify(fields));
+  const anySlotFilled = [1,2,3,4].some(n => fields['Slot '+n] && fields['Slot '+n] !== '');
+  console.log('[saveDayModal] PATCH fields:', JSON.stringify(fields), '| anySlotFilled:', anySlotFilled);
+  if (!anySlotFilled) {
+    status.style.color='#f59e0b';
+    status.textContent='No activity types selected — please choose at least one slot type before saving.';
+    return;
+  }
   try {
     const resp=await fetch('/api/trip-days',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(fields)});
     const data=await resp.json();
