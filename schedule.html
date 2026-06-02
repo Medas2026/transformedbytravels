@@ -483,11 +483,6 @@ async function loadSchedule() {
       ? fmtDate(currentTripStart) + ' – ' + fmtDate(currentTripEnd) : '';
 
     _scheduleRecords = daysData.records || [];
-    console.log('[loadSchedule] fetched', _scheduleRecords.length, 'trip days');
-    _scheduleRecords.forEach((r,i)=>{
-      const slots=[1,2,3,4].map(n=>r.fields['Slot '+n]).filter(Boolean);
-      if(slots.length) console.log('[loadSchedule] day',i+1,'id:',r.id,'slots:',slots);
-    });
     _lodgingRecords  = lodgingData.records || [];
     _lodgingMap      = {};
     _lodgingRecords.forEach(r => { _lodgingMap[r.id] = r.fields['Name'] || 'Lodging'; });
@@ -1530,7 +1525,6 @@ async function saveDayModal(andNext=false) {
   for(let n=1;n<=4;n++){
     const domType = document.getElementById(`sm-s${n}-type`)?.value ?? '';
     const type = _smSlotTypes[n] || domType;
-    console.log(`[saveDayModal] slot ${n}: _smSlotTypes=${_smSlotTypes[n]||''} dom=${domType} → using=${type}`);
     if(!type){fields['Slot '+n]='';continue;}
     const slot={type,startTime:document.getElementById(`sm-s${n}-start`).value,endTime:document.getElementById(`sm-s${n}-end`).value,name:(document.getElementById(`sm-s${n}-name`)?.value||'').trim()};
     if(type==='freeform') slot.description=(document.getElementById(`sm-s${n}-desc`)?.value||'').trim();
@@ -1543,7 +1537,6 @@ async function saveDayModal(andNext=false) {
     fields['Slot '+n]=JSON.stringify(slot);
   }
   const anySlotFilled = [1,2,3,4].some(n => fields['Slot '+n] && fields['Slot '+n] !== '');
-  console.log('[saveDayModal] PATCH fields:', JSON.stringify(fields), '| anySlotFilled:', anySlotFilled);
   if (!anySlotFilled) {
     status.style.color='#f59e0b';
     status.textContent='No activity types selected — please choose at least one slot type before saving.';
@@ -1552,19 +1545,8 @@ async function saveDayModal(andNext=false) {
   try {
     const resp=await fetch('/api/trip-days',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(fields)});
     const data=await resp.json();
-    console.log('[saveDayModal] response status:', resp.status, '| body:', JSON.stringify(data));
     if(data.success){
       const savedIdx=_dayModalIdx;
-      // Verify Airtable actually stored what we sent
-      const returnedFields = data.record?.fields || {};
-      const firstSentSlot = [1,2,3,4].map(n=>fields['Slot '+n]).find(v=>v&&v!=='');
-      const firstRetSlot  = [1,2,3,4].map(n=>returnedFields['Slot '+n]).find(v=>v&&v!=='');
-      if(firstSentSlot && !firstRetSlot) {
-        console.warn('[saveDayModal] Airtable did not persist slot data! Sent:', firstSentSlot, '| Returned fields:', JSON.stringify(returnedFields));
-        status.style.color='#f59e0b'; status.textContent='Warning: save may not have persisted — check console';
-        setTimeout(closeDayModal, 3000);
-        return;
-      }
       for(let n=1;n<=4;n++) _scheduleRecords[savedIdx].fields['Slot '+n]=fields['Slot '+n];
       _refreshDaySlotSummary(savedIdx);
       status.style.color='var(--teal)'; status.textContent='Saved!';

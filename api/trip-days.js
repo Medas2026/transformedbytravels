@@ -58,11 +58,6 @@ module.exports = async function handler(req, res) {
     try {
       const r = await airtableRequest('GET', filter, null);
       const records = r.body.records || [];
-      console.log('[trip-days GET] tripId:', tripId, '| count:', records.length);
-      records.forEach((rec, i) => {
-        const slots = [1,2,3,4].map(n => rec.fields['Slot '+n]).filter(Boolean);
-        if (slots.length) console.log('[trip-days GET] day', i+1, 'id:', rec.id, 'slots:', slots);
-      });
       return res.status(200).json({ records });
     } catch(e) {
       return res.status(500).json({ error: e.message });
@@ -113,10 +108,8 @@ module.exports = async function handler(req, res) {
   if (req.method === 'PATCH') {
     const { id, ...fields } = req.body || {};
     if (!id) return res.status(400).json({ error: 'id required' });
-    console.log('[trip-days PATCH] id:', id, '| fields:', JSON.stringify(fields));
     try {
       const r = await airtableRequest('PATCH', `/${id}`, { fields });
-      console.log('[trip-days PATCH] airtable status:', r.status, '| error:', r.body.error ? JSON.stringify(r.body.error) : 'none');
       if (r.body.error) return res.status(500).json({ error: typeof r.body.error === 'object' ? (r.body.error.message || JSON.stringify(r.body.error)) : r.body.error });
       return res.status(200).json({ success: true, record: r.body });
     } catch(e) {
