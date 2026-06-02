@@ -57,7 +57,13 @@ module.exports = async function handler(req, res) {
                    `&sort[0][field]=Day%20Number&sort[0][direction]=asc`;
     try {
       const r = await airtableRequest('GET', filter, null);
-      return res.status(200).json({ records: r.body.records || [] });
+      const records = r.body.records || [];
+      console.log('[trip-days GET] tripId:', tripId, '| count:', records.length);
+      records.forEach((rec, i) => {
+        const slots = [1,2,3,4].map(n => rec.fields['Slot '+n]).filter(Boolean);
+        if (slots.length) console.log('[trip-days GET] day', i+1, 'id:', rec.id, 'slots:', slots);
+      });
+      return res.status(200).json({ records });
     } catch(e) {
       return res.status(500).json({ error: e.message });
     }
