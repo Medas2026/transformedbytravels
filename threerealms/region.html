@@ -183,11 +183,14 @@
       transition: border-color 0.2s, transform 0.2s;
     }
     .species-card:hover { border-color: rgba(45,212,191,0.3); transform: translateY(-3px); }
-    .species-photo-wrap { position: relative; }
+    .species-photo-wrap { position: relative; overflow: hidden; }
     .species-photo {
       width: 100%; height: 160px; object-fit: cover;
       background: var(--dark); display: block;
+      transform-origin: center center; transition: transform 0.2s;
     }
+    .sp-zoom-btns { position: absolute; bottom: 8px; right: 8px; display: flex; gap: 5px; z-index: 5; }
+    .sp-zoom-btn { background: rgba(0,0,0,0.55); backdrop-filter: blur(6px); border: none; border-radius: 50%; color: #fff; font-size: 1rem; width: 30px; height: 30px; cursor: pointer; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; }
     .species-photo-placeholder {
       width: 100%; height: 160px;
       background: linear-gradient(135deg, var(--dark) 0%, var(--s2) 100%);
@@ -629,8 +632,9 @@ function renderSpeciesCards(species, grid) {
     const posBtns = s.photoUrl ? `<div class="sp-pos-btns">${POS_BTNS.map(([v,l]) =>
       `<button class="sp-pos-btn${pos===v?' sp-pos-active':''}" data-pos="${v}" onclick="spSetPos('${s.id}','${v}',this)">${l}</button>`
     ).join('')}</div>` : '';
+    const zoomBtns = `<div class="sp-zoom-btns"><button class="sp-zoom-btn" onclick="spZoom('${s.id}',-0.2);event.stopPropagation()">−</button><button class="sp-zoom-btn" onclick="spZoom('${s.id}',0.2);event.stopPropagation()">+</button></div>`;
     const photoHtml = s.photoUrl
-      ? `<div class="species-photo-wrap"><img class="species-photo" src="${s.photoUrl}" alt="${s.name}" loading="lazy" style="object-position:${pos}">${posBtns}</div>`
+      ? `<div class="species-photo-wrap"><img class="species-photo" src="${s.photoUrl}" alt="${s.name}" loading="lazy" style="object-position:${pos}">${zoomBtns}${posBtns}</div>`
       : `<div class="species-photo-placeholder">${emoji}</div>`;
     const descSnippet = (s.description || '').split('.').slice(0, 2).join('.') + (s.description ? '.' : '');
 
@@ -650,6 +654,16 @@ function renderSpeciesCards(species, grid) {
 }
 
 window.addEventListener('load', init);
+
+const _spZoom = {};
+function spZoom(id, delta) {
+  const card = document.querySelector(`[data-sp-id="${id}"]`);
+  if (!card) return;
+  const img = card.querySelector('.species-photo');
+  if (!img) return;
+  _spZoom[id] = Math.min(2.0, Math.max(1.0, (_spZoom[id] || 1.0) + delta));
+  img.style.transform = 'scale(' + _spZoom[id] + ')';
+}
 
 function spToggleEdit() {
   const grid = document.getElementById('species-grid');
