@@ -139,10 +139,14 @@
 
 <!-- ── Detail view ── -->
 <div class="detail-view" id="detail-view">
-  <div style="position:relative;">
-    <img id="dv-hero" class="detail-hero" alt="" style="display:none;" />
+  <div style="position:relative;overflow:hidden;">
+    <img id="dv-hero" class="detail-hero" alt="" style="display:none;transform-origin:center center;transition:transform 0.2s;" />
     <div id="dv-hero-ph" class="detail-hero-ph">🦁</div>
     <button class="detail-back" onclick="closeDetail()">← Back</button>
+    <div id="dv-zoom-btns" style="display:none;position:absolute;bottom:10px;right:10px;display:flex;gap:6px;">
+      <button onclick="heroZoom(-0.2)" style="background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border:none;border-radius:20px;color:#fff;font-size:1.1rem;width:34px;height:34px;cursor:pointer;font-weight:700;line-height:1;">−</button>
+      <button onclick="heroZoom(0.2)"  style="background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border:none;border-radius:20px;color:#fff;font-size:1.1rem;width:34px;height:34px;cursor:pointer;font-weight:700;line-height:1;">+</button>
+    </div>
   </div>
   <div class="detail-body">
     <div class="detail-name" id="dv-name"></div>
@@ -197,6 +201,13 @@ let ALL_SPECIES  = [];
 let SIGHTINGS    = JSON.parse(localStorage.getItem('tbt-sightings') || '[]');
 let ACTIVE_FILTER = 'all';
 let DETAIL_SPECIES = null;
+let _heroZoom = 1.0;
+function heroZoom(delta) {
+  const hero = document.getElementById('dv-hero');
+  if (!hero || hero.style.display === 'none') return;
+  _heroZoom = Math.min(2.0, Math.max(1.0, _heroZoom + delta));
+  hero.style.transform = 'scale(' + _heroZoom + ')';
+}
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const CURRENT_MONTH = MONTHS[new Date().getMonth()];
 
@@ -312,14 +323,19 @@ function openDetail(id) {
   // Hero
   const hero = document.getElementById('dv-hero');
   const heroPh = document.getElementById('dv-hero-ph');
+  _heroZoom = 1.0;
+  hero.style.transform = 'scale(1)';
+  const zoomBtns = document.getElementById('dv-zoom-btns');
   if (sp.photoUrl) {
     hero.src = sp.photoUrl;
     hero.style.display = 'block';
     heroPh.style.display = 'none';
+    if (zoomBtns) zoomBtns.style.display = 'flex';
   } else {
     hero.style.display = 'none';
     heroPh.style.display = 'flex';
     heroPh.textContent = sp.type === 'Bird' ? '🦅' : sp.type === 'Mammal' ? '🦁' : '🦎';
+    if (zoomBtns) zoomBtns.style.display = 'none';
   }
 
   document.getElementById('dv-name').textContent = sp.name;
