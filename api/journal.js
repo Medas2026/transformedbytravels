@@ -146,14 +146,22 @@ async function getWeatherForecast(place, country, tomorrowDate) {
     const stateByName = Object.values(US_STATES).find(s => s.toLowerCase() === lastWord.toLowerCase());
     const cityOnly   = stateByName ? words.slice(0, -1).join(' ') : cityName;
 
+    // Strip park/reserve suffixes that geocoders don't recognise
+    const stripped = cityOnly
+      .replace(/\s+(national park|nat'?l? park|np|game reserve|game park|nature reserve|nr|wildlife reserve|wildlife park)$/i, '')
+      .trim();
+
     // Build candidates: most specific first, city-only last
     let namesToTry;
     if (fullState) {
       namesToTry = [`${cityName}, ${fullState}`, cityName];
+      if (stripped !== cityOnly) namesToTry.push(stripped);
     } else if (stateByName) {
       namesToTry = [`${cityOnly}, ${stateByName}`, cityOnly, place.trim()];
+      if (stripped !== cityOnly) namesToTry.push(stripped);
     } else {
       namesToTry = cityName !== place.trim() ? [cityName, place.trim()] : [cityName];
+      if (stripped !== cityOnly) namesToTry.push(stripped);
     }
 
     let geoData = null;
