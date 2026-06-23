@@ -1670,9 +1670,21 @@ async function loadRegionSpecies(name) {
 }
 
 function speciesRealm(s) {
-  const t = (s.type || s.category || '').toLowerCase();
+  const t       = (s.type || s.category || '').toLowerCase();
+  const habitat = (s.habitat || '').toLowerCase();
+  const name    = (s.name || '').toLowerCase();
+
+  // Explicit marine type
+  if (t === 'marine mammal' || t === 'fish' || t === 'shark' || t.includes('marine')) return 'ocean';
+
+  // Name-based: catches orca/whale/seal/penguin even when typed as Mammal or Bird
+  if (/\b(whale|dolphin|orca|porpoise|seal|sea lion|otter|manatee|dugong|shark|ray|sea turtle|penguin)\b/.test(name)) return 'ocean';
+
+  // Habitat keywords
+  if (/\b(marine|ocean|coral|reef|pelagic)\b/.test(habitat)) return 'ocean';
+
   if (t === 'bird') return 'sky';
-  if (t.includes('marine') || t === 'fish' || t === 'shark') return 'ocean';
+
   return 'land';
 }
 
