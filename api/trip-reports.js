@@ -7,7 +7,7 @@ async function airtableGet(path) {
   return resp.json();
 }
 
-const SECTION_LETTERS = ['A','B','C','D','E','F','G','H','I','J'];
+const SECTION_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K'];
 
 function buildSections(f) {
   return SECTION_LETTERS
