@@ -224,7 +224,7 @@
     .location-filter { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
     .loc-all-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 2px; }
     .loc-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-    .loc-country { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8; margin-right: 4px; min-width: 90px; }
+    .loc-country { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-right: 4px; min-width: 100px; }
     .loc-chip { padding: 5px 13px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: #64748b; font-family: 'Montserrat', sans-serif; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
     .loc-chip:hover { border-color: rgba(45,212,191,0.4); color: #94a3b8; }
     .loc-chip.active { background: rgba(45,212,191,0.15); border-color: #2dd4bf; color: #2dd4bf; }
@@ -569,8 +569,6 @@ async function renderSpecies(name, activeRealms) {
       const sortedCountries = Object.keys(byCountry).sort();
       sortedCountries.forEach(c => byCountry[c].sort((a, b) => a.name.localeCompare(b.name)));
 
-      const allRow = `<div class="loc-all-row"><button class="loc-chip active" onclick="setLocation(null,this)">All locations</button></div>`;
-
       const groups = sortedCountries.map(country => {
         const chips = byCountry[country]
           .map(l => `<button class="loc-chip" onclick="setLocation('${l.id}',this)">${l.name}</button>`)
@@ -579,7 +577,7 @@ async function renderSpecies(name, activeRealms) {
         return `<div class="loc-group">${label}${chips}</div>`;
       }).join('');
 
-      locEl.innerHTML = allRow + groups;
+      locEl.innerHTML = groups;
     }
 
     // Aggregate months for calendar sidebar
@@ -609,9 +607,15 @@ async function renderSpecies(name, activeRealms) {
 }
 
 function setLocation(id, btn) {
-  _activeLocId = id;
-  document.querySelectorAll('.loc-chip').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
+  // Click an already-active chip to clear it (returns to All locations)
+  if (btn && btn.classList.contains('active')) {
+    btn.classList.remove('active');
+    _activeLocId = null;
+  } else {
+    _activeLocId = id;
+    document.querySelectorAll('.loc-chip').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+  }
   applyFilters();
 }
 
