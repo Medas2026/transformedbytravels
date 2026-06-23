@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Trip Report — Three Realms Travel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:   #2dd4bf;
+      --teal2:  #14b8a6;
+      --dark:   #0a1628;
+      --navy:   #0f172a;
+      --s2:     #1e293b;
+      --text:   #f1f5f9;
+      --soft:   #cbd5e1;
+      --muted:  #64748b;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--text); font-family: 'Lora', Georgia, serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(10,22,40,0.95), transparent);
+      backdrop-filter: blur(4px);
+    }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); letter-spacing: 0.04em; text-decoration: none; }
+    .nav-brand span { color: var(--teal); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { color: var(--soft); text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-cta { background: var(--teal); color: #0a1628 !important; padding: 9px 22px; border-radius: 6px; font-weight: 800 !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 70vh;
+      position: relative;
+      display: flex; align-items: flex-end;
+      padding: 0 48px 80px;
+      overflow: hidden;
+    }
+    .hero-bg { position: absolute; inset: 0; background: var(--dark); }
+    .hero-bg-img { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0.4; }
+    .hero-scrim {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(10,22,40,0.98) 0%, rgba(10,22,40,0.55) 55%, rgba(10,22,40,0.25) 100%);
+    }
+    .hero-content { position: relative; z-index: 2; max-width: 900px; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.78rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft);
+      text-decoration: none; margin-bottom: 28px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--teal); }
+    .destination-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.8rem;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal);
+      margin-bottom: 18px;
+    }
+    .hero-title {
+      font-family: 'Montserrat', sans-serif; font-weight: 900;
+      font-size: 3.6rem; line-height: 1.05; letter-spacing: -0.02em;
+      margin-bottom: 22px;
+    }
+    .trip-summary {
+      font-size: 1.15rem; line-height: 1.75; color: var(--soft);
+      max-width: 780px;
+    }
+    .trip-summary p { margin-bottom: 14px; }
+    .trip-summary p:last-child { margin-bottom: 0; }
+
+    /* ── SECTIONS ── */
+    .sections-wrap { padding: 80px 48px; max-width: 1100px; margin: 0 auto; }
+    .section {
+      margin-bottom: 96px;
+    }
+    .section:last-child { margin-bottom: 0; }
+    .section-subtitle {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.9rem; line-height: 1.2; letter-spacing: -0.01em;
+      margin-bottom: 22px; color: var(--text);
+    }
+    .section-body {
+      font-size: 1.05rem; line-height: 1.85; color: var(--soft);
+      margin-bottom: 32px;
+    }
+    .section-body p  { margin-bottom: 16px; }
+    .section-body p:last-child { margin-bottom: 0; }
+    .section-body strong { color: var(--text); font-weight: 700; }
+    .section-body em { font-style: italic; color: var(--text); }
+    .section-body a { color: var(--teal); }
+
+    /* Photo layouts */
+    .photo-grid { display: grid; gap: 14px; }
+    .photo-grid.n1 { grid-template-columns: 1fr; }
+    .photo-grid.n2 { grid-template-columns: 1fr 1fr; }
+    .photo-grid.n3 { grid-template-columns: 1fr 1fr 1fr; }
+    .photo-grid.n4 { grid-template-columns: 1fr 1fr; }
+    .photo-grid img {
+      width: 100%; aspect-ratio: 3 / 2; object-fit: cover;
+      border-radius: 8px; display: block;
+    }
+    .photo-grid.n1 img { aspect-ratio: 16 / 9; }
+
+    /* ── CLOSING ── */
+    .closing-wrap { padding: 0 48px 120px; max-width: 1100px; margin: 0 auto; }
+    .closing-block {
+      background: var(--s2);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .closing-photo {
+      width: 100%; aspect-ratio: 21 / 9; object-fit: cover; display: block;
+      background: #1e293b;
+    }
+    .closing-body { padding: 48px 56px 52px; }
+    .closing-headline {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 2rem; line-height: 1.2; letter-spacing: -0.01em;
+      margin-bottom: 22px; color: var(--text);
+    }
+    .closing-summary { font-size: 1.05rem; line-height: 1.85; color: var(--soft); }
+    .closing-summary p { margin-bottom: 14px; }
+    .closing-summary p:last-child { margin-bottom: 0; }
+
+    /* ── CTA ── */
+    .cta-wrap {
+      padding: 0 48px 120px; max-width: 1100px; margin: 0 auto;
+      text-align: center;
+    }
+    .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 32px; }
+    .cta-btn {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.82rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 12px 26px; border-radius: 6px; text-decoration: none;
+      transition: all 0.2s;
+    }
+    .cta-primary { background: var(--teal); color: #0a1628; }
+    .cta-primary:hover { background: var(--teal2); }
+    .cta-secondary { color: var(--teal); border: 1px solid rgba(45,212,191,0.4); }
+    .cta-secondary:hover { background: rgba(45,212,191,0.1); }
+
+    .loading-msg, .error-msg {
+      text-align: center; padding: 160px 20px 40px;
+      color: var(--muted); font-style: italic;
+    }
+
+    @media (max-width: 800px) {
+      nav { padding: 14px 20px; }
+      .nav-links { gap: 16px; }
+      .hero { padding: 0 24px 56px; min-height: 60vh; }
+      .hero-title { font-size: 2.2rem; }
+      .sections-wrap, .closing-wrap, .cta-wrap { padding-left: 24px; padding-right: 24px; }
+      .section { margin-bottom: 64px; }
+      .section-subtitle { font-size: 1.5rem; }
+      .closing-body { padding: 32px 28px; }
+      .closing-headline { font-size: 1.5rem; }
+      .photo-grid.n3 { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">THREE <span>REALMS</span> TRAVEL</a>
+  <div class="nav-links">
+    <a href="trip-reports.html">All Reports</a>
+    <a href="index.html#explore">Regions</a>
+    <a class="nav-cta" href="index.html#cta">Get Started</a>
+  </div>
+</nav>
+
+<div id="content">
+  <div class="loading-msg">Loading trip report…</div>
+</div>
+
+<script>
+const params      = new URLSearchParams(window.location.search);
+const destination = (params.get('destination') || '').trim();
+
+// Lightweight RTF → HTML: preserves paragraphs, bold (**x**), italic (*x*), links, line breaks
+function rtfToHtml(text) {
+  if (!text) return '';
+  const escaped = String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  // Bold then italic
+  let html = escaped
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  // Split on blank lines into paragraphs, single newlines → <br>
+  const paras = html.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+  return paras.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+}
+
+function escapeAttr(s) { return String(s || '').replace(/"/g, '&quot;'); }
+
+function renderPhotoGrid(photos) {
+  if (!photos || !photos.length) return '';
+  const n = Math.min(photos.length, 4);
+  const imgs = photos.slice(0, 4).map(url =>
+    `<img src="${escapeAttr(url)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+  ).join('');
+  return `<div class="photo-grid n${n}">${imgs}</div>`;
+}
+
+function renderSection(s) {
+  return `
+    <div class="section">
+      <h2 class="section-subtitle">${(s.subtitle || '').replace(/</g,'&lt;')}</h2>
+      <div class="section-body">${rtfToHtml(s.summary)}</div>
+      ${renderPhotoGrid(s.photos)}
+    </div>`;
+}
+
+async function init() {
+  const root = document.getElementById('content');
+
+  if (!destination) {
+    root.innerHTML = `<div class="error-msg">No trip report specified. <a href="trip-reports.html" style="color:var(--teal);">See all reports</a>.</div>`;
+    return;
+  }
+
+  let report = null;
+  try {
+    const resp = await fetch(`/api/trip-reports?destination=${encodeURIComponent(destination)}`);
+    const data = await resp.json();
+    report = data.report;
+  } catch(e) {
+    root.innerHTML = `<div class="error-msg">Could not load this trip report.</div>`;
+    return;
+  }
+
+  if (!report) {
+    root.innerHTML = `<div class="error-msg">Trip report not found. <a href="trip-reports.html" style="color:var(--teal);">See all reports</a>.</div>`;
+    return;
+  }
+
+  document.title = `${report.title || report.destination} — Trip Report — Three Realms Travel`;
+  document.getElementById('page-title').textContent = document.title;
+
+  const heroBg = report.heroPhoto
+    ? `<div class="hero-bg-img" style="background-image:url('${escapeAttr(report.heroPhoto)}');"></div>`
+    : '';
+
+  const sectionsHtml = (report.sections || []).map(renderSection).join('');
+
+  const closingHtml = (report.closingHeadline || report.closingPhoto || report.closingSummary) ? `
+    <div class="closing-wrap">
+      <div class="closing-block">
+        ${report.closingPhoto ? `<img class="closing-photo" src="${escapeAttr(report.closingPhoto)}" alt="" onerror="this.style.display='none'">` : ''}
+        <div class="closing-body">
+          ${report.closingHeadline ? `<h2 class="closing-headline">${report.closingHeadline.replace(/</g,'&lt;')}</h2>` : ''}
+          <div class="closing-summary">${rtfToHtml(report.closingSummary)}</div>
+        </div>
+      </div>
+    </div>` : '';
+
+  root.innerHTML = `
+    <div class="hero">
+      <div class="hero-bg"></div>
+      ${heroBg}
+      <div class="hero-scrim"></div>
+      <div class="hero-content">
+        <a class="back-link" href="trip-reports.html">← All trip reports</a>
+        <div class="destination-tag">${(report.destination || '').replace(/</g,'&lt;')}</div>
+        <h1 class="hero-title">${(report.title || '').replace(/</g,'&lt;')}</h1>
+        <div class="trip-summary">${rtfToHtml(report.tripSummary)}</div>
+      </div>
+    </div>
+
+    <div class="sections-wrap">${sectionsHtml}</div>
+
+    ${closingHtml}
+
+    <div class="cta-wrap">
+      <div class="cta-row">
+        <a class="cta-btn cta-primary" href="index.html#cta">Plan a trip like this</a>
+        <a class="cta-btn cta-secondary" href="trip-reports.html">Read another report</a>
+      </div>
+    </div>
+  `;
+}
+init();
+</script>
+
+</body>
+</html>

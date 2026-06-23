@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trip Reports — Three Realms Travel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:   #2dd4bf;
+      --teal2:  #14b8a6;
+      --dark:   #0a1628;
+      --navy:   #0f172a;
+      --s2:     #1e293b;
+      --text:   #f1f5f9;
+      --soft:   #cbd5e1;
+      --muted:  #64748b;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--text); font-family: 'Lora', Georgia, serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(10,22,40,0.95), transparent);
+      backdrop-filter: blur(4px);
+    }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); letter-spacing: 0.04em; text-decoration: none; }
+    .nav-brand span { color: var(--teal); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { color: var(--soft); text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-cta { background: var(--teal); color: #0a1628 !important; padding: 9px 22px; border-radius: 6px; font-weight: 800 !important; }
+
+    .header-section { padding: 140px 48px 40px; max-width: 1200px; margin: 0 auto; }
+    .section-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal);
+      margin-bottom: 16px;
+    }
+    h1 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 3rem; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 18px; }
+    .lead { font-size: 1.1rem; color: var(--soft); line-height: 1.7; max-width: 720px; }
+
+    .reports-section { padding: 40px 48px 120px; max-width: 1200px; margin: 0 auto; }
+    .reports-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 28px;
+    }
+    .report-card {
+      background: var(--s2);
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .report-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: rgba(45,212,191,0.3); }
+    .report-photo { width: 100%; aspect-ratio: 16 / 10; background: #1e293b; background-size: cover; background-position: center; }
+    .report-body { padding: 22px 24px 24px; }
+    .report-destination { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 8px; }
+    .report-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; line-height: 1.3; color: var(--text); }
+
+    .empty, .loading {
+      grid-column: 1 / -1;
+      text-align: center; padding: 80px 20px;
+      color: var(--muted); font-style: italic;
+    }
+
+    @media (max-width: 700px) {
+      nav { padding: 14px 20px; }
+      .nav-links { gap: 16px; }
+      .header-section, .reports-section { padding-left: 20px; padding-right: 20px; }
+      h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">THREE <span>REALMS</span> TRAVEL</a>
+  <div class="nav-links">
+    <a href="index.html#explore">Regions</a>
+    <a href="index.html#services">Services</a>
+    <a class="nav-cta" href="index.html#cta">Get Started</a>
+  </div>
+</nav>
+
+<div class="header-section">
+  <div class="section-tag">From the field</div>
+  <h1>Trip Reports</h1>
+  <p class="lead">Real journeys, real wildlife, real days in camp — what happens when our travelers come back from a place. Photos, stories, and the small details that don't make it into the brochures.</p>
+</div>
+
+<div class="reports-section">
+  <div class="reports-grid" id="reports-grid">
+    <div class="loading">Loading trip reports…</div>
+  </div>
+</div>
+
+<script>
+async function init() {
+  const grid = document.getElementById('reports-grid');
+  try {
+    const resp = await fetch('/api/trip-reports');
+    const data = await resp.json();
+    const reports = data.reports || [];
+    if (!reports.length) {
+      grid.innerHTML = `<div class="empty">No trip reports yet — check back soon.</div>`;
+      return;
+    }
+    grid.innerHTML = reports.map(r => {
+      const photo = r.heroPhoto ? `style="background-image:url('${r.heroPhoto.replace(/'/g,"%27")}');"` : '';
+      const dest  = (r.destination || '').replace(/"/g, '&quot;');
+      return `
+        <a class="report-card" href="trip-report.html?destination=${encodeURIComponent(r.destination)}">
+          <div class="report-photo" ${photo}></div>
+          <div class="report-body">
+            <div class="report-destination">${dest}</div>
+            <div class="report-title">${r.title || 'Untitled report'}</div>
+          </div>
+        </a>`;
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = `<div class="empty">Could not load trip reports.</div>`;
+  }
+}
+init();
+</script>
+
+</body>
+</html>
