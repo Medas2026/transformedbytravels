@@ -329,6 +329,24 @@
     .realm-desc-block { margin-bottom: 22px; }
     .realm-desc-photo { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: block; }
     .realm-desc-photo-ph { width: 100%; height: 0; margin-bottom: 0; } /* hidden until photo loads */
+    /* Species thumb strip — replaces the single landscape photo */
+    .realm-thumb-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+    .realm-thumb { position: relative; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.04); }
+    .realm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .realm-thumb-name {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.62rem;
+      letter-spacing: 0.03em; color: #f1f5f9;
+      padding: 14px 7px 6px;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+      line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .realm-thumb-skel { aspect-ratio: 1 / 1; border-radius: 8px; background: rgba(255,255,255,0.04); }
+    @media (max-width: 600px) {
+      .realm-thumb-strip { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+      .realm-thumb-name { font-size: 0.58rem; padding: 12px 5px 5px; }
+    }
 
 /* ── PLANNING TOGETHER ── */
     .planning-section { background: var(--dark); padding: 96px 0; }
@@ -1567,13 +1585,16 @@ function openPanel(region) {
     ? ['land','ocean','sky'].filter(rl => region[rl])
     : (region[activeRealm] ? [activeRealm] : ['land','ocean','sky'].filter(rl => region[rl]));
 
-  // Build descriptions with photo placeholders (photos load async below)
+  // Build descriptions with species thumbnail placeholders (thumbs load async below)
   const descHtml = realmsToShow
     .filter(rl => descMap[rl])
     .map(rl => `
       <div class="realm-desc-block" id="rdblock-${rl}">
         <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:${REALM_COLORS[rl]};margin-bottom:8px;">${REALM_LABELS[rl]}</div>
-        <div id="rdphoto-${rl}" style="width:100%;height:160px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:10px;overflow:hidden;"></div>
+        <div id="rdthumbs-${rl}" class="realm-thumb-strip">
+          <div class="realm-thumb-skel"></div><div class="realm-thumb-skel"></div>
+          <div class="realm-thumb-skel"></div><div class="realm-thumb-skel"></div>
+        </div>
         <p style="margin:0;font-size:0.9rem;color:var(--soft);line-height:1.8;">${descMap[rl]}</p>
       </div>`)
     .join('') || `<p style="color:var(--muted);font-style:italic;">Highlights coming soon.</p>`;
@@ -1615,19 +1636,44 @@ function openPanel(region) {
     }).addTo(miniMap);
   }, 80);
 
-  // Fetch Wikipedia photos for each realm asynchronously
-  const wikiMap = WIKI_PHOTOS[region.name] || {};
-  realmsToShow.forEach(rl => {
-    const article = wikiMap[rl];
-    const photoEl = document.getElementById('rdphoto-' + rl);
-    if (!article || !photoEl) return;
-    fetchWikiPhoto(article).then(url => {
-      if (!url || !photoEl.isConnected) return;
-      photoEl.innerHTML = `<img src="${url}" alt="${article}"
-        style="width:100%;height:160px;object-fit:cover;display:block;"
-        onerror="this.parentElement.style.display='none'">`;
+  // Fetch species for the region, then render 4 thumbnails per realm
+  loadRegionSpecies(region.name).then(species => {
+    realmsToShow.forEach(rl => {
+      const stripEl = document.getElementById('rdthumbs-' + rl);
+      if (!stripEl || !stripEl.isConnected) return;
+      const picks = species
+        .filter(s => speciesRealm(s) === rl && s.photoUrl)
+        .slice(0, 4);
+      if (!picks.length) { stripEl.style.display = 'none'; return; }
+      stripEl.innerHTML = picks.map(s => {
+        const safeName = (s.name || '').replace(/"/g, '&quot;');
+        return `
+        <div class="realm-thumb" title="${safeName}">
+          <img src="${s.photoUrl}" alt="${safeName}" loading="lazy"
+            onerror="this.parentElement.style.display='none'">
+          <div class="realm-thumb-name">${safeName}</div>
+        </div>`;
+      }).join('');
     });
   });
+}
+
+const speciesCache = {};
+async function loadRegionSpecies(name) {
+  if (speciesCache[name]) return speciesCache[name];
+  try {
+    const resp = await fetch(`/api/species-pack?region=${encodeURIComponent(name)}`);
+    const data = await resp.json();
+    speciesCache[name] = data.species || [];
+  } catch(e) { speciesCache[name] = []; }
+  return speciesCache[name];
+}
+
+function speciesRealm(s) {
+  const t = (s.type || s.category || '').toLowerCase();
+  if (t === 'bird') return 'sky';
+  if (t.includes('marine') || t === 'fish' || t === 'shark') return 'ocean';
+  return 'land';
 }
 
 function closePanel() {
