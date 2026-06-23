@@ -83,7 +83,9 @@ module.exports = async function handler(req, res) {
       const report = records.length ? shapeReport(records[0]) : null;
       return res.status(200).json({ report });
     }
-    return res.status(200).json({ reports: records.map(shapeListItem) });
+    // List view: drop draft/empty records (no Destination)
+    const reports = records.map(shapeListItem).filter(r => r.destination);
+    return res.status(200).json({ reports });
   } catch(e) {
     return res.status(500).json({ error: e.message });
   }

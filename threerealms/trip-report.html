@@ -121,7 +121,7 @@
       width: 100%; aspect-ratio: 21 / 9; object-fit: cover; display: block;
       background: #1e293b;
     }
-    .closing-body { padding: 48px 56px 52px; }
+    .closing-body { padding: 48px 56px 40px; }
     .closing-headline {
       font-family: 'Montserrat', sans-serif; font-weight: 800;
       font-size: 2rem; line-height: 1.2; letter-spacing: -0.01em;
@@ -258,11 +258,11 @@ async function init() {
   const closingHtml = (report.closingHeadline || report.closingPhoto || report.closingSummary) ? `
     <div class="closing-wrap">
       <div class="closing-block">
-        ${report.closingPhoto ? `<img class="closing-photo" src="${escapeAttr(report.closingPhoto)}" alt="" onerror="this.style.display='none'">` : ''}
         <div class="closing-body">
           ${report.closingHeadline ? `<h2 class="closing-headline">${report.closingHeadline.replace(/</g,'&lt;')}</h2>` : ''}
           <div class="closing-summary">${rtfToHtml(report.closingSummary)}</div>
         </div>
+        ${report.closingPhoto ? `<img class="closing-photo" src="${escapeAttr(report.closingPhoto)}" alt="" onerror="this.style.display='none'">` : ''}
       </div>
     </div>` : '';
 
