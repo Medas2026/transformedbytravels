@@ -221,10 +221,16 @@
     .species-month { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.58rem; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: rgba(45,212,191,0.15); color: var(--teal); }
     .no-species { text-align: center; padding: 48px 20px; color: var(--muted); font-style: italic; grid-column: 1 / -1; }
     .loading-msg { text-align: center; padding: 48px 20px; color: var(--muted); font-style: italic; grid-column: 1 / -1; }
-    .location-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .location-filter { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .loc-all-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 2px; }
+    .loc-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .loc-country { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8; margin-right: 4px; min-width: 90px; }
     .loc-chip { padding: 5px 13px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: #64748b; font-family: 'Montserrat', sans-serif; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
     .loc-chip:hover { border-color: rgba(45,212,191,0.4); color: #94a3b8; }
     .loc-chip.active { background: rgba(45,212,191,0.15); border-color: #2dd4bf; color: #2dd4bf; }
+    @media (max-width: 600px) {
+      .loc-country { min-width: 0; width: 100%; margin-bottom: 2px; }
+    }
     .sp-pos-btns { position: absolute; bottom: 6px; left: 6px; display: none; gap: 2px; }
     .sp-edit-mode .sp-pos-btns { display: flex; }
     .sp-pos-btn { width: 22px; height: 20px; background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; color: rgba(255,255,255,0.85); font-size: 0.65rem; cursor: pointer; padding: 0; line-height: 1; }
@@ -549,12 +555,31 @@ async function renderSpecies(name, activeRealms) {
       return;
     }
 
-    // Build location chips
+    // Build location chips — grouped by country
     if (locations.length > 1) {
       const locEl = document.getElementById('location-filter');
       locEl.style.display = '';
-      locEl.innerHTML = `<button class="loc-chip active" onclick="setLocation(null,this)">All locations</button>` +
-        locations.map(l => `<button class="loc-chip" onclick="setLocation('${l.id}',this)">${l.name}</button>`).join('');
+
+      // Group by country, sort countries and locations alphabetically
+      const byCountry = {};
+      locations.forEach(l => {
+        const c = (l.country || 'Other').trim();
+        (byCountry[c] = byCountry[c] || []).push(l);
+      });
+      const sortedCountries = Object.keys(byCountry).sort();
+      sortedCountries.forEach(c => byCountry[c].sort((a, b) => a.name.localeCompare(b.name)));
+
+      const allRow = `<div class="loc-all-row"><button class="loc-chip active" onclick="setLocation(null,this)">All locations</button></div>`;
+
+      const groups = sortedCountries.map(country => {
+        const chips = byCountry[country]
+          .map(l => `<button class="loc-chip" onclick="setLocation('${l.id}',this)">${l.name}</button>`)
+          .join('');
+        const label = sortedCountries.length > 1 ? `<span class="loc-country">${country}</span>` : '';
+        return `<div class="loc-group">${label}${chips}</div>`;
+      }).join('');
+
+      locEl.innerHTML = allRow + groups;
     }
 
     // Aggregate months for calendar sidebar
