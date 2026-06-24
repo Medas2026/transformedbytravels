@@ -332,7 +332,7 @@
     /* Species thumb strip — replaces the single landscape photo */
     .realm-thumb-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
     .realm-thumb { position: relative; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.04); }
-    .realm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .realm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.15s ease; }
     .realm-thumb-name {
       position: absolute; left: 0; right: 0; bottom: 0;
       font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.62rem;
@@ -342,10 +342,22 @@
       line-height: 1.2;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    .realm-thumb-zoom { position: absolute; top: 4px; right: 4px; display: flex; gap: 3px; z-index: 5; opacity: 0; transition: opacity 0.15s ease; }
+    .realm-thumb:hover .realm-thumb-zoom { opacity: 1; }
+    .realm-thumb-zoom button {
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      border: none; border-radius: 50%;
+      color: #fff; font-size: 0.78rem; font-weight: 700;
+      width: 22px; height: 22px; line-height: 1; padding: 0;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .realm-thumb-zoom button:hover { background: rgba(45,212,191,0.85); color: #0a1628; }
     .realm-thumb-skel { aspect-ratio: 1 / 1; border-radius: 8px; background: rgba(255,255,255,0.04); }
     @media (max-width: 600px) {
       .realm-thumb-strip { grid-template-columns: repeat(4, 1fr); gap: 6px; }
       .realm-thumb-name { font-size: 0.58rem; padding: 12px 5px 5px; }
+      .realm-thumb-zoom { opacity: 1; } /* always show on touch devices */
+      .realm-thumb-zoom button { width: 20px; height: 20px; font-size: 0.72rem; }
     }
 
 /* ── PLANNING TOGETHER ── */
@@ -1076,16 +1088,39 @@ function openPanel(region) {
       if (!picks.length) { stripEl.style.display = 'none'; return; }
       stripEl.innerHTML = picks.map(s => {
         const safeName = (s.name || '').replace(/"/g, '&quot;');
+        const tid      = `${rl}-${s.id}`;
         return `
-        <div class="realm-thumb" title="${safeName}">
+        <div class="realm-thumb" data-thumb-id="${tid}" title="${safeName}">
           <img src="${s.photoUrl}" alt="${safeName}" loading="lazy"
             onerror="this.parentElement.style.display='none'">
+          <div class="realm-thumb-zoom">
+            <button onclick="thumbZoom('${tid}',-0.25);event.stopPropagation()" aria-label="Zoom out">−</button>
+            <button onclick="thumbZoom('${tid}',0.25);event.stopPropagation()" aria-label="Zoom in">+</button>
+          </div>
           <div class="realm-thumb-name">${safeName}</div>
         </div>`;
       }).join('');
     });
   });
 }
+
+const _thumbZoom = {};
+function thumbZoom(id, delta) {
+  const card = document.querySelector(`[data-thumb-id="${id}"]`);
+  if (!card) return;
+  const img = card.querySelector('img');
+  if (!img) return;
+  _thumbZoom[id] = Math.min(2.5, Math.max(0.7, (_thumbZoom[id] || 1.0) + delta));
+  const z = _thumbZoom[id];
+  if (z < 1.0) {
+    img.style.transform = 'none';
+    img.style.objectFit = 'contain';
+  } else {
+    img.style.objectFit = 'cover';
+    img.style.transform = z > 1.0 ? `scale(${z})` : 'none';
+  }
+}
+window.thumbZoom = thumbZoom;
 
 const speciesCache = {};
 async function loadRegionSpecies(name) {
