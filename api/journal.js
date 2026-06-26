@@ -538,6 +538,19 @@ module.exports = async function handler(req, res) {
         const toSend = (tripsData.records || [])
           .filter(r => r.fields['Traveler Email'] && r.fields['Journal Enabled'] !== false)
           .filter(r => {
+            // Skip trips whose End Date has already passed in the traveler's local time zone.
+            // Without this, "Status=Active" trips keep firing the daily/last-day email forever.
+            const endDate = r.fields['End Date'];
+            if (!endDate) return true;
+            const tz        = r.fields['Time Zone'] || 'UTC';
+            const localDate = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(now);
+            if (localDate > endDate) {
+              console.log(`[send-daily] skipping ${r.fields['Traveler Email']} — trip ended ${endDate}, today ${localDate}`);
+              return false;
+            }
+            return true;
+          })
+          .filter(r => {
             const tz          = r.fields['Time Zone'] || 'UTC';
             const journalHour = Number(r.fields['Journal Time'] || 19);
             const localHour   = Number(new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', hour12: false }).format(now));
