@@ -529,6 +529,27 @@ module.exports = async function handler(req, res) {
             await sendToTripMembers(r.id, email, subject, html);
           });
           console.log('[post-trip summary] sent to', email, tripName);
+
+          // Auto-flip the trip to Completed so daily/last-day reminders stop.
+          if ((f['Status of Trip'] || '') !== 'Completed') {
+            try {
+              const patchResp = await fetch(
+                `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TRIPS_TABLE)}/${r.id}`,
+                {
+                  method: 'PATCH',
+                  headers: { ...headers, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ fields: { 'Status of Trip': 'Completed' } })
+                }
+              );
+              if (!patchResp.ok) {
+                console.error('[post-trip summary] status flip failed for', r.id, await patchResp.text());
+              } else {
+                console.log('[post-trip summary] status → Completed for', r.id, tripName);
+              }
+            } catch(e) {
+              console.error('[post-trip summary] status flip error for', r.id, e.message);
+            }
+          }
         }
       } catch(e) {
         console.error('[post-trip summary]', e.message);
