@@ -103,14 +103,24 @@ module.exports = async (req, res) => {
 
     // Temporary diagnostic: /api/founding-spots?debug=1
     if (req.query && req.query.debug) {
+      const me = await getJson('/v2/me', '2024-06-14');
+      const teams = await getJson('/v2/teams', '2024-06-14');
+      const teamList = ((teams.json && teams.json.data) || []).map((t) => ({ id: t.id, slug: t.slug, name: t.name }));
+      // Pull event types for each team, to find founding-consult under a team.
+      const teamEventTypes = [];
+      for (const tm of teamList) {
+        const tet = await getJson(`/v2/teams/${tm.id}/event-types`, '2024-06-14');
+        flattenEventTypes(tet.json && tet.json.data).forEach((e) =>
+          teamEventTypes.push({ teamId: tm.id, teamSlug: tm.slug, id: e.id, slug: e.slug, title: e.title })
+        );
+      }
       return res.status(200).json({
         debug: true,
-        eventTypesStatus: et.status,
-        eventTypeTopKeys: et.json ? Object.keys(et.json) : [],
-        slugs: types.map((t) => ({ id: t.id, slug: t.slug, title: t.title })),
+        me: me.json && me.json.data ? { username: me.json.data.username, email: me.json.data.email } : me.json,
+        personalSlugs: types.map((t) => ({ id: t.id, slug: t.slug, title: t.title })),
         matchedId: match ? match.id : null,
-        bookingPages: pages,
-        booked,
+        teams: teamList,
+        teamEventTypes,
       });
     }
 
