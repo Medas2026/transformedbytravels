@@ -78,11 +78,19 @@ module.exports = async (req, res) => {
     //    scoped to the owning username, so look that up first via /v2/me.
     const me = await getJson('/v2/me', '2024-06-14');
     const username = me.json && me.json.data && me.json.data.username;
+    const u = encodeURIComponent(username || '');
+    // Fetch the specific event by slug — this returns hidden events too,
+    // unlike the plain listing which filters them out.
     const et = await getJson(
-      `/v2/event-types?username=${encodeURIComponent(username || '')}`,
+      `/v2/event-types?username=${u}&eventSlug=${encodeURIComponent(SLUG)}`,
       '2024-06-14'
     );
-    const types = flattenEventTypes(et.json && et.json.data);
+    let types = flattenEventTypes(et.json && et.json.data);
+    // Fallback to the full listing if the direct lookup returned nothing.
+    if (!types.length) {
+      const list = await getJson(`/v2/event-types?username=${u}`, '2024-06-14');
+      types = flattenEventTypes(list.json && list.json.data);
+    }
 
     // 2) Count non-cancelled bookings for that event type (v2, paginated).
     const match = types.find((t) => t.slug === SLUG);
@@ -112,7 +120,8 @@ module.exports = async (req, res) => {
       return res.status(200).json({
         debug: true,
         username,
-        eventTypesStatus: et.status,
+        directLookupStatus: et.status,
+        directLookupRaw: et.json,
         slugs: types.map((t) => ({ id: t.id, slug: t.slug, title: t.title })),
         lookingFor: SLUG,
         matchedId: match ? match.id : null,
