@@ -349,6 +349,9 @@
       Your Travel DNA read live. A one-page outline of the trip that could be next for you. Yours to keep — whether you work with us or not.
     </p>
     <div class="fm-counter" id="fm-counter">30 spots · offer runs through September 30</div>
+    <p class="lead" id="fm-soldout" style="display:none;margin-top:18px;font-weight:600;">
+      All 30 founding spots are claimed — thank you! You can still book below to join the waitlist.
+    </p>
     <div class="fm-hero-cta">
       <a href="#book" class="fm-btn fm-btn-primary">Claim Your Spot →</a>
     </div>
@@ -505,6 +508,29 @@
       calLink: "founding-consult",
       layout: "month_view"
     });
+  </script>
+
+  <!-- Live spots-remaining counter (falls back to static copy on any error) -->
+  <script>
+    (function () {
+      var el = document.getElementById('fm-counter');
+      if (!el) return;
+      fetch('/api/founding-spots')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d || !d.ok || typeof d.remaining !== 'number') return; // keep static text
+          var total = d.total || 30;
+          if (d.remaining <= 0) {
+            el.textContent = 'Founding offer full · ' + total + ' of ' + total + ' spots claimed';
+            var so = document.getElementById('fm-soldout');
+            if (so) so.style.display = 'block';
+          } else {
+            var word = d.remaining === 1 ? 'spot' : 'spots';
+            el.textContent = d.remaining + ' of ' + total + ' ' + word + ' left · offer runs through September 30';
+          }
+        })
+        .catch(function () { /* leave static text in place */ });
+    })();
   </script>
 
 </body>
