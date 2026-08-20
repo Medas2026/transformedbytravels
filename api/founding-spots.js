@@ -49,6 +49,18 @@ module.exports = async (req, res) => {
     // 1) Resolve the event-type id from its slug.
     const et = await getJson(`/v1/event-types?apiKey=${encodeURIComponent(key)}`);
     const types = (et.json && et.json.event_types) || [];
+
+    // Temporary diagnostic: /api/founding-spots?debug=1 shows what Cal returned.
+    if (req.query && req.query.debug) {
+      return res.status(200).json({
+        debug: true,
+        httpStatus: et.status,
+        topLevelKeys: et.json ? Object.keys(et.json) : [],
+        eventTypeCount: types.length,
+        slugs: types.map((t) => ({ id: t.id, slug: t.slug, title: t.title })),
+      });
+    }
+
     const match = types.find((t) => t.slug === SLUG);
     if (!match) {
       return res.status(200).json({ ok: false, total: TOTAL, reason: 'slug-not-found' });
