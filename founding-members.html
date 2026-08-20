@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The first 30 Founding Members get a free 45-minute Travel Style Consult with Michael Emerson. Your Travel DNA read live. A one-page outline of your next trip. Yours to keep." />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="icon" href="/Favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/Favicon.png">
+  <title>Founding Members — Transformed by Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:wght@400;600&family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://plausible.io/js/pa-_E9cFdzUFrWlkW9MIz16L.js"></script>
+  <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+  <script defer src="/js/mobile-nav.js"></script>
+  <style>
+    /* ============================================================
+       Founding Members landing (2026-08)
+       ============================================================ */
+    .fm-hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #2a9d8f 100%);
+      color: #fff;
+      padding: 80px 24px 64px;
+      text-align: center;
+    }
+    .fm-hero-badge {
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #0a1628;
+      background: #fbbf24;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 22px;
+    }
+    .fm-hero h1 {
+      font-family: 'Merriweather', Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(2rem, 4.6vw, 3.4rem);
+      line-height: 1.2;
+      max-width: 880px;
+      margin: 0 auto 20px;
+      color: #fff;
+    }
+    .fm-hero h1 strong { font-weight: 700; }
+    .fm-hero p.lead {
+      font-family: 'Open Sans', sans-serif;
+      font-size: clamp(1.05rem, 1.5vw, 1.2rem);
+      color: rgba(255,255,255,0.92);
+      max-width: 720px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+    .fm-counter {
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #fbbf24;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(251,191,36,0.4);
+      border-radius: 22px;
+      padding: 8px 18px;
+      letter-spacing: 0.06em;
+    }
+    .fm-hero-cta {
+      margin-top: 32px;
+    }
+    .fm-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 16px 34px; border-radius: 8px;
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase;
+      text-decoration: none; cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+      border: none;
+    }
+    .fm-btn:hover { transform: translateY(-1px); }
+    .fm-btn-primary { background: #fbbf24; color: #0a1628; }
+    .fm-btn-primary:hover { background: #f59e0b; }
+
+    /* ── What you get ── */
+    .fm-what {
+      background: #fff;
+      padding: 72px 24px;
+    }
+    .fm-what-inner { max-width: 1000px; margin: 0 auto; }
+    .fm-what h2 {
+      font-family: 'Merriweather', Georgia, serif;
+      font-weight: 700;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      text-align: center;
+      color: #1a1a2e;
+      margin-bottom: 48px;
+    }
+    .fm-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+    }
+    .fm-step {
+      text-align: center;
+      padding: 20px;
+    }
+    .fm-step-num {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 2.6rem;
+      color: #2a9d8f;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .fm-step h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #1a1a2e;
+      margin-bottom: 10px;
+    }
+    .fm-step p {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #4a5060;
+    }
+    .fm-step p a { color: #2a9d8f; font-weight: 600; text-decoration: none; }
+    .fm-step p a:hover { text-decoration: underline; }
+
+    /* ── Cal.com ── */
+    .fm-book {
+      background: #f7f9fb;
+      padding: 64px 24px 40px;
+    }
+    .fm-book-inner { max-width: 1000px; margin: 0 auto; }
+    .fm-book h2 {
+      font-family: 'Merriweather', Georgia, serif;
+      font-weight: 700;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      text-align: center;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+    .fm-book-sub {
+      text-align: center;
+      color: #4a5060;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1rem;
+      margin-bottom: 32px;
+    }
+    #my-cal-inline {
+      width: 100%; min-height: 720px;
+      background: #fff; border-radius: 12px;
+      overflow: hidden;
+    }
+
+    /* ── Perks ── */
+    .fm-perks {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 64px 24px;
+    }
+    .fm-perks-inner { max-width: 800px; margin: 0 auto; }
+    .fm-perks h2 {
+      font-family: 'Merriweather', Georgia, serif;
+      font-weight: 700;
+      font-size: clamp(1.5rem, 2.6vw, 2rem);
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .fm-perks-list {
+      list-style: none;
+      padding: 0;
+    }
+    .fm-perks-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+    .fm-perks-list li:last-child { border-bottom: none; }
+    .fm-perks-list .check {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: #fbbf24;
+      color: #1a1a2e;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+    .fm-perks-list strong { color: #fbbf24; font-family: 'Montserrat', sans-serif; }
+
+    /* ── Trust / bio ── */
+    .fm-trust {
+      background: #fff;
+      padding: 72px 24px;
+    }
+    .fm-trust-header {
+      max-width: 820px; margin: 0 auto 40px;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 36px;
+      align-items: center;
+    }
+    .fm-trust img.fm-portrait {
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #2a9d8f;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+    }
+    .fm-trust h3 {
+      font-family: 'Merriweather', Georgia, serif;
+      font-weight: 700;
+      font-size: 1.7rem;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+    .fm-trust .role {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #2a9d8f;
+      margin-bottom: 16px;
+    }
+    .fm-credentials {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 4px;
+    }
+    .fm-cred {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(42,157,143,0.08);
+      border: 1px solid rgba(42,157,143,0.3);
+      color: #1a1a2e;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: 0.78rem;
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+    .fm-cred strong { color: #2a9d8f; font-weight: 800; }
+    .fm-bio-body {
+      max-width: 720px; margin: 0 auto;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1.02rem;
+      line-height: 1.75;
+      color: #2a2a3e;
+    }
+    .fm-bio-body p { margin-bottom: 16px; }
+    .fm-bio-body p:last-child { margin-bottom: 0; }
+    .fm-bio-body .fm-proof {
+      background: #f7f9fb;
+      border-left: 4px solid #2a9d8f;
+      padding: 18px 22px;
+      margin: 24px 0;
+      font-style: italic;
+      color: #1a1a2e;
+    }
+    .fm-highlights {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      max-width: 820px; margin: 40px auto 0;
+      text-align: center;
+    }
+    .fm-highlight {
+      padding: 16px 8px;
+      border-top: 2px solid #2a9d8f;
+    }
+    .fm-highlight-num {
+      font-family: 'Merriweather', Georgia, serif;
+      font-weight: 700;
+      font-size: 1.7rem;
+      color: #2a9d8f;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .fm-highlight-label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #4a5060;
+    }
+    @media (max-width: 640px) {
+      .fm-highlights { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ── Fine print ── */
+    .fm-fine {
+      background: #f7f9fb;
+      padding: 40px 24px;
+      text-align: center;
+      color: #7a8899;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    .fm-fine strong { color: #1a1a2e; }
+
+    @media (max-width: 760px) {
+      .fm-grid { grid-template-columns: 1fr; gap: 20px; }
+      .fm-trust-header { grid-template-columns: 1fr; text-align: center; justify-items: center; gap: 20px; }
+      .fm-trust-header img.fm-portrait { margin: 0 auto; }
+      .fm-credentials { justify-content: center; }
+      .fm-hero { padding: 60px 20px 48px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER / NAV -->
+  <header class="header">
+    <div class="container nav-container">
+      <div class="logo">
+        <a href="/" class="logo-link">
+          <video class="nav-logo-video" src="/images/Rotating Logo.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
+          <span class="logo-text">Transformed<span class="logo-accent">byTravels</span></span>
+        </a>
+      </div>
+      <nav class="nav">
+        <ul class="nav-links">
+          <li><a href="/Assessment">Assessment</a></li>
+          <li><a href="/Technology">Technology</a></li>
+          <li><a href="/Speaking">Speaking</a></li>
+          <li><a href="/Media">Media</a></li>
+          <li><a href="https://app.transformedbytravels.com/portal.html" class="nav-portal-btn">My Portal</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="fm-hero">
+    <div class="fm-hero-badge">Founding Members · Launch Offer</div>
+    <h1>The first 30 travelers get a <strong>free 45-minute Travel Style Consult</strong> with Michael.</h1>
+    <p class="lead">
+      Your Travel DNA read live. A one-page outline of the trip that could be next for you. Yours to keep — whether you work with us or not.
+    </p>
+    <div class="fm-counter" id="fm-counter">30 spots · offer runs through September 30</div>
+    <div class="fm-hero-cta">
+      <a href="#book" class="fm-btn fm-btn-primary">Claim Your Spot →</a>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="fm-what">
+    <div class="fm-what-inner">
+      <h2>How it works</h2>
+      <div class="fm-grid">
+
+        <div class="fm-step">
+          <div class="fm-step-num">01</div>
+          <h3>Take the Travel Style Assessment</h3>
+          <p>Just five minutes of your time will help you better understand your own travel style. We'll use it to find the best destinations and activities for you. Travel built around you. <a href="/Assessment">Start it →</a></p>
+        </div>
+
+        <div class="fm-step">
+          <div class="fm-step-num">02</div>
+          <h3>Book your consult</h3>
+          <p>Pick a time below. 45 minutes on video live. I'll walk you through your results and the trip you can't stop thinking about. Travel planning as it should be.</p>
+        </div>
+
+        <div class="fm-step">
+          <div class="fm-step-num">03</div>
+          <h3>Get your trip outline</h3>
+          <p>Within 48 hours after the call, you'll get a link with an outline of your next trip. Take it and run — or ask me to plan the details for you.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CAL.COM EMBED -->
+  <section class="fm-book" id="book">
+    <div class="fm-book-inner">
+      <h2>Claim your spot</h2>
+      <p class="fm-book-sub">Once 30 spots are booked, the offer closes. Pick a time that works.</p>
+      <div id="my-cal-inline"></div>
+    </div>
+  </section>
+
+  <!-- PERKS -->
+  <section class="fm-perks">
+    <div class="fm-perks-inner">
+      <h2>What Founding Members get — for life</h2>
+      <ul class="fm-perks-list">
+        <li><span class="check">✓</span><div><strong>Lifetime 20% off</strong> any trip planning we do for you.</div></li>
+        <li><span class="check">✓</span><div><strong>Founding Member badge</strong> — first access when we open workshops, retreats, and cohorts.</div></li>
+        <li><span class="check">✓</span><div><strong>Direct line to Michael</strong> — for as long as you're an active member, your emails skip the queue.</div></li>
+        <li><span class="check">✓</span><div><strong>Named credit</strong> in the platform's story — you were here at Day 1.</div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- TRUST / BIO -->
+  <section class="fm-trust">
+    <div class="fm-trust-header">
+      <img class="fm-portrait" src="https://res.cloudinary.com/dporenlvw/image/upload/v1777399899/Screenshot_2026-04-28_at_1.10.16_PM_cm1nri" alt="Michael Emerson" />
+      <div>
+        <h3>Michael Emerson</h3>
+        <div class="role">Founder · Travel Coach · Adventure Traveler</div>
+        <div class="fm-credentials">
+          <span class="fm-cred">🎓 <strong>Certified Travel Coach</strong></span>
+          <span class="fm-cred">📚 <strong>PhD Candidate</strong> · Psychology</span>
+          <span class="fm-cred">🎤 <strong>100+</strong> Corporate Keynotes</span>
+          <span class="fm-cred">🌍 <strong>Six Continents</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fm-bio-body">
+      <p>
+        For 40 years I've been chasing life-changing moments — tracking pumas in Torres del Paine, swimming with whale sharks in the Galápagos, standing in −20°F to see a Great Gray Owl, sitting one meter from a mountain gorilla family in Uganda. I've had the privilege of visiting many of the world's greatest destinations, and I've learned that the best ones don't just show you something new — they change you.
+      </p>
+
+      <p>
+        As a <strong>Certified Travel Coach</strong> and PhD candidate in Psychology, I've spent the last decade combining rigorous personality research with real-world travel design. Along the way I've spoken at more than 100 corporate events — from intimate leadership circles to conference halls of 7,500 — sharing what I've learned about how travel can quietly become the most powerful tool we have for personal transformation.
+      </p>
+
+      <div class="fm-proof">
+        "My father wanted to see a moose. He never did — but he planted the curiosity that shaped my life. Every one of my trips is downstream of that." — Michael
+      </div>
+
+      <p>
+        I founded <strong>Transformed by Travels</strong> because I believe every traveler deserves what only the best travel companies have quietly offered their high-end clients for years: a trip designed around who you actually are — not who marketing assumes you are. That's what these founding member consults are about. I want to prove it to you personally, one traveler at a time.
+      </p>
+    </div>
+
+    <div class="fm-highlights">
+      <div class="fm-highlight">
+        <div class="fm-highlight-num">40+</div>
+        <div class="fm-highlight-label">Years Traveling</div>
+      </div>
+      <div class="fm-highlight">
+        <div class="fm-highlight-num">6</div>
+        <div class="fm-highlight-label">Continents</div>
+      </div>
+      <div class="fm-highlight">
+        <div class="fm-highlight-num">100+</div>
+        <div class="fm-highlight-label">Keynotes</div>
+      </div>
+      <div class="fm-highlight">
+        <div class="fm-highlight-num">10+</div>
+        <div class="fm-highlight-label">Years Coaching</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINE PRINT -->
+  <section class="fm-fine">
+    <strong>The fine print.</strong> This offer is for the first 30 people to book — or through September 30, whichever comes first. One consult per person. No obligation to work with us after — the outline is yours to keep. Please take the Travel Style Assessment before your call; it makes our 45 minutes together far more useful.
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-logo">
+        <span class="logo-text">Transformed<span class="logo-accent">byTravels</span></span>
+      </div>
+      <p class="footer-copy">&copy; 2026 Transformed by Travels. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Cal.com inline embed -->
+  <script>
+    (function (C, A, L) {
+      let p = function (a, ar) { a.q.push(ar); };
+      let d = C.document;
+      C.Cal = C.Cal || function () {
+        let cal = C.Cal; let ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {}; cal.q = cal.q || [];
+          d.head.appendChild(d.createElement("script")).src = A;
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function () { p(api, arguments); };
+          const namespace = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace === "string") {
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ["initNamespace", namespace]);
+          } else p(cal, ar);
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, "https://app.cal.com/embed/embed.js", "Cal");
+    Cal("init", { origin: "https://cal.com" });
+    Cal("inline", {
+      elementOrSelector: "#my-cal-inline",
+      calLink: "founding-consult",
+      layout: "month_view"
+    });
+  </script>
+
+</body>
+</html>
