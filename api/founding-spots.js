@@ -117,16 +117,29 @@ module.exports = async (req, res) => {
 
     // Temporary diagnostic: /api/founding-spots?debug=1
     if (req.query && req.query.debug) {
+      const allBk = await getJson('/v2/bookings?take=100', '2024-08-13');
+      const rows = (allBk.json && allBk.json.data) || [];
+      const sample = rows.slice(0, 8).map((b) => ({
+        status: b.status,
+        etId: b.eventTypeId,
+        etSlug: b.eventType && b.eventType.slug,
+        etTitle: b.eventType && (b.eventType.title || b.title),
+        title: b.title,
+      }));
+      const byEvent = {};
+      rows.forEach((b) => {
+        const k = (b.eventType && b.eventType.slug) || b.eventTypeId || b.title || '?';
+        byEvent[k] = (byEvent[k] || 0) + 1;
+      });
       return res.status(200).json({
         debug: true,
         username,
-        directLookupStatus: et.status,
         directLookupRaw: et.json,
-        slugs: types.map((t) => ({ id: t.id, slug: t.slug, title: t.title })),
-        lookingFor: SLUG,
-        matchedId: match ? match.id : null,
-        bookingPages: pages,
-        booked,
+        listingSlugs: types.map((t) => t.slug),
+        bookingsStatus: allBk.status,
+        bookingsTotal: rows.length,
+        bookingsByEvent: byEvent,
+        bookingSample: sample,
       });
     }
 
