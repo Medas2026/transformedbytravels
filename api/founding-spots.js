@@ -74,8 +74,14 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 1) Resolve the event-type id from its slug.
-    const et = await getJson('/v2/event-types', '2024-06-14');
+    // 1) Resolve the event-type id from its slug. Cal v2 needs the query
+    //    scoped to the owning username, so look that up first via /v2/me.
+    const me = await getJson('/v2/me', '2024-06-14');
+    const username = me.json && me.json.data && me.json.data.username;
+    const et = await getJson(
+      `/v2/event-types?username=${encodeURIComponent(username || '')}`,
+      '2024-06-14'
+    );
     const types = flattenEventTypes(et.json && et.json.data);
 
     // 2) Count non-cancelled bookings for that event type (v2, paginated).
@@ -103,24 +109,15 @@ module.exports = async (req, res) => {
 
     // Temporary diagnostic: /api/founding-spots?debug=1
     if (req.query && req.query.debug) {
-      const me = await getJson('/v2/me', '2024-06-14');
-      const teams = await getJson('/v2/teams', '2024-06-14');
-      const teamList = ((teams.json && teams.json.data) || []).map((t) => ({ id: t.id, slug: t.slug, name: t.name }));
-      // Pull event types for each team, to find founding-consult under a team.
-      const teamEventTypes = [];
-      for (const tm of teamList) {
-        const tet = await getJson(`/v2/teams/${tm.id}/event-types`, '2024-06-14');
-        flattenEventTypes(tet.json && tet.json.data).forEach((e) =>
-          teamEventTypes.push({ teamId: tm.id, teamSlug: tm.slug, id: e.id, slug: e.slug, title: e.title })
-        );
-      }
       return res.status(200).json({
         debug: true,
-        me: me.json && me.json.data ? { username: me.json.data.username, email: me.json.data.email } : me.json,
-        personalSlugs: types.map((t) => ({ id: t.id, slug: t.slug, title: t.title })),
+        username,
+        eventTypesStatus: et.status,
+        slugs: types.map((t) => ({ id: t.id, slug: t.slug, title: t.title })),
+        lookingFor: SLUG,
         matchedId: match ? match.id : null,
-        teams: teamList,
-        teamEventTypes,
+        bookingPages: pages,
+        booked,
       });
     }
 
