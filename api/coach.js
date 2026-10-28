@@ -45,7 +45,7 @@ function tripDayNum(trip) {
   const now   = new Date();
   const tz    = trip.fields['Time Zone'] || 'UTC';
   const local = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(now);
-  const start = trip.fields['Activation Date'] || trip.fields['Start Date'] || '';
+  const start = trip.fields['Start Date'] || trip.fields['Activation Date'] || '';
   if (!start) return null;
   const diff = Math.round((new Date(local) - new Date(start)) / 86400000);
   return diff >= 0 ? diff + 1 : null;
@@ -60,7 +60,8 @@ function emailWrap(headerSub, bodyHtml) {
   <tr><td align="center" style="padding:32px 16px;">
     <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
       <tr><td style="background:#0d1520;padding:28px 40px;text-align:center;border-bottom:3px solid #2dd4bf;">
-        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#2dd4bf;margin:0 0 6px;">Transformed by Travels</p>
+        <img src="https://threerealmstravel.com/threerealms/realm-symbols/logo.png" height="44" alt="Three Realms Travel" style="display:inline-block;margin:0 0 10px;" />
+        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#2dd4bf;margin:0 0 6px;">Three Realms Travel</p>
         <p style="font-family:Georgia,serif;font-size:20px;color:#ffffff;margin:0;">${headerSub}</p>
       </td></tr>
       <tr><td style="padding:36px 40px 28px;">${bodyHtml}</td></tr>
@@ -76,7 +77,7 @@ function emailWrap(headerSub, bodyHtml) {
 function sendEmail(toEmail, subject, html) {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
-      from:    'TravelForGrowth@transformedbytravels.com',
+      from:    'Michael at Three Realms Travel <michael@transformedbytravels.com>',
       to:      toEmail,
       subject,
       html
@@ -286,7 +287,7 @@ module.exports = async function handler(req, res) {
 
   // ── POST invite — coach sends coaching invitation ────────────────────────
   if (req.method === 'POST' && action === 'invite') {
-    const { coachEmail, customerEmail } = req.body || {};
+    const { coachEmail, customerEmail, message } = req.body || {};
     if (!coachEmail || !customerEmail) return res.status(400).json({ error: 'coachEmail and customerEmail required' });
     if (coachEmail.toLowerCase() === customerEmail.toLowerCase())
       return res.status(400).json({ error: 'Coach cannot invite themselves' });
@@ -295,50 +296,85 @@ module.exports = async function handler(req, res) {
     if (!coach) return res.status(404).json({ error: 'Coach account not found' });
     if (!coach.fields['Is Coach']) return res.status(403).json({ error: 'Account is not a coach' });
 
-    const customer = await getByEmail(customerEmail.toLowerCase());
-    if (!customer) return res.status(404).json({ error: 'No Transformed by Travels account found for that email' });
+    const custLower = customerEmail.toLowerCase();
+    let customer   = await getByEmail(custLower);
+    let customerId = customer ? customer.id : null;
 
-    const cf = customer.fields;
-    if (cf['Is Coach'])
-      return res.status(400).json({ error: 'That traveler is a coach and cannot be invited as a customer' });
-    const existingCoach  = (cf['Coach Email'] || '').toLowerCase();
-    const pairingStatus  = cf['Coach Pairing Status'] || '';
-    if (existingCoach && pairingStatus === 'Linked' && existingCoach !== coachEmail.toLowerCase())
-      return res.status(400).json({ error: 'That traveler is already connected with another coach' });
+    if (customer) {
+      const cf = customer.fields;
+      if (cf['Is Coach'])
+        return res.status(400).json({ error: 'That traveler is a coach and cannot be invited as a customer' });
+      const existingCoach  = (cf['Coach Email'] || '').toLowerCase();
+      const pairingStatus  = cf['Coach Pairing Status'] || '';
+      if (existingCoach && pairingStatus === 'Linked' && existingCoach !== coachEmail.toLowerCase())
+        return res.status(400).json({ error: 'That traveler is already connected with another coach' });
+    }
 
     const coachName = coach.fields['Traveler Name'] || coachEmail;
     const token     = crypto.randomBytes(24).toString('hex');
     const expiry    = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    await at(TRAVELER_TABLE, `/${customer.id}`, 'PATCH', {
-      fields: {
-        'Coach Email':          coachEmail.toLowerCase(),
-        'Coach Pairing Status': 'Pending',
-        'Coach Link Token':     token,
-        'Coach Token Expiry':   expiry
-      }
-    });
+    const linkFields = {
+      'Coach Email':          coachEmail.toLowerCase(),
+      'Coach Pairing Status': 'Pending',
+      'Coach Link Token':     token,
+      'Coach Token Expiry':   expiry
+    };
+
+    if (customer) {
+      await at(TRAVELER_TABLE, `/${customer.id}`, 'PATCH', { fields: linkFields });
+    } else {
+      // Create a stub Traveler record so the accept flow has somewhere to land
+      const created = await at(TRAVELER_TABLE, '', 'POST', {
+        fields: { 'Traveler Email': custLower, ...linkFields }
+      });
+      customerId = created && created.id ? created.id : null;
+    }
 
     const acceptUrl = `${PORTAL_URL}/portal.html?accept-coach=${token}`;
+
+    // Compose the body from the coach's message (with fallback), then append the accept button.
+    const escHtml = s => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const messageHtml = (message || `${coachName} has invited you to connect as your Transformed by Travels coach.\nYour coach will support you with personalized daily travel insights, follow-up questions, and guidance throughout your journey.`)
+      .split(/\n\s*\n/).map(p => `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 16px;">${escHtml(p.trim()).replace(/\n/g,'<br>')}</p>`).join('');
+
     const body = `
       <h2 style="font-family:Georgia,serif;font-size:20px;color:#0f172a;margin:0 0 16px;">You've been invited!</h2>
-      <p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 16px;">
-        <strong>${coachName}</strong> has invited you to connect as your Transformed by Travels coach.
-      </p>
-      <p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 28px;">
-        Your coach will support you with personalized daily travel insights, follow-up questions, and guidance throughout your journey.
-      </p>
-      <table cellpadding="0" cellspacing="0"><tr><td>
+      ${messageHtml}
+      <table cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td>
         <a href="${acceptUrl}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">Accept Coaching →</a>
       </td></tr></table>
-      <p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:28px 0 0;">This invitation expires in 7 days.</p>`;
+      <p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:28px 0 0;">This invitation expires in 7 days. If you don't have a Transformed by Travels account yet, you'll be prompted to create one.</p>`;
 
     await sendEmail(
-      customerEmail.toLowerCase(),
+      custLower,
       `${coachName} invited you to connect on Transformed by Travels`,
       emailWrap('Coaching Invitation', body)
     );
 
+    return res.status(200).json({ success: true, customerCreated: !customer, customerId });
+  }
+
+  // ── GET template — return coach's stored Invite to Customer template ─────
+  if (req.method === 'GET' && action === 'template') {
+    const coachEmailQ = (req.query.email || '').toLowerCase().trim();
+    if (!coachEmailQ) return res.status(400).json({ error: 'email required' });
+    const coach = await getByEmail(coachEmailQ);
+    if (!coach) return res.status(404).json({ error: 'Coach not found' });
+    if (!coach.fields['Is Coach']) return res.status(403).json({ error: 'Account is not a coach' });
+    return res.status(200).json({ template: coach.fields['Invite to Customer'] || '' });
+  }
+
+  // ── POST save-template — persist the coach's default invite message ──────
+  if (req.method === 'POST' && action === 'save-template') {
+    const { coachEmail, template } = req.body || {};
+    if (!coachEmail) return res.status(400).json({ error: 'coachEmail required' });
+    const coach = await getByEmail(coachEmail.toLowerCase());
+    if (!coach) return res.status(404).json({ error: 'Coach not found' });
+    if (!coach.fields['Is Coach']) return res.status(403).json({ error: 'Account is not a coach' });
+    await at(TRAVELER_TABLE, `/${coach.id}`, 'PATCH', {
+      fields: { 'Invite to Customer': template || '' }
+    });
     return res.status(200).json({ success: true });
   }
 

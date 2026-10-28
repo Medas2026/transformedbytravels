@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Wishlist | Three Realms Travel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#0a1628; --s1:#0f172a; --s2:#1e293b; --s3:#263348;
+      --bd:rgba(255,255,255,0.07); --teal:#2dd4bf; --teal2:#14b8a6;
+      --tdim:rgba(45,212,191,0.10); --text:#f1f5f9; --soft:#cbd5e1; --muted:#64748b;
+      --land:#d97706; --ocean:#0ea5e9; --sky:#8b5cf6;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .nav { background: rgba(10,22,40,0.97); backdrop-filter: blur(10px); border-bottom: 1px solid var(--bd); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1rem; color: #fff; text-decoration: none; letter-spacing: 0.04em; }
+    .nav-brand span { color: var(--teal); }
+    .nav-link { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; color: var(--soft); text-decoration: none; transition: color 0.15s; }
+    .nav-link:hover { color: var(--teal); }
+
+    .main { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+    .hero { text-align: center; margin-bottom: 40px; }
+    .hero h1 { font-weight: 900; font-size: clamp(1.8rem, 4vw, 2.4rem); letter-spacing: -0.01em; margin-bottom: 12px; }
+    .hero h1 span { color: var(--teal); }
+    .hero p { font-family: 'Lora', Georgia, serif; font-size: 1rem; color: var(--soft); max-width: 620px; margin: 0 auto; line-height: 1.7; }
+
+    .section { background: var(--s1); border: 1px solid var(--bd); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+    .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .section-title { font-weight: 800; font-size: 1.1rem; color: #fff; }
+    .section-count { font-size: 0.75rem; font-weight: 700; color: var(--muted); background: rgba(255,255,255,0.05); padding: 3px 10px; border-radius: 12px; }
+    .empty-state { color: var(--muted); font-size: 0.9rem; line-height: 1.6; padding: 24px 0; text-align: center; font-style: italic; }
+    .empty-state a { color: var(--teal); text-decoration: none; }
+
+    .item-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; margin-bottom: 8px; }
+    .item-thumb { width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: var(--s3); flex-shrink: 0; }
+    .item-thumb-fallback { width: 54px; height: 54px; border-radius: 8px; background: var(--s3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+    .item-body { flex: 1; min-width: 0; }
+    .item-name { font-weight: 700; font-size: 0.92rem; color: #fff; }
+    .item-sub { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+    .item-remove { background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; line-height: 1; border-radius: 6px; transition: all 0.15s; }
+    .item-remove:hover { color: #f43f5e; background: rgba(244,63,94,0.1); }
+
+    .realm-summary { display: flex; gap: 16px; flex-wrap: wrap; padding: 12px 14px; background: var(--s2); border-radius: 10px; margin-bottom: 4px; }
+    .rs-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; }
+    .rs-land  { color: var(--land); }
+    .rs-ocean { color: var(--ocean); }
+    .rs-sky   { color: var(--sky); }
+
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 16px; margin-top: 12px; }
+    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .field input, .field textarea { background: rgba(0,0,0,0.25); border: 1px solid var(--bd); border-radius: 8px; padding: 10px 12px; color: var(--text); font-family: inherit; font-size: 0.9rem; transition: border-color 0.15s; }
+    .field input:focus, .field textarea:focus { outline: none; border-color: var(--teal); }
+    .field textarea { min-height: 100px; resize: vertical; }
+
+    .btn-submit { width: 100%; margin-top: 16px; padding: 14px; background: var(--teal); color: #0a1628; font-family: inherit; font-weight: 800; font-size: 0.95rem; border: none; border-radius: 10px; cursor: pointer; transition: background 0.15s; }
+    .btn-submit:hover:not(:disabled) { background: var(--teal2); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-outline { background: transparent; color: var(--teal); border: 1px solid rgba(45,212,191,0.4); border-radius: 8px; padding: 8px 16px; font-family: inherit; font-weight: 700; font-size: 0.82rem; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn-outline:hover { background: var(--tdim); }
+
+    .status-msg { padding: 12px 14px; border-radius: 8px; margin-top: 12px; font-size: 0.88rem; text-align: center; }
+    .status-ok  { background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.3); color: var(--teal); }
+    .status-err { background: rgba(244,63,94,0.1);  border: 1px solid rgba(244,63,94,0.3);  color: #f43f5e; }
+  </style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+  <div class="nav">
+    <a class="nav-brand" href="index.html"><img src="realm-symbols/logo.png" alt="Three Realms Travel" style="height:90px;width:auto;display:block;"></a>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <a class="nav-link" href="portal.html">← Back to explore</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="hero">
+      <h1>Your <span>Wishlist</span></h1>
+      <p>The regions and animals that caught your eye. Send it to Michael and we'll build the trip around what you've found.</p>
+    </div>
+
+    <!-- Realm interests summary -->
+    <div class="section" id="realms-section" style="display:none;">
+      <div class="section-header">
+        <div class="section-title">Your realm interests</div>
+      </div>
+      <div class="realm-summary" id="realm-summary"></div>
+      <p style="font-size:0.8rem;color:var(--muted);margin-top:12px;">Set on the <a href="portal.html" style="color:var(--teal);text-decoration:none;">Find Your Perfect Trip</a> page. Michael will use these to shape the plan.</p>
+    </div>
+
+    <!-- Saved regions -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">🌍 Regions</div>
+        <span class="section-count" id="regions-count">0</span>
+      </div>
+      <div id="regions-list"></div>
+    </div>
+
+    <!-- Saved animals -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">🐾 Animals</div>
+        <span class="section-count" id="animals-count">0</span>
+      </div>
+      <div id="animals-list"></div>
+    </div>
+
+    <!-- Send-to-Michael form -->
+    <div class="section">
+      <div class="section-title" style="margin-bottom:8px;">Send this to Michael</div>
+      <p style="font-size:0.9rem;color:var(--soft);line-height:1.55;margin-bottom:4px;">Add a few details and I'll come back with a plan that fits.</p>
+      <div class="form-grid">
+        <div class="field">
+          <label>Your name *</label>
+          <input type="text" id="f-name" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label>Email *</label>
+          <input type="email" id="f-email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label>Phone (optional)</label>
+          <input type="tel" id="f-phone" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label>Group size</label>
+          <input type="text" id="f-group" placeholder="e.g. 2 adults + 1 teen">
+        </div>
+        <div class="field full">
+          <label>When are you thinking? (rough is fine)</label>
+          <input type="text" id="f-dates" placeholder="e.g. Sep–Oct 2027, or 'next spring'">
+        </div>
+        <div class="field full">
+          <label>Anything else Michael should know?</label>
+          <textarea id="f-message" placeholder="Bucket-list species, celebration trips, must-haves, must-avoids…"></textarea>
+        </div>
+      </div>
+      <button class="btn-submit" id="btn-submit" onclick="submitWishlist()">Send to Michael →</button>
+      <div id="status" style="display:none;"></div>
+    </div>
+
+  </div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// State
+// ═══════════════════════════════════════════════════════════════════════════
+const KEY_REGIONS = 'tbt-wishlist-regions';
+const KEY_ANIMALS = 'tbt-wishlist-animals';
+const KEY_REALMS  = 'tbt-realm-interests';
+
+function loadWishlist(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+}
+function saveWishlist(key, list) { localStorage.setItem(key, JSON.stringify(list)); }
+function loadRealms() {
+  try { return JSON.parse(localStorage.getItem(KEY_REALMS) || '{}'); } catch(e) { return {}; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Rendering
+// ═══════════════════════════════════════════════════════════════════════════
+function render() {
+  renderRealms();
+  renderRegions();
+  renderAnimals();
+}
+
+function renderRealms() {
+  const r = loadRealms();
+  const anySet = ['land','ocean','sky'].some(k => r[k] && r[k] !== 'None');
+  const section = document.getElementById('realms-section');
+  if (!anySet) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  const icons = { land: '🌿', ocean: '🌊', sky: '🐦' };
+  const labels = { land: 'Land', ocean: 'Ocean', sky: 'Sky' };
+  document.getElementById('realm-summary').innerHTML = ['land','ocean','sky']
+    .filter(k => r[k])
+    .map(k => `<div class="rs-item rs-${k}">${icons[k]} ${labels[k]}: <span style="color:var(--soft);">${r[k]}</span></div>`)
+    .join('');
+}
+
+function renderRegions() {
+  const list = loadWishlist(KEY_REGIONS);
+  document.getElementById('regions-count').textContent = list.length;
+  const wrap = document.getElementById('regions-list');
+  if (!list.length) {
+    wrap.innerHTML = '<div class="empty-state">No regions saved yet. <a href="portal.html">Explore regions →</a></div>';
+    return;
+  }
+  wrap.innerHTML = list.map(item => `
+    <div class="item-row">
+      ${item.hero ? `<img class="item-thumb" src="${item.hero.replace(/"/g,'&quot;')}" alt="${item.name.replace(/"/g,'&quot;')}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="item-thumb-fallback" style="display:none;">🌍</div>` : `<div class="item-thumb-fallback">🌍</div>`}
+      <div class="item-body">
+        <div class="item-name">${item.name}</div>
+        <div class="item-sub">${item.badges || ''}</div>
+      </div>
+      <button class="item-remove" onclick="removeRegion('${item.name.replace(/'/g,"\\'")}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function renderAnimals() {
+  const list = loadWishlist(KEY_ANIMALS);
+  document.getElementById('animals-count').textContent = list.length;
+  const wrap = document.getElementById('animals-list');
+  if (!list.length) {
+    wrap.innerHTML = '<div class="empty-state">No animals saved yet. Browse a region and tap the ❤ on species that call to you.</div>';
+    return;
+  }
+  wrap.innerHTML = list.map(item => `
+    <div class="item-row">
+      ${item.photo ? `<img class="item-thumb" src="${item.photo.replace(/"/g,'&quot;')}" alt="${item.name.replace(/"/g,'&quot;')}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="item-thumb-fallback" style="display:none;">🐾</div>` : `<div class="item-thumb-fallback">🐾</div>`}
+      <div class="item-body">
+        <div class="item-name">${item.name}</div>
+        <div class="item-sub">${item.sci || item.category || ''}</div>
+      </div>
+      <button class="item-remove" onclick="removeAnimal('${(item.id || item.name).replace(/'/g,"\\'")}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeRegion(name) {
+  const list = loadWishlist(KEY_REGIONS).filter(r => r.name !== name);
+  saveWishlist(KEY_REGIONS, list);
+  render();
+}
+function removeAnimal(id) {
+  const list = loadWishlist(KEY_ANIMALS).filter(a => (a.id || a.name) !== id);
+  saveWishlist(KEY_ANIMALS, list);
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Submit
+// ═══════════════════════════════════════════════════════════════════════════
+async function submitWishlist() {
+  const name    = document.getElementById('f-name').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const phone   = document.getElementById('f-phone').value.trim();
+  const group   = document.getElementById('f-group').value.trim();
+  const dates   = document.getElementById('f-dates').value.trim();
+  const message = document.getElementById('f-message').value.trim();
+  const status  = document.getElementById('status');
+  const btn     = document.getElementById('btn-submit');
+
+  if (!name || !email) {
+    status.className = 'status-msg status-err';
+    status.textContent = 'Please enter your name and email.';
+    status.style.display = 'block';
+    return;
+  }
+
+  const regions = loadWishlist(KEY_REGIONS);
+  const animals = loadWishlist(KEY_ANIMALS);
+  const realms  = loadRealms();
+
+  if (!regions.length && !animals.length) {
+    status.className = 'status-msg status-err';
+    status.textContent = 'Your wishlist is empty. Add some regions or animals before sending.';
+    status.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Sending…';
+  status.style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/trip-inquiry', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, email, phone, group, dates, message, regions, animals, realms }),
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.error) throw new Error(data.error || 'Server error');
+    status.className = 'status-msg status-ok';
+    status.innerHTML = 'Thanks — your wishlist is on its way to Michael. He typically responds within a day. <br><br>Feel free to close this tab.';
+    status.style.display = 'block';
+    btn.textContent = 'Sent ✓';
+  } catch(e) {
+    console.error(e);
+    status.className = 'status-msg status-err';
+    status.textContent = 'Something went wrong — please email MichaelE@transformedbytravels.com directly with your wishlist.';
+    status.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Send to Michael →';
+  }
+}
+
+render();
+</script>
+</body>
+</html>

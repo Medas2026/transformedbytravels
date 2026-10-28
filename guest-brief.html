@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guest Brief</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, serif;
+    background: #f4f1eb;
+    color: #1a1a2e;
+    padding: 24px 20px 40px;
+    line-height: 1.55;
+  }
+  .brief {
+    max-width: 720px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .brief-header {
+    padding: 26px 32px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .brief-header img {
+    max-width: 56px;
+    max-height: 56px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 8px;
+    padding: 4px;
+  }
+  .brief-header-text {
+    flex: 1;
+  }
+  .brief-header .kicker {
+    font-family: Arial, sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.75;
+    margin-bottom: 2px;
+  }
+  .brief-header h1 {
+    font-size: 1.4rem;
+    font-weight: normal;
+  }
+  .brief-guest {
+    padding: 22px 32px 22px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .guest-photo {
+    width: 84px; height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .brief-guest-info { flex: 1; min-width: 0; }
+  .archetype-icon {
+    width: 144px; height: 144px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  @media (max-width: 520px) {
+    .archetype-icon { width: 108px; height: 108px; }
+  }
+  .brief-guest-name {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1a1a2e;
+    margin-bottom: 6px;
+  }
+  .brief-guest-meta {
+    display: flex; gap: 22px; flex-wrap: wrap;
+    font-family: Arial, sans-serif;
+    font-size: 0.88rem;
+    color: #7a8899;
+    margin-bottom: 14px;
+  }
+  .brief-guest-meta strong {
+    color: #1a1a2e;
+    font-weight: 700;
+  }
+  .archetype-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #2a9d8f, #14b8a6);
+    color: #fff;
+    border-radius: 20px;
+    font-family: Arial, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 20px;
+  }
+  .brief-body {
+    padding: 24px 32px 32px;
+  }
+  .brief-section {
+    margin-bottom: 24px;
+  }
+  .brief-section:last-child { margin-bottom: 0; }
+  .brief-section-label {
+    font-family: Arial, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #2a9d8f;
+    margin-bottom: 10px;
+  }
+  .brief-summary {
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: #2a2a3e;
+    padding: 14px 18px;
+    background: #f7f9fb;
+    border-left: 4px solid #2a9d8f;
+    border-radius: 4px;
+  }
+  .brief-list {
+    font-family: Arial, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: #2a2a3e;
+    white-space: pre-line;
+    padding-left: 4px;
+  }
+  .brief-section.dos .brief-section-label { color: #059669; }
+  .brief-section.donts .brief-section-label { color: #dc2626; }
+  .brief-footer {
+    padding: 16px 32px;
+    background: #f7f9fb;
+    border-top: 1px solid #eee;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: 0.78rem;
+    color: #7a8899;
+  }
+  .print-btn {
+    display: inline-block;
+    background: #2a9d8f;
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 700;
+    text-decoration: none;
+    font-family: Arial, sans-serif;
+    font-size: 0.85rem;
+    border: none;
+    cursor: pointer;
+    margin-left: 12px;
+  }
+  .print-btn:hover { background: #23867a; }
+  .loading, .error {
+    max-width: 720px; margin: 40px auto;
+    padding: 30px; background: #fff;
+    border-radius: 12px; text-align: center;
+    font-family: Arial, sans-serif; color: #7a8899;
+  }
+  .error { color: #dc2626; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .brief { box-shadow: none; border-radius: 0; }
+    .print-btn { display: none; }
+  }
+</style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+<div id="root" class="loading">Loading guest brief…</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const tripId = params.get('tripId') || '';
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch(e) { return iso; }
+}
+
+async function load() {
+  if (!tripId) {
+    document.getElementById('root').className = 'error';
+    document.getElementById('root').textContent = 'No tripId in URL.';
+    return;
+  }
+  try {
+    const resp = await fetch('/api/staff-brief?tripId=' + encodeURIComponent(tripId));
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    render(data);
+  } catch(e) {
+    document.getElementById('root').className = 'error';
+    document.getElementById('root').textContent = 'Error: ' + e.message;
+  }
+}
+
+const ARCHETYPE_ICONS = {
+  'The Growth Seeker':   '/images/archetypes/Growth-seeker-archetype.png',
+  'The Purpose-Driven Traveler':     '/images/archetypes/Purpose-Driven-Archetype.png',
+  'The Adventure Traveler': '/images/archetypes/Adventure-Traveler-Archetype.png',
+  'The Cultural Explorer':           '/images/archetypes/Cultural-Explorer-Archtetype.png',
+  'The Experience Seeker':          '/images/archetypes/Experience-seeker-archetype.png',
+  'The Easy-Going Traveler':         '/images/archetypes/Experience-seeker-archetype.png',
+};
+
+function render(d) {
+  const L = d.lodge || {};
+  const G = d.guest || {};
+  const T = d.trip  || {};
+  const B = d.brief || {};
+
+  const brand = L.brandColor || '#1a1a2e';
+  const dates = (T.startDate && T.endDate)
+    ? `${fmtDate(T.startDate)} – ${fmtDate(T.endDate)}`
+    : (T.startDate ? fmtDate(T.startDate) : '');
+
+  const logoHtml = L.logoUrl
+    ? `<img src="${esc(L.logoUrl)}" alt="${esc(L.name)}" onerror="this.style.display='none'">`
+    : '';
+
+  const archetypeBadge = G.archetype
+    ? `<div class="archetype-badge">${esc(G.archetype)}</div>`
+    : '';
+
+  const summaryHtml = B.summary
+    ? `<div class="brief-section"><div class="brief-section-label">Meet ${esc((G.name || 'this guest').split(' ')[0])}</div><div class="brief-summary">${esc(B.summary)}</div></div>`
+    : '';
+
+  const talkingHtml = B.talkingPoints
+    ? `<div class="brief-section"><div class="brief-section-label">Talking points</div><div class="brief-list">${esc(B.talkingPoints)}</div></div>`
+    : '';
+
+  const dosHtml = B.dos
+    ? `<div class="brief-section dos"><div class="brief-section-label">Do's</div><div class="brief-list">${esc(B.dos)}</div></div>`
+    : '';
+
+  const dontsHtml = B.donts
+    ? `<div class="brief-section donts"><div class="brief-section-label">Don'ts</div><div class="brief-list">${esc(B.donts)}</div></div>`
+    : '';
+
+  const noBriefFallback = !B.summary && !B.talkingPoints && !B.dos && !B.donts
+    ? `<div class="brief-section"><div class="brief-summary">No archetype brief on file yet. ${G.archetype ? 'Add Staff Summary + Talking Points to the Archetype Table row for "' + esc(G.archetype) + '".' : 'Guest has not taken the Travel Style Assessment.'}</div></div>`
+    : '';
+
+  const noGuestFallback = !G.name && !G.email
+    ? `<div class="brief-section"><div class="brief-summary error">Guest record not found for this trip.</div></div>`
+    : '';
+
+  document.getElementById('root').outerHTML = `
+    <div class="brief" id="root">
+      <div class="brief-header" style="background:${esc(brand)};">
+        ${logoHtml}
+        <div class="brief-header-text">
+          <div class="kicker">Guest Brief</div>
+          <h1>${esc(L.name || 'Guest arrival')}</h1>
+        </div>
+      </div>
+      <div class="brief-guest">
+        ${G.photoUrl ? `<img class="guest-photo" src="${esc(G.photoUrl)}" alt="${esc(G.name || '')}" onerror="this.style.display='none'">` : ''}
+        <div class="brief-guest-info">
+          <div class="brief-guest-name">${esc(G.name || '—')}</div>
+          <div class="brief-guest-meta">
+            ${dates ? `<div><strong>Stay:</strong> ${esc(dates)}</div>` : ''}
+            ${T.name ? `<div><strong>Reservation:</strong> ${esc(T.name)}</div>` : ''}
+            ${T.pin ? `<div><strong>PIN:</strong> ${esc(T.pin)}</div>` : ''}
+          </div>
+          ${archetypeBadge}
+        </div>
+        ${ARCHETYPE_ICONS[G.archetype] ? `<img class="archetype-icon" src="${esc(ARCHETYPE_ICONS[G.archetype])}" alt="" onerror="this.style.display='none'">` : ''}
+      </div>
+      <div class="brief-body">
+        ${noGuestFallback}
+        ${summaryHtml}
+        ${talkingHtml}
+        ${dosHtml}
+        ${dontsHtml}
+        ${noBriefFallback}
+      </div>
+      <div class="brief-footer">
+        Generated by Transformed by Travels · Coach view
+        <button class="print-btn" onclick="window.print()">Print</button>
+      </div>
+    </div>`;
+}
+
+load();
+</script>
+
+</body>
+</html>

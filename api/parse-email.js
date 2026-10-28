@@ -109,6 +109,39 @@ function parseClaudeJson(text) {
   try { return JSON.parse(match[0]); } catch(e) { return null; }
 }
 
+// ── Flight-legs mapping — populate the trip's editable flight framework ────────
+function _legFromParsed(p, isReturn) {
+  return {
+    airline:  p.airline || '',
+    flightNo: (isReturn ? p.return_flight_number  : p.flight_number)  || '',
+    from:     ((isReturn ? p.return_from_airport   : p.from_airport)   || '').toUpperCase(),
+    to:       ((isReturn ? p.return_to_airport     : p.to_airport)     || '').toUpperCase(),
+    depDate:  (isReturn ? p.return_departure_date : p.departure_date) || '',
+    depTime:  (isReturn ? p.return_departure_time : p.departure_time) || '',
+    arrDate:  (isReturn ? p.return_arrival_date   : p.arrival_date)   || '',
+    arrTime:  (isReturn ? p.return_arrival_time   : p.arrival_time)   || '',
+  };
+}
+function _legKey(l) { return (l.flightNo || '').toUpperCase() + '|' + (l.depDate || ''); }
+
+// Merge a parsed flight into the trip's existing Flight Legs JSON (append,
+// dedupe by flight# + date, cap 3 per direction). Returns the JSON string.
+function mergeFlightLegs(currentJson, parsed) {
+  let fl = { outbound: [], return: [] };
+  try {
+    const o = JSON.parse(currentJson || '{}');
+    if (o && typeof o === 'object') fl = { outbound: Array.isArray(o.outbound) ? o.outbound : [], return: Array.isArray(o.return) ? o.return : [] };
+  } catch(e) {}
+  const addLeg = (dir, leg) => {
+    if (!leg.flightNo && !leg.from && !leg.to && !leg.depDate) return;
+    if (fl[dir].some(l => _legKey(l) === _legKey(leg))) return;
+    if (fl[dir].length < 3) fl[dir].push(leg);
+  };
+  addLeg('outbound', _legFromParsed(parsed, false));
+  if (parsed.return_departure_date || parsed.return_flight_number) addLeg('return', _legFromParsed(parsed, true));
+  return JSON.stringify(fl);
+}
+
 // ── Confirmation email HTML ───────────────────────────────────────────────────
 
 function buildConfirmationHtml(travelerName, tripName, parsed) {
@@ -293,6 +326,12 @@ async function matchAndStore(fromEmail, parsed, existingReservationId) {
         }
       }
     } else if (parsed.type === 'flight' && parsed.departure_date) {
+      // Populate the editable flight-legs framework on the trip (outbound + return)
+      try {
+        const merged = mergeFlightLegs(tripRec.fields['Flight Legs'], parsed);
+        await airtableFetch('Trips', `/${tripId}`, 'PATCH', { fields: { 'Flight Legs': merged } });
+      } catch(e) { console.error('parse-email: flight legs write error:', e.message); }
+
       const daysData = await airtableFetch('Trip Days',
         `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${tripId}",{Date}="${parsed.departure_date}")`)}`, 'GET');
       const dayRec = (daysData.records || [])[0];
@@ -428,6 +467,11 @@ module.exports = async function handler(req, res) {
     }
     const travelerName = travelerRec.fields['First Name'] || travelerRec.fields['Name'] || '';
 
+    // Contact details learned from a confirmation are backfilled AFTER parsing (below).
+    // Deliberately: phone, city, state and postal code only. No street address — it is
+    // personal data we would have to protect with nothing to use it for. And a
+    // reservation is NOT marketing permission, so Marketing Consent is never touched here.
+
     // 2. Parse the reservation with Claude
     const prompt = `You are a travel reservation parser. Extract details from this forwarded email and return ONLY valid JSON — no explanation, no markdown fences.
 
@@ -435,7 +479,9 @@ Email Subject: ${subject}
 Email Body:
 ${emailBody}
 
-Return JSON in this exact format (use null for any field you cannot determine):
+Return JSON in this exact format (use null for any field you cannot determine).
+Never guess the guest's phone, city, state or postal code — return null unless the
+email states it plainly. Do NOT return a street address; it is deliberately not collected:
 {
   "type": "flight or hotel or car_rental or other",
   "confirmation_number": "...",
@@ -469,6 +515,10 @@ Return JSON in this exact format (use null for any field you cannot determine):
   "pickup_time": "HH:MM",
   "dropoff_date": "YYYY-MM-DD",
   "pickup_location": "...",
+  "guest_phone": "the guest's phone number if the confirmation states one, else null",
+  "guest_city": "the guest's home city if stated, else null",
+  "guest_state": "the guest's home state or province if stated, else null",
+  "guest_zip": "the guest's home postal code if stated, else null",
   "summary": "One sentence summary of this reservation"
 }
 
@@ -488,6 +538,24 @@ For round-trip flights, populate both the outbound fields (departure_date, from_
       await sendResend(fromEmail, 'We couldn\'t read your confirmation',
         `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;">We received your email but had trouble reading the reservation details. Please try forwarding again, or log in to add the details manually.</p>`);
       return res.status(200).json({ ok: true, note: 'parse failed' });
+    }
+
+    // 2b. Backfill contact details the confirmation happened to carry — but only ones the
+    //     traveller does not already have, so a guest's own edits are never overwritten.
+    try {
+      const tf = travelerRec.fields || {};
+      const backfill = {};
+      if (parsed.guest_phone && !tf['Phone Number']) backfill['Phone Number'] = String(parsed.guest_phone).trim();
+      if (parsed.guest_city  && !tf['City'])         backfill['City']         = String(parsed.guest_city).trim();
+      if (parsed.guest_state && !tf['State'])        backfill['State']        = String(parsed.guest_state).trim();
+      if (parsed.guest_zip   && !tf['ZIP Code'])     backfill['ZIP Code']     = String(parsed.guest_zip).trim();
+      if (Object.keys(backfill).length) {
+        await airtableFetch('Traveler', `/${travelerRec.id}`, 'PATCH', { fields: backfill });
+        console.log('parse-email: backfilled', Object.keys(backfill).join(','), 'for', fromEmail);
+      }
+    } catch (e) {
+      // Never let a backfill failure cost us the reservation itself.
+      console.error('parse-email: contact backfill failed:', e.message);
     }
 
     // 3. Save raw email to Reservations table — skip if already processed (same conf# + email)

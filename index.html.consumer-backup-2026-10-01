@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
+  <meta name="description" content="Your unique travel personality becomes the blueprint for every trip we design. Take control, move beyond destination marketing, and discover experiences you never thought possible." />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="icon" href="/Favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/Favicon.png">
+  <title>Transformed by Travels — A New Era in Travel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://plausible.io/js/pa-_E9cFdzUFrWlkW9MIz16L.js"></script>
+  <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+  <script defer src="/js/mobile-nav.js"></script>
+  <style>
+    /* ============================================================
+       Front page additions (2026-08 Squarespace replacement)
+       ============================================================ */
+    .fp-hero {
+      position: relative;
+      min-height: 620px;
+      display: flex;
+      align-items: center;
+      color: #fff;
+      overflow: hidden;
+    }
+    .fp-hero::before {
+      content: "";
+      position: absolute; inset: 0;
+      background-image: url('/images/front-hero-new-era.png');
+      background-size: cover;
+      background-position: center;
+      z-index: 0;
+    }
+    .fp-hero::after {
+      content: "";
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(10,15,30,0.45) 0%, rgba(10,15,30,0.75) 100%);
+      z-index: 1;
+    }
+    .fp-hero-inner {
+      position: relative; z-index: 2;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 80px 24px;
+      text-align: center;
+    }
+    .fp-hero h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2.4rem, 5.5vw, 4rem);
+      line-height: 1.1;
+      margin-bottom: 20px;
+      letter-spacing: -0.01em;
+    }
+    .fp-hero p.lead {
+      font-family: 'Open Sans', sans-serif;
+      font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+      line-height: 1.55;
+      max-width: 720px;
+      margin: 0 auto 34px;
+      color: rgba(255,255,255,0.92);
+    }
+    .fp-hero .btn { padding: 16px 34px; font-size: 1rem; }
+    .fp-hero .btn-primary {
+      background: #2a9d8f;
+      color: #fff;
+      border-color: #2a9d8f;
+    }
+    .fp-hero .btn-primary:hover { background: #23867a; border-color: #23867a; }
+    .fp-hero .btn-outline {
+      background: transparent;
+      color: #fff;
+      border-color: #fff;
+    }
+    .fp-hero .btn-outline:hover { background: rgba(255,255,255,0.15); }
+
+    .fp-section { padding: 80px 0; }
+    .fp-section.alt { background: #f7f9fb; }
+
+    .fp-band-gray {
+      width: 100%;
+      height: 24px;
+      background: #cbd5db;
+    }
+
+    .fp-photo-hero {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      aspect-ratio: 16 / 7;
+    }
+    .fp-photo-hero img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    .fp-photo-hero-overlay {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 80px 24px 44px;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.78) 100%);
+      text-align: center;
+    }
+    .fp-photo-hero-overlay h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      line-height: 1.15;
+      color: #fff;
+      margin: 0 auto;
+      max-width: 900px;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    }
+    @media (max-width: 780px) {
+      .fp-photo-hero { aspect-ratio: 4 / 3; }
+      .fp-photo-hero-overlay { padding: 60px 20px 28px; }
+    }
+    .fp-section h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.7rem, 3.2vw, 2.3rem);
+      color: #1a1a2e;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+    .fp-section p {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: #3a3a4e;
+      margin-bottom: 16px;
+    }
+    .fp-narrow { max-width: 780px; margin: 0 auto; text-align: center; }
+    .fp-narrow p { text-align: center; }
+
+    .fp-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+    .fp-col-card {
+      background: #fff;
+      border: 1px solid #e5e9ee;
+      border-radius: 10px;
+      padding: 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .fp-col-card.today { border-top: 4px solid #cbd5db; }
+    .fp-col-card.tomorrow { border-top: 4px solid #2a9d8f; }
+    .fp-col-tag {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #7a8899;
+      margin-bottom: 10px;
+    }
+    .fp-col-card.tomorrow .fp-col-tag { color: #2a9d8f; }
+    .fp-col-card h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.35rem;
+      color: #1a1a2e;
+      margin-bottom: 16px;
+      line-height: 1.3;
+    }
+
+    .fp-partner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .fp-partner img {
+      border-radius: 10px;
+      width: 100%;
+      height: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .fp-benefits-list {
+      max-width: 780px;
+      margin: 0 auto;
+      list-style: none;
+      padding: 0;
+    }
+    .fp-benefits-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 18px 0;
+      border-bottom: 1px solid #e5e9ee;
+      font-size: 1.05rem;
+      line-height: 1.55;
+      color: #1a1a2e;
+    }
+    .fp-benefits-list li:last-child { border-bottom: none; }
+    .fp-benefits-list .fp-check {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #2a9d8f;
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .fp-about {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .fp-about img {
+      width: 100%;
+      max-width: 320px;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .fp-about .about-tag {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #2a9d8f;
+      margin-bottom: 10px;
+    }
+    .fp-about h2 { margin-bottom: 20px; }
+    .fp-about p { font-size: 1rem; }
+    .fp-about p.italic {
+      font-style: italic;
+      color: #1a1a2e;
+      border-left: 3px solid #2a9d8f;
+      padding-left: 16px;
+      margin-top: 20px;
+    }
+
+    .fp-contact-wrap {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+    .fp-schedule-card {
+      background: #fff;
+      border: 1px solid #e5e9ee;
+      border-radius: 10px;
+      padding: 32px;
+      text-align: center;
+    }
+    .fp-schedule-card h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 12px;
+    }
+    .fp-schedule-card p { font-size: 0.98rem; color: #4a5060; }
+
+    @media (max-width: 820px) {
+      .fp-two-col, .fp-partner, .fp-about, .fp-contact-wrap {
+        grid-template-columns: 1fr;
+      }
+      .fp-about img { margin: 0 auto; max-width: 260px; }
+      .fp-section { padding: 60px 0; }
+    }
+  </style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+
+  <!-- HEADER / NAV -->
+  <header class="header">
+    <div class="container nav-container">
+      <div class="logo">
+        <a href="/" class="logo-link">
+          <video class="nav-logo-video" src="/images/Rotating Logo.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
+          <span class="logo-text">Transformed<span class="logo-accent">byTravels</span></span>
+        </a>
+      </div>
+      <nav class="nav">
+        <ul class="nav-links">
+          <li><a href="/Assessment">Assessment</a></li>
+          <li><a href="/Technology">Technology</a></li>
+          <li><a href="/Speaking">Speaking</a></li>
+          <li><a href="/Media">Media</a></li>
+          <li><a href="https://app.transformedbytravels.com/portal.html" class="nav-portal-btn">My Portal</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="fp-hero">
+    <div class="fp-hero-inner">
+      <h1>A New Era in Travel</h1>
+      <p class="lead">
+        Your unique travel personality becomes the blueprint for every trip we design.
+        Take control, move beyond destination marketing, and discover experiences you never thought possible.
+      </p>
+      <div class="hero-ctas" style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
+        <a href="https://app.transformedbytravels.com/transformational-profile.html" class="btn btn-primary">Take the Assessment</a>
+        <a href="#about-michael" class="btn btn-outline">Meet Michael</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="fp-band-gray"></div>
+
+  <!-- WHAT DO I WANT FROM LIFE -->
+  <div class="fp-photo-hero">
+    <img src="/images/front-romantic-evening.png" alt="A quiet romantic evening view — a moment for reflection" />
+    <div class="fp-photo-hero-overlay">
+      <h2>What do I want from life that I haven't achieved?</h2>
+    </div>
+  </div>
+  <section class="fp-section">
+    <div class="container fp-narrow">
+      <p>
+        Travel can bring clarity to life's biggest questions — and illuminate where growth is needed.
+        But without a way to carry those insights forward, even extraordinary trips fade into photos and
+        distant memories. Transformed by Travels ensures every journey leads to lasting, life-changing results.
+      </p>
+    </div>
+  </section>
+
+  <!-- WHAT IS A TRAVEL PERSONALITY -->
+  <section class="fp-section alt">
+    <div class="container fp-narrow">
+      <h2>What is a travel personality?</h2>
+      <p>
+        We all have distinct styles, goals, and preferences that shape how we travel. Some chase adventure,
+        others seek culture or solitude. Some want to recharge; others want to reflect and rethink what
+        comes next. Understanding your travel personality can reveal the insights you need to tackle
+        life's most important challenges.
+      </p>
+    </div>
+  </section>
+
+  <!-- TODAY vs TOMORROW -->
+  <section class="fp-section">
+    <div class="container">
+      <h2 style="text-align:center; margin-bottom:48px;">The old way vs. the new way</h2>
+      <div class="fp-two-col">
+
+        <div class="fp-col-card today">
+          <div class="fp-col-tag">How Travel Planning is Done Today</div>
+          <h3>Marketing decides where you go</h3>
+          <p>
+            Whether you plan your own trips or pay someone to do it for you, the process is driven by
+            travel industry marketing. Google, Instagram, TripAdvisor — all paid by advertisers.
+            What you see is always driven by someone who paid to attract your attention.
+          </p>
+        </div>
+
+        <div class="fp-col-card tomorrow">
+          <div class="fp-col-tag">How Trip Planning Will Be Done Tomorrow</div>
+          <h3>Your personality drives every decision</h3>
+          <p>
+            We start with your travel personality — or the combined profiles of you and your travel partner.
+            Everything we do is then filtered through that lens. We find places to stay, hikes to make,
+            dives to take, and museums to visit according to <em>your</em> preferences. How unique is that.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- PARTNER PLANNING -->
+  <section class="fp-section alt">
+    <div class="container">
+      <div class="fp-partner">
+        <div>
+          <h2>Planning together, without compromise</h2>
+          <p>
+            Planning travel with any partner is both rewarding and challenging. You quickly understand
+            how your travel personalities are not identical.
+          </p>
+          <p>
+            We help you come together and then guide you to choose destinations and activities that
+            work for both of you. Whether you're traveling with a daughter, spouse, or friend, we can
+            turn planning into a fun experience.
+          </p>
+        </div>
+        <img src="/images/front-couple-planning.png" alt="Couple planning travel together" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- BENEFITS -->
+  <section class="fp-section">
+    <div class="container">
+      <h2 style="text-align:center; margin-bottom:16px;">What you'll get from day one</h2>
+      <p style="text-align:center; max-width:640px; margin:0 auto 40px; color:#4a5060;">
+        When you start down our path, you'll benefit as soon as you begin to think about your next trip.
+      </p>
+      <ul class="fp-benefits-list">
+        <li><span class="fp-check">✓</span> Find itineraries that align with your travel personality and DNA.</li>
+        <li><span class="fp-check">✓</span> Find activities at each destination that fit your travel personality.</li>
+        <li><span class="fp-check">✓</span> Have a plan to use your next trip as the beginning of an all-out assault on the boulders in your life.</li>
+        <li><span class="fp-check">✓</span> See how you and your travel partner might develop trip plans for both of you.</li>
+        <li><span class="fp-check">✓</span> Receive a personality assessment that goes to work for you within minutes after you take it.</li>
+      </ul>
+      <div style="text-align:center; margin-top:48px;">
+        <a href="https://app.transformedbytravels.com/transformational-profile.html" class="btn btn-primary btn-lg">Take the Assessment</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT MICHAEL -->
+  <section class="fp-section alt" id="about-michael">
+    <div class="container">
+      <div class="fp-about">
+        <div>
+          <img src="https://res.cloudinary.com/dporenlvw/image/upload/v1777399899/Screenshot_2026-04-28_at_1.10.16_PM_cm1nri" alt="Michael Emerson — Transformed by Travels" />
+        </div>
+        <div>
+          <div class="about-tag">The guide</div>
+          <h2>Where the wonder began</h2>
+          <p>
+            Growing up on a dairy farm in a small town in Wisconsin, my opportunities for travel were
+            pretty limited — to the books on our family shelf. But eventually we made a family trip to
+            the north woods of neighboring Minnesota. My Dad desperately wanted to see a moose. Every
+            gravel side road just might be "the one" to reveal the biggest species of the deer family.
+          </p>
+          <p>
+            We never saw one. It would be over 50 years before I finally saw a moose myself — in Jasper
+            National Park, walking right alongside our car. But my Dad planted a seed of curiosity and
+            wonder about wild animals. And although he never got his moose, I would go on to see
+            wildlife from Africa to South America to Asia.
+          </p>
+          <p>
+            Like many adventure travelers, my wife and I love to see wild animals — especially those
+            that eat other animals. Last year we spent two days tracking pumas in Torres del Paine
+            National Park. It was one of the highlights of our travel lives.
+          </p>
+          <p>
+            I didn't learn to swim or scuba until I was well into my 40s, but exploring the underwater
+            ocean became a part of my life — and my children's — for the 20 years that followed. With
+            my daughters I saw everything from exotic shrimp in Indonesia to orcas and whale sharks in
+            the Galápagos Islands.
+          </p>
+          <p>
+            I wouldn't call myself a birder, but I've been lucky enough to see scarlet macaws in Costa Rica,
+            penguins in Patagonia, and tropical birds in Papua New Guinea. And I braved -20°F weather
+            to see the much sought-after Great Gray Owl.
+          </p>
+          <p class="italic">
+            I say these things not to brag but to inspire people who are looking to be transformed by
+            their travels. You cannot have moments like this and not be changed by them.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT / SCHEDULE -->
+  <section class="fp-section" id="contact">
+    <div class="container">
+      <h2 style="text-align:center; margin-bottom:16px;">Let's talk</h2>
+      <p style="text-align:center; max-width:640px; margin:0 auto 48px; color:#4a5060;">
+        Send a note or schedule a call — whichever works for you.
+      </p>
+
+      <div class="fp-contact-wrap">
+
+        <!-- Contact form -->
+        <form class="contact-form" id="planningForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="firstName">First Name *</label>
+              <input type="text" id="firstName" name="firstName" required placeholder="First name" />
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name *</label>
+              <input type="text" id="lastName" name="lastName" required placeholder="Last name" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input type="email" id="email" name="email" required placeholder="your@email.com" />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone (optional)</label>
+              <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="message">What are you hoping to explore? *</label>
+            <textarea id="message" name="message" required rows="5" placeholder="Tell us about your travel goals..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg">Send</button>
+          <p class="form-success" id="formSuccess">Thank you! We'll be in touch soon.</p>
+        </form>
+
+        <!-- Schedule a call (Cal.com modal) -->
+        <div class="fp-schedule-card">
+          <h3>Prefer to schedule a call?</h3>
+          <p style="margin-bottom:20px;">
+            Book a free 30-minute conversation directly on my calendar.
+          </p>
+          <button type="button"
+                  class="btn btn-primary"
+                  data-cal-link="michael-emerson-tbyt"
+                  data-cal-config='{"layout":"month_view"}'>
+            Book a Call
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-logo">
+        <span class="logo-text">Transformed<span class="logo-accent">byTravels</span></span>
+      </div>
+      <div class="footer-social">
+        <a href="#" aria-label="Twitter">𝕏</a>
+        <a href="#" aria-label="YouTube">▶</a>
+        <a href="#" aria-label="Instagram">📷</a>
+      </div>
+      <p class="footer-copy">&copy; 2026 Transformed by Travels. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+
+  <!-- Cal.com embed (modal on button click) -->
+  <script>
+    (function (C, A, L) {
+      let p = function (a, ar) { a.q.push(ar); };
+      let d = C.document;
+      C.Cal = C.Cal || function () {
+        let cal = C.Cal; let ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {}; cal.q = cal.q || [];
+          d.head.appendChild(d.createElement("script")).src = A;
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function () { p(api, arguments); };
+          const namespace = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace === "string") {
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ["initNamespace", namespace]);
+          } else p(cal, ar);
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, "https://app.cal.com/embed/embed.js", "Cal");
+    Cal("init", { origin: "https://cal.com" });
+  </script>
+</body>
+</html>

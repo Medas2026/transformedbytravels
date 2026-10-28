@@ -18,10 +18,9 @@ module.exports = async function handler(req, res) {
   if (!tripId || !token) return res.status(400).json({ error: 'tripId and token required' });
 
   try {
-    // Load trip and verify token
-    const tripData = await atGet('Trips', `?filterByFormula=${encodeURIComponent(`{Trip ID}="${tripId}"`)}`);
-    const trip = (tripData.records || [])[0];
-    if (!trip) return res.status(404).json({ error: 'Trip not found' });
+    // Load trip by its Airtable record id and verify token
+    const trip = await atGet('Trips', `/${encodeURIComponent(tripId)}`);
+    if (!trip || !trip.id) return res.status(404).json({ error: 'Trip not found' });
     const stored = (trip.fields['Share Token'] || '').trim();
     if (!stored || stored !== token.trim()) {
       return res.status(403).json({ error: 'Invalid share code' });

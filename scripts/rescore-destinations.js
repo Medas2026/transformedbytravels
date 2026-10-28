@@ -19,23 +19,23 @@ if (!API_KEY) { console.error('ANTHROPIC_API_KEY not set'); process.exit(1); }
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const ARCHETYPES = [
-  'Transformational Traveler',
+  'Growth Seeker',
   'Purpose-Driven Traveler',
-  'Adventure-Oriented Traveler',
+  'Adventure Traveler',
   'Cultural Explorer',
-  'Easygoing Traveler',
+  'Experience Seeker',
 ];
 
 const ARCHETYPE_DESCRIPTIONS = `
-Transformational Traveler: Seeks deep personal growth through travel. High across all dimensions — Curiosity, Adventure, Connection, Intention, Reflection. Wants experiences that change them. Scores: Cur 6-7, Adv 5-7, Con 5-7, Int 6-7, Ref 6-7.
+Growth Seeker: Seeks deep personal growth through travel. High across all dimensions — Curiosity, Adventure, Connection, Travel Purpose, Reflection. Wants experiences that change them. Scores: Cur 6-7, Adv 5-7, Con 5-7, Int 6-7, Ref 6-7.
 
-Purpose-Driven Traveler: Travel has meaning and intention. High Reflection and Travel Purpose (Intention). Moderate Adventure. Often drawn to culture, history, wellness, pilgrimage, voluntourism. Scores: Ref 5-7, Int 5-7, Adv 2-5.
+Purpose-Driven Traveler: Travel has meaning and intention. High Reflection and Travel Purpose. Moderate Adventure. Often drawn to culture, history, wellness, pilgrimage, voluntourism. Scores: Ref 5-7, Int 5-7, Adv 2-5.
 
-Adventure-Oriented Traveler: Physical challenge and adrenaline first. High Adventure, moderate other dimensions. Drawn to mountains, water sports, trekking, extreme environments. Scores: Adv 6-7, Ref 2-4, Int 2-5.
+Adventure Traveler: Physical challenge and adrenaline first. High Adventure, moderate other dimensions. Drawn to mountains, water sports, trekking, extreme environments. Scores: Adv 6-7, Ref 2-4, Int 2-5.
 
 Cultural Explorer: Intellectually curious. Deep interest in history, art, food, local life. High Curiosity and Connection. Lower Adventure. Scores: Cur 6-7, Con 5-7, Adv 1-5.
 
-Easygoing Traveler: Relaxed, comfort-seeking, social. Enjoys travel without intensity. Moderate across all dimensions, nothing extreme. Scores: all dimensions 3-6, no dominant spike.
+Experience Seeker: Relaxed, comfort-seeking, social. Enjoys travel without intensity. Moderate across all dimensions, nothing extreme. Scores: all dimensions 3-6, no dominant spike.
 `;
 
 const PASSIONS = [
@@ -92,7 +92,7 @@ DIMENSION SCORES (integers 1-7):
 - Curiosity (Cur): intellectual stimulation, history, culture, novelty
 - Adventure (Adv): physical challenge, risk, outdoor activity
 - Connection (Con): social richness, local interaction, community
-- Intention (Int): purposeful travel, meaning, service, growth
+- Travel Purpose (Int): purposeful travel, meaning, service, growth
 - Reflection (Ref): introspection, solitude, contemplation, spirituality
 
 Return ONLY valid JSON, no explanation:
@@ -321,7 +321,7 @@ function buildOutput(meta, resultMap) {
 
     const passions = Array.isArray(r.passions) ? r.passions.filter(p => PASSIONS.includes(p)).slice(0, 3) : [];
     const arch1 = ARCHETYPES.includes(r.Arch1) ? r.Arch1 : 'Cultural Explorer';
-    const arch2 = ARCHETYPES.includes(r.Arch2) ? r.Arch2 : 'Easygoing Traveler';
+    const arch2 = ARCHETYPES.includes(r.Arch2) ? r.Arch2 : 'Experience Seeker';
     const cur = clamp(r.Cur, 1, 7);
     const adv = clamp(r.Adv, 1, 7);
     const con = clamp(r.Con, 1, 7);

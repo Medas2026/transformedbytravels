@@ -17,50 +17,205 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.auth0.com https://cdn.jsdelivr.net https://plausible.io https://api.mapbox.com https://unpkg.com https://www.dropbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.mapbox.com https://www.dropbox.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://unpkg.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.airtable.com https://api.anthropic.com https://api.mapbox.com https://events.mapbox.com https://plausible.io https://*.auth0.com https://acuityscheduling.com https://api.cloudinary.com https://res.cloudinary.com https://cdn.jsdelivr.net https://*.dropbox.com https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; frame-src https://acuityscheduling.com https://*.auth0.com https://www.dropbox.com https://www.youtube.com; object-src 'none';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.auth0.com https://cdn.jsdelivr.net https://plausible.io https://api.mapbox.com https://unpkg.com https://www.dropbox.com https://app.cal.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.mapbox.com https://www.dropbox.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' data: https://fonts.gstatic.com https://unpkg.com https://cdn.jsdelivr.net; img-src 'self' data: https: blob:; connect-src 'self' https://api.airtable.com https://api.anthropic.com https://api.mapbox.com https://events.mapbox.com https://plausible.io https://*.auth0.com https://acuityscheduling.com https://api.cloudinary.com https://res.cloudinary.com https://cdn.jsdelivr.net https://*.dropbox.com https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com https://upload.wikimedia.org https://commons.wikimedia.org https://cal.com https://app.cal.com; frame-src https://acuityscheduling.com https://*.auth0.com https://www.dropbox.com https://www.youtube.com https://cal.com https://app.cal.com; object-src 'none';"
         }
       ]
     }
   ],
   "redirects": [
-    { "source": "/", "destination": "/threerealms/", "permanent": false, "has": [{ "type": "host", "value": "threerealmsTravel.com" }] },
-    { "source": "/", "destination": "/threerealms/", "permanent": false, "has": [{ "type": "host", "value": "www.threerealmsTravel.com" }] }
+    {
+      "source": "/",
+      "destination": "/threerealms/",
+      "permanent": false,
+      "has": [
+        {
+          "type": "host",
+          "value": "threerealmsTravel.com"
+        }
+      ]
+    },
+    {
+      "source": "/",
+      "destination": "/threerealms/",
+      "permanent": false,
+      "has": [
+        {
+          "type": "host",
+          "value": "www.threerealmsTravel.com"
+        }
+      ]
+    },
+    {
+      "source": "/threerealms/trip-report-view.html",
+      "destination": "/threerealms/trip-reports.html",
+      "permanent": false
+    },
+    {
+      "source": "/threerealms/itinerary-view.html",
+      "destination": "/threerealms/itineraries.html",
+      "permanent": false
+    },
+    {
+      "source": "/founding-members",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/founding-members.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/for-lodges.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/for-lodges",
+      "destination": "/",
+      "permanent": false
+    }
   ],
   "rewrites": [
-    { "source": "/blog-post.html", "destination": "/api/blog-post" }
+    {
+      "source": "/welcome",
+      "destination": "/welcome.html"
+    },
+    {
+      "source": "/threerealms/trip-report.html",
+      "destination": "/api/trip-report-page"
+    },
+    {
+      "source": "/threerealms/itinerary.html",
+      "destination": "/api/itinerary-page"
+    },
+    {
+      "source": "/blog-post.html",
+      "destination": "/api/blog-post"
+    },
+    {
+      "source": "/Assessment",
+      "destination": "/Assessment.html"
+    },
+    {
+      "source": "/Technology",
+      "destination": "/Technology.html"
+    },
+    {
+      "source": "/Speaking",
+      "destination": "/Speaking.html"
+    },
+    {
+      "source": "/Media",
+      "destination": "/Media.html"
+    },
+    {
+      "source": "/hi",
+      "destination": "/threerealms/hi.html"
+    }
   ],
   "functions": {
-    "api/trips.js":      { "maxDuration": 45 },
-    "api/journal.js":    { "maxDuration": 45 },
-    "api/dest-guide.js": { "maxDuration": 45 },
-    "api/dna-queries.js":{ "maxDuration": 45 },
-    "api/events.js":     { "maxDuration": 30 },
-    "api/birding.js":    { "maxDuration": 30 },
-    "api/trip-days.js":  { "maxDuration": 30 },
-    "api/lodging.js":      { "maxDuration": 30 },
-    "api/trip-members.js": { "maxDuration": 30 },
-    "api/parse-email.js":  { "maxDuration": 30 },
-    "api/itinerary.js":    { "maxDuration": 60 },
-    "api/compatibility.js": { "maxDuration": 20 },
-    "api/ics.js":          { "maxDuration": 20 },
-    "api/blog.js":         { "maxDuration": 15 },
-    "api/blog-post.js":    { "maxDuration": 15 },
-    "api/draft-schedule.js":  { "maxDuration": 30 },
-    "api/suggest-lodging.js": { "maxDuration": 20 },
-    "api/uganda-lead.js":     { "maxDuration": 10 },
-    "api/journey-book.js":   { "maxDuration": 20 },
-    "api/load-trip.js":      { "maxDuration": 30 },
-    "api/narrative.js":      { "maxDuration": 30 },
-    "api/species.js":        { "maxDuration": 20 },
-    "api/species-pack.js":   { "maxDuration": 30 },
-    "api/sightings.js":      { "maxDuration": 20 },
-    "api/sighting-map.js":   { "maxDuration": 15 },
-    "api/species-generate.js": { "maxDuration": 20 },
-    "api/animal-regions.js":      { "maxDuration": 15 },
-    "api/wildlife-locations.js":  { "maxDuration": 15 },
-    "api/species-position.js":   { "maxDuration": 10 },
-    "api/coach.js":              { "maxDuration": 20 },
-    "api/trip-action.js":        { "maxDuration": 30 }
+    "api/trips.js": {
+      "maxDuration": 45
+    },
+    "api/journal.js": {
+      "maxDuration": 45
+    },
+    "api/dest-guide.js": {
+      "maxDuration": 45
+    },
+    "api/dna-queries.js": {
+      "maxDuration": 45
+    },
+    "api/events.js": {
+      "maxDuration": 30
+    },
+    "api/birding.js": {
+      "maxDuration": 30
+    },
+    "api/trip-days.js": {
+      "maxDuration": 30
+    },
+    "api/lodging.js": {
+      "maxDuration": 30
+    },
+    "api/trip-members.js": {
+      "maxDuration": 30
+    },
+    "api/parse-email.js": {
+      "maxDuration": 30
+    },
+    "api/itinerary.js": {
+      "maxDuration": 60
+    },
+    "api/compatibility.js": {
+      "maxDuration": 20
+    },
+    "api/ics.js": {
+      "maxDuration": 20
+    },
+    "api/blog.js": {
+      "maxDuration": 15
+    },
+    "api/blog-post.js": {
+      "maxDuration": 15
+    },
+    "api/draft-schedule.js": {
+      "maxDuration": 30
+    },
+    "api/suggest-lodging.js": {
+      "maxDuration": 20
+    },
+    "api/uganda-lead.js": {
+      "maxDuration": 10
+    },
+    "api/journey-book.js": {
+      "maxDuration": 20
+    },
+    "api/load-trip.js": {
+      "maxDuration": 30
+    },
+    "api/narrative.js": {
+      "maxDuration": 30
+    },
+    "api/species.js": {
+      "maxDuration": 20
+    },
+    "api/species-pack.js": {
+      "maxDuration": 30
+    },
+    "api/sightings.js": {
+      "maxDuration": 20
+    },
+    "api/sighting-map.js": {
+      "maxDuration": 15
+    },
+    "api/species-generate.js": {
+      "maxDuration": 20
+    },
+    "api/animal-regions.js": {
+      "maxDuration": 15
+    },
+    "api/wildlife-locations.js": {
+      "maxDuration": 15
+    },
+    "api/species-position.js": {
+      "maxDuration": 10
+    },
+    "api/coach.js": {
+      "maxDuration": 20
+    },
+    "api/trip-action.js": {
+      "maxDuration": 30
+    },
+    "api/trip-report-page.js": {
+      "maxDuration": 15,
+      "includeFiles": "threerealms/trip-report-view.html"
+    },
+    "api/itinerary-page.js": {
+      "maxDuration": 15,
+      "includeFiles": "threerealms/itinerary-view.html"
+    }
   },
   "crons": [
     {
@@ -68,16 +223,32 @@
       "schedule": "0 12 * * *"
     },
     {
+      "path": "/api/kickoff-nudge",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/close-nudge",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/coach-digest",
+      "schedule": "0 17 * * *"
+    },
+    {
       "path": "/api/journal?action=send-daily",
       "schedule": "0 * * * *"
     },
     {
-      "path": "/api/journal?action=send-monthly",
-      "schedule": "0 9 1 * *"
+      "path": "/api/coach-evening",
+      "schedule": "0 * * * *"
     },
     {
       "path": "/api/marketing?action=cron",
       "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/send-scheduled",
+      "schedule": "0 15 * * *"
     }
   ]
 }

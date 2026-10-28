@@ -6,6 +6,43 @@ const TABLE_NAME   = 'Trips';
 const EMAILS_TABLE = 'Emails';
 const PORTAL_URL   = 'https://app.transformedbytravels.com';
 
+// Ensure a trip has a Share Token so travelers can open the login-free schedule
+// (trip-share.html). Returns the token ('' on failure). Reuses an existing token.
+async function ensureShareToken(tripId) {
+  if (!tripId) return '';
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}/${tripId}`;
+  try {
+    const cur = await (await fetch(url, { headers: { Authorization: 'Bearer ' + apiKey } })).json();
+    const existing = ((cur.fields || {})['Share Token'] || '').trim();
+    if (existing) return existing;
+    const token = (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).slice(0, 20);
+    const patched = await (await fetch(url, { method: 'PATCH', headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { 'Share Token': token } }) })).json();
+    return patched.error ? '' : token;
+  } catch (e) { console.error('[ensureShareToken]', e.message); return ''; }
+}
+
+// Generate a 6-digit numeric PIN unique across all Trips.
+// Retries up to 5 times on collision (extremely unlikely at current scale).
+async function generateUniquePin() {
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const pin = String(Math.floor(100000 + Math.random() * 900000));
+    const filter = encodeURIComponent(`({PIN}="${pin}")`);
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}?filterByFormula=${filter}&maxRecords=1`;
+    try {
+      const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + apiKey } });
+      const d = await r.json();
+      if (!(d.records || []).length) return pin; // no collision
+    } catch(e) {
+      console.warn('[generateUniquePin] check threw, using anyway:', e.message);
+      return pin;
+    }
+  }
+  // 5 collisions in a row is astronomically unlikely; fall back to random
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
 async function fetchTripPlaces(tripId) {
   try {
     const apiKey = process.env.AIRTABLE_API_KEY;
@@ -52,21 +89,36 @@ function buildTripDetailsBlock(destination, country, startDate, endDate, places)
   </div>`;
 }
 
-function buildEmailHTML(title, heading, body, photoUrl, btnUrl, btnLabel) {
+function buildEmailHTML(title, heading, body, photoUrl, btnUrl, btnLabel, bodyRest) {
+  // If bodyRest is provided, photo goes between body (intro) and bodyRest (details).
+  // Otherwise the photo goes at the top for backward compat.
   const photoHtml = photoUrl
     ? `<tr><td style="padding:0;"><img src="${photoUrl}" alt="${heading}" style="width:100%;max-height:220px;object-fit:cover;display:block;" /></td></tr>`
     : '';
   const portalLink = btnUrl || `${PORTAL_URL}/portal.html`;
   const portalLabel = btnLabel || 'Go to My Portal';
+
+  const introBlock = `<tr><td style="padding:36px 40px ${bodyRest ? '20px' : '36px'};">
+<h2 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">${heading}</h2>
+<div style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;">${body}</div>
+</td></tr>`;
+  const restBlock = bodyRest
+    ? `<tr><td style="padding:20px 40px 36px;">
+<div style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;">${bodyRest}</div>
+</td></tr>`
+    : '';
+
+  const topPhoto = bodyRest ? '' : photoHtml;   // legacy path (no split) — keep photo at top
+  const midPhoto = bodyRest ? photoHtml : '';   // new path — photo between intro and rest
+
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
-${photoHtml}
-<tr><td style="padding:36px 40px;">
-<h2 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">${heading}</h2>
-<div style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;">${body}</div>
-</td></tr>
+${topPhoto}
+${introBlock}
+${midPhoto}
+${restBlock}
 <tr><td style="padding:0 40px 40px;text-align:center;">
 <a href="${portalLink}" style="display:inline-block;background:#2dd4bf;color:#0f172a;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:8px;">${portalLabel}</a>
 </td></tr>
@@ -117,7 +169,7 @@ async function getDailyTip(archetype, tipNum, location, country) {
 
 async function sendResendEmail(to, subject, html) {
   const apiKey = process.env.RESEND_API_KEY;
-  const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to, subject, html });
+  const body   = JSON.stringify({ from: 'Michael at Three Realms Travel <michael@transformedbytravels.com>', to, subject, html });
   const resp   = await fetch('https://api.resend.com/emails', {
     method:  'POST',
     headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
@@ -200,7 +252,7 @@ function sendTripHistoryEmail(email, name, b, done) {
   <tr><td align="center" style="padding:32px 16px;">
     <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
       <tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
-        <img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" />
+        <img src="https://threerealmstravel.com/threerealms/realm-symbols/logo.png" height="72" alt="Three Realms Travel" />
       </td></tr>
       <tr><td style="padding:36px 40px 28px;">
         <p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">Hi ${name || email},</p>
@@ -221,7 +273,7 @@ function sendTripHistoryEmail(email, name, b, done) {
 </body></html>`;
 
   const apiKey = process.env.RESEND_API_KEY;
-  const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to: email, subject, html });
+  const body   = JSON.stringify({ from: 'Michael at Three Realms Travel <michael@transformedbytravels.com>', to: email, subject, html });
   const options = {
     hostname: 'api.resend.com',
     path:     '/emails',
@@ -243,7 +295,7 @@ function sendTripHistoryEmail(email, name, b, done) {
 
 function sendTripPlanEmail(email, name, b, done, photoUrl, tripId) {
   const vars = { name: name || email, destination: b.destination || '', country: b.country || '' };
-  fetchTemplate('TRIP_PLAN', (err, tmpl) => {
+  fetchTemplate('TRIP_PLAN', async (err, tmpl) => {
     if (err) { console.error('Trip plan template error:', err.message); return done(); }
 
     const subject = substitute(tmpl.subject, vars) || `Your trip to ${b.destination} is planned!`;
@@ -276,14 +328,20 @@ function sendTripPlanEmail(email, name, b, done, photoUrl, tripId) {
         <table cellpadding="0" cellspacing="0" style="width:100%;">${tableRows}</table>
       </div>`;
 
-    const scheduleUrl = tripId ? `${PORTAL_URL}/schedule.html?trip=${encodeURIComponent(tripId)}` : null;
+    // Login-free schedule for the traveler: trip-share.html opens with a Share Token (no Auth0 wall).
+    // Falls back to the auth-gated schedule only if a token can't be created.
+    const shareToken  = await ensureShareToken(tripId);
+    const scheduleUrl = (tripId && shareToken)
+      ? `${PORTAL_URL}/trip-share.html?tripId=${encodeURIComponent(tripId)}&token=${encodeURIComponent(shareToken)}`
+      : (tripId ? `${PORTAL_URL}/schedule.html?trip=${encodeURIComponent(tripId)}` : null);
     const html = buildEmailHTML(subject,
       substitute(tmpl.p1 || 'Your trip is planned!', vars),
-      `${para(tmpl.p2)}${para(tmpl.p3)}${tripBlock}`,
-      photoUrl || '', scheduleUrl, 'View My Schedule →');
+      `${para(tmpl.p2)}${para(tmpl.p3)}`,          // intro paragraphs (above photo)
+      photoUrl || '', scheduleUrl, 'View My Schedule →',
+      `${tripBlock}`);                              // details block (below photo)
 
     const apiKey = process.env.RESEND_API_KEY;
-    const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to: email, subject, html });
+    const body   = JSON.stringify({ from: 'Michael at Three Realms Travel <michael@transformedbytravels.com>', to: email, subject, html });
     const options = {
       hostname: 'api.resend.com',
       path:     '/emails',
@@ -302,6 +360,49 @@ function sendTripPlanEmail(email, name, b, done, photoUrl, tripId) {
     req.write(body);
     req.end();
   });
+}
+
+// When a coach creates a trip for a customer, email the coach too: the new
+// trip + their other active/scheduled trips + a link to the Coaching Dashboard.
+async function notifyCoachOfNewTrip(travelerEmail, b, tripId) {
+  try {
+    const BASE = 'appdlxcWb45dIqNK2';
+    const atGet = async (table, qs) =>
+      (await fetch(`https://api.airtable.com/v0/${BASE}/${encodeURIComponent(table)}${qs}`,
+        { headers: { Authorization: 'Bearer ' + process.env.AIRTABLE_API_KEY } })).json();
+
+    const trav = await atGet('Traveler', `?filterByFormula=${encodeURIComponent(`LOWER({Traveler Email})="${(travelerEmail || '').toLowerCase()}"`)}&maxRecords=1&fields[]=Coach%20Email`);
+    const coachEmail = ((trav.records || [])[0]?.fields?.['Coach Email'] || '').toLowerCase().trim();
+    if (!coachEmail) return;
+
+    const coachRec  = await atGet('Traveler', `?filterByFormula=${encodeURIComponent(`LOWER({Traveler Email})="${coachEmail}"`)}&maxRecords=1&fields[]=Traveler%20Name`);
+    const coachName = (coachRec.records || [])[0]?.fields?.['Traveler Name'] || 'Coach';
+
+    const custs  = await atGet('Traveler', `?filterByFormula=${encodeURIComponent(`LOWER({Coach Email})="${coachEmail}"`)}&fields[]=Traveler%20Email`);
+    const emails = [...new Set((custs.records || []).map(r => (r.fields['Traveler Email'] || '').toLowerCase()).filter(Boolean))];
+    let otherTrips = [];
+    if (emails.length) {
+      const orEmails = emails.map(e => `LOWER({Traveler Email})="${e.replace(/"/g, '')}"`).join(',');
+      const formula  = `AND(OR(${orEmails}),OR({Status of Trip}="Active",{Status of Trip}="Committed"))`;
+      const tr = await atGet('Trips', `?filterByFormula=${encodeURIComponent(formula)}`);
+      otherTrips = (tr.records || []).filter(r => r.id !== tripId).map(r => ({
+        name: r.fields['Trip Name'] || r.fields['Destination'] || 'Trip',
+        dest: r.fields['Destination'] || '', traveler: r.fields['Traveler Email'] || '', status: r.fields['Status of Trip'] || '',
+      }));
+    }
+
+    const esc = s => String(s || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    const custName = b.name || travelerEmail;
+    const tripName = b.tripName || b.destination || 'the new trip';
+    const dates    = [b.startDate, b.endDate].filter(Boolean).join(' – ');
+    const dash     = `${PORTAL_URL}/portal.html?page=planner`;
+    const others = otherTrips.length
+      ? `<p style="font-size:14px;color:#0f172a;font-weight:bold;margin:22px 0 8px;">Your other active trips (${otherTrips.length}):</p><ul style="font-size:14px;color:#334155;line-height:1.7;margin:0;padding-left:18px;">${otherTrips.map(t => `<li><strong>${esc(t.name)}</strong>${t.dest ? ' — ' + esc(t.dest) : ''}${t.traveler ? ` <span style="color:#94a3b8;">· ${esc(t.traveler)}</span>` : ''}${t.status ? ` <span style="color:#94a3b8;">(${esc(t.status)})</span>` : ''}</li>`).join('')}</ul>`
+      : `<p style="font-size:13px;color:#94a3b8;margin:22px 0 0;">This is your only active trip right now.</p>`;
+    const html = `<div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;background:#f8fafc;padding:24px;"><div style="background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;"><div style="background:#0d1520;padding:20px 32px;border-bottom:3px solid #2dd4bf;"><p style="font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#2dd4bf;margin:0;">Three Realms Travel · Coach</p></div><div style="padding:28px 32px;"><h1 style="font-family:Georgia,serif;font-size:20px;color:#0f172a;margin:0 0 12px;">New trip created</h1><p style="font-size:15px;color:#0f172a;line-height:1.7;margin:0;">Hi ${esc(String(coachName).split(' ')[0])}, you've set up <strong>${esc(tripName)}</strong> for <strong>${esc(custName)}</strong>${dates ? ` (${esc(dates)})` : ''}. Their startup email is on its way.</p>${others}<div style="text-align:center;margin:26px 0 4px;"><a href="${dash}" style="display:inline-block;background:#2dd4bf;color:#0a1628;text-decoration:none;font-weight:800;font-size:15px;padding:13px 32px;border-radius:8px;">Open Your Coaching Dashboard →</a></div></div></div></div>`;
+    await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: 'ThreeRealms@transformedbytravels.com', to: coachEmail, subject: `New trip created for ${custName}: ${tripName}`, html }) });
+    console.log('[trips] coach notified:', coachEmail, tripId);
+  } catch (e) { console.error('[trips] coach notify failed:', e.message); }
 }
 
 module.exports = function handler(req, res) {
@@ -383,15 +484,19 @@ module.exports = function handler(req, res) {
                   }).join('')
                 : '';
 
-              // Fetch traveler archetype for daily tip
-              let archetype = '';
-              try {
-                const travResp = await fetch(`https://api.airtable.com/v0/${BASE_ID}/Traveler?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`, {
-                  headers: { 'Authorization': 'Bearer ' + process.env.AIRTABLE_API_KEY }
-                });
-                const travData = await travResp.json();
-                archetype = ((travData.records || [])[0] || {}).fields?.['Archetype'] || '';
-              } catch(e) { console.error('[Committed tip] traveler fetch error:', e.message); }
+              // Archetype for the daily tip. The trip's own archetype wins — it is a read
+              // on this trip, not a fixed trait — falling back to the traveler's most
+              // recent assessment when the trip carries none.
+              let archetype = f['Archetype'] || '';
+              if (!archetype) {
+                try {
+                  const travResp = await fetch(`https://api.airtable.com/v0/${BASE_ID}/Traveler?filterByFormula=${encodeURIComponent(`({Traveler Email}="${email}")`)}`, {
+                    headers: { 'Authorization': 'Bearer ' + process.env.AIRTABLE_API_KEY }
+                  });
+                  const travData = await travResp.json();
+                  archetype = ((travData.records || [])[0] || {}).fields?.['Archetype'] || '';
+                } catch(e) { console.error('[Committed tip] traveler fetch error:', e.message); }
+              }
 
               // Tip #1, location = first place or destination
               const tipLocation = places.length ? places[0] : (destination || '');
@@ -425,10 +530,10 @@ module.exports = function handler(req, res) {
               const subject = `Your trip to ${tripName} is confirmed!`;
               const tripUrl = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}`;
               const html = buildEmailHTML(subject, `You're committed, traveler!`,
-                `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
-                 ${details}${summaryHtml}${tipHtml}${shareBlock}${wildlifeBlock}
-                 <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`,
-                photoUrl, tripUrl, 'View My Trip →');
+                `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>`,
+                photoUrl, tripUrl, 'View My Trip →',
+                `${details}${summaryHtml}${tipHtml}${shareBlock}${wildlifeBlock}
+                 <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`);
               await sendResendEmail(email, subject, html);
               if (coEmail && coEmail !== email.toLowerCase().trim()) {
                 const exists = await coTravelerCopyExists(tripName, coEmail);
@@ -442,10 +547,10 @@ module.exports = function handler(req, res) {
                   : '';
                 const coTripUrl = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(id)}&email=${encodeURIComponent(coEmail)}`;
                 const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
-                  `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
-                   ${details}${summaryHtml}${coShareBlock}
-                   <p>Get ready for an incredible journey!</p>`,
-                  photoUrl, coTripUrl, 'View My Trip →');
+                  `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>`,
+                  photoUrl, coTripUrl, 'View My Trip →',
+                  `${details}${summaryHtml}${coShareBlock}
+                   <p>Get ready for an incredible journey!</p>`);
                 await sendResendEmail(coEmail, subject, coHtml);
               }
             }
@@ -498,7 +603,7 @@ module.exports = function handler(req, res) {
     const tReq = https2.request(travelerOpts, (tRes) => {
       let tData = '';
       tRes.on('data', c => { tData += c; });
-      tRes.on('end', () => {
+      tRes.on('end', async () => {
         try {
           const tParsed  = JSON.parse(tData);
           const tRecord  = (tParsed.records || [])[0];
@@ -528,6 +633,10 @@ module.exports = function handler(req, res) {
           fields['Create Date']    = today;
           fields['Last Modified']  = today;
           fields['Status of Trip'] = b['Status of Trip'] || 'Research';
+          // Auto-generate a unique 6-digit PIN for QR/card access
+          try {
+            fields['PIN'] = await generateUniquePin();
+          } catch(e) { console.warn('[trips POST] PIN gen failed:', e.message); }
           airtableRequest('POST', '', { fields }, async (err, data) => {
             if (err) return res.status(500).json({ error: err.message });
             if (data.error) return res.status(500).json({ error: data.error.message || JSON.stringify(data.error) });
@@ -569,19 +678,19 @@ module.exports = function handler(req, res) {
                   const subject = `Your trip to ${tripName} is confirmed!`;
                   const tripUrl2 = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(email)}`;
                   const html = buildEmailHTML(subject, `You're committed, traveler!`,
-                    `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>
-                     ${details}${summaryHtml}
-                     <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`,
-                    photoUrl, tripUrl2, 'View My Trip →');
+                    `<p>Your trip to <strong>${tripName}</strong> is now committed. Here's a summary of what's ahead.</p>`,
+                    photoUrl, tripUrl2, 'View My Trip →',
+                    `${details}${summaryHtml}
+                     <p>We'll remind you as your departure approaches. Get ready for an incredible journey!</p>`);
                   await sendResendEmail(email, subject, html);
 
                   if (coEmail && coEmail !== email) {
                     const coTripUrl2 = `${PORTAL_URL}/trip.html?tripId=${encodeURIComponent(tripId)}&email=${encodeURIComponent(coEmail)}`;
                     const coHtml = buildEmailHTML(subject, `You're going on a trip!`,
-                      `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>
-                       ${details}${summaryHtml}
-                       <p>Get ready for an incredible journey!</p>`,
-                      photoUrl, coTripUrl2, 'View My Trip →');
+                      `<p>You've been added as a co-traveler on <strong>${tripName}</strong>. Here's a summary of what's ahead.</p>`,
+                      photoUrl, coTripUrl2, 'View My Trip →',
+                      `${details}${summaryHtml}
+                       <p>Get ready for an incredible journey!</p>`);
                     await sendResendEmail(coEmail, subject, coHtml);
                   }
                 } catch(e) {
@@ -594,6 +703,7 @@ module.exports = function handler(req, res) {
                 res.status(200).json({ success: true, record: data, tripsRemaining: Math.max(0, remaining - 1) });
               });
             } else {
+              notifyCoachOfNewTrip(email, b, tripId);  // fire-and-forget coach notification
               sendTripPlanEmail(email, b.name || '', b, () => {
                 res.status(200).json({ success: true, record: data, tripsRemaining: Math.max(0, remaining - 1) });
               }, data.fields?.['Trip Photo URL'] || b.tripPhotoUrl || '', tripId);
@@ -663,6 +773,7 @@ function buildFields(b) {
   if (b.startDate)     fields['Start Date']     = b.startDate;
   if (b.endDate)       fields['End Date']       = b.endDate;
   if (b.airportCode !== undefined) fields['Destination Airport'] = b.airportCode;
+  if (b.flightLegs  !== undefined) fields['Flight Legs']  = b.flightLegs;
   if (b.notes       !== undefined) fields['Notes']        = b.notes;
   if (b.place1      !== undefined) fields['Place 1']      = b.place1;
   if (b.place2      !== undefined) fields['Place 2']      = b.place2;
@@ -689,5 +800,15 @@ function buildFields(b) {
   if (b.tripPhotoUrl !== undefined && b.tripPhotoUrl !== '') fields['Trip Photo URL'] = b.tripPhotoUrl;
   if (b.tripPassions  !== undefined) fields['Trip Passions']  = b.tripPassions;
   if (b.shareToken    !== undefined) fields['Share Token']    = b.shareToken;
+  if (b.basedOnItinerary) fields['Based on Itinerary'] = [b.basedOnItinerary];
+  if (Array.isArray(b.wishlistSpecies)) fields['Wishlist Species'] = b.wishlistSpecies;
+  if (b.cacheVerifiedAt !== undefined) fields['Cache Verified At'] = b.cacheVerifiedAt || null;
+  // Trip Special Version — explicit from client, or auto-set to 'Animals' when
+  // the trip is being seeded from a Three Realms itinerary.
+  if (b.specialVersion !== undefined) {
+    fields['Special Version'] = b.specialVersion || null;
+  } else if (b.basedOnItinerary) {
+    fields['Special Version'] = 'Animals';
+  }
   return fields;
 }

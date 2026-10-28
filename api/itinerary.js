@@ -86,6 +86,15 @@ module.exports = async function handler(req, res) {
   (lodgingData.records || []).forEach(r => { lodgingById[r.id] = r.fields; });
   const traveler = (travelerData.records || [])[0]?.fields || {};
 
+  // Confirmed flight itinerary (standalone JSON on the Trip: { outbound:[], return:[] })
+  let flightLegs = { outbound: [], return: [] };
+  try {
+    const fl = JSON.parse(trip['Flight Legs'] || '{}');
+    if (fl && typeof fl === 'object') {
+      flightLegs = { outbound: Array.isArray(fl.outbound) ? fl.outbound : [], return: Array.isArray(fl.return) ? fl.return : [] };
+    }
+  } catch(e) {}
+
   // Build reservations keyed by date (YYYY-MM-DD) and as a flat list
   const reservationsByDate = {};
   const allReservations = [];
@@ -169,6 +178,9 @@ module.exports = async function handler(req, res) {
       dateLabel,
       startLoc:       d['Starting Location'] || '',
       endLoc:         d['Ending Location']   || '',
+      whyVisit:       d['Why Visit']       || '',
+      tripTip:        d['Trip Tip']        || '',
+      placePhoto:     d['Place Photo URL'] || '',
       lodging:        lodgingParagraph,
       lodgingName,
       lodgingIsNew,
@@ -195,6 +207,149 @@ module.exports = async function handler(req, res) {
       });
     }
   }
+
+  // ── Recommended lodging per stop — pulled live from the Places catalog so a coach
+  //    edits the lodge once on the Place and every itinerary reflects it. Matched by
+  //    the day's ending (or starting) location against Place Name / Stop Name. ──
+  try {
+    // Normalize a location for matching: lowercase, strip "National Park"/"NP"/"N.P."
+    // and reserve/conservancy suffixes, collapse punctuation. So "Kibale NP",
+    // "Kibale National Park" and "Kibale" all match the Place named "Kibale".
+    const normLoc = (s) => String(s == null ? '' : s).toLowerCase()
+      .replace(/national park/g, ' ')
+      .replace(/\bn\.?\s*p\.?\b/g, ' ')
+      .replace(/\b(national )?(park|reserve|conservancy|wetland|forest)\b/g, ' ')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    const placeLodge = {};
+    let offL = '';
+    do {
+      const pg = await airtableFetch('Places',
+        '?pageSize=100' +
+        '&fields%5B%5D=' + encodeURIComponent('Place Name') +
+        '&fields%5B%5D=' + encodeURIComponent('Stop Name') +
+        '&fields%5B%5D=' + encodeURIComponent('Luxury Lodge') +
+        '&fields%5B%5D=' + encodeURIComponent('Luxury Description') +
+        '&fields%5B%5D=' + encodeURIComponent('Value Lodge') +
+        '&fields%5B%5D=' + encodeURIComponent('Value Description') +
+        (offL ? '&offset=' + offL : ''));
+      (pg.records || []).forEach(r => {
+        const pf  = r.fields || {};
+        const rec = {
+          luxuryLodge:       pf['Luxury Lodge']       || '',
+          luxuryDescription: pf['Luxury Description'] || '',
+          valueLodge:        pf['Value Lodge']        || '',
+          valueDescription:  pf['Value Description']  || '',
+        };
+        if (!rec.luxuryLodge && !rec.valueLodge) return;
+        [pf['Place Name'], pf['Stop Name']].filter(Boolean).forEach(nm => {
+          const k = normLoc(nm);
+          if (k) placeLodge[k] = rec;
+        });
+      });
+      offL = pg.offset || '';
+    } while (offL);
+    structuredDays.forEach(d => {
+      const key = normLoc(d.endLoc || d.startLoc || '');
+      const rec = key && placeLodge[key];
+      if (rec) {
+        d.luxuryLodge       = rec.luxuryLodge;
+        d.luxuryDescription = rec.luxuryDescription;
+        d.valueLodge        = rec.valueLodge;
+        d.valueDescription  = rec.valueDescription;
+      }
+    });
+  } catch (e) { /* recommended lodging is optional — never block the itinerary */ }
+
+  // ── "Where to find your Top 5" — match each wishlist animal's Best Parks to the
+  //    itinerary's day locations, giving precise, day-linked prime spots on this route ──
+  let wishlistPlaces = [];
+  try {
+    const wlIds = Array.isArray(trip['Wishlist Species']) ? trip['Wishlist Species'] : [];
+    if (wlIds.length) {
+      const dayLocs = structuredDays
+        .map(d => ({ day: d.dayNum, loc: (d.endLoc || d.startLoc || '').trim() }))
+        .filter(x => x.loc);
+
+      // Map each day to a region via the Places catalog, so animals with no prime park
+      // on the route still show broad coverage. Carry-forward fills unmatched gaps.
+      const placeRegion = [];
+      try {
+        let offset = '';
+        do {
+          const pg = await airtableFetch('Places',
+            '?pageSize=100&fields%5B%5D=' + encodeURIComponent('Place Name') +
+            '&fields%5B%5D=' + encodeURIComponent('Stop Name') +
+            '&fields%5B%5D=Region' + (offset ? '&offset=' + offset : ''));
+          (pg.records || []).forEach(r => {
+            const pf = r.fields || {};
+            const reg = pf['Region'] || '';
+            if (!reg) return;
+            [pf['Place Name'], pf['Stop Name']].filter(Boolean).forEach(nm =>
+              placeRegion.push({ key: String(nm).toLowerCase().trim(), region: reg }));
+          });
+          offset = pg.offset || '';
+        } while (offset);
+      } catch(e) {}
+      const regionForLoc = loc => {
+        const l = (loc || '').toLowerCase().trim();
+        if (!l) return '';
+        const hit = placeRegion.find(p => p.key && (l.includes(p.key) || p.key.includes(l)));
+        return hit ? hit.region : '';
+      };
+      let carry = '';
+      const dayRegions = dayLocs.map(dl => {
+        let reg = regionForLoc(dl.loc) || carry;
+        if (reg) carry = reg;
+        return { day: dl.day, region: reg };
+      });
+      const itineraryRegions = [...new Set(dayRegions.map(d => d.region).filter(Boolean))];
+
+      const formula = 'OR(' + wlIds.map(id => `RECORD_ID()='${id}'`).join(',') + ')';
+      const sp = await airtableFetch('TBT Wildlife', '?filterByFormula=' + encodeURIComponent(formula));
+      const byId = {};
+      (sp.records || []).forEach(r => { byId[r.id] = r; });
+      wlIds.forEach(id => {                       // preserve the traveler's wishlist order
+        const r = byId[id];
+        if (!r) return;
+        const sf   = r.fields || {};
+        const name = sf['Species Name'] || '';
+        if (!name) return;
+        const parks = Array.isArray(sf['Best Parks'])
+          ? sf['Best Parks']
+          : (sf['Best Parks'] || '').split(',').map(s => s.trim()).filter(Boolean);
+        const byPlace = {};
+        dayLocs.forEach(dl => {
+          const locL = dl.loc.toLowerCase();
+          const hit  = parks.some(p => { const pl = (p || '').toLowerCase().trim(); return pl && (locL.includes(pl) || pl.includes(locL)); });
+          if (hit) (byPlace[dl.loc] = byPlace[dl.loc] || []).push(dl.day);
+        });
+        const matches = Object.keys(byPlace).map(place => ({ place, days: byPlace[place].sort((a, b) => a - b) }));
+
+        // Fallbacks when no prime park is on the route:
+        //  • species HAS specific parks (just none on this route) → it's park-bound
+        //    (e.g. White Rhino → Ziwa only). Name where it IS seen instead of
+        //    over-claiming a whole region it doesn't actually roam.
+        //  • species has NO park data at all → honest broad guess by region.
+        let regionCoverage = [];
+        let offRouteParks  = [];
+        if (!matches.length) {
+          if (parks.length) {
+            offRouteParks = parks.slice(0, 4);
+          } else {
+            const aReg = Array.isArray(sf['Animal Regions'])
+              ? sf['Animal Regions']
+              : (sf['Animal Regions'] || '').split(',').map(s => s.trim()).filter(Boolean);
+            itineraryRegions.filter(rg => aReg.includes(rg)).forEach(rg => {
+              const daysIn = dayRegions.filter(d => d.region === rg).map(d => d.day).sort((a, b) => a - b);
+              if (daysIn.length) regionCoverage.push({ region: rg, days: daysIn });
+            });
+          }
+        }
+        wishlistPlaces.push({ name, photoUrl: sf['Photo URL'] || '', matches, regionCoverage, offRouteParks });
+      });
+    }
+  } catch(e) { /* non-fatal — itinerary still renders without the Top-5 map */ }
 
   // Format days for the prompt
   const dayScheduleText = structuredDays.map(d => {
@@ -276,6 +431,8 @@ Continue for all ${structuredDays.length} days. Be specific and evocative.${lodg
         daySummaries:        cached.daySummaries       || {},
         lodgingDescriptions: cached.lodgingDescriptions || {},
         allReservations,
+        flightLegs,
+        wishlistPlaces,
         fromCache:           true
       });
     } catch(e) {
@@ -326,7 +483,9 @@ Continue for all ${structuredDays.length} days. Be specific and evocative.${lodg
       days: structuredDays,
       daySummaries,
       lodgingDescriptions,
-      allReservations
+      allReservations,
+      flightLegs,
+      wishlistPlaces
     });
   } catch(e) {
     return res.status(500).json({ error: e.message });

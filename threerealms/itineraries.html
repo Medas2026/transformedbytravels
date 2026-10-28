@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Itineraries — Three Realms Travel</title>
+  <!-- Link preview. Crawlers read the static head and nothing else. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Three Realms Travel">
+  <meta property="og:url" content="https://threerealmstravel.com/threerealms/itineraries.html">
+  <meta property="og:title" content="Wildlife itineraries — Three Realms Travel">
+  <meta property="og:description" content="Trips built around the animals you want to see, the places they actually live, and the months you can see them.">
+  <meta property="og:image" content="https://res.cloudinary.com/dporenlvw/image/upload/c_fill,g_auto,w_1200,h_630,f_jpg,q_auto/v1778018718/journey-books/trip-recS5kv7AyZNrWzN7/trfwtlya8a0ybmvoggnd.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Wildlife itineraries — Three Realms Travel">
+  <meta name="twitter:description" content="Trips built around the animals you want to see, the places they actually live, and the months you can see them.">
+  <meta name="twitter:image" content="https://res.cloudinary.com/dporenlvw/image/upload/c_fill,g_auto,w_1200,h_630,f_jpg,q_auto/v1778018718/journey-books/trip-recS5kv7AyZNrWzN7/trfwtlya8a0ybmvoggnd.jpg">
+  <link rel="canonical" href="https://threerealmstravel.com/threerealms/itineraries.html">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:   #2dd4bf;
+      --teal2:  #14b8a6;
+      --dark:   #0a1628;
+      --navy:   #0f172a;
+      --s2:     #1e293b;
+      --text:   #f1f5f9;
+      --soft:   #cbd5e1;
+      --muted:  #64748b;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--text); font-family: 'Lora', Georgia, serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(10,22,40,0.95), transparent);
+      backdrop-filter: blur(4px);
+    }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); letter-spacing: 0.04em; text-decoration: none; }
+    .nav-brand span { color: var(--teal); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { color: var(--soft); text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-cta { background: var(--teal); color: #0a1628 !important; padding: 9px 22px; border-radius: 6px; font-weight: 800 !important; }
+
+    .header-section { padding: 140px 48px 32px; max-width: 1200px; margin: 0 auto; }
+    .section-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal);
+      margin-bottom: 16px;
+    }
+    h1 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 3rem; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 18px; }
+    .lead { font-size: 1.1rem; color: var(--soft); line-height: 1.7; max-width: 720px; }
+
+    .itineraries-section { padding: 24px 48px 120px; max-width: 1200px; margin: 0 auto; }
+
+    .continent-group { margin-top: 56px; }
+    .continent-group:first-child { margin-top: 24px; }
+    .continent-heading {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.4rem; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text); margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(45,212,191,0.25);
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .continent-heading .count {
+      font-family: 'Lora', serif; font-weight: 400; font-style: italic;
+      color: var(--muted); font-size: 0.85rem; letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .itineraries-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 380px));
+      justify-content: start;
+      gap: 28px;
+    }
+    .itin-card {
+      background: var(--s2);
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: flex; flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .itin-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: rgba(45,212,191,0.3); }
+    .itin-photo {
+      width: 100%; aspect-ratio: 16 / 10;
+      background: #1e293b; background-size: cover; background-position: center;
+    }
+    .itin-photo.placeholder {
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #0f2a2a 0%, #0d2035 100%);
+      color: rgba(45,212,191,0.35); font-size: 3rem;
+    }
+    .itin-body { padding: 22px 24px 24px; flex: 1; display: flex; flex-direction: column; }
+    .itin-country { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 8px; }
+    .itin-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; line-height: 1.3; color: var(--text); margin-bottom: 12px; }
+    .itin-desc { font-size: 0.95rem; color: var(--soft); line-height: 1.6; flex: 1; margin-bottom: 18px; }
+    .itin-meta {
+      display: flex; flex-wrap: wrap; gap: 8px 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: 'Montserrat', sans-serif; font-size: 0.75rem;
+      color: var(--muted); letter-spacing: 0.04em;
+    }
+    .itin-meta .meta-item { display: inline-flex; align-items: center; gap: 6px; }
+    .itin-meta .meta-value { color: var(--soft); font-weight: 600; }
+
+    .empty, .loading {
+      grid-column: 1 / -1;
+      text-align: center; padding: 80px 20px;
+      color: var(--muted); font-style: italic;
+    }
+
+    @media (max-width: 700px) {
+      nav { padding: 14px 20px; }
+      .nav-links { gap: 16px; }
+      .header-section, .itineraries-section { padding-left: 20px; padding-right: 20px; }
+      h1 { font-size: 2rem; }
+    }
+  
+    /* Preview mode — unmistakable, so a draft is never mistaken for a live page. */
+    html.is-preview body { border-top: 5px solid #fbbf24; }
+    .preview-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+      background: #fbbf24; color: #1a1400;
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.78rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      text-align: center; padding: 9px 16px;
+    }
+    .draft-chip {
+      display: inline-block; background: #fbbf24; color: #1a1400;
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.62rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 4px; margin-right: 8px; vertical-align: 2px;
+    }
+</style>
+<script src="wishlist-widget.js" defer></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/js/mobile-nav.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html"><img src="realm-symbols/logo.png" alt="Three Realms Travel" style="height:90px;width:auto;display:block;"></a>
+  <div class="nav-links">
+    <a href="our-product.html">Product</a>
+    <a href="world-animals.html">World Animals</a>
+    <a href="wildlife-100.html">Wildlife 100</a>
+    <a href="itineraries.html">Itineraries</a>
+    <a href="trip-reports.html">Trip Reports</a>
+    <a href="field-notes.html">Field Notes</a>
+    <a href="https://app.transformedbytravels.com/travelers-corner.html">Travelers&#39; Corner</a>
+    <a href="store.html">Store</a>
+    <a href="partners.html">Partners</a>
+    <a href="https://app.transformedbytravels.com/portal.html" style="color: var(--teal) !important; border: 1px solid var(--teal); padding: 8px 18px; border-radius: 6px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">My Portal</a>
+    <a href="lets-talk.html?ref=nav#book" style="background:var(--teal);color:#0a1628 !important;padding:9px 22px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-decoration:none;letter-spacing:0.05em;">Get Started</a>
+  </div>
+</nav>
+
+<div class="header-section">
+  <div class="section-tag">Trips you can take</div>
+  <h1>Itineraries</h1>
+  <p class="lead">Ready-made journeys designed by our travel specialists — every itinerary balances the right parks, the right timing, and the right pace for the wildlife you came to see. Pick one as-is, or use it as a starting point we shape around you.</p>
+</div>
+
+<div class="itineraries-section" id="itineraries-root">
+  <div class="loading">Loading itineraries…</div>
+</div>
+
+<script>
+// Drafts are hidden unless the page itself was opened with ?preview=1, which is then
+// passed through to the API. Draft pages are also kept out of search engines below.
+const PREVIEW = ['1','true','yes'].includes((new URLSearchParams(location.search).get('preview')||'').toLowerCase());
+const PREVIEW_Q = PREVIEW ? 'preview=1' : '';
+function markDraftPage() {
+  if (!PREVIEW) return;
+  document.documentElement.classList.add('is-preview');
+  if (!document.querySelector('meta[name="robots"]')) {
+    const m = document.createElement('meta');
+    m.name = 'robots'; m.content = 'noindex,nofollow';
+    document.head.appendChild(m);
+  }
+}
+markDraftPage();
+
+// A fixed bar so there is no doubt you are looking at unpublished content.
+if (PREVIEW) {
+  const bar = document.createElement('div');
+  bar.className = 'preview-bar';
+  bar.textContent = 'Preview mode — drafts are visible and this page is hidden from search engines';
+  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(bar));
+  if (document.body) document.body.appendChild(bar);
+}
+
+
+const CONTINENT_ORDER = ['Africa', 'Asia', 'Americas', 'North America', 'South America', 'Central America', 'Europe', 'Oceania', 'Australia', 'Antarctica'];
+
+function fmtPrice(n) {
+  if (n == null || n === '') return null;
+  const v = Number(n);
+  if (!isFinite(v)) return null;
+  return '$' + v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+
+function fmtRange(a, b) {
+  const fa = fmtPrice(a), fb = fmtPrice(b);
+  if (fa && fb) return fa === fb ? fa : `${fa} – ${fb}`;
+  return fa || fb || '';
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function cardHtml(it) {
+  const photoStyle = it.heroPhoto
+    ? `style="background-image:url('${it.heroPhoto.replace(/'/g, '%27')}');"`
+    : '';
+  const photoCls = it.heroPhoto ? 'itin-photo' : 'itin-photo placeholder';
+  const photoInner = it.heroPhoto ? '' : '🗺';
+
+  const country = it.countryOfOrigin || it.countryOfDeparture || '';
+
+  const daysHtml = it.minimumDays
+    ? `<span class="meta-item">From <span class="meta-value">${escHtml(it.minimumDays)} days</span></span>`
+    : '';
+  const priceRange = fmtRange(it.budgetPrice, it.luxuryPrice);
+  const priceHtml = priceRange
+    ? `<span class="meta-item"><span class="meta-value">${escHtml(priceRange)}</span></span>`
+    : '';
+
+  return `
+    <a class="itin-card" href="itinerary.html?name=${encodeURIComponent(it.name)}">
+      <div class="${photoCls}" ${photoStyle}>${photoInner}</div>
+      <div class="itin-body">
+        ${country ? `<div class="itin-country">${escHtml(country)}</div>` : ''}
+        <div class="itin-title">${escHtml(it.name)}</div>
+        <div class="itin-desc">${escHtml(it.description)}</div>
+        ${(daysHtml || priceHtml) ? `<div class="itin-meta">${daysHtml}${priceHtml}</div>` : ''}
+      </div>
+    </a>`;
+}
+
+function groupByContinent(list) {
+  const groups = new Map();
+  list.forEach(i => {
+    const c = i.continent || 'Other';
+    if (!groups.has(c)) groups.set(c, []);
+    groups.get(c).push(i);
+  });
+  const ordered = [];
+  CONTINENT_ORDER.forEach(c => { if (groups.has(c)) { ordered.push([c, groups.get(c)]); groups.delete(c); } });
+  [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0])).forEach(e => ordered.push(e));
+  return ordered;
+}
+
+async function init() {
+  const root = document.getElementById('itineraries-root');
+  try {
+    const resp = await fetch('/api/itineraries' + (PREVIEW_Q ? '?' + PREVIEW_Q : ''));
+    const data = await resp.json();
+    const list = data.itineraries || [];
+    if (!list.length) {
+      root.innerHTML = `<div class="empty">No itineraries yet — check back soon.</div>`;
+      return;
+    }
+    const groups = groupByContinent(list);
+    root.innerHTML = groups.map(([continent, items]) => `
+      <div class="continent-group">
+        <div class="continent-heading">
+          ${escHtml(continent)}
+          <span class="count">${items.length} itinerar${items.length === 1 ? 'y' : 'ies'}</span>
+        </div>
+        <div class="itineraries-grid">${items.map(cardHtml).join('')}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    root.innerHTML = `<div class="empty">Could not load itineraries.</div>`;
+  }
+}
+init();
+</script>
+
+</body>
+</html>

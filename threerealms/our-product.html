@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Our Product — Three Realms Travel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .op-hero {
+      background:
+        radial-gradient(ellipse at 22% 25%, rgba(167,139,250,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse at 78% 40%, rgba(245,158,11,0.18) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 92%, rgba(56,189,248,0.25) 0%, transparent 60%),
+        var(--navy);
+      padding: 140px 24px 72px;
+      text-align: center;
+    }
+    .op-hero-inner { max-width: 820px; margin: 0 auto; }
+    .op-hero h1 {
+      font-family: 'Montserrat', sans-serif; font-weight: 900;
+      font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.15; letter-spacing: -0.02em;
+      color: var(--text); margin-bottom: 18px;
+    }
+    .op-hero p {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 1.1rem; line-height: 1.75; color: var(--soft);
+      max-width: 700px; margin: 0 auto;
+    }
+  </style>
+<script src="wishlist-widget.js" defer></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/js/mobile-nav.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html"><img src="realm-symbols/logo.png" alt="Three Realms Travel" style="height:90px;width:auto;display:block;"></a>
+  <div class="nav-links">
+    <a href="our-product.html">Product</a>
+    <a href="world-animals.html">World Animals</a>
+    <a href="wildlife-100.html">Wildlife 100</a>
+    <a href="itineraries.html">Itineraries</a>
+    <a href="trip-reports.html">Trip Reports</a>
+    <a href="field-notes.html">Field Notes</a>
+    <a href="https://app.transformedbytravels.com/travelers-corner.html">Travelers&#39; Corner</a>
+    <a href="store.html">Store</a>
+    <a href="partners.html">Partners</a>
+    <a href="https://app.transformedbytravels.com/portal.html" style="color: var(--teal) !important; border: 1px solid var(--teal); padding: 8px 18px; border-radius: 6px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">My Portal</a>
+    <a href="lets-talk.html?ref=nav#book" style="background:var(--teal);color:#0a1628 !important;padding:9px 22px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-decoration:none;letter-spacing:0.05em;">Get Started</a>
+  </div>
+</nav>
+
+<div class="op-hero">
+  <div class="op-hero-inner">
+    <div class="section-tag" style="margin-bottom:18px;">The Three Realms platform</div>
+    <h1>Everything you need to plan, live, and remember a wildlife trip</h1>
+    <p>A curated species database, a live day-in-the-field companion, and a printed Journey Book to hold the whole trip forever. Explore what makes Three Realms different.</p>
+  </div>
+</div>
+
+<!-- HOW THE PIECES FIT TOGETHER -->
+<style>
+  .fit-section { background: var(--navy); padding: 88px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .fit-inner { max-width: 1140px; margin: 0 auto; padding: 0 48px; }
+  .fit-intro { text-align: center; margin-bottom: 48px; }
+  .fit-intro h2 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(1.8rem, 3.5vw, 2.6rem); line-height: 1.2; color: var(--text); margin: 8px 0 14px; }
+  .fit-intro p { color: var(--soft); font-size: 1.02rem; max-width: 620px; margin: 0 auto; line-height: 1.7; }
+  .fit-flow { display: flex; align-items: stretch; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .fit-node { flex: 1 1 165px; max-width: 205px; background: var(--dark); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 22px 18px; text-align: center; }
+  .fit-ico { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #061a17; font-size: 1.3rem; }
+  .fit-ico.c-teal  { background: linear-gradient(135deg,#2dd4bf,#0d9488); }
+  .fit-ico.c-blue  { background: linear-gradient(135deg,#38bdf8,#0369a1); }
+  .fit-ico.c-green { background: linear-gradient(135deg,#4ade80,#16a34a); }
+  .fit-ico.c-amber { background: linear-gradient(135deg,#f59e0b,#b45309); }
+  .fit-ico.c-gold  { background: linear-gradient(135deg,#facc15,#b45309); }
+  .fit-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; color: #fff; margin-bottom: 6px; }
+  .fit-desc { font-size: 0.8rem; color: var(--soft); line-height: 1.5; }
+  .fit-arrow { display: flex; align-items: center; color: var(--teal); font-size: 1.4rem; font-weight: 700; }
+  .fit-core { display: flex; align-items: center; gap: 22px; margin-top: 26px; background: linear-gradient(135deg, rgba(45,212,191,0.12), rgba(13,148,136,0.05)); border: 1px solid rgba(45,212,191,0.3); border-radius: 16px; padding: 26px 30px; }
+  .fit-core-ico { width: 58px; height: 58px; border-radius: 14px; background: linear-gradient(135deg,#2dd4bf,#0d9488); display: flex; align-items: center; justify-content: center; color: #061a17; font-size: 1.8rem; flex: none; }
+  .fit-core-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.08rem; color: #fff; margin-bottom: 5px; }
+  .fit-core-desc { font-size: 0.92rem; color: var(--soft); line-height: 1.65; }
+  .fit-coach { display: flex; align-items: center; gap: 22px; margin-bottom: 26px; background: linear-gradient(135deg, rgba(245,158,11,0.13), rgba(180,83,9,0.05)); border: 1px solid rgba(245,158,11,0.32); border-radius: 16px; padding: 22px 28px; }
+  .fit-coach-ico { width: 58px; height: 58px; border-radius: 14px; background: linear-gradient(135deg,#f59e0b,#b45309); display: flex; align-items: center; justify-content: center; color: #1a0f02; font-size: 1.8rem; flex: none; }
+  .fit-coach-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.08rem; color: #fff; margin-bottom: 5px; }
+  .fit-coach-desc { font-size: 0.92rem; color: var(--soft); line-height: 1.65; }
+  @media (max-width: 760px) {
+    .fit-inner { padding: 0 20px; }
+    .fit-node { flex-basis: 100%; max-width: none; }
+    .fit-arrow { transform: rotate(90deg); width: 100%; justify-content: center; }
+    .fit-core, .fit-coach { flex-direction: column; text-align: center; }
+  }
+</style>
+<section class="fit-section">
+  <div class="fit-inner">
+    <div class="fit-intro">
+      <div class="section-tag">One connected system</div>
+      <h2>How the pieces fit together</h2>
+      <p>Every part feeds the same core — so the more you travel, the smarter your next journey gets.</p>
+    </div>
+    <div class="fit-coach">
+      <div class="fit-coach-ico"><i class="ph ph-user-focus"></i></div>
+      <div>
+        <div class="fit-coach-name">Your Coach — alongside you, every step</div>
+        <div class="fit-coach-desc">A real person who's been there, guiding the whole journey — from planning, to watching your sightings roll in from the field in real time, to the final page.</div>
+      </div>
+    </div>
+    <div class="fit-flow">
+      <div class="fit-node"><div class="fit-ico c-teal"><i class="ph ph-map-trifold"></i></div><div class="fit-name">Plan</div><div class="fit-desc">Build your journey around the animals you want to see.</div></div>
+      <div class="fit-arrow">→</div>
+      <div class="fit-node"><div class="fit-ico c-blue"><i class="ph ph-device-mobile"></i></div><div class="fit-name">Guide</div><div class="fit-desc">Your phone leads you in the field, park by park.</div></div>
+      <div class="fit-arrow">→</div>
+      <div class="fit-node"><div class="fit-ico c-green"><i class="ph ph-binoculars"></i></div><div class="fit-name">Log</div><div class="fit-desc">Record every sighting and place as it happens.</div></div>
+      <div class="fit-arrow">→</div>
+      <div class="fit-node"><div class="fit-ico c-amber"><i class="ph ph-users-three"></i></div><div class="fit-name">Share</div><div class="fit-desc">The community and living map grow with every trip.</div></div>
+      <div class="fit-arrow">→</div>
+      <div class="fit-node"><div class="fit-ico c-gold"><i class="ph ph-book-open"></i></div><div class="fit-name">Remember</div><div class="fit-desc">It all becomes your printed Journey Book.</div></div>
+    </div>
+    <div class="fit-core">
+      <div class="fit-core-ico"><i class="ph ph-globe-hemisphere-east"></i></div>
+      <div>
+        <div class="fit-core-name">The Living Wildlife Map &amp; Database</div>
+        <div class="fit-core-desc">The shared core beneath it all: every plan draws from it, every sighting feeds it, and it makes the next journey smarter — yours, and every traveler's after you.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORLD ANIMALS TEASER -->
+<section style="background:var(--dark);padding:88px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">
+  <div style="max-width:760px;margin:0 auto;">
+    <div class="section-tag" style="margin-bottom:14px;">Explore the realms</div>
+    <h2 style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(1.8rem,3.5vw,2.6rem);line-height:1.2;color:var(--text);margin-bottom:16px;">Every wildlife region, on one living map</h2>
+    <p style="color:var(--soft);font-size:1.05rem;line-height:1.75;margin-bottom:30px;">Filter the world by land, ocean, and sky — then click any region to discover the animals that live there and what makes it worth the journey.</p>
+    <a href="world-animals.html" style="display:inline-block;background:var(--teal);color:#0a1628;padding:15px 32px;border-radius:8px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.92rem;letter-spacing:0.03em;text-decoration:none;">Open the World Animals map →</a>
+  </div>
+</section>
+
+<!-- PARK SPECIES PREVIEW -->
+<div class="parks-section" id="parks">
+  <div class="parks-inner">
+    <div style="text-align:center;">
+      <div class="section-tag">Wildlife by park</div>
+      <h2>Know exactly what's waiting for you</h2>
+      <p class="lead" style="max-width:620px;margin:14px auto 0;">Every national park and marine reserve in our network has a curated species list — with conservation status, best sighting times, and the behavioral details that make encounters unforgettable.</p>
+    </div>
+
+    <div class="parks-grid">
+
+      <!-- Land — Bwindi -->
+      <div class="park-card">
+        <div class="park-header">
+          <div class="park-realm-badge" style="background:rgba(217,119,6,0.15);color:#d97706;">🌿 Land Realm</div>
+          <div class="park-name">Bwindi Impenetrable Forest</div>
+          <div class="park-loc">Uganda · East Africa</div>
+        </div>
+        <div class="park-species">
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦍</span>
+              <div>
+                <div class="ps-name">Mountain Gorilla</div>
+                <div class="ps-type">Great ape · Ground-dwelling</div>
+              </div>
+            </div>
+            <span class="ps-status ps-EN">EN</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐒</span>
+              <div>
+                <div class="ps-name">Chimpanzee</div>
+                <div class="ps-type">Great ape · Forest canopy</div>
+              </div>
+            </div>
+            <span class="ps-status ps-EN">EN</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐵</span>
+              <div>
+                <div class="ps-name">Golden Monkey</div>
+                <div class="ps-type">Cercopithecidae · Bamboo forest</div>
+              </div>
+            </div>
+            <span class="ps-status ps-VU">VU</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦜</span>
+              <div>
+                <div class="ps-name">African Green Broadbill</div>
+                <div class="ps-type">Passerine · Afromontane endemic</div>
+              </div>
+            </div>
+            <span class="ps-status ps-VU">VU</span>
+          </div>
+        </div>
+        <div class="park-more">+ <span>47 more species</span> when you sign up →</div>
+      </div>
+
+      <!-- Ocean — Jean-Michel Cousteau Resort, Fiji -->
+      <div class="park-card">
+        <div class="park-header">
+          <div class="park-realm-badge" style="background:rgba(14,165,233,0.15);color:#0ea5e9;">🌊 Ocean Realm</div>
+          <div class="park-name">Jean-Michel Cousteau Resort</div>
+          <div class="park-loc">Savusavu, Fiji · Pacific</div>
+        </div>
+        <div class="park-species">
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦈</span>
+              <div>
+                <div class="ps-name">Grey Reef Shark</div>
+                <div class="ps-type">Elasmobranch · Reef-associated</div>
+              </div>
+            </div>
+            <span class="ps-status ps-NT">NT</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐠</span>
+              <div>
+                <div class="ps-name">Bumphead Parrotfish</div>
+                <div class="ps-type">Scaridae · Coral-grazer</div>
+              </div>
+            </div>
+            <span class="ps-status ps-VU">VU</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐢</span>
+              <div>
+                <div class="ps-name">Green Sea Turtle</div>
+                <div class="ps-type">Cheloniidae · Nesting beaches</div>
+              </div>
+            </div>
+            <span class="ps-status ps-EN">EN</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦑</span>
+              <div>
+                <div class="ps-name">Reef Manta Ray</div>
+                <div class="ps-type">Mobulidae · Pelagic filter-feeder</div>
+              </div>
+            </div>
+            <span class="ps-status ps-VU">VU</span>
+          </div>
+        </div>
+        <div class="park-more">+ <span>38 more species</span> when you sign up →</div>
+      </div>
+
+      <!-- Sky — Mindo Cloud Forest -->
+      <div class="park-card">
+        <div class="park-header">
+          <div class="park-realm-badge" style="background:rgba(139,92,246,0.15);color:#8b5cf6;">🐦 Sky Realm</div>
+          <div class="park-name">Mindo Cloud Forest</div>
+          <div class="park-loc">Ecuador · Andes</div>
+        </div>
+        <div class="park-species">
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦜</span>
+              <div>
+                <div class="ps-name">Resplendent Quetzal</div>
+                <div class="ps-type">Trogonidae · Cloud forest canopy</div>
+              </div>
+            </div>
+            <span class="ps-status ps-NT">NT</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐦</span>
+              <div>
+                <div class="ps-name">Booted Racket-tail</div>
+                <div class="ps-type">Hummingbird · Understory</div>
+              </div>
+            </div>
+            <span class="ps-status ps-LC">LC</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🦅</span>
+              <div>
+                <div class="ps-name">Plate-billed Mountain Toucan</div>
+                <div class="ps-type">Ramphastidae · Montane forest</div>
+              </div>
+            </div>
+            <span class="ps-status ps-LC">LC</span>
+          </div>
+          <div class="ps-row">
+            <div class="ps-left">
+              <span class="ps-emoji">🐓</span>
+              <div>
+                <div class="ps-name">Andean Cock-of-the-rock</div>
+                <div class="ps-type">Cotingidae · Lek displayer</div>
+              </div>
+            </div>
+            <span class="ps-status ps-LC">LC</span>
+          </div>
+        </div>
+        <div class="park-more">+ <span>312 more species</span> when you sign up →</div>
+      </div>
+
+    </div>
+
+    <div class="parks-cta">
+      <p>Species lists, sighting times, and behavioral notes across all 32 wildlife regions — available when you sign up.</p>
+      <a href="portal.html" class="hero-cta" style="display:inline-block;">Explore the full database →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ITINERARY DEMO -->
+<div class="demo-section" id="demo">
+  <div class="demo-inner">
+    <div class="section-tag">See it in action</div>
+    <h2>A day in the field</h2>
+    <p class="lead" style="max-width:640px;margin-top:14px;">This is what a trip looks like inside the app — your planner's expert notes, your co-traveler's live sightings, and your personal wish-list all updating together in real time.</p>
+
+    <div class="demo-tabs" style="display:flex;gap:10px;margin:36px 0 28px;flex-wrap:wrap;">
+      <button class="realm-btn active" data-realm="land"  onclick="showRealmDemo('land')">🌿 Land — Safari</button>
+      <button class="realm-btn"        data-realm="ocean" onclick="showRealmDemo('ocean')">🌊 Ocean — Diving</button>
+      <button class="realm-btn"        data-realm="sky"   onclick="showRealmDemo('sky')">🐦 Sky — Birding</button>
+    </div>
+
+    <!-- ── LAND ── -->
+    <div class="demo-layout demo-day" id="demo-land">
+      <div class="day-panel demo-reveal">
+        <div class="day-header">
+          <span class="day-title">Day 3 &nbsp;·&nbsp; Masai Mara, Kenya</span>
+          <span class="day-badge">🌿 Land Realm</span>
+        </div>
+        <div class="day-items">
+          <div class="day-item">
+            <div class="day-time">5:30am</div>
+            <div>
+              <div class="day-activity">Wake-up call &amp; packed breakfast</div>
+              <div class="day-desc">Early start to catch first light on the plains. Predator activity peaks in the two hours after dawn.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">6:00am</div>
+            <div>
+              <div class="day-activity">Morning game drive — Mara River</div>
+              <div class="day-desc">Head directly to the crossing point. Migration timing is peak — wildebeest are massing on the north bank.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill pill-wish">● African Lion — on your list</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#d97706"></span>Cheetah</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#d97706"></span>Wildebeest</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">12:30pm</div>
+            <div>
+              <div class="day-activity">Lunch &amp; rest at camp</div>
+              <div class="day-desc">Wildlife slows in the midday heat. Review this morning's sightings and update your log before the afternoon drive.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">4:00pm</div>
+            <div>
+              <div class="day-activity">Afternoon drive — Bila Shaka area</div>
+              <div class="day-desc">Best light of the day. Highest cheetah density in the Mara — and where leopard are often found at dusk.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Lilac-breasted Roller</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#d97706"></span>Leopard</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">7:30pm</div>
+            <div>
+              <div class="day-activity">Dinner &amp; debrief at camp</div>
+              <div class="day-desc">Log your sightings. Tomorrow: early departure south toward Amboseli and Kilimanjaro views.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="collab-sidebar">
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-planner">🧭 Your travel planner</div>
+          <div class="collab-text">"Be at the Mara River by 6:30am. Watch for the herd massing on the north bank — when the lead animals start pacing the water's edge, a crossing is usually 20 minutes away. Don't leave early."</div>
+          <div class="collab-meta">Added to Day 3 · 4 days ago</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-cotraveler">👤 Sarah · co-traveler</div>
+          <div class="collab-text">"Cheetah with 3 cubs in the Bila Shaka grass. They were watching the zebra. Just sitting there. Unbelievable."</div>
+          <div class="collab-meta"><span class="live-dot"></span>Logged 7:42am · Morning game drive</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-app">✓ Wildlife tracker</div>
+          <div class="collab-text" style="font-style:normal;color:var(--text);">Cheetah matched your wish-list. <strong>4 of 12 species</strong> sighted so far.</div>
+          <div class="sighting-pills" style="margin-top:12px;">
+            <span class="sighting-pill pill-wish">● Cheetah ✓</span>
+            <span class="sighting-pill pill-wish">● African Lion ✓</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Leopard</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Wild Dog</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OCEAN ── -->
+    <div class="demo-layout demo-day" id="demo-ocean" style="display:none;">
+      <div class="day-panel demo-reveal">
+        <div class="day-header">
+          <span class="day-title">Day 4 &nbsp;·&nbsp; Jean-Michel Cousteau Resort, Fiji</span>
+          <span class="day-badge" style="background:rgba(14,165,233,0.15);color:#38bdf8;border-color:rgba(14,165,233,0.3);">🌊 Ocean Realm</span>
+        </div>
+        <div class="day-items">
+          <div class="day-item">
+            <div class="day-time">6:30am</div>
+            <div>
+              <div class="day-activity">Pre-dive briefing — Dreamhouse conditions</div>
+              <div class="day-desc">Current is running well this morning — ideal for pelagics. Visibility 20m+. The dive team recommends descending along the drop-off edge and holding position mid-water to let the sharks come to you.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">7:15am</div>
+            <div>
+              <div class="day-activity">Dive 1 — Dreamhouse</div>
+              <div class="day-desc">A prime pelagic site on a good current day. Gorgonian sea fans sway along the drop-off edges as barracuda school overhead. Grey reef and white tip sharks patrol the wall while turtles glide through the current below. Recommended for seasoned divers.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill pill-wish">● Grey Reef Shark — on your list</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>White Tip Reef Shark</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Green Sea Turtle</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Barracuda</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">10:00am</div>
+            <div>
+              <div class="day-activity">Surface interval — resort beach</div>
+              <div class="day-desc">Rest and rehydrate. Review this morning's sightings and log species while the detail is fresh. The house reef is walkable from the beach if you want a gentle snorkel.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">1:00pm</div>
+            <div>
+              <div class="day-activity">Dive 2 — Coral Corner</div>
+              <div class="day-desc">Shallower afternoon dive into Fiji's famous soft coral gardens. Staghorn and table corals carpeted in purple, orange, and red. Bumphead parrotfish work the reef — you can hear them crunching coral from 10 metres away.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill pill-wish">● Bumphead Parrotfish — on your list</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Napoleonfish</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Clownfish</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">4:00pm</div>
+            <div>
+              <div class="day-activity">Dive 3 — Annie's Bommie</div>
+              <div class="day-desc">Late afternoon light through the water makes this bommie extraordinary. Mandarin fish emerge at dusk. Sea kraits coil in the coral heads. End the dive as the reef begins its evening shift change.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Mandarin Fish</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Banded Sea Krait</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#0ea5e9"></span>Lionfish</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">6:30pm</div>
+            <div>
+              <div class="day-activity">Species log &amp; sunset drinks</div>
+              <div class="day-desc">Log all three dives before dinner. Three dives, three completely different ecosystems — all within a few kilometres of the resort.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="collab-sidebar">
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-planner">🧭 Your travel planner</div>
+          <div class="collab-text">"Dreamhouse needs the right current to perform — and today it's perfect. Stay mid-water on the drop-off and let the sharks work around you. Don't chase them. The ones that come closest are the ones you stayed still for."</div>
+          <div class="collab-meta">Added to Day 4 · 5 days ago</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-cotraveler">👤 Emma · family</div>
+          <div class="collab-text">"The bumphead parrotfish at Coral Corner — there must have been 40 of them. You could feel the sound through your whole body. I had no idea fish could be that big."</div>
+          <div class="collab-meta"><span class="live-dot"></span>Logged 1:48pm · Dive 2 Coral Corner</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-app">✓ Wildlife tracker</div>
+          <div class="collab-text" style="font-style:normal;color:var(--text);">Bumphead Parrotfish matched your wish-list. <strong>4 of 10 species</strong> sighted so far.</div>
+          <div class="sighting-pills" style="margin-top:12px;">
+            <span class="sighting-pill pill-wish">● Grey Reef Shark ✓</span>
+            <span class="sighting-pill pill-wish">● Bumphead Parrotfish ✓</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Manta Ray</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Hammerhead</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SKY ── -->
+    <div class="demo-layout demo-day" id="demo-sky" style="display:none;">
+      <div class="day-panel demo-reveal">
+        <div class="day-header">
+          <span class="day-title">Day 2 &nbsp;·&nbsp; Mindo Cloud Forest, Ecuador</span>
+          <span class="day-badge" style="background:rgba(139,92,246,0.15);color:#a78bfa;border-color:rgba(139,92,246,0.3);">🐦 Sky Realm</span>
+        </div>
+        <div class="day-items">
+          <div class="day-item">
+            <div class="day-time">5:00am</div>
+            <div>
+              <div class="day-activity">Pre-dawn departure from lodge</div>
+              <div class="day-desc">In position on the trail before first light. The dawn chorus begins 20 minutes before sunrise — this is when the cloud forest comes alive.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">5:30am</div>
+            <div>
+              <div class="day-activity">Dawn birding walk — Mindo valley trail</div>
+              <div class="day-desc">The fruiting aguacatillo trees at km 3.2 are the quetzal hotspot right now. Move slowly, speak quietly, let the forest settle around you.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill pill-wish">● Resplendent Quetzal — on your list</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Plate-billed Mountain Toucan</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Cock-of-the-rock</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">8:30am</div>
+            <div>
+              <div class="day-activity">Breakfast at lodge &amp; species log</div>
+              <div class="day-desc">Record this morning's sightings while memory is fresh. Cloud forest birds are notoriously difficult to confirm by description alone.</div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">9:30am</div>
+            <div>
+              <div class="day-activity">Hummingbird feeders &amp; tanager trail</div>
+              <div class="day-desc">The lodge feeders attract up to 14 hummingbird species. The trail behind draws tanagers in extraordinary variety — up to 40 species in a morning.</div>
+              <div class="sighting-pills">
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Violet-tailed Sylph</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Paradise Tanager</span>
+                <span class="sighting-pill"><span class="pill-dot" style="background:#8b5cf6"></span>Booted Racket-tail</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-item">
+            <div class="day-time">4:00pm</div>
+            <div>
+              <div class="day-activity">Evening walk — antpitta feeding station</div>
+              <div class="day-desc">The lodge's habituated Giant Antpitta comes to the same spot every evening at 4:15. One of the most reliable encounters in birding.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="collab-sidebar">
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-planner">🧭 Your travel planner</div>
+          <div class="collab-text">"The quetzal is most active in the 45 minutes after first light. Your guide knows the exact fruiting tree — trust his positioning. If you don't see it by 7am, move to the ridge trail. A second male has been working the area above the waterfall."</div>
+          <div class="collab-meta">Added to Day 2 · 3 days ago</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-cotraveler">👤 David · co-traveler</div>
+          <div class="collab-text">"QUETZAL. Right at eye level, three metres away, full tail feathers catching the light. I didn't breathe for about three minutes. Best bird of my life."</div>
+          <div class="collab-meta"><span class="live-dot"></span>Logged 6:08am · Dawn valley walk</div>
+        </div>
+        <div class="collab-card demo-reveal">
+          <div class="collab-from from-app">✓ Wildlife tracker</div>
+          <div class="collab-text" style="font-style:normal;color:var(--text);">Resplendent Quetzal matched your wish-list. <strong>5 of 15 species</strong> sighted so far.</div>
+          <div class="sighting-pills" style="margin-top:12px;">
+            <span class="sighting-pill pill-wish">● Resplendent Quetzal ✓</span>
+            <span class="sighting-pill pill-wish">● Cock-of-the-rock ✓</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Harpy Eagle</span>
+            <span class="sighting-pill"><span class="pill-dot" style="background:var(--muted)"></span>Andean Condor</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LIVING SIGHTINGS MAP -->
+<style>
+  .tcm-section{background:var(--navy);padding:88px 24px;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .tcm-inner{max-width:1080px;margin:0 auto;text-align:center;}
+  .tcm-inner h2{font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(1.8rem,3.5vw,2.6rem);line-height:1.2;color:var(--text);margin:6px 0 16px;}
+  .tcm-inner .tcm-lede{color:var(--soft);font-size:1.05rem;line-height:1.75;max-width:680px;margin:0 auto 34px;}
+  .tcm-frame{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,0.09);box-shadow:0 26px 70px rgba(0,0,0,0.45);}
+  .tcm-frame svg{display:block;width:100%;height:auto;}
+  .tcm-plabel{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;fill:#c8d5e6;}
+  .tcm-clabel{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:800;fill:#43608f;letter-spacing:0.22em;}
+  .tcm-water{font-family:'Montserrat',sans-serif;font-size:12px;fill:#3f679c;letter-spacing:0.05em;}
+  .tcm-chrome{position:absolute;left:16px;top:14px;display:inline-flex;background:rgba(10,22,40,0.82);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:3px;}
+  .tcm-chrome b{font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.74rem;padding:6px 13px;border-radius:8px;color:var(--muted);}
+  .tcm-chrome b.on{background:var(--teal);color:#06231f;}
+  .tcm-pop{position:absolute;background:rgba(14,26,46,0.96);border:1px solid rgba(251,191,36,0.5);border-radius:12px;padding:10px 12px;width:205px;text-align:left;box-shadow:0 14px 34px rgba(0,0,0,0.5);}
+  .tcm-pop .sp{font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.9rem;color:var(--text);}
+  .tcm-pop .mt{font-size:0.78rem;color:var(--soft);margin-top:4px;}
+  .tcm-pop .lk{display:flex;gap:6px;margin-top:7px;font-size:0.7rem;color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.28);border-radius:8px;padding:5px 7px;}
+  .tcm-pop.exact{border-color:rgba(45,212,191,0.45);}
+  .tcm-pop .chip{display:inline-block;margin-top:7px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.66rem;color:var(--teal);background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.3);padding:3px 8px;border-radius:20px;}
+  .tcm-pop .wn{font-family:'Montserrat',sans-serif;font-size:0.68rem;color:var(--muted);margin-top:5px;}
+  .tcm-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px;text-align:left;}
+  @media(max-width:680px){.tcm-cards{grid-template-columns:1fr;}}
+  .tcm-card{background:linear-gradient(180deg,rgba(22,36,63,0.7),rgba(17,31,55,0.4));border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px 18px;}
+  .tcm-card h3{font-family:'Montserrat',sans-serif;font-size:0.7rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal);margin:0 0 12px;}
+  .tcm-card.prot h3{color:#fbbf24;}
+  .tcm-lg{display:flex;align-items:center;gap:11px;font-size:0.9rem;color:var(--soft);margin-bottom:10px;}
+  .tcm-lg:last-child{margin-bottom:0;}
+  .tcm-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,0.65);}
+  .tcm-ring{width:16px;height:16px;border-radius:50%;flex-shrink:0;border:2px dashed #fbbf24;background:rgba(251,191,36,0.14);}
+  .tcm-card.prot .big{font-family:'Montserrat',sans-serif;font-weight:800;color:var(--text);font-size:1rem;display:flex;gap:8px;margin-bottom:8px;}
+  .tcm-card.prot p{margin:0;font-size:0.92rem;color:var(--soft);line-height:1.6;}
+  .tcm-cta{display:inline-block;margin-top:32px;background:var(--teal);color:#0a1628;padding:15px 32px;border-radius:8px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.92rem;letter-spacing:0.03em;text-decoration:none;}
+</style>
+<section class="tcm-section">
+  <div class="tcm-inner">
+    <div class="section-tag">The community map</div>
+    <h2>See what's being spotted, right now</h2>
+    <p class="tcm-lede">Every animal our travelers find in the field lands on one living map — a real, community-built record of what's being seen across the great parks, updated as it happens.</p>
+
+    <div class="tcm-frame">
+      <svg viewBox="0 0 1000 560" role="img" aria-label="Map of East African parks with recent wildlife sightings">
+        <defs>
+          <radialGradient id="tcmbg" cx="50%" cy="35%" r="75%"><stop offset="0%" stop-color="#13253f"/><stop offset="100%" stop-color="#0a1628"/></radialGradient>
+        </defs>
+        <rect width="1000" height="560" fill="url(#tcmbg)"/>
+        <g stroke="rgba(255,255,255,0.03)" stroke-width="1">
+          <line x1="0" y1="140" x2="1000" y2="140"/><line x1="0" y1="280" x2="1000" y2="280"/><line x1="0" y1="420" x2="1000" y2="420"/>
+          <line x1="250" y1="0" x2="250" y2="560"/><line x1="500" y1="0" x2="500" y2="560"/><line x1="750" y1="0" x2="750" y2="560"/>
+        </g>
+        <path d="M90,130 Q260,66 460,90 Q660,112 820,90 Q930,205 880,350 Q930,460 760,498 Q520,542 300,498 Q120,460 96,335 Q60,215 90,130 Z" fill="#0f2540" stroke="rgba(120,160,210,0.12)" stroke-width="1.5"/>
+        <path d="M430,275 Q520,258 566,305 Q590,372 520,404 Q444,420 420,354 Q408,300 430,275 Z" fill="#123863" opacity="0.92"/>
+        <text x="493" y="344" class="tcm-water" text-anchor="middle">Lake Victoria</text>
+        <text x="210" y="228" class="tcm-clabel" text-anchor="middle" opacity="0.55">UGANDA</text>
+        <text x="250" y="392" class="tcm-clabel" text-anchor="middle" opacity="0.55">RWANDA</text>
+        <text x="720" y="215" class="tcm-clabel" text-anchor="middle" opacity="0.55">KENYA</text>
+        <text x="590" y="512" class="tcm-clabel" text-anchor="middle" opacity="0.55">TANZANIA</text>
+        <g fill="rgba(74,222,128,0.05)" stroke="rgba(74,222,128,0.18)" stroke-width="1">
+          <ellipse cx="210" cy="170" rx="38" ry="26"/><ellipse cx="185" cy="288" rx="36" ry="25"/>
+          <ellipse cx="235" cy="360" rx="28" ry="20"/><ellipse cx="300" cy="372" rx="32" ry="22"/>
+          <ellipse cx="560" cy="435" rx="44" ry="30"/><ellipse cx="560" cy="372" rx="38" ry="24"/>
+          <ellipse cx="655" cy="330" rx="28" ry="20"/><ellipse cx="705" cy="430" rx="32" ry="22"/>
+          <ellipse cx="620" cy="475" rx="28" ry="18"/><ellipse cx="720" cy="275" rx="30" ry="20"/>
+        </g>
+        <g>
+          <text x="210" y="138" class="tcm-plabel" text-anchor="middle">Murchison Falls</text>
+          <text x="150" y="288" class="tcm-plabel" text-anchor="end">Queen Elizabeth</text>
+          <text x="205" y="394" class="tcm-plabel" text-anchor="middle">Bwindi</text>
+          <text x="235" y="338" class="tcm-plabel" text-anchor="middle">Volcanoes</text>
+          <text x="330" y="404" class="tcm-plabel" text-anchor="middle">Akagera</text>
+          <text x="560" y="474" class="tcm-plabel" text-anchor="middle">Serengeti</text>
+          <text x="560" y="346" class="tcm-plabel" text-anchor="middle">Masai Mara</text>
+          <text x="685" y="318" class="tcm-plabel" text-anchor="start">L. Nakuru</text>
+          <text x="705" y="460" class="tcm-plabel" text-anchor="middle">Amboseli</text>
+          <text x="620" y="502" class="tcm-plabel" text-anchor="middle">Ngorongoro</text>
+          <text x="752" y="275" class="tcm-plabel" text-anchor="start">Samburu</text>
+        </g>
+        <!-- exact pins -->
+        <g stroke="#0a1628" stroke-width="2">
+          <circle cx="315" cy="377" r="6.5" fill="#4ade80"/><circle cx="292" cy="365" r="6.5" fill="#b3a9ff"/>
+          <circle cx="575" cy="442" r="6.5" fill="#4ade80"/><circle cx="548" cy="428" r="6.5" fill="#4ade80"/>
+          <circle cx="572" cy="378" r="6.5" fill="#4ade80"/><circle cx="655" cy="330" r="6.5" fill="#b3a9ff"/>
+          <circle cx="170" cy="295" r="6.5" fill="#b3a9ff"/><circle cx="712" cy="273" r="6.5" fill="#4ade80"/>
+          <circle cx="200" cy="168" r="6.5" fill="#4ade80"/><circle cx="618" cy="470" r="6.5" fill="#b3a9ff"/>
+        </g>
+        <!-- protected park-level markers -->
+        <g>
+          <circle cx="560" cy="435" r="28" fill="rgba(251,191,36,0.09)" stroke="#fbbf24" stroke-dasharray="4 4" stroke-width="1.5"/>
+          <circle cx="547" cy="445" r="12" fill="#182a49" stroke="#fbbf24" stroke-width="2"/><text x="547" y="450" text-anchor="middle" font-size="13">🦁</text>
+          <circle cx="559" cy="436" r="8" fill="#fbbf24"/><text x="559" y="440" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a00">9</text>
+          <circle cx="560" cy="372" r="24" fill="rgba(251,191,36,0.09)" stroke="#fbbf24" stroke-dasharray="4 4" stroke-width="1.5"/>
+          <circle cx="553" cy="379" r="12" fill="#182a49" stroke="#fbbf24" stroke-width="2"/><text x="553" y="384" text-anchor="middle" font-size="13">🐘</text>
+          <circle cx="565" cy="369" r="8" fill="#fbbf24"/><text x="565" y="373" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a00">5</text>
+          <circle cx="620" cy="475" r="22" fill="rgba(251,191,36,0.09)" stroke="#fbbf24" stroke-dasharray="4 4" stroke-width="1.5"/>
+          <circle cx="620" cy="475" r="12" fill="#182a49" stroke="#fbbf24" stroke-width="2"/><text x="620" y="480" text-anchor="middle" font-size="13">🦏</text>
+          <circle cx="632" cy="465" r="8" fill="#fbbf24"/><text x="632" y="469" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a00">3</text>
+          <circle cx="705" cy="430" r="24" fill="rgba(251,191,36,0.09)" stroke="#fbbf24" stroke-dasharray="4 4" stroke-width="1.5"/>
+          <circle cx="705" cy="430" r="12" fill="#182a49" stroke="#fbbf24" stroke-width="2"/><text x="705" y="435" text-anchor="middle" font-size="13">🐘</text>
+          <circle cx="717" cy="420" r="8" fill="#fbbf24"/><text x="717" y="424" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a00">7</text>
+          <circle cx="235" cy="360" r="22" fill="rgba(251,191,36,0.09)" stroke="#fbbf24" stroke-dasharray="4 4" stroke-width="1.5"/>
+          <circle cx="235" cy="360" r="12" fill="#182a49" stroke="#fbbf24" stroke-width="2"/><text x="235" y="365" text-anchor="middle" font-size="13">🦍</text>
+          <circle cx="247" cy="350" r="8" fill="#fbbf24"/><text x="247" y="354" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a00">6</text>
+          <circle cx="185" cy="288" r="24" fill="rgba(251,191,36,0.09)" stroke="#fbbf24" stroke-dasharray="4 4" stroke-width="1.5"/>
+          <circle cx="192" cy="295" r="12" fill="#182a49" stroke="#fbbf24" stroke-width="2"/><text x="192" y="300" text-anchor="middle" font-size="12">🦛</text>
+          <circle cx="204" cy="285" r="8" fill="#fbbf24"/><text x="204" y="289" text-anchor="middle" font-size="9.5" font-weight="800" fill="#3a2a00">4</text>
+        </g>
+        <circle cx="572" cy="378" r="12" fill="none" stroke="#2dd4bf" stroke-width="2" opacity="0.85"/>
+      </svg>
+      <div class="tcm-chrome"><b>Feed</b><b class="on">🗺 Map</b></div>
+      <div class="tcm-pop exact" style="right:4%;top:11%;">
+        <div class="sp">🦓 Plains Zebra</div>
+        <div class="mt">Seen at <b style="color:#dfe9f6">Masai Mara</b></div>
+        <div class="wn">📅 Spotted 2 days ago</div>
+        <div class="chip">Seen 6 times here this month</div>
+      </div>
+      <div class="tcm-pop" style="left:5%;top:56%;">
+        <div class="sp">🦍 Mountain Gorilla</div>
+        <div class="mt">Seen in <b style="color:#dfe9f6">Volcanoes NP</b></div>
+        <div class="lk">🔒 Protected — shown at park level; the exact spot is never shared.</div>
+      </div>
+    </div>
+
+    <div class="tcm-cards">
+      <div class="tcm-card">
+        <h3>What the pins mean</h3>
+        <div class="tcm-lg"><span class="tcm-dot" style="background:#4ade80"></span> Land animals — the exact place they were seen</div>
+        <div class="tcm-lg"><span class="tcm-dot" style="background:#b3a9ff"></span> Birds &amp; sky — the exact place they were seen</div>
+        <div class="tcm-lg"><span class="tcm-ring"></span> Protected species — grouped at park level, with a count</div>
+      </div>
+      <div class="tcm-card prot">
+        <h3>Built-in protection</h3>
+        <div class="big">🔒 Endangered animals are never pinpointed</div>
+        <p>Rhino, gorilla, elephant and other at-risk species are automatically shown at park level only — safe from poachers, still inspiring to explore.</p>
+      </div>
+    </div>
+
+    <a class="tcm-cta" href="https://app.transformedbytravels.com/travelers-corner.html">Explore the live map →</a>
+  </div>
+</section>
+
+<!-- JOURNEY BOOK -->
+<div class="book-section" id="journey-book">
+  <div class="book-inner">
+
+    <div>
+      <div class="section-tag">Your trip, captured forever</div>
+      <h2>The Journey Book</h2>
+      <p class="lead" style="margin-top:14px;">Every trip you take becomes a beautifully assembled photo book — your photos, your sightings, your itinerary, all in one place. Browse it online the moment you're home. Order a printed copy to keep on your shelf forever.</p>
+
+      <div class="book-features">
+        <div class="book-feature">
+          <div class="book-feature-icon">📸</div>
+          <div>
+            <h3>Built from your trip photos</h3>
+            <p>Upload photos as you go or all at once when you're back. The app assembles them into a beautifully laid-out book alongside your itinerary and sighting log.</p>
+          </div>
+        </div>
+        <div class="book-feature">
+          <div class="book-feature-icon">🦁</div>
+          <div>
+            <h3>Your sightings, not just your photos</h3>
+            <p>Every species you logged on the trip appears in your book — with the date, the location, and the park. Your wildlife record, beautifully presented.</p>
+          </div>
+        </div>
+        <div class="book-feature">
+          <div class="book-feature-icon">📖</div>
+          <div>
+            <h3>Digital first, print on demand</h3>
+            <p>Your Journey Book lives in the app from the moment the trip ends. When you're ready, order a premium printed copy — hardcover, lay-flat binding, ready for the coffee table.</p>
+          </div>
+        </div>
+        <div class="book-feature">
+          <div class="book-feature-icon">👥</div>
+          <div>
+            <h3>Shared with everyone on the trip</h3>
+            <p>Co-travelers see the same book. Everyone's photos can go in. One book tells the whole story — from every angle, every vehicle, every perspective.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-visual">
+      <div class="book-mockup">
+        <div class="book-spine"></div>
+        <div class="book-cover">
+          <div class="book-cover-tag">Journey Book</div>
+          <div class="book-cover-title">East Africa<br>Safari 2025</div>
+          <div class="book-cover-sub">Masai Mara · Amboseli · Samburu</div>
+          <div class="book-cover-divider"></div>
+          <div class="book-cover-rows">
+            <div class="book-cover-row">
+              <div class="book-img-block book-img-tall accent"></div>
+              <div class="book-img-block book-img-tall" style="flex:0.7"></div>
+            </div>
+            <div class="book-cover-row">
+              <div class="book-img-block book-img-wide" style="flex:0.7"></div>
+              <div class="book-img-block book-img-wide accent"></div>
+            </div>
+            <div class="book-cover-row">
+              <div class="book-img-block book-img-tall"></div>
+              <div class="book-img-block book-img-tall accent" style="flex:0.7"></div>
+            </div>
+          </div>
+          <div class="book-cover-footer">
+            <div class="book-cover-label">34 species · 12 days</div>
+            <div class="book-cover-badge">🌿 Land Realm</div>
+          </div>
+        </div>
+        <div class="book-pages"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CTA -->
+<div style="background:var(--navy);padding:96px 24px;text-align:center;">
+  <div style="max-width:640px;margin:0 auto;">
+    <div class="section-tag">Ready to see it in action?</div>
+    <h2 style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(1.6rem,3vw,2.3rem);line-height:1.2;color:var(--text);margin:14px 0 22px;">Start planning your wildlife trip</h2>
+    <a href="index.html#cta" class="hero-cta" style="display:inline-block;">Get started →</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-brand">THREE <span>REALMS</span> TRAVEL</div>
+    <p>Wildlife travel for the serious adventurer — land, ocean, sky.</p>
+  </div>
+  <p>© 2026 Three Realms Travel</p>
+</footer>
+
+<script>
+// Demo section: realm tab switching + scroll-reveal
+function showRealmDemo(realm) {
+  document.querySelectorAll('.demo-tabs .realm-btn').forEach(b => b.classList.toggle('active', b.dataset.realm === realm));
+  document.querySelectorAll('.demo-day').forEach(panel => {
+    const isTarget = panel.id === 'demo-' + realm;
+    if (!isTarget) { panel.style.display = 'none'; return; }
+    panel.style.display = 'grid';
+    panel.style.opacity = '0';
+    // Reset and re-run reveal animations
+    panel.querySelectorAll('.demo-reveal').forEach(el => {
+      el.classList.remove('visible');
+      el.style.transitionDelay = '0s';
+    });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      panel.style.transition = 'opacity 0.3s ease';
+      panel.style.opacity = '1';
+      panel.querySelectorAll('.demo-reveal').forEach((el, i) => {
+        el.style.transitionDelay = (i * 0.13) + 's';
+        setTimeout(() => el.classList.add('visible'), 60 + i * 130);
+      });
+    }));
+  });
+}
+window.showRealmDemo = showRealmDemo;
+
+// Initial reveal for the land panel — unconditionally show content on load
+// (the scroll-reveal observer was fragile; fast scroll / jump-links could miss it)
+(function() {
+  const reveal = () => {
+    document.querySelectorAll('#demo-land .demo-reveal').forEach((el, i) => {
+      el.style.transitionDelay = (i * 0.13) + 's';
+      setTimeout(() => el.classList.add('visible'), i * 130);
+    });
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', reveal);
+  } else {
+    reveal();
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Map style options — Three Realms</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--teal:#2dd4bf;--dark:#0a1628;--navy:#0f172a;--s2:#1e293b;--text:#f1f5f9;--soft:#cbd5e1;--muted:#64748b;}
+  body{background:var(--navy);color:var(--text);font-family:'Lora',Georgia,serif;padding:28px 20px 80px;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  h1{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.6rem;margin-bottom:6px;}
+  .lead{color:var(--soft);margin-bottom:26px;font-size:.98rem;}
+  .opt{background:var(--s2);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;margin-bottom:26px;}
+  .head{padding:15px 20px 12px;border-bottom:1px solid rgba(255,255,255,.06);}
+  .name{font-family:'Montserrat',sans-serif;font-weight:800;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);}
+  .desc{font-size:.88rem;color:var(--muted);margin-top:5px;}
+  .m{height:420px;width:100%;background:var(--dark);}
+  .leaflet-container{background:var(--dark);font-family:'Montserrat',sans-serif;}
+  .leaflet-container a{color:var(--teal);}
+  .leaflet-tooltip.stop-tip{background:var(--dark);border:1px solid rgba(45,212,191,.4);color:var(--text);
+    font-family:'Montserrat',sans-serif;font-size:.78rem;font-weight:700;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.5);}
+  .leaflet-tooltip.stop-tip::before{border-top-color:rgba(45,212,191,.4);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Trip map — basemap options</h1>
+  <p class="lead">Same eight Canadian Rockies stops on four backgrounds. Hover a pin for its name. Tell me which number to use.</p>
+  <div id="opts"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const E = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+const STOPS = [
+  ['Cathedral Mountain Lodge', 51.4226, -116.4356],
+  ['Lake O’Hara',          51.3558, -116.3308],
+  ['Yoho National Park',       51.3748, -116.5358],
+  ['Banff',                    51.1751, -115.5721],
+  ['Kootenay National Park',   50.9419, -115.9908],
+  ['Icefields Parkway',        51.4443, -116.2068],
+  ['Jasper National Park',     52.8041, -117.8048],
+  ['Mount Assiniboine',        50.8700, -115.6513],
+];
+
+const OPTIONS = [
+  { n: 1, name: 'Option 1 — Dark gray + place names',
+    desc: 'What you have now, plus the labels layer that was missing. Stays closest to the site’s dark look.',
+    layers: [ E+'Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+              E+'Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}' ] },
+  { n: 2, name: 'Option 2 — Shaded terrain + names',
+    desc: 'Hillshade relief so the mountains and valleys read as mountains. Muted enough to sit on a dark page.',
+    layers: [ E+'Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}',
+              E+'Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}' ] },
+  { n: 3, name: 'Option 3 — Satellite + names',
+    desc: 'Real imagery: snow, lakes, forest. Most dramatic and most obviously “the Rockies”, but brightest against the dark page.',
+    layers: [ E+'World_Imagery/MapServer/tile/{z}/{y}/{x}',
+              E+'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}' ] },
+  { n: 4, name: 'Option 4 — Topographic',
+    desc: 'Parks, roads, and trails shaded like a paper map. The most informative, the least dark-themed.',
+    layers: [ E+'World_Topo_Map/MapServer/tile/{z}/{y}/{x}' ] },
+];
+
+const root = document.getElementById('opts');
+OPTIONS.forEach(o => {
+  const el = document.createElement('div');
+  el.className = 'opt';
+  el.innerHTML = `<div class="head"><div class="name">${o.name}</div><div class="desc">${o.desc}</div></div>
+                  <div class="m" id="m${o.n}"></div>`;
+  root.appendChild(el);
+
+  const map = L.map('m'+o.n, { scrollWheelZoom:false, zoomControl:true });
+  o.layers.forEach(u => L.tileLayer(u, { attribution:'Tiles © Esri', maxZoom:16 }).addTo(map));
+  const pts = [];
+  STOPS.forEach(([name, lat, lng]) => {
+    pts.push([lat,lng]);
+    L.circleMarker([lat,lng], { radius:8, color:'#0a1628', weight:2, fillColor:'#2dd4bf', fillOpacity:1 })
+      .addTo(map).bindTooltip(name, { className:'stop-tip', direction:'top', offset:[0,-8] });
+  });
+  map.fitBounds(L.latLngBounds(pts).pad(0.18));
+});
+</script>
+</body>
+</html>

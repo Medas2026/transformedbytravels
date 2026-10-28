@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Itinerary — Three Realms Travel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:   #2dd4bf;
+      --teal2:  #14b8a6;
+      --dark:   #0a1628;
+      --navy:   #0f172a;
+      --s2:     #1e293b;
+      --s3:     #263449;
+      --text:   #f1f5f9;
+      --soft:   #cbd5e1;
+      --muted:  #64748b;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--text); font-family: 'Lora', Georgia, serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(10,22,40,0.95), transparent);
+      backdrop-filter: blur(4px);
+    }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); letter-spacing: 0.04em; text-decoration: none; }
+    .nav-brand span { color: var(--teal); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { color: var(--soft); text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-cta { background: var(--teal); color: #0a1628 !important; padding: 9px 22px; border-radius: 6px; font-weight: 800 !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 60vh;
+      position: relative;
+      display: flex; align-items: flex-end;
+      padding: 0 48px 72px;
+      overflow: hidden;
+    }
+    .hero-bg { position: absolute; inset: 0; background: var(--dark); }
+    .hero-bg-img { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0.45; }
+    .hero-scrim {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(10,22,40,0.98) 0%, rgba(10,22,40,0.55) 55%, rgba(10,22,40,0.25) 100%);
+    }
+    .hero-content { position: relative; z-index: 2; max-width: 900px; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.78rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft);
+      text-decoration: none; margin-bottom: 28px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--teal); }
+    .continent-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.8rem;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal);
+      margin-bottom: 18px;
+    }
+    .hero-title {
+      font-family: 'Montserrat', sans-serif; font-weight: 900;
+      font-size: 3.2rem; line-height: 1.05; letter-spacing: -0.02em;
+      margin-bottom: 22px;
+    }
+    .hero-description {
+      font-size: 1.1rem; line-height: 1.75; color: var(--soft);
+      max-width: 780px; margin-bottom: 28px;
+    }
+    .hero-meta {
+      display: flex; flex-wrap: wrap; gap: 24px 40px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      max-width: 780px;
+    }
+    .hero-meta .m-item { }
+    .hero-meta .m-label {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.68rem;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .hero-meta .m-value {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.05rem; color: var(--text);
+    }
+
+    /* ── SEASONALITY ── */
+    .seasonality-section { padding: 56px 48px 8px; max-width: 1200px; margin: 0 auto; }
+    .seasonality-heading {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.9rem; line-height: 1.2; letter-spacing: -0.01em;
+      margin-bottom: 8px; color: var(--text);
+    }
+    .seasonality-subhead {
+      color: var(--muted); font-size: 0.95rem; line-height: 1.6;
+      margin-bottom: 24px; max-width: 720px;
+    }
+    .months-bar {
+      display: grid; grid-template-columns: repeat(12, 1fr);
+      gap: 6px; max-width: 720px; margin-bottom: 28px;
+    }
+    .month-pill {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 10px 4px; border-radius: 6px;
+      text-align: center;
+      background: rgba(255,255,255,0.04); color: var(--muted);
+      border: 1px solid transparent;
+    }
+    .month-pill.best  { background: transparent; color: var(--teal); border-color: rgba(45,212,191,0.4); }
+    .month-pill.peak  { background: var(--teal); color: var(--dark); border-color: var(--teal); }
+    .month-pill.avoid { background: rgba(248,113,113,0.1); color: #f87171; border-color: rgba(248,113,113,0.25); }
+
+    .season-legend {
+      display: flex; gap: 20px; flex-wrap: wrap;
+      margin-bottom: 20px;
+      font-family: 'Montserrat', sans-serif; font-size: 0.72rem;
+      color: var(--muted); letter-spacing: 0.04em;
+    }
+    .season-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .season-legend-swatch {
+      width: 14px; height: 14px; border-radius: 3px;
+      border: 1px solid transparent;
+    }
+    .season-legend-swatch.peak  { background: var(--teal); }
+    .season-legend-swatch.best  { border-color: rgba(45,212,191,0.4); }
+    .season-legend-swatch.avoid { background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.35); }
+
+    .seasonality-notes {
+      font-size: 1rem; line-height: 1.75; color: var(--soft);
+      max-width: 780px;
+    }
+    .seasonality-notes p { margin-bottom: 14px; }
+    .seasonality-notes p:last-child { margin-bottom: 0; }
+    .seasonality-notes strong {
+      color: var(--teal);
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    @media (max-width: 640px) {
+      .months-bar { grid-template-columns: repeat(6, 1fr); }
+    }
+
+    /* ── MAP + STOPS ── */
+    .map-section { padding: 72px 48px 40px; max-width: 1200px; margin: 0 auto; }
+    .section-heading {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.9rem; line-height: 1.2; letter-spacing: -0.01em;
+      margin-bottom: 12px; color: var(--text);
+    }
+    .section-subhead { color: var(--soft); font-size: 1rem; line-height: 1.65; margin-bottom: 28px; max-width: 720px; }
+
+    .map-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 28px;
+      align-items: start;
+    }
+    #itin-map {
+      height: 560px;
+      border-radius: 14px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: var(--dark);
+    }
+    .leaflet-container { background: #0a1628; }
+    .leaflet-control-attribution { background: rgba(10,22,40,0.8) !important; color: #475569 !important; font-size: 10px; }
+    .leaflet-control-attribution a { color: #64748b !important; }
+
+    .stops-list-wrap {
+      background: var(--s2); border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 22px 22px 8px;
+      max-height: 560px; overflow-y: auto;
+    }
+    .stops-list-title {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 0.82rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 14px;
+    }
+    .stop-row {
+      display: flex; gap: 14px; align-items: flex-start;
+      padding: 14px 8px; border-radius: 10px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .stop-row:hover { background: rgba(45,212,191,0.08); }
+    .stop-row.active { background: rgba(45,212,191,0.15); }
+    .stop-number {
+      flex: 0 0 32px; height: 32px; border-radius: 50%;
+      background: var(--teal); color: var(--dark);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.9rem;
+    }
+    .stop-info { flex: 1; min-width: 0; }
+    .stop-info .name {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.98rem; color: var(--text); margin-bottom: 2px;
+    }
+    .stop-info .country {
+      font-size: 0.82rem; color: var(--muted); font-style: italic;
+    }
+
+    /* Leaflet markers */
+    .stop-marker {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--teal); color: var(--dark);
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.9rem;
+      border: 3px solid var(--dark);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stop-marker.search-hit {
+      background: #facc15;
+      box-shadow: 0 0 0 4px rgba(250,204,21,0.5), 0 2px 10px rgba(0,0,0,0.4);
+      transform: scale(1.1);
+    }
+    .stop-marker.search-miss { opacity: 0.35; }
+
+    /* Sidebar highlight */
+    .stop-row.search-hit  { background: rgba(250,204,21,0.12); border-left: 3px solid #facc15; padding-left: 8px; }
+    .stop-row.search-miss { opacity: 0.4; }
+
+    /* Species search box */
+    .stop-search-wrap { position: relative; max-width: 420px; margin-bottom: 18px; }
+    .stop-search-input {
+      width: 100%; background: var(--s2); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 10px 38px 10px 14px;
+      color: var(--text); font-family: 'Open Sans', sans-serif;
+      font-size: 0.9rem; outline: none;
+    }
+    .stop-search-input:focus { border-color: var(--teal); }
+    .stop-search-clear {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--muted);
+      font-size: 1.15rem; cursor: pointer; padding: 4px 8px;
+    }
+    .stop-search-status {
+      margin-top: 8px;
+      font-family: 'Montserrat', sans-serif; font-size: 0.78rem;
+      color: var(--muted); letter-spacing: 0.04em;
+    }
+    .stop-search-status.hit  { color: #facc15; }
+    .stop-search-status.none { color: #f87171; }
+    .stop-marker.visited {
+      box-shadow: 0 0 0 3px var(--teal), 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .stop-marker.visited::after {
+      content: '✓';
+      position: absolute; top: -8px; right: -8px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #facc15; color: var(--dark);
+      font-size: 0.65rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--dark);
+    }
+    .coach-visit-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 20px;
+      background: rgba(45,212,191,0.15); color: var(--teal);
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
+      margin-top: 10px;
+    }
+    .coach-visit-note {
+      margin-top: 14px; padding: 14px 16px;
+      background: rgba(45,212,191,0.06);
+      border-left: 3px solid var(--teal);
+      border-radius: 6px;
+      font-style: italic;
+      font-size: 0.92rem; line-height: 1.65; color: var(--soft);
+    }
+    .coach-visit-note p { margin-bottom: 8px; }
+    .coach-visit-note p:last-child { margin-bottom: 0; }
+
+    /* Leaflet hover tooltip on markers */
+    .stop-map-tooltip {
+      background: #0f172a !important;
+      border: 1px solid rgba(45,212,191,0.4) !important;
+      color: #f1f5f9 !important;
+      font-family: 'Lora', Georgia, serif !important;
+      font-size: 0.95rem !important; line-height: 1.55 !important;
+      padding: 12px 16px !important; border-radius: 8px !important;
+      max-width: 300px !important;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important;
+    }
+    .stop-map-tooltip .tt-name {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 0.95rem; color: var(--teal);
+      letter-spacing: 0.04em; text-transform: uppercase;
+      display: block; margin-bottom: 6px;
+    }
+    .stop-map-tooltip::before { display: none !important; }
+
+    /* ── STOP PANEL (modal-style overlay) ── */
+    .stop-panel-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(3, 10, 22, 0.75);
+      display: none; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .stop-panel-overlay.open { display: flex; }
+    .stop-panel {
+      background: var(--s2); border-radius: 16px;
+      max-width: 720px; width: 100%;
+      max-height: 88vh; overflow-y: auto;
+      border: 1px solid rgba(45,212,191,0.25);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      position: relative;
+    }
+    .stop-panel-close {
+      position: absolute; top: 14px; right: 14px;
+      background: rgba(10,22,40,0.75); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      width: 34px; height: 34px; border-radius: 50%;
+      font-size: 1.2rem; cursor: pointer; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2;
+    }
+    .stop-panel-close:hover { background: rgba(45,212,191,0.25); }
+    .stop-panel-photo {
+      width: 100%; aspect-ratio: 16 / 9;
+      background: var(--dark); background-size: cover; background-position: center;
+      border-radius: 16px 16px 0 0;
+    }
+    .stop-panel-photo.placeholder {
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #0f2a2a 0%, #0d2035 100%);
+      color: rgba(45,212,191,0.35); font-size: 3rem;
+    }
+    .stop-panel-body { padding: 28px 32px 32px; }
+    .stop-panel-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal);
+      margin-bottom: 10px;
+    }
+    .stop-panel-title {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.7rem; line-height: 1.2; margin-bottom: 14px;
+    }
+    .stop-panel-desc {
+      font-size: 1rem; color: var(--soft); line-height: 1.75; margin-bottom: 26px;
+    }
+    .stop-panel-desc p { margin-bottom: 10px; }
+    .stop-panel-desc p:last-child { margin-bottom: 0; }
+
+    .suggested-time-badge {
+      display: inline-block; margin-top: 8px; margin-bottom: 4px;
+      padding: 4px 12px; border-radius: 20px;
+      background: rgba(45,212,191,0.15); color: var(--teal);
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .hook-heading {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--teal); margin: 22px 0 10px;
+      padding-bottom: 8px; border-bottom: 1px solid rgba(45,212,191,0.2);
+    }
+
+    .activities-section { margin-top: 26px; }
+    .activities-heading {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 4px;
+      padding-bottom: 10px; border-bottom: 1px solid rgba(45,212,191,0.2);
+      display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    }
+    .activities-total {
+      color: var(--muted); font-weight: 500; letter-spacing: 0.04em;
+      text-transform: none; font-size: 0.72rem; font-style: italic;
+    }
+    .activity-row {
+      display: flex; gap: 14px; padding: 14px 4px 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .activity-row:last-child { border-bottom: none; }
+    .activity-priority {
+      flex: 0 0 30px; height: 30px; margin-top: 2px;
+      border-radius: 50%; background: rgba(45,212,191,0.15);
+      color: var(--teal);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.85rem;
+    }
+    .activity-body { flex: 1; min-width: 0; }
+    .activity-name {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 1rem; color: var(--text); margin-bottom: 4px;
+    }
+    .activity-meta {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-bottom: 8px;
+      font-family: 'Montserrat', sans-serif; font-size: 0.72rem;
+      color: var(--muted); letter-spacing: 0.04em;
+    }
+    .activity-meta .meta-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .activity-meta .meta-chip strong { color: var(--soft); font-weight: 700; }
+    .activity-desc {
+      font-size: 0.9rem; color: var(--soft); line-height: 1.6;
+    }
+    .activity-photo {
+      flex: 0 0 130px;
+      aspect-ratio: 4 / 3;
+      border-radius: 8px; overflow: hidden;
+      background-size: cover; background-position: center;
+      background-color: var(--dark);
+      align-self: flex-start; margin-top: 2px;
+    }
+    @media (max-width: 640px) {
+      .activity-photo { flex-basis: 88px; }
+    }
+
+    .insider-tip {
+      margin-top: 26px; padding: 16px 18px;
+      background: rgba(250,204,21,0.08);
+      border-left: 3px solid #facc15;
+      border-radius: 6px;
+    }
+    .insider-tip-label {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #facc15; margin-bottom: 6px;
+    }
+    .insider-tip-body {
+      font-size: 0.92rem; line-height: 1.65; color: var(--soft);
+    }
+    .insider-tip-body p { margin-bottom: 8px; }
+    .insider-tip-body p:last-child { margin-bottom: 0; }
+
+    .wildlife-notes {
+      margin-top: 14px; padding: 16px 18px;
+      background: rgba(52,211,153,0.08);
+      border-left: 3px solid #34d399;
+      border-radius: 6px;
+    }
+    .wildlife-notes-label {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #34d399; margin-bottom: 6px;
+    }
+    .wildlife-notes-body {
+      font-size: 0.92rem; line-height: 1.65; color: var(--soft);
+    }
+    .wildlife-notes-body p { margin-bottom: 8px; }
+    .wildlife-notes-body p:last-child { margin-bottom: 0; }
+
+    .nav-stops-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      margin: 22px 0 4px;
+    }
+    @media (max-width: 500px) { .nav-stops-row { grid-template-columns: 1fr; } }
+    .next-stop, .prev-stop {
+      padding: 14px 18px;
+      background: rgba(45,212,191,0.08);
+      border-left: 3px solid var(--teal);
+      border-radius: 6px;
+      min-width: 0;
+    }
+    .prev-stop { border-left: none; border-right: 3px solid var(--teal); text-align: right; }
+    .next-stop.clickable, .prev-stop.clickable { cursor: pointer; transition: background 0.15s; }
+    .next-stop.clickable:hover, .prev-stop.clickable:hover { background: rgba(45,212,191,0.16); }
+    .next-stop.clickable::after {
+      content: '→'; float: right; color: var(--teal);
+      font-size: 1.2rem; font-weight: 700; margin-top: 4px;
+      transition: transform 0.15s;
+    }
+    .next-stop.clickable:hover::after { transform: translateX(3px); }
+    .prev-stop.clickable::before {
+      content: '←'; float: left; color: var(--teal);
+      font-size: 1.2rem; font-weight: 700; margin-top: 4px;
+      transition: transform 0.15s;
+    }
+    .prev-stop.clickable:hover::before { transform: translateX(-3px); }
+    .next-stop-label {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 6px;
+    }
+    .next-stop-name {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      color: var(--text); font-size: 1rem;
+    }
+    .next-stop-dist {
+      color: var(--muted); font-size: 0.85rem; margin-left: 10px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .next-stop-note {
+      color: var(--muted); font-size: 0.72rem; margin-top: 6px;
+      font-style: italic;
+    }
+    .animals-heading {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 14px;
+      padding-bottom: 10px; border-bottom: 1px solid rgba(45,212,191,0.2);
+    }
+    .realm-filter {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    }
+    .realm-btn {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 7px 14px; border-radius: 6px;
+      background: transparent; color: var(--soft);
+      border: 1px solid rgba(255,255,255,0.15);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .realm-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .realm-btn.active {
+      background: var(--teal); color: var(--dark); border-color: var(--teal);
+    }
+    .realm-btn .count {
+      font-weight: 600; opacity: 0.7; margin-left: 4px;
+    }
+    .iucn-legend {
+      margin-top: 22px; padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.75rem; color: var(--muted); line-height: 1.7;
+    }
+    .iucn-legend-title {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--soft); margin-bottom: 10px;
+    }
+    .iucn-legend-row { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+    .iucn-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .iucn-legend-item .animal-status { margin: 0; }
+    .animals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .animal-card {
+      background: var(--s3); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px; overflow: hidden;
+    }
+    .animal-photo {
+      width: 100%; aspect-ratio: 10 / 9; object-fit: contain;
+      background: var(--dark); display: block;
+    }
+    .animal-photo-placeholder {
+      width: 100%; aspect-ratio: 10 / 9;
+      background: linear-gradient(135deg, var(--dark), var(--s2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+    }
+    .animal-body { padding: 10px 12px 12px; }
+    .animal-name {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.85rem; color: var(--text); line-height: 1.25;
+      margin-bottom: 4px;
+    }
+    .animal-sci {
+      font-family: 'Lora', serif; font-style: italic;
+      font-size: 0.72rem; color: var(--muted);
+    }
+    .animal-type {
+      font-family: 'Montserrat', sans-serif; font-weight: 600;
+      font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--teal); margin-top: 4px;
+    }
+    .animal-status {
+      display: inline-block; margin-top: 6px;
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.6rem; letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 3px;
+    }
+    .status-LC { background: rgba(74,222,128,0.15);  color: #4ade80; }
+    .status-NT { background: rgba(250,204,21,0.15);  color: #facc15; }
+    .status-VU { background: rgba(251,146,60,0.15);  color: #fb923c; }
+    .status-EN { background: rgba(248,113,113,0.15); color: #f87171; }
+    .status-CR { background: rgba(220,38,38,0.2);    color: #fca5a5; }
+    .status-default { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+    .animals-loading, .animals-empty {
+      color: var(--muted); font-style: italic; text-align: center; padding: 28px 12px;
+    }
+
+    /* ── CTA ── */
+    .cta-wrap {
+      padding: 40px 48px 120px; max-width: 1200px; margin: 0 auto;
+      text-align: center;
+    }
+    .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+    .cta-btn {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.82rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 12px 26px; border-radius: 6px; text-decoration: none;
+      transition: all 0.2s;
+    }
+    .cta-primary { background: var(--teal); color: #0a1628; }
+    .cta-primary:hover { background: var(--teal2); }
+    .cta-secondary { color: var(--teal); border: 1px solid rgba(45,212,191,0.4); }
+    .cta-secondary:hover { background: rgba(45,212,191,0.1); }
+
+    .loading-msg, .error-msg {
+      text-align: center; padding: 160px 20px 40px;
+      color: var(--muted); font-style: italic;
+    }
+    .error-msg a { color: var(--teal); }
+
+    @media (max-width: 900px) {
+      .map-layout { grid-template-columns: 1fr; }
+      .stops-list-wrap { max-height: none; }
+      #itin-map { height: 400px; }
+    }
+    @media (max-width: 700px) {
+      nav { padding: 14px 20px; }
+      .nav-links { gap: 16px; }
+      .hero { padding: 0 24px 56px; min-height: 55vh; }
+      .hero-title { font-size: 2.1rem; }
+      .hero-meta { gap: 18px 28px; }
+      .map-section, .cta-wrap { padding-left: 24px; padding-right: 24px; }
+      .stop-panel-body { padding: 22px 22px 26px; }
+      .stop-panel-title { font-size: 1.35rem; }
+    }
+  
+    /* Preview mode — unmistakable, so a draft is never mistaken for a live page. */
+    html.is-preview body { border-top: 5px solid #fbbf24; }
+    .preview-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+      background: #fbbf24; color: #1a1400;
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.78rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      text-align: center; padding: 9px 16px;
+    }
+    .draft-chip {
+      display: inline-block; background: #fbbf24; color: #1a1400;
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.62rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 4px; margin-right: 8px; vertical-align: 2px;
+    }
+</style>
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+<script src="wishlist-widget.js" defer></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/js/mobile-nav.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html"><img src="realm-symbols/logo.png" alt="Three Realms Travel" style="height:90px;width:auto;display:block;"></a>
+  <div class="nav-links">
+    <a href="our-product.html">Product</a>
+    <a href="world-animals.html">World Animals</a>
+    <a href="wildlife-100.html">Wildlife 100</a>
+    <a href="itineraries.html">Itineraries</a>
+    <a href="trip-reports.html">Trip Reports</a>
+    <a href="field-notes.html">Field Notes</a>
+    <a href="https://app.transformedbytravels.com/travelers-corner.html">Travelers&#39; Corner</a>
+    <a href="store.html">Store</a>
+    <a href="partners.html">Partners</a>
+    <a href="https://app.transformedbytravels.com/portal.html" style="color: var(--teal) !important; border: 1px solid var(--teal); padding: 8px 18px; border-radius: 6px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">My Portal</a>
+    <a href="lets-talk.html?ref=nav#book" style="background:var(--teal);color:#0a1628 !important;padding:9px 22px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-decoration:none;letter-spacing:0.05em;">Get Started</a>
+  </div>
+</nav>
+
+<div id="content">
+  <div class="loading-msg">Loading itinerary…</div>
+</div>
+
+<div class="stop-panel-overlay" id="stop-panel-overlay">
+  <div class="stop-panel" id="stop-panel"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Drafts are hidden unless the page itself was opened with ?preview=1, which is then
+// passed through to the API. Draft pages are also kept out of search engines below.
+const PREVIEW = ['1','true','yes'].includes((new URLSearchParams(location.search).get('preview')||'').toLowerCase());
+const PREVIEW_Q = PREVIEW ? 'preview=1' : '';
+function markDraftPage() {
+  if (!PREVIEW) return;
+  document.documentElement.classList.add('is-preview');
+  if (!document.querySelector('meta[name="robots"]')) {
+    const m = document.createElement('meta');
+    m.name = 'robots'; m.content = 'noindex,nofollow';
+    document.head.appendChild(m);
+  }
+}
+markDraftPage();
+
+// A fixed bar so there is no doubt you are looking at unpublished content.
+if (PREVIEW) {
+  const bar = document.createElement('div');
+  bar.className = 'preview-bar';
+  bar.textContent = 'Preview mode — drafts are visible and this page is hidden from search engines';
+  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(bar));
+  if (document.body) document.body.appendChild(bar);
+}
+
+
+const params    = new URLSearchParams(window.location.search);
+const itinName  = (params.get('name') || '').trim();
+
+const MONTH_ORDER = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const STATUS_CLASS = { LC:'status-LC', NT:'status-NT', VU:'status-VU', EN:'status-EN', CR:'status-CR' };
+const STATUS_LABEL = { LC:'Least Concern', NT:'Near Threatened', VU:'Vulnerable', EN:'Endangered', CR:'Critically Endangered' };
+const TYPE_EMOJI   = { Mammal:'🦁', Bird:'🦅', Reptile:'🐢', Fish:'🐠', Insect:'🦋', 'Marine Mammal':'🐋', Amphibian:'🐸', Cephalopod:'🐙', Crustacean:'🦀', Coral:'🪸', Invertebrate:'⭐' };
+const REALM_TYPES  = {
+  land:  ['Mammal', 'Reptile', 'Amphibian', 'Insect'],
+  ocean: ['Fish', 'Marine Mammal', 'Cephalopod', 'Crustacean', 'Coral', 'Invertebrate'],
+  sky:   ['Bird'],
+};
+const REALM_LABELS = { land: '🌿 Land', ocean: '🌊 Ocean', sky: '🐦 Sky' };
+const MARINE_NAME_KEYWORDS    = ['whale','dolphin','porpoise','seal','sea lion','orca','killer whale','walrus','manatee','dugong','sea otter'];
+const MARINE_REPTILE_KEYWORDS = ['sea turtle','marine iguana','sea snake','saltwater croc'];
+
+// Great-circle distance in miles between two lat/lng points
+function haversineMi(lat1, lng1, lat2, lng2) {
+  const R = 3959; // Earth radius in miles
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2) ** 2
+          + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function fmtMi(mi) {
+  if (mi < 10) return mi.toFixed(1) + ' mi';
+  return Math.round(mi).toLocaleString('en-US') + ' mi';
+}
+
+const BEST_TIME_ICON = { Dawn:'🌅', Morning:'☀️', Midday:'🕛', Afternoon:'🌤', Dusk:'🌇', Night:'🌙' };
+
+function fmtHours(h) {
+  if (h == null) return '';
+  const v = Number(h);
+  if (!isFinite(v)) return '';
+  if (v < 1) return (v * 60).toFixed(0) + ' min';
+  if (Number.isInteger(v)) return v + ' hr' + (v === 1 ? '' : 's');
+  return v.toFixed(1) + ' hrs';
+}
+
+function renderActivities(activities, totalHours) {
+  if (!activities || !activities.length) return '';
+  const totalText = totalHours != null ? fmtHours(totalHours) : '';
+  const rows = activities.map((a, i) => {
+    const priority = a.priority != null ? a.priority : (i + 1);
+    const metaChips = [];
+    if (a.durationHours != null) metaChips.push(`<span class="meta-chip"><strong>${fmtHours(a.durationHours)}</strong></span>`);
+    if (a.bestTime)              metaChips.push(`<span class="meta-chip">${BEST_TIME_ICON[a.bestTime] || ''} ${escHtml(a.bestTime)}</span>`);
+    if (a.category)              metaChips.push(`<span class="meta-chip">${escHtml(a.category)}</span>`);
+    const photoHtml = a.photoUrl
+      ? `<div class="activity-photo" style="background-image:url('${escAttr(a.photoUrl)}');"></div>`
+      : '';
+    return `
+      <div class="activity-row">
+        <div class="activity-priority">${escHtml(priority)}</div>
+        <div class="activity-body">
+          <div class="activity-name">${escHtml(a.name)}</div>
+          ${metaChips.length ? `<div class="activity-meta">${metaChips.join('')}</div>` : ''}
+          ${a.description ? `<div class="activity-desc">${paragraphs(a.description)}</div>` : ''}
+        </div>
+        ${photoHtml}
+      </div>`;
+  }).join('');
+  return `
+    <div class="activities-section">
+      <div class="activities-heading">
+        <span>Priority experiences</span>
+        ${totalText ? `<span class="activities-total">Total: ${totalText}</span>` : ''}
+      </div>
+      ${rows}
+    </div>`;
+}
+
+function renderSeasonality(it) {
+  const best  = new Set(it.bestMonths  || []);
+  const peak  = new Set(it.peakMonths  || []);
+  const avoid = new Set(it.avoidMonths || []);
+  const notes = it.seasonalityNotes    || '';
+
+  if (!best.size && !peak.size && !avoid.size && !notes) return '';
+
+  const anyMarked = best.size || peak.size || avoid.size;
+  const barHtml = anyMarked ? `
+    <div class="months-bar">
+      ${MONTH_ORDER.map(m => {
+        let cls = '';
+        if (peak.has(m))       cls = ' peak';
+        else if (best.has(m))  cls = ' best';
+        else if (avoid.has(m)) cls = ' avoid';
+        return `<div class="month-pill${cls}">${m}</div>`;
+      }).join('')}
+    </div>
+    <div class="season-legend">
+      ${peak.size  ? '<span class="season-legend-item"><span class="season-legend-swatch peak"></span>Peak</span>'   : ''}
+      ${best.size  ? '<span class="season-legend-item"><span class="season-legend-swatch best"></span>Best</span>'   : ''}
+      ${avoid.size ? '<span class="season-legend-item"><span class="season-legend-swatch avoid"></span>Avoid</span>' : ''}
+    </div>` : '';
+
+  return `
+    <div class="seasonality-section">
+      <h2 class="seasonality-heading">When to go</h2>
+      <p class="seasonality-subhead">The rhythm of demand, weather, and wildlife across the year.</p>
+      ${barHtml}
+      ${notes ? `<div class="seasonality-notes">${paragraphs(notes)}</div>` : ''}
+    </div>`;
+}
+
+function realmOf(species) {
+  const type = species.type || '';
+  if (REALM_TYPES.ocean.includes(type)) return 'ocean';
+  if (REALM_TYPES.sky.includes(type))   return 'sky';
+
+  // Fallback: catch marine species mistagged as generic Mammal/Reptile
+  const name = (species.name || '').toLowerCase();
+  if (type === 'Mammal'  && MARINE_NAME_KEYWORDS.some(k => name.includes(k)))    return 'ocean';
+  if (type === 'Reptile' && MARINE_REPTILE_KEYWORDS.some(k => name.includes(k))) return 'ocean';
+
+  if (REALM_TYPES.land.includes(type)) return 'land';
+  return 'land';
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escAttr(s) { return String(s || '').replace(/"/g, '&quot;'); }
+
+function paragraphs(text) {
+  if (!text) return '';
+  // Strip backslash escapes Airtable emits when rich-text is on and literal
+  // markdown characters were typed — treat as intended formatting.
+  text = String(text).replace(/\\([*_])/g, '$1');
+  return String(text).split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
+    .map(p => {
+      let html = escHtml(p).replace(/\n/g, '<br>');
+      html = html
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__(.+?)__/g, '<strong>$1</strong>')
+        .replace(/(?<!\*)\*([^*\s][^*]*?)\*(?!\*)/g, '<em>$1</em>')
+        .replace(/(?<![_\w])_([^_\s][^_]*?)_(?![_\w])/g, '<em>$1</em>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+      return `<p>${html}</p>`;
+    }).join('');
+}
+
+function fmtPrice(n) {
+  if (n == null || n === '') return null;
+  const v = Number(n);
+  if (!isFinite(v)) return null;
+  return '$' + v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+function fmtRange(a, b) {
+  const fa = fmtPrice(a), fb = fmtPrice(b);
+  if (fa && fb) return fa === fb ? fa : `${fa} – ${fb}`;
+  return fa || fb || '';
+}
+
+let _map           = null;
+let _markers       = [];
+let _stopsData     = [];
+let _speciesCache  = new Map();
+let _locationCache = new Map();
+let _currentSpecies = [];
+
+function stopsWithCoords(stops) {
+  return stops.filter(s =>
+    s.latitude != null && s.longitude != null &&
+    !isNaN(Number(s.latitude)) && !isNaN(Number(s.longitude))
+  );
+}
+
+function renderStopsList(stops) {
+  return stops.map((s, i) => {
+    const n     = s.stopNumber != null ? s.stopNumber : (i + 1);
+    const loc   = [s.country, s.region].filter(Boolean).join(' · ');
+    const clickable = s.latitude != null && s.longitude != null;
+    const tip = s.description ? ` title="${escAttr(s.description)}"` : '';
+    return `
+      <div class="stop-row${clickable ? '' : ' no-coords'}" data-idx="${i}"${tip}>
+        <div class="stop-number">${escHtml(n)}</div>
+        <div class="stop-info">
+          <div class="name">${escHtml(s.stopName)}</div>
+          ${loc ? `<div class="country">${escHtml(loc)}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function initMap(stops) {
+  const geo = stopsWithCoords(stops);
+  if (!geo.length) {
+    const el = document.getElementById('itin-map');
+    if (el) el.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#64748b;font-style:italic;padding:20px;text-align:center;">No mapped stops yet for this itinerary.</div>';
+    return;
+  }
+
+  _map = L.map('itin-map', { zoomControl: true, scrollWheelZoom: false });
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © Esri',
+    maxNativeZoom: 16, maxZoom: 20,
+  }).addTo(_map);
+
+  _markers = [];
+  const latlngs = [];
+  const coordSeen = {};  // "lat,lng" → how many markers already placed there
+  geo.forEach((s, i) => {
+    const n   = s.stopNumber != null ? s.stopNumber : (_stopsData.indexOf(s) + 1);
+    // Offset markers that share a coordinate (e.g. a circle tour's first & last
+    // stop) by half a circle width each, so they read as separate circles.
+    const key = Number(s.latitude).toFixed(4) + ',' + Number(s.longitude).toFixed(4);
+    const dup = coordSeen[key] || 0;
+    coordSeen[key] = dup + 1;
+    const anchor = dup === 0 ? [16, 16] : [16 - dup * 16, 16];
+    const html = `<div class="stop-marker${s.coachVisited ? ' visited' : ''}">${escHtml(n)}</div>`;
+    const icon = L.divIcon({ className: '', html, iconSize: [32, 32], iconAnchor: anchor });
+    const m    = L.marker([Number(s.latitude), Number(s.longitude)], { icon }).addTo(_map);
+    m.on('click', () => openStop(_stopsData.indexOf(s)));
+    const tooltipContent = `<span class="tt-name">${escHtml(s.stopName)}</span>${s.description ? escHtml(s.description) : ''}`;
+    m.bindTooltip(tooltipContent, {
+      direction: 'top', offset: [0, -14], sticky: false,
+      className: 'stop-map-tooltip', opacity: 1,
+    });
+    _markers.push(m);
+    latlngs.push([Number(s.latitude), Number(s.longitude)]);
+  });
+
+  if (latlngs.length === 1) {
+    _map.setView(latlngs[0], 7);
+  } else {
+    _map.fitBounds(L.latLngBounds(latlngs), { padding: [40, 40] });
+  }
+}
+
+// ── Cross-stop species search ─────────────────────────────────────────────
+let _searchDebounce = null;
+function stopSearchInput(text) {
+  clearTimeout(_searchDebounce);
+  const q = (text || '').trim();
+  document.getElementById('stop-search-clear').style.display = q ? 'block' : 'none';
+  _searchDebounce = setTimeout(() => runStopSearch(q), 220);
+}
+function stopSearchClear() {
+  document.getElementById('stop-species-search').value = '';
+  stopSearchInput('');
+}
+
+async function runStopSearch(q) {
+  const status = document.getElementById('stop-search-status');
+
+  if (!q) {
+    // Reset all markers and rows
+    _markers.forEach(m => {
+      const el = m.getElement && m.getElement();
+      const div = el && el.querySelector('.stop-marker');
+      if (div) { div.classList.remove('search-hit', 'search-miss'); }
+    });
+    document.querySelectorAll('.stop-row').forEach(r => r.classList.remove('search-hit', 'search-miss'));
+    status.className = 'stop-search-status';
+    status.textContent = '';
+    return;
+  }
+
+  status.className = 'stop-search-status';
+  status.textContent = 'Searching…';
+
+  const qLower = q.toLowerCase();
+  const hitIndexes = new Set();
+
+  // For each stop with a region, fetch species+locations (cached), then check
+  // whether any species linked to that stop's Location matches the query.
+  await Promise.all(_stopsData.map(async (s, idx) => {
+    if (!s.region) return;
+    try {
+      const [species, locations] = await Promise.all([
+        fetchSpeciesForRegion(s.region),
+        fetchLocationsForRegion(s.region),
+      ]);
+      const location    = findLocationForStop(locations, s.stopName);
+      const stopSpecies = filterSpeciesForStop(species, location);
+      const match = stopSpecies.some(sp =>
+        (sp.name || '').toLowerCase().includes(qLower) ||
+        (sp.scientificName || '').toLowerCase().includes(qLower)
+      );
+      if (match) hitIndexes.add(idx);
+    } catch(e) {}
+  }));
+
+  // Apply visual highlight
+  _stopsData.forEach((s, idx) => {
+    const isHit = hitIndexes.has(idx);
+    const row   = document.querySelector(`.stop-row[data-idx="${idx}"]`);
+    if (row) {
+      row.classList.toggle('search-hit',  isHit);
+      row.classList.toggle('search-miss', !isHit);
+    }
+    // Find the marker for this stop
+    const marker = _markers.find(m => {
+      const ll = m.getLatLng();
+      return s.latitude != null && Number(s.latitude) === ll.lat && Number(s.longitude) === ll.lng;
+    });
+    if (marker) {
+      const el = marker.getElement();
+      const div = el && el.querySelector('.stop-marker');
+      if (div) {
+        div.classList.toggle('search-hit',  isHit);
+        div.classList.toggle('search-miss', !isHit);
+      }
+    }
+  });
+
+  const n = hitIndexes.size;
+  if (n === 0) {
+    status.className = 'stop-search-status none';
+    status.textContent = `No stops on this trip have "${q}" cataloged.`;
+  } else {
+    status.className = 'stop-search-status hit';
+    const names = [..._stopsData].filter((_, i) => hitIndexes.has(i)).map(s => s.stopName).slice(0, 4);
+    const more  = n > names.length ? ` +${n - names.length} more` : '';
+    status.textContent = `${n} stop${n === 1 ? '' : 's'} match: ${names.join(' · ')}${more}`;
+  }
+}
+
+async function fetchSpeciesForRegion(region) {
+  if (!region) return [];
+  const key = region.toLowerCase();
+  if (_speciesCache.has(key)) return _speciesCache.get(key);
+  try {
+    const resp = await fetch(`/api/species-pack?region=${encodeURIComponent(region)}`);
+    const data = await resp.json();
+    const list = data.species || [];
+    _speciesCache.set(key, list);
+    return list;
+  } catch(e) {
+    return [];
+  }
+}
+
+async function fetchLocationsForRegion(region) {
+  if (!region) return [];
+  const key = region.toLowerCase();
+  if (_locationCache.has(key)) return _locationCache.get(key);
+  try {
+    const resp = await fetch(`/api/wildlife-locations?region=${encodeURIComponent(region)}`);
+    const data = await resp.json();
+    const list = data.locations || [];
+    _locationCache.set(key, list);
+    return list;
+  } catch(e) {
+    return [];
+  }
+}
+
+// Find the Wildlife Locations record whose name matches this stop.
+// Matches whole-string first, then first-word fallback (e.g. "Kidepo Valley" → "Kidepo Valley National Park").
+function findLocationForStop(locations, stopName) {
+  if (!locations.length || !stopName) return null;
+  const stopLower = stopName.toLowerCase().trim();
+  const firstWord = stopLower.split(/\s+/)[0];
+  return (
+    locations.find(l => l.name.toLowerCase() === stopLower) ||
+    locations.find(l => l.name.toLowerCase().includes(stopLower)) ||
+    locations.find(l => stopLower.includes(l.name.toLowerCase())) ||
+    (firstWord.length > 3 && locations.find(l => l.name.toLowerCase().includes(firstWord))) ||
+    null
+  );
+}
+
+// Narrow region species to those linked to this stop's Wildlife Location record.
+// Two-tier match:
+//   1. Structural — species has this location in its Locations linked field
+//   2. Text — species has this location's name in its Best Parks field
+// Falls back to full region list only if neither tier produces any match.
+function filterSpeciesForStop(species, location) {
+  if (!species.length || !location) return species;
+  const locName = String(location.name || '').toLowerCase().trim();
+  const matches = species.filter(s => {
+    // Tier 1: structural link
+    if (Array.isArray(s.locationIds) && s.locationIds.includes(location.id)) return true;
+    // Tier 2: Best Parks text match (case-insensitive, tolerant of partial matches)
+    if (locName && Array.isArray(s.bestParks)) {
+      for (const p of s.bestParks) {
+        const park = String(p || '').toLowerCase().trim();
+        if (!park) continue;
+        if (park === locName) return true;
+        if (locName.includes(park) || park.includes(locName)) return true;
+      }
+    }
+    return false;
+  });
+  return matches.length ? matches : species;
+}
+
+function renderAnimalCard(s) {
+  const status = s.status || '';
+  const cls    = STATUS_CLASS[status] || 'status-default';
+  const photo  = s.photoUrl
+    ? `<img class="animal-photo" src="${escAttr(s.photoUrl)}" alt="${escAttr(s.name)}" loading="lazy" onerror="this.outerHTML='<div class=\\'animal-photo-placeholder\\'>${TYPE_EMOJI[s.type] || '🐾'}</div>'">`
+    : `<div class="animal-photo-placeholder">${TYPE_EMOJI[s.type] || '🐾'}</div>`;
+  return `
+    <div class="animal-card">
+      ${photo}
+      <div class="animal-body">
+        <div class="animal-name">${escHtml(s.name)}</div>
+        ${s.scientificName ? `<div class="animal-sci">${escHtml(s.scientificName)}</div>` : ''}
+        ${s.type ? `<div class="animal-type">${escHtml(s.type)}</div>` : ''}
+        ${status ? `<span class="animal-status ${cls}">${escHtml(status)}</span>` : ''}
+      </div>
+    </div>`;
+}
+
+function iucnLegend(species) {
+  const present = new Set(species.map(s => s.status).filter(Boolean));
+  const order = ['LC', 'NT', 'VU', 'EN', 'CR'];
+  const items = order.filter(c => present.has(c)).map(c => {
+    const cls = STATUS_CLASS[c] || 'status-default';
+    return `<span class="iucn-legend-item"><span class="animal-status ${cls}">${c}</span> ${STATUS_LABEL[c]}</span>`;
+  });
+  if (!items.length) return '';
+  return `
+    <div class="iucn-legend">
+      <div class="iucn-legend-title">IUCN Conservation Status</div>
+      <div class="iucn-legend-row">${items.join('')}</div>
+    </div>`;
+}
+
+function renderAnimals(species, activeRealm) {
+  if (!species.length) {
+    return `<div class="animals-empty">No species cataloged for this stop yet.</div>`;
+  }
+
+  const counts = { all: species.length, land: 0, ocean: 0, sky: 0 };
+  species.forEach(s => { counts[realmOf(s)]++; });
+
+  const buttonsHtml = ['all', 'land', 'ocean', 'sky']
+    .filter(r => r === 'all' || counts[r] > 0)
+    .map(r => {
+      const label = r === 'all' ? 'All' : REALM_LABELS[r];
+      const active = r === activeRealm ? ' active' : '';
+      return `<button class="realm-btn${active}" onclick="filterRealm('${r}')">${label}<span class="count">${counts[r]}</span></button>`;
+    }).join('');
+
+  const filtered = activeRealm === 'all'
+    ? species
+    : species.filter(s => realmOf(s) === activeRealm);
+
+  const gridHtml = filtered.length
+    ? `<div class="animals-grid">${filtered.map(renderAnimalCard).join('')}</div>`
+    : `<div class="animals-empty">No species in this realm at this stop.</div>`;
+
+  return `
+    <div class="realm-filter">${buttonsHtml}</div>
+    ${gridHtml}
+    ${iucnLegend(filtered)}
+  `;
+}
+
+function filterRealm(realm) {
+  const slot = document.getElementById('animals-slot');
+  if (!slot) return;
+  slot.innerHTML = renderAnimals(_currentSpecies, realm);
+}
+
+async function openStop(idx) {
+  const s = _stopsData[idx];
+  if (!s) return;
+
+  document.querySelectorAll('.stop-row').forEach((el, i) => el.classList.toggle('active', i === idx));
+
+  const n      = s.stopNumber != null ? s.stopNumber : (idx + 1);
+  const loc    = [s.country, s.region].filter(Boolean).join(' · ');
+  const photoStyle = s.heroPhoto ? `style="background-image:url('${escAttr(s.heroPhoto)}');"` : '';
+  const photoCls   = s.heroPhoto ? 'stop-panel-photo' : 'stop-panel-photo placeholder';
+  const photoInner = s.heroPhoto ? '' : '🗺';
+
+  const prev = _stopsData[idx - 1] || null;
+  const next = _stopsData[idx + 1] || null;
+
+  const distTo = (a, b) => {
+    if (!a || !b || a.latitude == null || a.longitude == null || b.latitude == null || b.longitude == null) return null;
+    return haversineMi(Number(a.latitude), Number(a.longitude), Number(b.latitude), Number(b.longitude));
+  };
+
+  let prevHtml = '';
+  if (prev) {
+    const distMi = distTo(s, prev);
+    prevHtml = `
+      <div class="prev-stop clickable" onclick="openStop(${idx - 1})" role="button" tabindex="0">
+        <div class="next-stop-label">Previous stop</div>
+        <div>
+          <span class="next-stop-name">${escHtml(prev.stopName)}${prev.country ? ` (${escHtml(prev.country)})` : ''}</span>
+          ${distMi != null ? `<span class="next-stop-dist">· ${fmtMi(distMi)} back</span>` : ''}
+        </div>
+      </div>`;
+  } else {
+    prevHtml = `
+      <div class="prev-stop">
+        <div class="next-stop-label">Journey begins here</div>
+      </div>`;
+  }
+
+  let nextHtml = '';
+  if (next) {
+    const distMi = distTo(s, next);
+    nextHtml = `
+      <div class="next-stop clickable" onclick="openStop(${idx + 1})" role="button" tabindex="0">
+        <div class="next-stop-label">Next stop</div>
+        <div>
+          <span class="next-stop-name">${escHtml(next.stopName)}${next.country ? ` (${escHtml(next.country)})` : ''}</span>
+          ${distMi != null ? `<span class="next-stop-dist">· ${fmtMi(distMi)} as the crow flies</span>` : ''}
+        </div>
+      </div>`;
+  } else {
+    nextHtml = `
+      <div class="next-stop">
+        <div class="next-stop-label">Journey ends here</div>
+      </div>`;
+  }
+
+  const navHtml = `<div class="nav-stops-row">${prevHtml}${nextHtml}</div>`;
+
+  const hookText = s.whyStopHere || s.description;
+  const hookLabel = s.whyStopHere ? 'Why stop here' : '';
+  const timeBadge = s.suggestedTimeHere
+    ? `<div class="suggested-time-badge">${escHtml(s.suggestedTimeHere)}</div>`
+    : '';
+  const activitiesHtml = renderActivities(s.activities, s.totalPriorityTime);
+  const tipHtml = s.insiderTip ? `
+    <div class="insider-tip">
+      <div class="insider-tip-label">💡 Insider Tip</div>
+      <div class="insider-tip-body">${paragraphs(s.insiderTip)}</div>
+    </div>` : '';
+  const wildlifeHtml = s.wildlifeNotes ? `
+    <div class="wildlife-notes">
+      <div class="wildlife-notes-label">🐾 Wildlife Notes</div>
+      <div class="wildlife-notes-body">${paragraphs(s.wildlifeNotes)}</div>
+    </div>` : '';
+  const lodgeRow = (tier, color, name, desc) => `
+    <div style="margin-bottom:12px;">
+      <div style="font-weight:700;color:${color};font-size:0.92rem;">${tier} · ${escHtml(name)}</div>
+      ${desc ? `<div style="color:var(--muted);font-size:0.9rem;line-height:1.65;margin-top:3px;">${paragraphs(desc)}</div>` : ''}
+    </div>`;
+  const lodgingHtml = (s.luxuryLodge || s.valueLodge) ? `
+    <div class="insider-tip" style="border-color:rgba(45,212,191,0.25);">
+      <div class="insider-tip-label">🛏 Where to Stay</div>
+      <div class="insider-tip-body">
+        ${s.luxuryLodge ? lodgeRow('✦ Luxury', '#fbbf24', s.luxuryLodge, s.luxuryDescription) : ''}
+        ${s.valueLodge  ? lodgeRow('◆ Value',  '#2dd4bf', s.valueLodge,  s.valueDescription)  : ''}
+      </div>
+    </div>` : '';
+  const coachVisitHtml = s.coachVisited ? `
+    <div class="coach-visit-badge">✓ Michael has been here</div>
+    ${s.coachVisitNote ? `<div class="coach-visit-note">${paragraphs(s.coachVisitNote)}</div>` : ''}
+  ` : '';
+
+  const panel = document.getElementById('stop-panel');
+  panel.innerHTML = `
+    <button class="stop-panel-close" onclick="closeStopPanel()" aria-label="Close">×</button>
+    <div class="${photoCls}" ${photoStyle}>${photoInner}</div>
+    <div class="stop-panel-body">
+      <div class="stop-panel-tag">Stop ${escHtml(n)}${loc ? ' · ' + escHtml(loc) : ''}</div>
+      <div class="stop-panel-title">${escHtml(s.stopName)}${s.country ? ` <span style="color:var(--muted);font-weight:400;">(${escHtml(s.country)})</span>` : ''}</div>
+      ${timeBadge}
+      ${coachVisitHtml}
+      ${hookLabel ? `<div class="hook-heading">${hookLabel}</div>` : ''}
+      <div class="stop-panel-desc">${paragraphs(hookText)}</div>
+      ${activitiesHtml}
+      ${tipHtml}
+      ${wildlifeHtml}
+      ${lodgingHtml}
+      ${navHtml}
+      ${!s.hideAnimals && s.region ? `<div class="animals-heading" style="margin-top:26px;">Wildlife you might see</div><div id="animals-slot"><div class="animals-loading">Loading species…</div></div>` : ''}
+    </div>`;
+  document.getElementById('stop-panel-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Center map on this stop
+  if (_map && s.latitude != null && s.longitude != null) {
+    _map.setView([Number(s.latitude), Number(s.longitude)], Math.max(_map.getZoom(), 6));
+  }
+
+  if (!s.hideAnimals && s.region) {
+    const [regionSpecies, regionLocations] = await Promise.all([
+      fetchSpeciesForRegion(s.region),
+      fetchLocationsForRegion(s.region),
+    ]);
+    const location    = findLocationForStop(regionLocations, s.stopName);
+    const stopSpecies = filterSpeciesForStop(regionSpecies, location);
+    _currentSpecies = stopSpecies;
+    const slot = document.getElementById('animals-slot');
+    if (slot) slot.innerHTML = renderAnimals(stopSpecies, 'all');
+  }
+}
+
+function closeStopPanel() {
+  document.getElementById('stop-panel-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  document.querySelectorAll('.stop-row').forEach(el => el.classList.remove('active'));
+}
+
+async function init() {
+  const root = document.getElementById('content');
+
+  if (!itinName) {
+    root.innerHTML = `<div class="error-msg">No itinerary specified. <a href="itineraries.html">See all itineraries</a>.</div>`;
+    return;
+  }
+
+  let itinerary = null;
+  try {
+    const resp = await fetch(`/api/itineraries?name=${encodeURIComponent(itinName)}${PREVIEW_Q ? '&' + PREVIEW_Q : ''}`);
+    const data = await resp.json();
+    itinerary = data.itinerary;
+  } catch(e) {
+    root.innerHTML = `<div class="error-msg">Could not load this itinerary.</div>`;
+    return;
+  }
+
+  if (!itinerary) {
+    root.innerHTML = `<div class="error-msg">Itinerary not found. <a href="itineraries.html">See all itineraries</a>.</div>`;
+    return;
+  }
+
+  document.title = `${itinerary.name} — Itinerary — Three Realms Travel`;
+  document.getElementById('page-title').textContent = document.title;
+
+  // Wishlist: save-this-itinerary
+  window._wlItin = { name: itinerary.name, days: itinerary.minimumDays ? (itinerary.minimumDays + ' days') : '' };
+  window.saveThisItinerary = function (btn) {
+    if (!window._wlItin || !window.tbtWishlist) return;
+    const added = window.tbtWishlist.toggleItinerary({ name: window._wlItin.name, days: window._wlItin.days });
+    btn.textContent       = added ? '✓ Itinerary Saved' : '❤ Save this Itinerary';
+    btn.style.background   = added ? '#2dd4bf' : 'rgba(0,0,0,0.4)';
+    btn.style.color        = added ? '#0a1628' : '#fff';
+    btn.style.borderColor  = added ? '#2dd4bf' : 'rgba(255,255,255,0.35)';
+  };
+
+  _stopsData = itinerary.stops || [];
+
+  const heroBg = itinerary.heroPhoto
+    ? `<div class="hero-bg-img" style="background-image:url('${escAttr(itinerary.heroPhoto)}');"></div>`
+    : '';
+
+  const priceRange = fmtRange(itinerary.budgetPrice, itinerary.luxuryPrice);
+  const originDep  = itinerary.countryOfOrigin && itinerary.countryOfDeparture && itinerary.countryOfOrigin !== itinerary.countryOfDeparture
+    ? `${itinerary.countryOfOrigin} → ${itinerary.countryOfDeparture}`
+    : (itinerary.countryOfOrigin || itinerary.countryOfDeparture || '');
+
+  const metaItems = [];
+  if (itinerary.minimumDays) metaItems.push(`<div class="m-item"><div class="m-label">From</div><div class="m-value">${escHtml(itinerary.minimumDays)} days</div></div>`);
+  if (priceRange)             metaItems.push(`<div class="m-item"><div class="m-label">Range</div><div class="m-value">${escHtml(priceRange)}</div></div>`);
+  if (originDep)              metaItems.push(`<div class="m-item"><div class="m-label">Trip route</div><div class="m-value">${escHtml(originDep)}</div></div>`);
+  if (_stopsData.length)      metaItems.push(`<div class="m-item"><div class="m-label">Stops</div><div class="m-value">${_stopsData.length}</div></div>`);
+
+  root.innerHTML = `
+    <div class="hero">
+      <div class="hero-bg"></div>
+      ${heroBg}
+      <div class="hero-scrim"></div>
+      <div class="hero-content">
+        <a class="back-link" href="itineraries.html">← All itineraries</a>
+        ${itinerary.continent ? `<div class="continent-tag">${escHtml(itinerary.continent)}</div>` : ''}
+        <h1 class="hero-title">${escHtml(itinerary.name)}</h1>
+        <div class="hero-description">${paragraphs(itinerary.description)}</div>
+        ${metaItems.length ? `<div class="hero-meta">${metaItems.join('')}</div>` : ''}
+        ${(() => { const s = window.tbtWishlist && window.tbtWishlist.isItinerarySaved(itinerary.name); return `<button id="save-itin-btn" onclick="saveThisItinerary(this)" style="margin-top:18px;padding:9px 18px;border:1px solid ${s ? '#2dd4bf' : 'rgba(255,255,255,0.35)'};border-radius:22px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.05em;cursor:pointer;background:${s ? '#2dd4bf' : 'rgba(0,0,0,0.4)'};color:${s ? '#0a1628' : '#fff'};backdrop-filter:blur(6px);">${s ? '✓ Itinerary Saved' : '❤ Save this Itinerary'}</button>`; })()}
+      </div>
+    </div>
+
+    ${renderSeasonality(itinerary)}
+
+    <div class="map-section">
+      <h2 class="section-heading">Your journey, mapped</h2>
+      <p class="section-subhead">Click any dot to see what makes that stop worth the time — and the wildlife you'll encounter there.</p>
+
+      <div class="stop-search-wrap">
+        <input id="stop-species-search" type="text" class="stop-search-input"
+          placeholder="Find an animal on this trip — e.g. leopard, gorilla, whale"
+          oninput="stopSearchInput(this.value)">
+        <button id="stop-search-clear" class="stop-search-clear" style="display:none;" onclick="stopSearchClear()">×</button>
+        <div id="stop-search-status" class="stop-search-status"></div>
+      </div>
+
+      <div class="map-layout">
+        <div id="itin-map"></div>
+        <div class="stops-list-wrap">
+          <div class="stops-list-title">The stops</div>
+          ${renderStopsList(_stopsData)}
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-wrap">
+      <div class="cta-row">
+        <a class="cta-btn cta-primary" href="lets-talk.html?ref=itinerary#book">Plan this trip</a>
+        <a class="cta-btn cta-secondary" href="itineraries.html">Browse more itineraries</a>
+      </div>
+    </div>
+  `;
+
+  initMap(_stopsData);
+
+  document.querySelectorAll('.stop-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const idx = Number(row.dataset.idx);
+      openStop(idx);
+    });
+  });
+}
+
+// Close panel on overlay click or Escape
+document.getElementById('stop-panel-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'stop-panel-overlay') closeStopPanel();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeStopPanel();
+});
+
+init();
+</script>
+
+</body>
+</html>

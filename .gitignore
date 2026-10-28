@@ -2,3 +2,21 @@
 .env*.local
 .DS_Store
 **/.DS_Store
+
+# Dependencies
+node_modules/
+
+# Secrets — never commit. Vercel holds the real values.
+.env
+.env.*
+!.env.example
+
+# Tooling / OS
+*.log
+npm-debug.log*
+
+# Large media — GitHub rejects anything over 100MB and a git repo is the wrong home
+# for video anyway. These live in Dropbox/Drive instead. See LARGE-FILES.md.
+*.m4v
+*.mov
+*.mp4

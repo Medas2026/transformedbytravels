@@ -90,9 +90,10 @@ module.exports = async function handler(req, res) {
       const pArchetype  = truncate(p.get('partnerArchetype'), 100);
       const pPassions   = truncate((p.get('partnerPassions') || '').replace(/\|/g, ', '), 300);
 
-      const dims = ['Curiosity','Adventure','Reflection','Connection','Intention'];
-      const scoreA = dims.map(d => `${d}: ${scoreLabel(p.get(d))}`).join(', ');
-      const scoreB = dims.map(d => `${d}: ${scoreLabel(p.get('partner' + d))}`).join(', ');
+      const dims    = ['Curiosity','Adventure','Reflection','Connection','Travel Purpose'];
+      const paramOf = d => d.replace(/\s+/g, '');
+      const scoreA  = dims.map(d => `${d}: ${scoreLabel(p.get(paramOf(d)))}`).join(', ');
+      const scoreB  = dims.map(d => `${d}: ${scoreLabel(p.get('partner' + paramOf(d)))}`).join(', ');
 
       const prompt = `You are an expert travel writer and destination specialist. Create a rich, personalized Destination DNA Guide for ${destination}${country ? ', ' + country : ''} tailored to two travel partners traveling together.
 
@@ -140,8 +141,9 @@ IMPORTANT: Never include numeric scores in your output. You may naturally refere
     const travelStyle  = truncate(p.get('travelStyle'), 100);
     const travelerName = truncate(p.get('travelerName') || 'Traveler', 100);
 
-    const dims   = ['Curiosity','Adventure','Reflection','Connection','Intention'];
-    const scoreA = dims.map(d => `${d}: ${scoreLabel(p.get(d))}`).join(', ');
+    const dims    = ['Curiosity','Adventure','Reflection','Connection','Travel Purpose'];
+    const paramOf = d => d.replace(/\s+/g, '');
+    const scoreA  = dims.map(d => `${d}: ${scoreLabel(p.get(paramOf(d)))}`).join(', ');
 
     const soloPrompt = `You are an expert travel writer and destination specialist. Create a rich, personalized Destination DNA Guide for ${destination}${country ? ', ' + country : ''} tailored to a single traveler.
 

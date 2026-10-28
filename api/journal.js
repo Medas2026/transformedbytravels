@@ -133,6 +133,27 @@ const WMO_EMOJI = {
 
 const US_STATES = { AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming' };
 
+// Itinerary stops for a trip, ordered by the day they begin.
+// These used to live in Place 1..Place 7 / Day 1..Day 7 columns on the Trips row; that
+// data moved to the Trip Places table and those columns no longer exist, which silently
+// froze the daily message on the trip's Destination. Matches fetchTripPlaces in trips.js.
+async function fetchTripPlaces(tripId) {
+  try {
+    const filter = encodeURIComponent(`({Trip ID}="${tripId}")`);
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent('Trip Places')}`
+              + `?filterByFormula=${filter}&sort[0][field]=Day&sort[0][direction]=asc`;
+    const resp = await fetch(url, { headers: { Authorization: 'Bearer ' + process.env.AIRTABLE_API_KEY } });
+    const data = await resp.json();
+    return (data.records || [])
+      .map(r => ({ name: r.fields['Place'] || '', day: Number(r.fields['Day']) || 0 }))
+      .filter(p => p.name && p.day)
+      .sort((a, b) => a.day - b.day);
+  } catch (e) {
+    console.error('[journal fetchTripPlaces]', e.message);
+    return [];
+  }
+}
+
 async function getWeatherForecast(place, country, tomorrowDate) {
   try {
     const parts     = place.trim().split(',');
@@ -258,7 +279,7 @@ function ordinal(n) {
 function sendEmail(to, subject, html) {
   return new Promise((resolve) => {
     const apiKey = process.env.RESEND_API_KEY;
-    const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to, subject, html });
+    const body   = JSON.stringify({ from: 'Michael at Three Realms Travel <michael@transformedbytravels.com>', to, subject, html });
     const options = {
       hostname: 'api.resend.com',
       path:     '/emails',
@@ -566,17 +587,14 @@ module.exports = async function handler(req, res) {
               destination:    r.fields['Destination'] || '',
               country:        r.fields['Country'] || '',
               region:         Array.isArray(r.fields['Region']) ? r.fields['Region'].join(',') : (r.fields['Region'] || r.fields['Country'] || ''),
-              activationDate:    r.fields['Activation Date'] || r.fields['Start Date'] || '',
+              activationDate:    r.fields['Start Date'] || r.fields['Activation Date'] || '',  // day-1 anchor: prefer planned Start Date so day count matches the itinerary
               endDate:           r.fields['End Date'] || '',
               tripName:          r.fields['Trip Name'] || r.fields['Destination'] || 'your trip',
               tripPhotoUrl:      r.fields['Trip Photo URL'] || '',
               shareToken:        r.fields['Share Token']   || '',
               coachTipOverride:  r.fields['Coach Tip Override'] || '',
               localDate,
-              places: [1,2,3,4,5,6,7].map(n => ({
-                name: r.fields['Place ' + n] || '',
-                day:  Number(r.fields['Day ' + n]) || 0
-              })).filter(p => p.name && p.day)
+              // Itinerary stops are fetched per-trip below, from the Trip Places table.
             };
           });
 
@@ -584,7 +602,9 @@ module.exports = async function handler(req, res) {
 
         let sent = 0;
 
-        for (const { email, tripId, destination, country, region, activationDate, endDate, tripName, tripPhotoUrl, shareToken, coachTipOverride, localDate, places } of toSend) {
+        for (const trip of toSend) {
+          const { email, tripId, destination, country, region, activationDate, endDate, tripName, tripPhotoUrl, shareToken, coachTipOverride, localDate } = trip;
+          const places = await fetchTripPlaces(tripId);
           // Traveler info
           const travData = await airtableGetP(TRAVELER_TABLE, '?filterByFormula=' + encodeURIComponent(`({Traveler Email}="${email}")`));
           const travRec  = (travData.records || [])[0];
@@ -598,6 +618,12 @@ module.exports = async function handler(req, res) {
           if (activationDate) {
             const diff = Math.round((new Date(localDate) - new Date(activationDate)) / 86400000);
             dayNum = diff >= 0 ? diff + 1 : null;
+          }
+
+          // Skip send if trip hasn't actually started (pre-Start Date)
+          if (!dayNum || dayNum < 1) {
+            console.log(`[journal] skip ${email} tripId=${tripId} — pre-trip (dayNum=${dayNum})`);
+            continue;
           }
 
           // Current place
@@ -745,12 +771,16 @@ ${wildlifeBlockHtml}${tipBlockHtml}${tomorrowBlockHtml}
           sent++;
           console.log('[send-daily] sent to', email, dayLabel, currentPlace);
 
-          // Send to accepted trip members (partners, co-travelers)
+          // Send reflective journal reminder to Co-travelers (and legacy Partner
+          // role for backward compat). Coach / Tour Guide / Family are excluded —
+          // they don't write the reflective travel journal.
           try {
             const membersData = await airtableGetP(MEMBERS_TABLE, '?filterByFormula=' + encodeURIComponent(`AND({Trip ID}="${tripId}",{Status}="Accepted")`));
+            const journalRoles = new Set(['Co-traveler', 'Partner', 'Traveler']);
             const members = (membersData.records || []).filter(m => {
               const mEmail = (m.fields['Email'] || '').toLowerCase();
-              return mEmail && mEmail !== email.toLowerCase();
+              const mRole  = m.fields['Role'] || '';
+              return mEmail && mEmail !== email.toLowerCase() && journalRoles.has(mRole);
             });
             for (const member of members) {
               const memberEmail = member.fields['Email'];
@@ -839,7 +869,7 @@ ${tipBlockHtml}${tomorrowBlockHtml}
         const country       = f['Country'] || '';
         const tripName      = f['Trip Name'] || destination || 'your trip';
         const tripPhotoUrl  = f['Trip Photo URL'] || '';
-        const activationDate = f['Activation Date'] || f['Start Date'] || '';
+        const activationDate = f['Start Date'] || f['Activation Date'] || '';  // day-1 anchor
         const endDate       = f['End Date'] || '';
         const now           = new Date();
         const tz            = f['Time Zone'] || 'UTC';
@@ -856,9 +886,7 @@ ${tipBlockHtml}${tomorrowBlockHtml}
         }
         if (!dayNum) dayNum = 1;
 
-        const places = [1,2,3,4,5,6,7].map(n => ({
-          name: f['Place ' + n] || '', day: Number(f['Day ' + n]) || 0
-        })).filter(p => p.name && p.day);
+        const places = await fetchTripPlaces(tripRec.id);
 
         let currentPlace = destination || tripName;
         if (dayNum && places.length) {
@@ -997,12 +1025,7 @@ ${tomorrowBlockHtml}
               ? `<p style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;margin:0 0 18px;">${text.replace(/\n/g, '<br>')}</p>`
               : '';
 
-            const sends = eligible.map(r => {
-              const email = (r.fields['Traveler Email'] || '').toLowerCase();
-              const name  = r.fields['Traveler Name'] || 'Traveler';
-              const link  = `${PORTAL_URL}/monthly-journal.html?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
-
-              const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+            const monthlyHtml = (link) => `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
@@ -1014,9 +1037,36 @@ ${tomorrowBlockHtml}
 <p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>
 </td></tr></table></td></tr></table></body></html>`;
 
-              return sendMonthlyEmail(email, subject, html);
+            const sends = eligible.map(r => {
+              const email = (r.fields['Traveler Email'] || '').toLowerCase();
+              const name  = r.fields['Traveler Name'] || 'Traveler';
+              const link  = `${PORTAL_URL}/monthly-journal.html?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
+              return sendMonthlyEmail(email, subject, monthlyHtml(link));
             });
             Promise.all(sends).catch(() => {});
+
+            // Also include co-travelers/partners of completed (non-active) trips.
+            (async () => {
+              try {
+                const getP = (t, q) => new Promise((rs, rj) => airtableGet(t, q, (e, d) => e ? rj(e) : rs(d)));
+                const alreadySent = new Set(eligible.map(r => (r.fields['Traveler Email'] || '').toLowerCase()));
+                const partnerEmails = new Set();
+                for (const trip of (completedData.records || [])) {
+                  const md = await getP(MEMBERS_TABLE, `?filterByFormula=${encodeURIComponent(`AND({Trip ID}="${trip.id}",{Status}="Accepted")`)}`);
+                  (md.records || []).forEach(m => {
+                    if (['Co-traveler', 'Partner'].includes(m.fields['Role'])) {
+                      const e = (m.fields['Email'] || '').toLowerCase();
+                      if (e && !alreadySent.has(e) && !activeEmails.has(e)) partnerEmails.add(e);
+                    }
+                  });
+                }
+                for (const pe of partnerEmails) {
+                  const link = `${PORTAL_URL}/monthly-journal.html?email=${encodeURIComponent(pe)}&name=${encodeURIComponent(pe)}`;
+                  await sendMonthlyEmail(pe, subject, monthlyHtml(link));
+                }
+                if (partnerEmails.size) console.log('[send-monthly] partners:', partnerEmails.size);
+              } catch(e) { console.error('[send-monthly] partner send:', e.message); }
+            })();
 
             res.status(200).json({ success: true, sent: eligible.length });
           });

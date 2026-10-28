@@ -107,6 +107,7 @@
       #dest-grid { grid-template-columns: 1fr !important; }
     }
   </style>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
@@ -124,7 +125,7 @@
       <div class="welcome-badge">Trip Planner</div>
       <h1 class="welcome-title">Plan Your Next <span>Transformational Journey</span></h1>
       <p class="welcome-intro">
-        Already completed the Travel for Growth Assessment? Enter your email to retrieve your profile and explore destinations matched to who you are.
+        Already completed the Three Realms Travel Assessment? Enter your email to retrieve your profile and explore destinations matched to who you are.
       </p>
 
       <div class="form-card">
@@ -150,7 +151,7 @@
       <div class="results-header">
         <div class="archetype-pill" id="archetype-pill"></div>
         <h1>Welcome back, <span id="user-name-display"></span></h1>
-        <p>Here are your top destination matches based on your Travel for Growth Assessment.</p>
+        <p>Here are your top destination matches based on your Three Realms Travel Assessment.</p>
       </div>
 
       <!-- Top Recommended Trips -->
@@ -628,7 +629,7 @@ const DEST_DIM_MAP = [
   {label:"Curiosity",   key:"Cur",  rawKey:"Curiosity"},
   {label:"Adventure",   key:"Adv",  rawKey:"Adventure"},
   {label:"Connection",  key:"Con",  rawKey:"Connection"},
-  {label:"Intention",   key:"Int",  rawKey:"Intention"},
+  {label:"Travel Purpose", key:"Int", rawKey:"Travel Purpose"},
   {label:"Reflection",  key:"Ref",  rawKey:"Reflection"},
 ];
 
@@ -643,11 +644,11 @@ function showScreen(id) {
 
 function scoreDestForUser(dest, r) {
   const uNorm = {
-    Cur: (r.Curiosity  / 7) * 10,
-    Adv: (r.Adventure  / 7) * 10,
-    Con: (r.Connection / 7) * 10,
-    Int: (r.Intention  / 7) * 10,
-    Ref: (r.Reflection / 7) * 10,
+    Cur: (r.Curiosity  / 5) * 10,
+    Adv: (r.Adventure  / 5) * 10,
+    Con: (r.Connection / 5) * 10,
+    Int: ((r['Travel Purpose'] ?? r.Intention ?? 0)  / 5) * 10,
+    Ref: (r.Reflection / 5) * 10,
   };
   let total = 0;
   ['Cur','Adv','Con','Int','Ref'].forEach(k => {
@@ -737,7 +738,7 @@ function doLookup(email) {
       userEmail  = email;
       userName   = data.name || '';
       _lastRaw   = data.scores;
-      _lastArch  = data.archetype || 'Transformational Traveler';
+      _lastArch  = data.archetype || 'Growth Seeker';
       _hopes     = data.hopes ? data.hopes.split(', ').filter(h => h) : [];
 
       buildResults();
@@ -866,11 +867,11 @@ function destNameChange() {
 
 function showDestMatch(dest, raw) {
   const userNorm = {
-    Cur: (raw.Curiosity  / 7) * 10,
-    Adv: (raw.Adventure  / 7) * 10,
-    Con: (raw.Connection / 7) * 10,
-    Int: (raw.Intention  / 7) * 10,
-    Ref: (raw.Reflection / 7) * 10,
+    Cur: (raw.Curiosity  / 5) * 10,
+    Adv: (raw.Adventure  / 5) * 10,
+    Con: (raw.Connection / 5) * 10,
+    Int: ((raw['Travel Purpose'] ?? raw.Intention ?? 0)  / 5) * 10,
+    Ref: (raw.Reflection / 5) * 10,
   };
 
   let totalMatch = 0;
@@ -950,12 +951,12 @@ function loadDestGuide() {
     '&destination=' + encodeURIComponent(name) +
     '&country=' + encodeURIComponent(country) +
     '&continent=' + encodeURIComponent(continent) +
-    '&archetype=' + encodeURIComponent(_lastArch || 'Transformational Traveler') +
+    '&archetype=' + encodeURIComponent(_lastArch || 'Growth Seeker') +
     '&Curiosity=' + (_lastRaw.Curiosity || 0) +
     '&Adventure=' + (_lastRaw.Adventure || 0) +
     '&Reflection=' + (_lastRaw.Reflection || 0) +
     '&Connection=' + (_lastRaw.Connection || 0) +
-    '&Intention='  + (_lastRaw.Intention  || 0) +
+    '&TravelPurpose=' + (_lastRaw['Travel Purpose'] ?? _lastRaw.Intention ?? 0) +
     '&hopes=' + encodeURIComponent(_hopes.join('|'));
 
   fetch('/api/dest-guide' + params)

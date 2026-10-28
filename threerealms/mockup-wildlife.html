@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Wildlife screen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #64748b;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    font-family: 'Montserrat', sans-serif;
+  }
+  /* Phone frame — iPhone 13 mini proportions, 375x812 CSS px */
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: #0a1628;
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 12px #1a1a1a, 0 0 0 14px #333;
+    position: relative;
+    color: #f1f5f9;
+  }
+  /* Status bar */
+  .status {
+    height: 44px;
+    padding: 12px 22px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+  }
+  .status-icons { display: flex; gap: 5px; align-items: center; }
+  /* Header */
+  .header {
+    padding: 12px 20px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .header-title {
+    font-weight: 900;
+    font-size: 22px;
+    color: #fff;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+  .header-sub {
+    font-size: 12px;
+    color: #94a3b8;
+    letter-spacing: 0.03em;
+  }
+  .header-sub span { color: #2dd4bf; font-weight: 700; }
+  /* Filters */
+  .filters {
+    display: flex;
+    gap: 6px;
+    padding: 12px 20px 10px;
+    overflow-x: hidden;
+  }
+  .chip {
+    padding: 6px 13px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background: rgba(255,255,255,0.05);
+    color: #94a3b8;
+    border: 1px solid rgba(255,255,255,0.08);
+    white-space: nowrap;
+  }
+  .chip.active {
+    background: #2dd4bf;
+    color: #0a1628;
+    border-color: #2dd4bf;
+  }
+  /* Species rows */
+  .list {
+    padding: 4px 14px 0;
+    overflow: hidden;
+  }
+  .species {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    position: relative;
+  }
+  .species img {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: #1e293b;
+    flex-shrink: 0;
+  }
+  .species.grayscale img {
+    filter: grayscale(0.85) brightness(0.95);
+    opacity: 0.85;
+  }
+  .species-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .species-name {
+    font-weight: 800;
+    font-size: 15px;
+    color: #f1f5f9;
+    margin-bottom: 3px;
+    letter-spacing: -0.01em;
+  }
+  .species-sci {
+    font-size: 11px;
+    color: #64748b;
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+  .species-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .tag-mammal { background: rgba(217,119,6,0.15); color: #fbbf24; border: 1px solid rgba(217,119,6,0.3); }
+  .tag-bird   { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+  .tag-reptile{ background: rgba(14,165,233,0.15); color: #38bdf8; border: 1px solid rgba(14,165,233,0.3); }
+  .tag-seen   { background: rgba(45,212,191,0.15); color: #2dd4bf; border: 1px solid rgba(45,212,191,0.35); }
+  .tag-big5   { background: rgba(244,63,94,0.15); color: #fb7185; border: 1px solid rgba(244,63,94,0.3); }
+  .heart {
+    position: absolute;
+    top: 14px;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #64748b;
+  }
+  .heart.saved { color: #f43f5e; }
+  /* Bottom nav */
+  .nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(15,30,53,0.98);
+    border-top: 1px solid rgba(45,212,191,0.15);
+    padding: 10px 16px 26px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.04em;
+  }
+  .nav-item.active { color: #2dd4bf; }
+  .nav-icon { font-size: 20px; line-height: 1; }
+  /* Notch */
+  .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 30px;
+    background: #000;
+    border-bottom-left-radius: 22px;
+    border-bottom-right-radius: 22px;
+    z-index: 10;
+  }
+</style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="status">
+      <span>9:41</span>
+      <div class="status-icons">
+        <span>●●●●</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <div class="header">
+      <div class="header-title">Kenya Wildlife</div>
+      <div class="header-sub">62 species you'll find on this trip · <span>4 saved</span></div>
+    </div>
+
+    <div class="filters">
+      <div class="chip active">All</div>
+      <div class="chip">Big Five</div>
+      <div class="chip">Mammals</div>
+      <div class="chip">Birds</div>
+      <div class="chip">Reptiles</div>
+    </div>
+
+    <div class="list">
+
+      <div class="species">
+        <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/9225318/medium.jpg" alt="Lion">
+        <div class="species-body">
+          <div class="species-name">African Lion</div>
+          <div class="species-sci">Panthera leo</div>
+          <div class="species-tags">
+            <span class="tag tag-mammal">Mammal</span>
+            <span class="tag tag-big5">Big Five</span>
+            <span class="tag tag-seen">✓ Seen</span>
+          </div>
+        </div>
+        <div class="heart saved">♥</div>
+      </div>
+
+      <div class="species grayscale">
+        <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/1728533/medium.jpg" alt="Leopard">
+        <div class="species-body">
+          <div class="species-name">African Leopard</div>
+          <div class="species-sci">Panthera pardus</div>
+          <div class="species-tags">
+            <span class="tag tag-mammal">Mammal</span>
+            <span class="tag tag-big5">Big Five</span>
+          </div>
+        </div>
+        <div class="heart saved">♥</div>
+      </div>
+
+      <div class="species">
+        <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/86748345/medium.jpg" alt="Elephant">
+        <div class="species-body">
+          <div class="species-name">African Bush Elephant</div>
+          <div class="species-sci">Loxodonta africana</div>
+          <div class="species-tags">
+            <span class="tag tag-mammal">Mammal</span>
+            <span class="tag tag-big5">Big Five</span>
+            <span class="tag tag-seen">✓ Seen</span>
+          </div>
+        </div>
+        <div class="heart saved">♥</div>
+      </div>
+
+      <div class="species grayscale">
+        <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/109617648/medium.jpg" alt="Cheetah">
+        <div class="species-body">
+          <div class="species-name">Cheetah</div>
+          <div class="species-sci">Acinonyx jubatus</div>
+          <div class="species-tags">
+            <span class="tag tag-mammal">Mammal</span>
+          </div>
+        </div>
+        <div class="heart saved">♥</div>
+      </div>
+
+      <div class="species grayscale">
+        <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/54807869/medium.jpg" alt="Masai Giraffe">
+        <div class="species-body">
+          <div class="species-name">Masai Giraffe</div>
+          <div class="species-sci">Giraffa tippelskirchi</div>
+          <div class="species-tags">
+            <span class="tag tag-mammal">Mammal</span>
+          </div>
+        </div>
+        <div class="heart">♥</div>
+      </div>
+
+      <div class="species grayscale">
+        <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/216543807/medium.jpeg" alt="Zebra">
+        <div class="species-body">
+          <div class="species-name">Plains Zebra</div>
+          <div class="species-sci">Equus quagga</div>
+          <div class="species-tags">
+            <span class="tag tag-mammal">Mammal</span>
+          </div>
+        </div>
+        <div class="heart">♥</div>
+      </div>
+
+    </div>
+
+    <div class="nav">
+      <div class="nav-item"><div class="nav-icon">🗓</div><div>Schedule</div></div>
+      <div class="nav-item active"><div class="nav-icon">🐾</div><div>Wildlife</div></div>
+      <div class="nav-item"><div class="nav-icon">📍</div><div>Places</div></div>
+      <div class="nav-item"><div class="nav-icon">📓</div><div>Journal</div></div>
+    </div>
+
+  </div>
+
+</body>
+</html>

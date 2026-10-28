@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — African Elephant detail</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #64748b;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: #0a1628;
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 12px #1a1a1a, 0 0 0 14px #333;
+    position: relative;
+    color: #f1f5f9;
+    display: flex;
+    flex-direction: column;
+  }
+  .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 30px;
+    background: #000;
+    border-bottom-left-radius: 22px;
+    border-bottom-right-radius: 22px;
+    z-index: 20;
+  }
+  .status {
+    height: 44px;
+    padding: 12px 22px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 15;
+  }
+  .status-icons { display: flex; gap: 5px; }
+
+  .hero-wrap {
+    position: relative;
+    height: 340px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .hero {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(10,22,40,0.6) 0%, transparent 20%, transparent 60%, rgba(10,22,40,0.9) 100%);
+  }
+  .back-btn {
+    position: absolute;
+    top: 52px;
+    left: 14px;
+    width: 36px;
+    height: 36px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    z-index: 15;
+  }
+  .heart-btn {
+    position: absolute;
+    top: 52px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    background: #f43f5e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    z-index: 15;
+    box-shadow: 0 4px 12px rgba(244,63,94,0.5);
+  }
+
+  .body {
+    padding: 18px 20px 12px;
+    flex: 1;
+    overflow: hidden;
+  }
+  .name-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2px;
+    gap: 8px;
+  }
+  .name {
+    font-weight: 900;
+    font-size: 24px;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .status-badge {
+    display: inline-block;
+    background: rgba(251,146,60,0.15);
+    color: #fb923c;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(251,146,60,0.35);
+    white-space: nowrap;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .sci {
+    font-family: 'Lora', Georgia, serif;
+    font-style: italic;
+    font-size: 13px;
+    color: #94a3b8;
+    margin-bottom: 12px;
+  }
+  .tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .tag {
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .tag-mammal { background: rgba(217,119,6,0.15); color: #fbbf24; border: 1px solid rgba(217,119,6,0.3); }
+  .tag-big5   { background: rgba(244,63,94,0.15); color: #fb7185; border: 1px solid rgba(244,63,94,0.3); }
+  .tag-seen   { background: rgba(45,212,191,0.15); color: #2dd4bf; border: 1px solid rgba(45,212,191,0.35); }
+  .desc {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #cbd5e1;
+    margin-bottom: 14px;
+  }
+  .section-label {
+    font-weight: 800;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #2dd4bf;
+    margin-bottom: 6px;
+  }
+  .parks {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .park {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #cbd5e1;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+  .months {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 14px;
+  }
+  .month {
+    flex: 1;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.03em;
+  }
+  .month.best {
+    background: rgba(45,212,191,0.2);
+    border-color: rgba(45,212,191,0.5);
+    color: #2dd4bf;
+  }
+
+  .log-btn {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 88px;
+    height: 50px;
+    background: #2dd4bf;
+    color: #0a1628;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(45,212,191,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(15,30,53,0.98);
+    border-top: 1px solid rgba(45,212,191,0.15);
+    padding: 10px 16px 26px;
+    display: flex;
+    justify-content: space-around;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.04em;
+  }
+  .nav-item.active { color: #2dd4bf; }
+  .nav-icon { font-size: 20px; }
+</style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status">
+      <span>9:41</span>
+      <div class="status-icons">
+        <span>●●●●</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <!-- Hero photo of an African bush elephant -->
+    <div class="hero-wrap">
+      <img class="hero" src="https://inaturalist-open-data.s3.amazonaws.com/photos/93674728/large.jpg" alt="African Bush Elephant">
+      <div class="hero-scrim"></div>
+      <div class="back-btn">←</div>
+      <div class="heart-btn">♥</div>
+    </div>
+
+    <div class="body">
+      <div class="name-row">
+        <div>
+          <div class="name">African Bush Elephant</div>
+          <div class="sci">Loxodonta africana</div>
+        </div>
+        <div class="status-badge">Endangered</div>
+      </div>
+
+      <div class="tags">
+        <span class="tag tag-mammal">Mammal</span>
+        <span class="tag tag-big5">Big Five</span>
+        <span class="tag tag-seen">✓ Seen</span>
+      </div>
+
+      <div class="desc">
+        The largest land animal on Earth. Matriarchal herds pass down memory of water and migration routes across generations — some of the deepest social bonds in the animal kingdom.
+      </div>
+
+      <div class="section-label">Where to see</div>
+      <div class="parks">
+        <div class="park">Amboseli</div>
+        <div class="park">Chobe</div>
+        <div class="park">Tsavo</div>
+        <div class="park">Hwange</div>
+      </div>
+
+      <div class="section-label">Best months</div>
+      <div class="months">
+        <div class="month">J</div>
+        <div class="month">F</div>
+        <div class="month">M</div>
+        <div class="month">A</div>
+        <div class="month">M</div>
+        <div class="month best">J</div>
+        <div class="month best">J</div>
+        <div class="month best">A</div>
+        <div class="month best">S</div>
+        <div class="month best">O</div>
+        <div class="month">N</div>
+        <div class="month">D</div>
+      </div>
+    </div>
+
+    <button class="log-btn">✓ Logged — Log Again</button>
+
+    <div class="nav">
+      <div class="nav-item"><div class="nav-icon">🗓</div><div>Schedule</div></div>
+      <div class="nav-item active"><div class="nav-icon">🐾</div><div>Wildlife</div></div>
+      <div class="nav-item"><div class="nav-icon">📍</div><div>Places</div></div>
+      <div class="nav-item"><div class="nav-icon">📓</div><div>Journal</div></div>
+    </div>
+
+  </div>
+
+</body>
+</html>

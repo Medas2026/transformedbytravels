@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Michael Emerson — Three Realms Travel</title>
+  <meta name="description" content="Watch Wildlife 100, take the Travel Style Assessment, book a call, and more.">
+  <link rel="icon" href="/Favicon.png" type="image/png">
+  <script defer src="https://plausible.io/js/pa-_E9cFdzUFrWlkW9MIz16L.js"></script>
+  <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal:   #2dd4bf;
+      --teal2:  #14b8a6;
+      --dark:   #0a1628;
+      --navy:   #0f172a;
+      --amber:  #f59e0b;
+      --text:   #f1f5f9;
+      --soft:   #cbd5e1;
+      --muted:  #64748b;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(180deg, #0a1628 0%, #14263f 60%, #0a1628 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 20px 40px;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    .hub {
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hub-brand {
+      display: inline-block;
+      font-weight: 900;
+      font-size: 1.1rem;
+      letter-spacing: 0.15em;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .hub-brand span { color: var(--teal); }
+
+    .hub-avatar {
+      width: 112px; height: 112px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid rgba(45,212,191,0.5);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      margin-bottom: 16px;
+    }
+    .hub-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .hub-name {
+      font-weight: 800; font-size: 1.35rem;
+      color: #fff; margin-bottom: 4px;
+      letter-spacing: -0.01em;
+    }
+    .hub-tagline {
+      font-family: 'Lora', serif; font-style: italic;
+      color: var(--soft); font-size: 0.98rem;
+      margin-bottom: 28px; text-align: center;
+      max-width: 360px; line-height: 1.5;
+    }
+
+    .hub-tiles {
+      width: 100%;
+      display: flex; flex-direction: column;
+      gap: 12px;
+    }
+
+    .hub-tile {
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 16px 18px;
+      transition: background 0.2s, border-color 0.2s, transform 0.1s;
+    }
+    .hub-tile:hover {
+      background: rgba(45,212,191,0.1);
+      border-color: rgba(45,212,191,0.4);
+      transform: translateY(-1px);
+    }
+    .hub-tile:active { transform: translateY(0); }
+
+    .hub-tile-icon {
+      width: 44px; height: 44px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(45,212,191,0.12);
+      border-radius: 10px;
+      font-size: 1.35rem;
+    }
+    .hub-tile-body { flex: 1; min-width: 0; }
+    .hub-tile-title {
+      font-weight: 700; font-size: 0.98rem;
+      color: #fff; margin-bottom: 2px;
+    }
+    .hub-tile-sub {
+      font-family: 'Lora', serif;
+      font-size: 0.82rem; color: var(--soft);
+      line-height: 1.35;
+    }
+    .hub-tile-arrow {
+      color: var(--teal);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    /* Featured tile — used for the primary/current CTA */
+    .hub-tile.featured {
+      background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(245,158,11,0.05) 100%);
+      border-color: rgba(245,158,11,0.4);
+    }
+    .hub-tile.featured .hub-tile-icon { background: rgba(245,158,11,0.18); }
+    .hub-tile.featured .hub-tile-arrow { color: var(--amber); }
+
+    .hub-social {
+      margin-top: 28px;
+      display: flex; gap: 14px;
+      justify-content: center;
+    }
+    .hub-social a {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--soft);
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    .hub-social a:hover {
+      background: var(--teal);
+      color: #0a1628;
+      border-color: var(--teal);
+    }
+
+    .hub-footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+    .hub-footer a { color: var(--muted); text-decoration: underline; }
+  </style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+<div class="hub">
+
+  <div class="hub-brand">THREE <span>REALMS</span> TRAVEL</div>
+
+  <div class="hub-avatar">
+    <img src="https://res.cloudinary.com/dporenlvw/image/upload/v1777399899/Screenshot_2026-04-28_at_1.10.16_PM_cm1nri" alt="Michael Emerson">
+  </div>
+
+  <div class="hub-name">Michael Emerson</div>
+  <div class="hub-tagline">
+    Adventure traveler, technology visionary, and the guide behind Wildlife 100.
+  </div>
+
+  <div class="hub-tiles">
+
+    <!-- Featured: Wildlife 100 -->
+    <a class="hub-tile featured" href="/threerealms/wildlife-100.html?ref=bio-hub">
+      <div class="hub-tile-icon">🎬</div>
+      <div class="hub-tile-body">
+        <div class="hub-tile-title">Watch Wildlife 100</div>
+        <div class="hub-tile-sub">100 wildlife encounters that transform lives — new episode weekly</div>
+      </div>
+      <div class="hub-tile-arrow">›</div>
+    </a>
+
+    <!-- Take the Assessment -->
+    <a class="hub-tile" href="https://transformedbytravels.com/Assessment?ref=bio-hub">
+      <div class="hub-tile-icon">🧬</div>
+      <div class="hub-tile-body">
+        <div class="hub-tile-title">Take the Travel Style Assessment</div>
+        <div class="hub-tile-sub">Free 6-minute assessment · Discover your travel archetype</div>
+      </div>
+      <div class="hub-tile-arrow">›</div>
+    </a>
+
+    <!-- Book a Call -->
+    <a class="hub-tile" href="/threerealms/lets-talk.html?ref=bio-hub">
+      <div class="hub-tile-icon">📞</div>
+      <div class="hub-tile-body">
+        <div class="hub-tile-title">Book a Call</div>
+        <div class="hub-tile-sub">30 minutes · Plan the trip that changes how you see the world</div>
+      </div>
+      <div class="hub-tile-arrow">›</div>
+    </a>
+
+    <!-- Book Michael to Speak -->
+    <a class="hub-tile" href="https://transformedbytravels.com/Speaking?ref=bio-hub">
+      <div class="hub-tile-icon">🎤</div>
+      <div class="hub-tile-body">
+        <div class="hub-tile-title">Book Michael to Speak</div>
+        <div class="hub-tile-sub">Keynotes, workshops, on-stage interviews · 100+ events</div>
+      </div>
+      <div class="hub-tile-arrow">›</div>
+    </a>
+
+    <!-- Trip Reports -->
+    <a class="hub-tile" href="/threerealms/trip-reports.html?ref=bio-hub">
+      <div class="hub-tile-icon">📖</div>
+      <div class="hub-tile-body">
+        <div class="hub-tile-title">Read Trip Reports</div>
+        <div class="hub-tile-sub">Field notes and stories from wild places</div>
+      </div>
+      <div class="hub-tile-arrow">›</div>
+    </a>
+
+    <!-- My Portal -->
+    <a class="hub-tile" href="https://app.transformedbytravels.com/portal.html">
+      <div class="hub-tile-icon">🔐</div>
+      <div class="hub-tile-body">
+        <div class="hub-tile-title">My Portal</div>
+        <div class="hub-tile-sub">Sign in to your account</div>
+      </div>
+      <div class="hub-tile-arrow">›</div>
+    </a>
+
+  </div>
+
+  <div class="hub-social">
+    <a href="https://www.tiktok.com/@GoWildWithMikeE" aria-label="TikTok" target="_blank" rel="noopener">TT</a>
+    <a href="mailto:MichaelE@transformedbytravels.com" aria-label="Email">✉</a>
+  </div>
+
+  <div class="hub-footer">
+    © 2026 Three Realms Travel · <a href="https://transformedbytravels.com/">Transformed by Travels</a>
+  </div>
+
+</div>
+
+</body>
+</html>

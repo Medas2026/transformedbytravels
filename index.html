@@ -3,250 +3,658 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
-  <link rel="apple-touch-icon" href="/images/app-icon.png">
-  <title>Transformed by Travels</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <meta name="description" content="Stawi is the transformation platform for properties — travel that makes us flourish. Know who your guest is before they arrive, guide them through the stay, and stay with them long after checkout." />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" href="/Favicon.png" type="image/png">
+  <title>Stawi — Travel That Makes Us Flourish | Transformed by Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script defer src="/js/mobile-nav.js"></script>
+  <style>
+    :root {
+      --b-teal:   #2a9d8f;
+      --b-teal-d: #21867a;
+      --b-navy:   #1a1a2e;
+      --b-ink:    #26324a;
+      --b-slate:  #5a6a80;
+      --b-mist:   #f2f8f7;
+      --b-line:   #dceae7;
+      --b-gold:   #c08a2e;
+    }
+    .lb-section { padding: 88px 0; }
+    .lb-section.alt { background: var(--b-mist); }
+    .lb-inner { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+    .lb-narrow { max-width: 760px; }
+
+    .lb-eyebrow {
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.72rem;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--b-teal);
+      margin-bottom: 14px;
+    }
+    .lb-h2 {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: clamp(1.7rem, 3.2vw, 2.4rem); line-height: 1.2;
+      color: var(--b-navy); margin-bottom: 18px; letter-spacing: -0.01em;
+      text-wrap: balance;
+    }
+    .lb-lead { font-size: 1.1rem; line-height: 1.8; color: var(--b-slate); max-width: 700px; }
+    .lb-lead + .lb-lead { margin-top: 14px; }
+
+    /* ── HERO ──
+       Drop a file at /images/lodge-hero.jpg and it appears behind the copy. Until then
+       the gradient stands alone, so the page is never broken by a missing image.
+       The scrim is weighted to the left, where the text sits, so a phone mockup or a
+       subject placed on the right stays legible. */
+    .lb-hero {
+      position: relative; color: #fff; overflow: hidden;
+      background: linear-gradient(140deg, #16213a 0%, #1a1a2e 45%, #14342f 100%);
+    }
+    .lb-hero::before {
+      content: ""; position: absolute; inset: 0; z-index: 0;
+      background-image: url('/images/lodge-hero.jpg');
+      background-size: cover; background-position: center right;
+    }
+    .lb-hero::after {
+      content: ""; position: absolute; inset: 0; z-index: 1;
+      background:
+        linear-gradient(90deg, rgba(16,24,38,0.92) 0%, rgba(16,24,38,0.78) 42%, rgba(16,24,38,0.35) 72%, rgba(16,24,38,0.25) 100%),
+        linear-gradient(180deg, rgba(16,24,38,0.45) 0%, rgba(16,24,38,0.15) 40%, rgba(16,24,38,0.55) 100%);
+    }
+    @media (max-width: 760px) {
+      /* On a phone the text spans the full width, so the scrim has to as well. */
+      .lb-hero::after { background: linear-gradient(180deg, rgba(16,24,38,0.80) 0%, rgba(16,24,38,0.88) 100%); }
+      .lb-hero::before { background-position: center; }
+    }
+    .lb-hero-inner { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; padding: 108px 24px 96px; }
+    .lb-hero h1 {
+      font-family: 'Montserrat', sans-serif; font-weight: 900;
+      font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.08;
+      letter-spacing: -0.02em; margin-bottom: 22px; max-width: 16ch;
+      text-wrap: balance;
+    }
+    .lb-hero h1 em { font-style: normal; color: #6fd8c8; }
+    .lb-hero p { font-size: 1.18rem; line-height: 1.75; color: #cfe0dd; max-width: 620px; }
+    .lb-hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 34px; }
+    .lb-btn {
+      display: inline-block; border: none; cursor: pointer; font-family: 'Montserrat', sans-serif; font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 0.92rem; letter-spacing: 0.02em; padding: 15px 30px; border-radius: 9px;
+      text-decoration: none; transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    }
+    .lb-btn-primary { background: var(--b-teal); color: #fff; }
+    .lb-btn-primary:hover { background: #35b3a3; transform: translateY(-1px); }
+    .lb-btn-ghost { border: 1.5px solid rgba(255,255,255,0.35); color: #fff; }
+    .lb-btn-ghost:hover { border-color: #6fd8c8; background: rgba(111,216,200,0.12); }
+    .lb-hero-note { margin-top: 20px; font-size: 0.92rem; color: #9db5b1; }
+
+
+    /* ── WHY NOW ──
+       Jake's framing: properties can feel the expectation shifting and have nothing to
+       answer it with. This is the thesis of the whole page, so it gets a quiet band of
+       its own and larger type — a statement, not another feature block. */
+    .lb-why {
+      background: var(--b-navy); color: #fff;
+      padding: 72px 0;
+    }
+    .lb-why .lb-inner { max-width: 820px; }
+    .lb-why .lb-eyebrow { color: #6fd8c8; }
+    .lb-why h2 {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: clamp(1.6rem, 3.4vw, 2.3rem); line-height: 1.25;
+      letter-spacing: -0.01em; margin-bottom: 20px; text-wrap: balance;
+    }
+    .lb-why p { font-size: 1.12rem; line-height: 1.8; color: #cfe0dd; }
+    .lb-why p + p { margin-top: 15px; }
+    .lb-why strong { color: #fff; font-weight: 700; }
+
+    /* ── PROBLEM ── */
+    .lb-problem-grid { display: grid; gap: 26px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 40px; }
+    .lb-problem h3 {
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.02rem;
+      color: var(--b-navy); margin-bottom: 8px;
+    }
+    .lb-problem p { color: var(--b-slate); line-height: 1.7; font-size: 0.98rem; }
+
+    /* ── THE PROOF: two guests, one lodge ── */
+    .lb-proof { background: var(--b-navy); color: #fff; }
+    .lb-proof .lb-h2 { color: #fff; }
+    .lb-proof .lb-lead { color: #b9c7d6; }
+    .lb-guests { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: 42px; }
+    .lb-guest {
+      background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px; padding: 28px 28px 26px;
+    }
+    .lb-guest-top { display: flex; align-items: center; gap: 15px; margin-bottom: 18px; }
+    .lb-guest-avatar {
+      width: 60px; height: 60px; border-radius: 50%; object-fit: cover; flex: none;
+      border: 2px solid rgba(111,216,200,0.5); background: #223;
+    }
+    .lb-guest-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; }
+    .lb-guest-type { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6fd8c8; margin-top: 3px; }
+    .lb-guest-says { font-style: italic; color: #cfe0dd; line-height: 1.7; margin-bottom: 20px; }
+    .lb-guest-list { list-style: none; padding: 0; margin: 0 0 22px; display: grid; gap: 9px; }
+    .lb-guest-list li { display: flex; gap: 10px; font-size: 0.95rem; color: #e4ecf2; line-height: 1.5; }
+    .lb-guest-list li::before { content: "→"; color: #6fd8c8; flex: none; }
+    .lb-guest-link {
+      display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.82rem; color: #6fd8c8; text-decoration: none;
+      border-bottom: 1px solid rgba(111,216,200,0.4); padding-bottom: 2px;
+    }
+    .lb-guest-link:hover { color: #fff; border-color: #fff; }
+    .lb-proof-punch {
+      margin-top: 36px; text-align: center; font-family: 'Montserrat', sans-serif;
+      font-weight: 800; font-size: clamp(1.1rem, 2.2vw, 1.45rem); color: #fff;
+    }
+    .lb-proof-punch span { color: #6fd8c8; }
+
+    /* ── ASSESSMENT + ARCHETYPES ── */
+    /* The point-in-time callout. This is the idea that separates the product from a
+       personality test, so it gets its own visual weight. */
+    .lb-pit {
+      margin: 30px 0 8px; padding: 22px 26px;
+      background: var(--b-mist); border-left: 4px solid var(--b-teal);
+      border-radius: 0 12px 12px 0;
+      color: var(--b-ink); line-height: 1.75; font-size: 1.02rem; max-width: 780px;
+    }
+    .lb-pit strong { display: block; font-family: 'Montserrat', sans-serif; color: var(--b-navy); margin-bottom: 7px; }
+    .lb-arch-grid {
+      display: grid; gap: 26px 22px; margin-top: 40px;
+      grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+    }
+    .lb-arch { margin: 0; text-align: center; }
+    .lb-arch img { width: 100%; max-width: 168px; height: auto; display: block; margin: 0 auto 14px; }
+    .lb-arch figcaption { font-size: 0.88rem; color: var(--b-slate); line-height: 1.55; }
+    .lb-arch figcaption b {
+      display: block; font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 0.95rem; color: var(--b-navy); margin-bottom: 5px;
+    }
+
+
+    /* Try-it band — a lodge owner who takes the assessment and recognizes themselves in
+       the result is most of the way sold. Costs them nothing and tells us nothing. */
+    .lb-tryit {
+      margin-top: 34px; padding: 26px 30px;
+      background: var(--b-navy); border-radius: 14px;
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .lb-tryit-copy { max-width: 520px; }
+    .lb-tryit h3 {
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem;
+      color: #fff; margin-bottom: 7px;
+    }
+    .lb-tryit p { color: #b9c7d6; font-size: 0.97rem; line-height: 1.65; }
+    .lb-tryit-go {
+      display: inline-block; white-space: nowrap;
+      background: var(--b-teal); color: #fff; text-decoration: none;
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.88rem;
+      padding: 14px 26px; border-radius: 9px; transition: background 0.2s;
+    }
+    .lb-tryit-go:hover { background: #35b3a3; }
+    .lb-tryit-go:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+    @media (max-width: 640px) { .lb-tryit { flex-direction: column; align-items: flex-start; } }
+
+    /* ── HOW IT WORKS ── */
+    .lb-steps { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin-top: 44px; }
+    .lb-step { background: #fff; border: 1px solid var(--b-line); border-radius: 14px; padding: 26px 24px; }
+    .lb-step-num {
+      font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 0.72rem;
+      letter-spacing: 0.12em; color: var(--b-teal); margin-bottom: 12px;
+    }
+    .lb-step h3 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.05rem; color: var(--b-navy); margin-bottom: 9px; }
+    .lb-step p { color: var(--b-slate); line-height: 1.7; font-size: 0.95rem; }
+
+    /* ── INCLUDED ── */
+    .lb-incl { display: grid; gap: 18px 30px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 38px; }
+    .lb-incl div { display: flex; gap: 12px; align-items: flex-start; }
+    .lb-incl .tick { color: var(--b-teal); font-weight: 900; flex: none; }
+    .lb-incl b { font-family: 'Montserrat', sans-serif; color: var(--b-navy); display: block; margin-bottom: 3px; font-size: 0.98rem; }
+    .lb-incl p { color: var(--b-slate); font-size: 0.93rem; line-height: 1.6; }
+
+
+    /* ── AFTER THE STAY ──
+       The phase everyone skips. Dark band so it reads as a second thesis rather than
+       another feature block — it is the half of the argument the page was missing. */
+    .lb-after { background: var(--b-navy); color: #fff; }
+    .lb-after .lb-h2 { color: #fff; }
+    .lb-after .lb-lead { color: #b9c7d6; }
+    .lb-after-grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-top: 40px; }
+    .lb-after-card {
+      background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px; padding: 24px 24px 22px;
+    }
+    .lb-after-card h3 {
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.02rem;
+      color: #fff; margin-bottom: 9px;
+    }
+    .lb-after-card p { color: #cfe0dd; font-size: 0.95rem; line-height: 1.7; }
+    .lb-after-punch {
+      margin-top: 36px; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.12);
+      font-size: 1.1rem; line-height: 1.75; color: #e4ecf2; max-width: 760px;
+    }
+    .lb-after-punch strong { color: #6fd8c8; font-weight: 700; }
+
+    /* ── WHAT IT COSTS
+    .lb-price-card {
+      background: #fff; border: 1px solid var(--b-line); border-radius: 18px;
+      padding: 42px 44px; max-width: 700px; margin: 38px auto 0;
+      box-shadow: 0 18px 48px rgba(26,26,46,0.07);
+    }
+    .lb-price-row { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; text-align: center; }
+    .lb-price-amt { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 2.6rem; color: var(--b-navy); line-height: 1; }
+    .lb-price-lbl { font-size: 0.86rem; color: var(--b-slate); margin-top: 8px; }
+    .lb-price-note { text-align: center; color: var(--b-slate); font-size: 0.95rem; line-height: 1.7; margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--b-line); }
+
+    /* ── FOUNDER ── */
+    .lb-founder { display: grid; gap: 44px; grid-template-columns: 300px 1fr; align-items: start; }
+    .lb-founder img { width: 100%; border-radius: 16px; display: block; box-shadow: 0 14px 34px rgba(26,26,46,0.14); }
+    .lb-founder p { color: var(--b-slate); line-height: 1.8; margin-bottom: 14px; }
+    .lb-founder-links { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; }
+    .lb-founder-links a { color: var(--b-teal); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.9rem; text-decoration: none; }
+    .lb-founder-links a:hover { text-decoration: underline; }
+    @media (max-width: 760px) { .lb-founder { grid-template-columns: 1fr; gap: 28px; } .lb-founder img { max-width: 260px; } }
+
+    /* ── CLOSING CTA ── */
+    .lb-close { background: linear-gradient(135deg, #14342f 0%, #1a1a2e 100%); color: #fff; text-align: center; }
+    .lb-close .lb-h2 { color: #fff; }
+    .lb-close p { color: #cfe0dd; font-size: 1.1rem; line-height: 1.75; max-width: 620px; margin: 0 auto 32px; }
+
+    /* Travelers belong on Three Realms now — one quiet line, not a second pitch. */
+    .lb-traveler-strip {
+      background: var(--b-navy); color: #aebfcc; text-align: center;
+      padding: 18px 24px; font-size: 0.92rem;
+    }
+    .lb-traveler-strip a { color: #6fd8c8; font-weight: 600; }
+  </style>
 </head>
 <body>
 
-  <!-- HEADER / NAV -->
   <header class="header">
     <div class="container nav-container">
       <div class="logo">
-        <span class="logo-text">Transformed<span class="logo-accent">byTravels</span></span>
+        <a href="/" class="logo-link">
+          <video class="nav-logo-video" src="/images/Rotating Logo.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
+          <span class="logo-text">Transformed<span class="logo-accent">byTravels</span></span>
+        </a>
       </div>
       <nav class="nav">
         <ul class="nav-links">
-          <li><a href="#about">ABOUT</a></li>
-          <li><a href="#best">BECOME YOUR BEST</a></li>
-          <li><a href="transformational-profile.html">ASSESSMENT</a></li>
-          <li><a href="#planning">TRAVEL PLANNING</a></li>
+          <li><a href="#assessment">The assessment</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#proof">See it</a></li>
+          <li><a href="#pricing">What it costs</a></li>
+          <li><a href="/Speaking">Speaking</a></li>
+          <li><a href="/Media">Media</a></li>
+          <li><a href="#demo" class="btn btn-primary">Book a demo</a></li>
         </ul>
       </nav>
-      <div class="nav-cart">
-        <span class="cart-icon">🛒</span>
-        <span class="cart-count">0</span>
-      </div>
     </div>
   </header>
 
-  <!-- HERO SECTION -->
-  <section class="hero">
-    <div class="container hero-container">
-      <div class="hero-content">
-        <h1 class="hero-headline">Travel is About You!</h1>
-        <p class="hero-sub">
-          Travel is the most powerful tool that we have to make major changes in our lives...
-        </p>
-        <ul class="hero-points">
-          <li>Use travel activities for personal growth</li>
-          <li>Plan and experience life-changing journeys</li>
-          <li>Integrate trip experiences back into daily life</li>
-        </ul>
-        <div class="hero-ctas">
-          <a href="assessment.html" class="btn btn-primary">DISCOVER YOUR INNER YOU</a>
-          <a href="#contact" class="btn btn-outline">Meet and Greet</a>
-          <button onclick="document.getElementById('video-lightbox').style.display='flex'" style="background:none;border:2px solid #2dd4bf;color:#2dd4bf;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95rem;border-radius:8px;padding:12px 24px;cursor:pointer;letter-spacing:0.05em;">▶ Watch Overview</button>
-        </div>
+  <!-- HERO -->
+  <section class="lb-hero">
+    <div class="lb-hero-inner">
+      <div class="lb-eyebrow">For lodges, retreats, spas &amp; small operators</div>
+      <h1>Your guests arrive as <em>strangers</em>. They don't have to.</h1>
+      <p>
+        <strong>Stawi</strong> is the transformation platform — travel that makes us flourish.
+        It knows who your guest is before they arrive, and stays with them long after they leave.
+        Every guest gets a personalized microsite — built around what <em>this</em> trip is for them —
+        that connects you to them before they arrive, guides them through the stay, and stays with
+        them long after checkout.
+      </p>
+      <div class="lb-hero-actions">
+        <a class="lb-btn lb-btn-primary" href="#demo">Book a 30-minute demo</a>
+        <a class="lb-btn lb-btn-ghost" href="#proof">See two guests, one lodge</a>
+      </div>
+      <div class="lb-hero-note">Runs alongside your existing booking system. Nothing to replace.</div>
+    </div>
+  </section>
 
-        <!-- Video Lightbox -->
-        <div id="video-lightbox" onclick="if(event.target===this){this.style.display='none';document.getElementById('overview-video').src=document.getElementById('overview-video').src;}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-          <div style="position:relative;width:100%;max-width:860px;">
-            <button onclick="document.getElementById('video-lightbox').style.display='none';document.getElementById('overview-video').src=document.getElementById('overview-video').src;" style="position:absolute;top:-40px;right:0;background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;font-family:'Montserrat',sans-serif;">✕ Close</button>
-            <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;">
-              <iframe id="overview-video" src="https://www.youtube.com/embed/bG1N9u_es0w" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe>
+  <!-- WHY NOW -->
+  <section class="lb-why">
+    <div class="lb-inner">
+      <div class="lb-eyebrow">Why now</div>
+      <h2>Guests are asking for more than a room. Properties can feel it.</h2>
+      <p>
+        The expectation has shifted. Travelers increasingly want a stay to amount to something —
+        and they can tell when a property is housing them well and nothing more. Destinations are
+        under real pressure to respond.
+      </p>
+      <p>
+        Most independent properties feel that pressure without having anything to answer it with.
+        The intent is there; the instrument isn't. <strong>This is the instrument —
+        a way to step forward with an answer rather than wait to be overtaken by it.</strong>
+      </p>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section class="lb-section">
+    <div class="lb-inner">
+      <div class="lb-eyebrow">The gap</div>
+      <h2 class="lb-h2">You know your property. You don't yet know your guest.</h2>
+      <p class="lb-lead">
+        Two people book the same room for the same week. One is coming to think; one is coming to
+        be pulled out of a rut. Today they get the same confirmation email, the same welcome folder,
+        and the same list of activities — and you find out who they really were on the last morning,
+        over coffee, when it's too late to act on it.
+      </p>
+      <div class="lb-problem-grid">
+        <div class="lb-problem">
+          <h3>The stay starts too late</h3>
+          <p>The weeks between booking and arrival are the most excited a guest will ever be about your property — and most lodges use them for nothing but a reminder email.</p>
+        </div>
+        <div class="lb-problem">
+          <h3>Everyone gets the same welcome</h3>
+          <p>Your chef, your guides, your quiet places, your lake — you have far more to offer than any one guest needs. Showing all of it to everyone means the right thing gets missed.</p>
+        </div>
+        <div class="lb-problem">
+          <h3>Checkout ends the relationship</h3>
+          <p>The guest leaves with photos on a phone and no reason to come back to you. The next booking starts from zero.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROOF -->
+  <section class="lb-section lb-proof" id="proof">
+    <div class="lb-inner">
+      <div class="lb-eyebrow">The difference</div>
+      <h2 class="lb-h2">Same lodge. Same week. Same content library.</h2>
+      <p class="lb-lead">
+        Before arriving, each guest answers a short assessment about this trip. What they see from then on
+        is ordered around the answer — the same material your team already has, led by the part that
+        matters to them.
+      </p>
+
+      <div class="lb-guests">
+        <div class="lb-guest">
+          <div class="lb-guest-top">
+            <img class="lb-guest-avatar" src="/images/personas/sarah.jpg" alt="" onerror="this.style.display='none'">
+            <div>
+              <div class="lb-guest-name">Sarah, 48</div>
+              <div class="lb-guest-type">Purpose-Driven Traveler</div>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="hero-image">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Golden_snub-nosed_monkey%2C_Shennongjia.jpg/800px-Golden_snub-nosed_monkey%2C_Shennongjia.jpg" alt="Golden Monkey" />
-      </div>
-    </div>
-  </section>
-
-  <!-- WHAT WE OFFER -->
-  <section class="offerings" id="best">
-    <div class="container">
-      <h2 class="section-title">What We Offer</h2>
-      <div class="offerings-grid">
-
-        <div class="offer-card">
-          <div class="offer-icon">🌍</div>
-          <h3>Destination Workshops</h3>
-          <p>50-minute sessions focusing on specific destinations to help you prepare and grow.</p>
-          <ul class="workshop-schedule">
-            <li><span class="dot"></span> Uganda &mdash; Mar 19 @ 8 PM ET</li>
-            <li><span class="dot"></span> Santorini &mdash; Apr 2 @ 8 PM ET</li>
-            <li><span class="dot"></span> Yukon &mdash; Apr 16 @ 8 PM ET</li>
-            <li><span class="dot"></span> Canadian Rockies &mdash; May 1 @ 8 PM ET</li>
+          <p class="lb-guest-says">“I need somewhere quiet to think. I'm not looking to be entertained.”</p>
+          <ul class="lb-guest-list">
+            <li>Opens on the chef, and where the food comes from</li>
+            <li>Then quiet mornings on the water — the empty hours, not the busy ones</li>
+            <li>Then the story of the place itself, and whose land it was</li>
+            <li>The week's activities are there, just never the first thing she sees</li>
           </ul>
-          <a href="#contact" class="btn btn-primary btn-sm">Sign Up</a>
+          <a class="lb-guest-link" href="https://app.transformedbytravels.com/trip.html?tripId=recNj3G1PXx24yqDT&amp;email=tourguide%2Bsarah%40transformedbytravels.com" target="_blank" rel="noopener">Open Sarah's page →</a>
         </div>
 
-        <div class="offer-card">
-          <div class="offer-icon">⭐</div>
-          <h3>Becoming Your Best</h3>
-          <p>A three-part class structure focused on goal-setting, itinerary integration for personal growth, and post-trip integration support.</p>
-          <a href="#best" class="btn btn-primary btn-sm">Learn More</a>
+        <div class="lb-guest">
+          <div class="lb-guest-top">
+            <img class="lb-guest-avatar" src="/images/personas/maria.jpg" alt="" onerror="this.style.display='none'">
+            <div>
+              <div class="lb-guest-name">Maria, 52</div>
+              <div class="lb-guest-type">Growth Seeker</div>
+            </div>
+          </div>
+          <p class="lb-guest-says">“I want this week to be the start of something different.”</p>
+          <ul class="lb-guest-list">
+            <li>Opens on what's possible outdoors this week</li>
+            <li>Guided trips and the things she would never book alone</li>
+            <li>Then the owner's welcome — who runs this place and why</li>
+            <li>The same chef, the same lodge — further down the page</li>
+          </ul>
+          <a class="lb-guest-link" href="https://app.transformedbytravels.com/trip.html?tripId=recOmPytsXoMgDOAC&amp;email=tourguide%2Bmaria%40transformedbytravels.com" target="_blank" rel="noopener">Open Maria's page →</a>
         </div>
+      </div>
 
-        <div class="offer-card">
-          <div class="offer-icon">🗺️</div>
-          <h3>Itineraries for Growth</h3>
-          <p>Customized travel plans aligned with your personal objectives. Book through us or independently.</p>
-          <a href="#planning" class="btn btn-primary btn-sm">Explore</a>
+      <p class="lb-proof-punch">One property. <span>Personalized for every guest.</span></p>
+    </div>
+  </section>
+
+  <!-- THE ASSESSMENT + FIVE ARCHETYPES -->
+  <section class="lb-section" id="assessment">
+    <div class="lb-inner">
+      <div class="lb-eyebrow">The engine</div>
+      <h2 class="lb-h2">A reservation tells you when they're coming. This tells you why.</h2>
+      <p class="lb-lead">
+        Your guest takes a 25-question assessment when they book — about five minutes. It doesn't
+        ask where they've been or what they can afford; it asks what they want out of
+        <em>this</em> week.
+      </p>
+      <p class="lb-lead">
+        You both see the result. They learn something about how they travel, and you stop guessing
+        what they came for — you're working from the same roadmap before they've even arrived.
+      </p>
+
+      <div class="lb-pit">
+        <strong>It's a read on this trip, not a label for life.</strong>
+        The same guest who came to think in March may come to be pulled out of themselves in
+        October. Someone traveling after a loss is not the same traveler as the one
+        celebrating a new chapter. The assessment is taken fresh for every stay — which is
+        exactly why a returning guest gets a different week from the one they had before.
+      </div>
+
+      <div class="lb-arch-grid">
+        <figure class="lb-arch">
+          <img src="/images/archetypes/web/purpose-driven.png" alt="The Purpose-Driven Traveler" loading="lazy">
+          <figcaption><b>Purpose-Driven</b>Here for a reason. Wants the trip to connect to something they're working through.</figcaption>
+        </figure>
+        <figure class="lb-arch">
+          <img src="/images/archetypes/web/growth-seeker.png" alt="The Growth Seeker" loading="lazy">
+          <figcaption><b>Growth Seeker</b>Wants to go home different from how they arrived. Reflection and real challenge both.</figcaption>
+        </figure>
+        <figure class="lb-arch">
+          <img src="/images/archetypes/web/adventure-traveler.png" alt="The Adventure Traveler" loading="lazy">
+          <figcaption><b>Adventure Traveler</b>Came to do, not to watch. Offer the harder version and the early start.</figcaption>
+        </figure>
+        <figure class="lb-arch">
+          <img src="/images/archetypes/web/cultural-explorer.png" alt="The Cultural Explorer" loading="lazy">
+          <figcaption><b>Cultural Explorer</b>Wants to understand the place and its people, not simply see it.</figcaption>
+        </figure>
+        <figure class="lb-arch">
+          <img src="/images/archetypes/web/experience-seeker.png" alt="The Experience Seeker" loading="lazy">
+          <figcaption><b>Experience Seeker</b>Here to enjoy it. Not every hour needs to mean something — make it easy and good.</figcaption>
+        </figure>
+      </div>
+
+      <p class="lb-lead" style="margin-top:34px;">
+        Your team sees the result before the guest walks in. Not a personality file — just a
+        straight answer to the question your best host already asks on instinct:
+        <em>what does this one actually want from the week?</em>
+      </p>
+
+      <div class="lb-tryit">
+        <div class="lb-tryit-copy">
+          <h3>Take it yourself — it's the fastest way to understand this</h3>
+          <p>
+            The same assessment your guests would take. No sign-up, no email, and nothing is
+            saved — you'll see your result and we keep none of it.
+          </p>
         </div>
-
+        <a class="lb-tryit-go" href="https://app.transformedbytravels.com/transformational-profile.html?lite=1&amp;demo=1&amp;ref=for-lodges" target="_blank" rel="noopener">Try the assessment →</a>
       </div>
     </div>
   </section>
 
-  <!-- OFFERINGS DETAILS -->
-  <section class="offerings-detail" id="about">
-    <div class="container">
-      <p class="section-subtitle">Our offering is designed by psychologists and seasoned travelers</p>
-      <div class="detail-grid">
-
-        <div class="detail-card">
-          <div class="detail-number">01</div>
-          <h3>Assessment Tool</h3>
-          <p>The "Growth Through Travel Assessment" helps you understand your travel preferences and priorities so every journey is intentional.</p>
+  <!-- HOW IT WORKS -->
+  <section class="lb-section alt" id="how">
+    <div class="lb-inner">
+      <div class="lb-eyebrow">How it works</div>
+      <h2 class="lb-h2">It runs beside what you already use.</h2>
+      <p class="lb-lead">No new booking system, no migration, no retraining your front desk.</p>
+      <div class="lb-steps">
+        <div class="lb-step">
+          <div class="lb-step-num">STEP ONE</div>
+          <h3>A booking arrives</h3>
+          <p>However it reaches you — direct, an OTA, an agent. We start from the confirmation you already receive.</p>
         </div>
-
-        <div class="detail-card">
-          <div class="detail-number">02</div>
-          <h3>Pre-Travel Workshop</h3>
-          <p>Small group sessions for action planning and goal development before your trip — so you know exactly what you're seeking.</p>
+        <div class="lb-step">
+          <div class="lb-step-num">STEP TWO</div>
+          <h3>The guest gets a microsite</h3>
+          <p>Their own URL under your branding, included in your pre-arrival email and printed on a card in the room.</p>
         </div>
-
-        <div class="detail-card">
-          <div class="detail-number">03</div>
-          <h3>Integration Support</h3>
-          <p>Guidance for the first days after your return to maintain the benefits and insights gained from your journey.</p>
+        <div class="lb-step">
+          <div class="lb-step-num">STEP THREE</div>
+          <h3>They tell you who they are</h3>
+          <p>A five-minute assessment before arrival — about this trip, not their personality — sets what they see and how your team prepares.</p>
         </div>
-
+        <div class="lb-step">
+          <div class="lb-step-num">STEP FOUR</div>
+          <h3>The stay continues</h3>
+          <p>Schedule, prompts, and requests during the week. Afterwards, a finished Journey Book of their time with you.</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- MEET THE TRAVELMINDER -->
-  <section class="founder" id="founder">
-    <div class="container founder-container">
-      <div class="founder-image">
-        <div class="founder-placeholder">ME</div>
+  <!-- INCLUDED -->
+  <section class="lb-section">
+    <div class="lb-inner">
+      <div class="lb-eyebrow">What a lodge gets</div>
+      <h2 class="lb-h2">Everything runs from one page per guest.</h2>
+      <div class="lb-incl">
+        <div><span class="tick">✓</span><div><b>Your branding, not ours</b><p>Your name, logo, and colors. The guest sees your property, not a software company.</p></div></div>
+        <div><span class="tick">✓</span><div><b>Six content slots</b><p>Chef, owner welcome, activities, dining, a guided experience, the story of the place — ordered per guest.</p></div></div>
+        <div><span class="tick">✓</span><div><b>Travel-style assessment</b><p>The engine behind the personalization, and something your team can read before the guest walks in.</p></div></div>
+        <div><span class="tick">✓</span><div><b>Day-by-day schedule</b><p>What's happening and when, in the guest's hands without another phone call to the desk.</p></div></div>
+        <div><span class="tick">✓</span><div><b>Reflection prompts</b><p>A short question each evening, written for how that guest travels. This is what they remember.</p></div></div>
+        <div><span class="tick">✓</span><div><b>Journey Book after checkout</b><p>Their stay as a finished keepsake — the reason they come back, and the reason they tell people.</p></div></div>
       </div>
-      <div class="founder-content">
-        <p class="founder-label">Meet the TravelMinder</p>
-        <h2>Michael Emerson</h2>
-        <p class="founder-handle">@TheTravelMinder &mdash; CEO</p>
+    </div>
+  </section>
+
+  <!-- AFTER THE STAY -->
+  <section class="lb-section lb-after">
+    <div class="lb-inner">
+      <div class="lb-eyebrow">After they leave</div>
+      <h2 class="lb-h2">Every property competes on arrival. Almost none of them think about the drive home.</h2>
+      <p class="lb-lead">
+        A guest leaves with two hundred photos they will never sort and a feeling that fades by
+        the second week back at work. Within a month they would struggle to tell you what the
+        best day actually was. That is not their fault — nothing helped them keep it.
+      </p>
+
+      <div class="lb-after-grid">
+        <div class="lb-after-card">
+          <h3>It assembles itself while they're with you</h3>
+          <p>Their journal entries, the places they went, and photos they add from a card in the room. By checkout the raw material is already there — nobody has to go and make it afterwards.</p>
+        </div>
+        <div class="lb-after-card">
+          <h3>You send it, not us</h3>
+          <p>The finished Journey Book arrives from the property, days after they get home — the moment the trip is starting to blur. It is the most welcome email you will ever send a past guest.</p>
+        </div>
+        <div class="lb-after-card">
+          <h3>They show it to people</h3>
+          <p>A keepsake of their week gets opened in front of friends in a way a review never does. Your best marketing is a guest describing the trip they can still remember clearly.</p>
+        </div>
+      </div>
+
+      <p class="lb-after-punch">
+        And when they come back, they are asked again — because who they are this time is not who
+        they were last time. <strong>A returning guest doesn't get a repeat of their old week. They
+        get one built around whoever has just walked back through the door.</strong>
+      </p>
+    </div>
+  </section>
+
+  <!-- WHAT IT COSTS — figures deliberately held back while pricing is being set.
+       Says enough that a serious buyer stays, without anchoring the market low. -->
+  <section class="lb-section alt" id="pricing">
+    <div class="lb-inner lb-narrow" style="text-align:center;">
+      <div class="lb-eyebrow">What it costs</div>
+      <h2 class="lb-h2">One setup fee, then a flat monthly subscription.</h2>
+      <p class="lb-lead" style="margin:0 auto 26px;">
+        No per-guest fee, no percentage of your bookings, no charge for how many people stay.
+        Setup includes building your content library with you, so your voice is in it from
+        the first guest.
+      </p>
+      <p class="lb-lead" style="margin:0 auto;">
+        A small number of founding properties are being taken on now, at founding-partner terms,
+        in exchange for helping shape the product. Tell me about your property and I'll tell you
+        exactly what it would cost you.
+      </p>
+      <div class="lb-hero-actions" style="justify-content:center;">
+        <a class="lb-btn lb-btn-primary" href="#demo">Talk about your property</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDER -->
+  <section class="lb-section">
+    <div class="lb-inner lb-founder">
+      <img src="/images/mike-portrait.jpg" alt="Michael Emerson at the Grand Canyon" onerror="this.style.display='none'">
+      <div>
+        <div class="lb-eyebrow">Who builds this</div>
+        <h2 class="lb-h2">Built by a traveler, not a software vendor.</h2>
         <p>
-          Michael uses psychology and AI to optimize your travel experience for maximum personal transformation.
-          With experience spanning <strong>25+ countries across six continents</strong>, he brings deep knowledge
-          of adventure travel and personal development to every consultation.
+          I'm Michael Emerson. I've spent years traveling the way this product is designed to
+          support — and building the platform underneath it: the travel-style assessment, the
+          wildlife database, the Journey Books, the trip pages your guests will use.
         </p>
-        <p>Browse his TikTok video library for destination insights and travel mindset tips.</p>
-        <div class="founder-ctas">
-          <a href="#contact" class="btn btn-primary">Meet and Greet</a>
-          <a href="#" class="btn btn-outline">See My Video Library</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- LEARN ABOUT YOURSELF / ASSESSMENT -->
-  <section class="assessment-cta" id="assessment">
-    <div class="container assessment-container">
-      <div class="assessment-content">
-        <h2>Learn About Yourself</h2>
         <p>
-          Our assessment tool uses personality frameworks similar to Myers-Briggs to identify your travel style
-          and priorities — helping you choose destinations and experiences that truly transform you.
+          I know what it feels like to confirm a reservation and then feel my enthusiasm drain away
+          as two months pass by. That initial excitement doesn't have to fade — it can be fed by
+          the trip that's coming.
         </p>
-        <a href="assessment.html" class="btn btn-primary btn-lg">Take the Test</a>
-      </div>
-      <div class="assessment-graphic">
-        <div class="graphic-box">
-          <div class="graphic-item">🧠 Psychology-Backed</div>
-          <div class="graphic-item">✈️ Travel-Focused</div>
-          <div class="graphic-item">🌱 Growth-Oriented</div>
+        <div class="lb-founder-links">
+          <a href="/Speaking">Speaking →</a>
+          <a href="/Media">Media &amp; press →</a>
+          <a href="https://www.threerealmstravel.com" target="_blank" rel="noopener">Three Realms Travel →</a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CONTACT / LET'S PLAN TOGETHER -->
-  <section class="contact" id="contact">
-    <div class="container">
-      <h2 class="section-title">Let's Plan Together</h2>
-      <form class="contact-form" id="planningForm">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="firstName">First Name *</label>
-            <input type="text" id="firstName" name="firstName" required placeholder="First name" />
-          </div>
-          <div class="form-group">
-            <label for="lastName">Last Name *</label>
-            <input type="text" id="lastName" name="lastName" required placeholder="Last name" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="email">Email *</label>
-            <input type="email" id="email" name="email" required placeholder="your@email.com" />
-          </div>
-          <div class="form-group">
-            <label for="phone">Phone (optional)</label>
-            <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>How would you like travel to supercharge your future?</label>
-          <div class="checkbox-group">
-            <label class="checkbox-label">
-              <input type="checkbox" name="goals" value="self-discovery" /> Self-discovery
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" name="goals" value="itinerary" /> Itinerary planning
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" name="goals" value="education" /> Education
-            </label>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="travelDate">Next Travel Start Date</label>
-          <input type="date" id="travelDate" name="travelDate" />
-        </div>
-        <div class="form-group">
-          <label for="message">What are you looking for from your travel activities? *</label>
-          <textarea id="message" name="message" required rows="5" placeholder="Tell us about your travel goals..."></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary btn-lg">Submit</button>
-        <p class="form-success" id="formSuccess">Thank you! We'll be in touch soon.</p>
-      </form>
+  <!-- CLOSING CTA -->
+  <section class="lb-section lb-close" id="demo">
+    <div class="lb-inner">
+      <div class="lb-eyebrow">Next step</div>
+      <h2 class="lb-h2">See it with your own property in it.</h2>
+      <p>
+        Thirty minutes. I'll walk you through a guest's page end to end, then show what it would look
+        like with your property's name, your people, and your guests on it.
+      </p>
+      <div class="lb-hero-actions" style="justify-content:center;">
+        <button type="button" class="lb-btn lb-btn-primary"
+                data-cal-link="michael-emerson-tbyt/lodge-demo"
+                data-cal-config='{"layout":"month_view"}'>Book a demo</button>
+        <a class="lb-btn lb-btn-ghost" href="mailto:MichaelE@transformedbytravels.com?subject=Lodge%20demo">Or just email me</a>
+      </div>
     </div>
   </section>
 
-  <!-- FOOTER -->
+  <div class="lb-traveler-strip">
+    Planning your own trip? That's over at <a href="https://www.threerealmstravel.com" target="_blank" rel="noopener">Three Realms Travel</a>.
+  </div>
+
   <footer class="footer">
     <div class="container footer-container">
       <div class="footer-logo">
         <span class="logo-text">Transformed<span class="logo-accent">byTravels</span></span>
       </div>
-      <div class="footer-social">
-        <a href="#" aria-label="Twitter">𝕏</a>
-        <a href="#" aria-label="YouTube">▶</a>
-        <a href="#" aria-label="Instagram">📷</a>
-      </div>
-      <p class="footer-copy">&copy; 2025 Transformed by Travels. All rights reserved.</p>
+      <p class="footer-copy">&copy; 2026 Transformed by Travels. All rights reserved.</p>
     </div>
   </footer>
 
-  <script src="script.js"></script>
+
+  <!-- Cal.com embed — opens the booking modal from any element carrying data-cal-link. -->
+  <script>
+    (function (C, A, L) {
+      let p = function (a, ar) { a.q.push(ar); };
+      let d = C.document;
+      C.Cal = C.Cal || function () {
+        let cal = C.Cal; let ar = arguments;
+        if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; }
+        if (ar[0] === L) {
+          const api = function () { p(api, arguments); };
+          const namespace = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); }
+          else p(cal, ar);
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, "https://app.cal.com/embed/embed.js", "Cal");
+    Cal("init", { origin: "https://cal.com" });
+  </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
-const CACHE_NAME    = 'tbt-field-guide-v1';
-const SPECIES_CACHE = 'tbt-species-v1';
+const CACHE_NAME    = 'tbt-field-guide-v6';
+const SPECIES_CACHE = 'tbt-species-v3';
 
 // App shell — always cached on install
 const SHELL_ASSETS = [
@@ -30,15 +30,22 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Species pack — serve from cache, fall back to network
-  if (url.pathname === '/api/species-pack') {
+  // Trip content APIs — species pack + park stops. Network-first so online
+  // customers always get fresh data; fall back to cache when offline.
+  if (url.pathname === '/api/species-pack' ||
+      url.pathname === '/api/species-pack-trip' ||
+      url.pathname === '/api/trip-stops') {
     e.respondWith(
       caches.open(SPECIES_CACHE).then(async c => {
-        const cached = await c.match(e.request.url);
-        if (cached) return cached;
-        const resp = await fetch(e.request);
-        if (resp.ok) c.put(e.request.url, resp.clone());
-        return resp;
+        try {
+          const resp = await fetch(e.request);
+          if (resp.ok) c.put(e.request.url, resp.clone());
+          return resp;
+        } catch {
+          const cached = await c.match(e.request.url);
+          if (cached) return cached;
+          throw new Error('offline and no cached content');
+        }
       })
     );
     return;
@@ -52,21 +59,30 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Cloudinary species photos — cache as they're viewed
-  if (url.hostname.includes('cloudinary.com') || url.hostname.includes('res.cloudinary.com')) {
-    e.respondWith(
-      caches.open(SPECIES_CACHE).then(async c => {
-        const cached = await c.match(e.request);
-        if (cached) return cached;
-        try {
-          const resp = await fetch(e.request);
-          if (resp.ok) c.put(e.request, resp.clone());
-          return resp;
-        } catch {
-          return new Response('', { status: 503 });
-        }
-      })
-    );
+  // Species photos: hosts we cache to enable offline browsing.
+  const isSpeciesPhoto =
+    url.hostname.includes('cloudinary.com') ||
+    url.hostname.includes('res.cloudinary.com') ||
+    url.hostname.endsWith('wikimedia.org') ||
+    url.hostname.endsWith('wikipedia.org') ||
+    /\.(jpe?g|png|webp|gif)(\?|$)/i.test(url.pathname);
+
+  if (isSpeciesPhoto) {
+    // If we already have a cached copy, serve it (offline path). Otherwise, do
+    // NOT intercept — let the browser fetch the image natively so we don't have
+    // to route through the SW's CSP-restricted fetch. In the background we
+    // still try to grab a copy for later offline use.
+    e.respondWith((async () => {
+      const c = await caches.open(SPECIES_CACHE);
+      const cached = await c.match(e.request);
+      if (cached) return cached;
+      // Kick off a background cache — swallow all errors so nothing blocks the img
+      fetch(e.request.url, { mode: 'no-cors' })
+        .then(r => { if (r) c.put(e.request, r).catch(() => {}); })
+        .catch(() => {});
+      // Actually fulfill the img request with a fresh, un-cloned fetch
+      return fetch(e.request);
+    })());
     return;
   }
 

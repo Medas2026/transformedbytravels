@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Field Note — Three Realms Travel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:   #2dd4bf;
+      --teal2:  #14b8a6;
+      --dark:   #0a1628;
+      --navy:   #0f172a;
+      --s2:     #1e293b;
+      --text:   #f1f5f9;
+      --soft:   #cbd5e1;
+      --muted:  #64748b;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--text); font-family: 'Lora', Georgia, serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(10,22,40,0.95), transparent);
+      backdrop-filter: blur(4px);
+    }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); letter-spacing: 0.04em; text-decoration: none; }
+    .nav-brand span { color: var(--teal); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { color: var(--soft); text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-cta { background: var(--teal); color: #0a1628 !important; padding: 9px 22px; border-radius: 6px; font-weight: 800 !important; }
+
+    .article-wrap { padding: 120px 48px 40px; max-width: 780px; margin: 0 auto; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.78rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft);
+      text-decoration: none; margin-bottom: 24px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--teal); }
+
+    .post-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .post-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--teal); background: rgba(45,212,191,0.12);
+      padding: 3px 9px; border-radius: 4px;
+    }
+
+    .post-title { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 2.6rem; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 18px; }
+    .post-meta {
+      display: flex; gap: 20px; align-items: center; margin-bottom: 30px;
+      font-family: 'Montserrat', sans-serif; font-size: 0.82rem;
+      color: var(--muted); letter-spacing: 0.04em;
+    }
+    .post-meta-author { color: var(--teal); font-weight: 700; }
+
+    .post-hero {
+      width: 100%; aspect-ratio: 16 / 9; object-fit: cover;
+      border-radius: 12px; margin: 8px 0 36px; display: block;
+    }
+    .post-hero-placeholder {
+      width: 100%; aspect-ratio: 16 / 9;
+      background: linear-gradient(135deg, #0f2a2a 0%, #0d2035 100%);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(45,212,191,0.35); font-size: 4rem;
+      border-radius: 12px; margin: 8px 0 36px;
+    }
+
+    .post-body { font-size: 1.08rem; line-height: 1.85; color: var(--soft); }
+    .post-body p { margin-bottom: 20px; }
+    .post-body h2 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.6rem; color: var(--text); margin: 40px 0 16px; line-height: 1.25; }
+    .post-body h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--text); margin: 32px 0 14px; }
+    .post-body strong { color: var(--text); font-weight: 700; }
+    .post-body em { font-style: italic; }
+    .post-body a { color: var(--teal); }
+    .post-body ul { padding-left: 22px; margin-bottom: 20px; }
+    .post-body li { margin-bottom: 8px; }
+    .post-body blockquote {
+      border-left: 3px solid var(--teal);
+      background: rgba(45,212,191,0.06);
+      padding: 14px 20px;
+      margin: 24px 0;
+      font-style: italic;
+      color: var(--text);
+      border-radius: 0 6px 6px 0;
+    }
+    .post-body img { border-radius: 10px; }
+
+    .author-card {
+      display: flex; gap: 20px; align-items: flex-start;
+      background: var(--s2); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px; padding: 24px 28px; margin-top: 56px;
+    }
+    .author-photo {
+      width: 72px; height: 72px; border-radius: 50%; object-fit: cover;
+      flex-shrink: 0;
+    }
+    .author-info { flex: 1; }
+    .author-label {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 6px;
+    }
+    .author-name {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.05rem; color: var(--text); margin-bottom: 6px;
+    }
+    .author-bio { font-size: 0.95rem; color: var(--soft); line-height: 1.65; }
+
+    .related-section { padding: 40px 48px 120px; max-width: 1200px; margin: 0 auto; }
+    .related-title {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.4rem; letter-spacing: 0.02em;
+      color: var(--text); margin-bottom: 22px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(45,212,191,0.25);
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .related-card {
+      background: var(--s2); border-radius: 10px; overflow: hidden;
+      text-decoration: none; color: inherit;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .related-card:hover { transform: translateY(-3px); border-color: rgba(45,212,191,0.3); }
+    .related-card img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
+    .related-card-body { padding: 16px 18px 18px; }
+    .related-card-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1rem; color: var(--text); margin-bottom: 6px; }
+    .related-card-date { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; color: var(--muted); }
+
+    .post-state, .loading-msg, .error-msg {
+      text-align: center; padding: 160px 20px 40px;
+      color: var(--muted); font-style: italic;
+    }
+
+    @media (max-width: 700px) {
+      nav { padding: 14px 20px; }
+      .nav-links { gap: 16px; }
+      .article-wrap, .related-section { padding-left: 20px; padding-right: 20px; }
+      .post-title { font-size: 1.8rem; }
+    }
+  </style>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/js/mobile-nav.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html"><img src="realm-symbols/logo.png" alt="Three Realms Travel" style="height:90px;width:auto;display:block;"></a>
+  <div class="nav-links">
+    <a href="our-product.html">Product</a>
+    <a href="world-animals.html">World Animals</a>
+    <a href="wildlife-100.html">Wildlife 100</a>
+    <a href="itineraries.html">Itineraries</a>
+    <a href="trip-reports.html">Trip Reports</a>
+    <a href="field-notes.html">Field Notes</a>
+    <a href="https://app.transformedbytravels.com/travelers-corner.html">Travelers&#39; Corner</a>
+    <a href="store.html">Store</a>
+    <a href="partners.html">Partners</a>
+    <a href="https://app.transformedbytravels.com/portal.html" style="color: var(--teal) !important; border: 1px solid var(--teal); padding: 8px 18px; border-radius: 6px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">My Portal</a>
+    <a href="lets-talk.html?ref=nav#book" style="background:var(--teal);color:#0a1628 !important;padding:9px 22px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-decoration:none;letter-spacing:0.05em;">Get Started</a>
+  </div>
+</nav>
+
+<div class="article-wrap" id="post-article">
+  <div class="loading-msg">Loading field note…</div>
+</div>
+
+<div class="related-section" id="related-section" style="display:none;">
+  <div class="related-title">More field notes</div>
+  <div class="related-grid" id="related-grid"></div>
+</div>
+
+<script>
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function escHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T00:00:00Z');
+  return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+}
+
+// Markdown → HTML — matches the main app's blog renderer
+function renderMarkdown(md) {
+  if (!md) return '';
+  md = md.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  md = md.replace(/\\\*/g, '*').replace(/\\\[/g, '[').replace(/\\\]/g, ']');
+  return md
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/^\* (.+)$/gm, '<li>$1</li>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    .replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
+    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:2em 0;">')
+    .split(/\n\n+/)
+    .map(block => {
+      block = block.trim();
+      if (!block) return '';
+      if (/^<(h[123]|ul|blockquote|hr)/.test(block)) return block;
+      return '<p>' + block.replace(/\n/g, '<br>') + '</p>';
+    })
+    .join('\n');
+}
+
+function renderBody(md, images) {
+  const TOKEN = /\{\{image([12])\}\}/gi;
+  const parts = md.split(TOKEN);
+  let html = '';
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 0) html += renderMarkdown(parts[i]);
+    else {
+      const url = images[parseInt(parts[i]) - 1] || '';
+      if (url) html += `<img src="${escHtml(url)}" alt="" style="width:100%;border-radius:10px;margin:1.8em 0;display:block;">`;
+    }
+  }
+  return html;
+}
+
+async function loadPost() {
+  const slug    = new URLSearchParams(window.location.search).get('slug') || '';
+  const article = document.getElementById('post-article');
+
+  if (!slug) {
+    article.innerHTML = '<div class="post-state">No post specified. <a href="field-notes.html" style="color:var(--teal);">See all field notes</a>.</div>';
+    return;
+  }
+
+  try {
+    const resp = await fetch('/api/blog?slug=' + encodeURIComponent(slug));
+    if (!resp.ok) throw new Error('not found');
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    const f = data.record.fields;
+
+    const heroUrl = f['Hero Image URL'] || '';
+    const heroEl  = heroUrl
+      ? `<img class="post-hero" src="${escHtml(heroUrl)}" alt="${escHtml(f['Title'] || '')}">`
+      : `<div class="post-hero-placeholder">✦</div>`;
+
+    const tags = (f['Tags'] || []).map(t => `<span class="post-tag">${escHtml(t)}</span>`).join('');
+    const inlineImages = [f['Image 1 URL'] || '', f['Image 2 URL'] || ''];
+    const rawBody = f['Body'] || 'Coming soon.';
+    const body = renderBody(rawBody, inlineImages);
+
+    const authorName  = f['Author'] || '';
+    const authorBio   = f['Author Bio'] || '';
+    const authorPhoto = f['Author Photo URL'] || '';
+    const authorCard  = (authorName && authorBio) ? `
+      <div class="author-card">
+        ${authorPhoto ? `<img class="author-photo" src="${escHtml(authorPhoto)}" alt="${escHtml(authorName)}">` : ''}
+        <div class="author-info">
+          <div class="author-label">About the Author</div>
+          <div class="author-name">${escHtml(authorName)}</div>
+          <div class="author-bio">${escHtml(authorBio)}</div>
+        </div>
+      </div>` : '';
+
+    document.title = `${f['Title'] || 'Field Note'} — Three Realms Travel`;
+    document.getElementById('page-title').textContent = document.title;
+
+    article.innerHTML = `
+      <a class="back-link" href="field-notes.html">← All field notes</a>
+      ${tags ? `<div class="post-tags">${tags}</div>` : ''}
+      <h1 class="post-title">${escHtml(f['Title'] || 'Untitled')}</h1>
+      <div class="post-meta">
+        ${authorName ? `<span class="post-meta-author">${escHtml(authorName)}</span>` : ''}
+        ${f['Published Date'] ? `<span>${fmtDate(f['Published Date'])}</span>` : ''}
+      </div>
+      ${heroEl}
+      <div class="post-body">${body}</div>
+      ${authorCard}
+    `;
+
+    loadRelated(slug, f['Tags'] || []);
+
+  } catch(e) {
+    article.innerHTML = `<div class="post-state">
+      <p style="font-size:1.4rem;margin-bottom:12px;">Field note not found.</p>
+      <a href="field-notes.html" style="color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;">← All field notes</a>
+    </div>`;
+  }
+}
+
+async function loadRelated(currentSlug, tags) {
+  try {
+    const resp  = await fetch('/api/blog');
+    const data  = await resp.json();
+    const posts = (data.records || [])
+      .filter(r => r.fields['Slug'] !== currentSlug)
+      .filter(r => tags.length === 0 || (r.fields['Tags'] || []).some(t => tags.includes(t)))
+      .slice(0, 3);
+    if (!posts.length) return;
+    const section = document.getElementById('related-section');
+    const grid    = document.getElementById('related-grid');
+    section.style.display = 'block';
+    grid.innerHTML = posts.map(r => {
+      const f   = r.fields;
+      const img = f['Hero Image URL'] || '';
+      return `<a class="related-card" href="field-note.html?slug=${encodeURIComponent(f['Slug'] || '')}">
+        ${img ? `<img src="${escHtml(img)}" alt="${escHtml(f['Title'] || '')}">` : ''}
+        <div class="related-card-body">
+          <div class="related-card-title">${escHtml(f['Title'] || 'Untitled')}</div>
+          <div class="related-card-date">${fmtDate(f['Published Date'])}</div>
+        </div>
+      </a>`;
+    }).join('');
+  } catch(e) {}
+}
+
+loadPost();
+</script>
+
+</body>
+</html>

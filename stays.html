@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Reservation activity · Transformed by Travels</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+<style>
+  :root{
+    --paper:#f6f8f7; --card:#fff; --ink:#18242c; --slate:#5a6b74; --faint:#8d9ca3;
+    --line:#e2eae7; --teal:#2a7f73; --teal-soft:#e4efec;
+    --ok:#2f7a5a; --ok-soft:#e4f0ea; --warn:#8d6410; --warn-soft:#f7eeda;
+    --bad:#9c3a2e; --bad-soft:#f6e6e3;
+  }
+  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+    --paper:#0d1416; --card:#141f22; --ink:#e6eeec; --slate:#9fb2b4; --faint:#71868a;
+    --line:#26383c; --teal:#5cc0ae; --teal-soft:#14312d;
+    --ok:#6fc295; --ok-soft:#122b21; --warn:#d8a94e; --warn-soft:#2e2514;
+    --bad:#e08b7c; --bad-soft:#331c18; } }
+  :root[data-theme="dark"]{
+    --paper:#0d1416; --card:#141f22; --ink:#e6eeec; --slate:#9fb2b4; --faint:#71868a;
+    --line:#26383c; --teal:#5cc0ae; --teal-soft:#14312d;
+    --ok:#6fc295; --ok-soft:#122b21; --warn:#d8a94e; --warn-soft:#2e2514;
+    --bad:#e08b7c; --bad-soft:#331c18; }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:'Open Sans',system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1040px;margin:0 auto;padding:30px 20px 90px;}
+
+  h1{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-0.01em;}
+  .sub{color:var(--slate);font-size:.95rem;margin-bottom:26px;}
+  .sub a{color:var(--teal);}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:26px;}
+  .kpi{background:var(--card);padding:16px 18px;}
+  .kpi .n{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.9rem;line-height:1;font-variant-numeric:tabular-nums;}
+  .kpi .l{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-top:8px;}
+  .kpi .h{font-size:.8rem;color:var(--slate);margin-top:5px;line-height:1.45;}
+  .kpi .n.warn{color:var(--warn);} .kpi .n.ok{color:var(--ok);}
+
+  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .tab{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.78rem;padding:8px 15px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--slate);cursor:pointer;}
+  .tab[aria-selected="true"]{background:var(--teal);border-color:var(--teal);color:#fff;}
+
+  .rows{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);}
+  .r{padding:15px 18px;border-bottom:1px solid var(--line);}
+  .r:last-child{border-bottom:none;}
+  .r.flag{background:var(--warn-soft);}
+  .rtop{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;}
+  .rtop .when{font-size:.76rem;color:var(--faint);margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .sum{margin-top:6px;color:var(--ink);}
+  .meta{font-size:.82rem;color:var(--slate);margin-top:4px;}
+  .issue{margin-top:9px;font-size:.86rem;color:var(--warn);background:var(--card);border:1px solid var(--warn);border-radius:9px;padding:9px 12px;}
+  .changes{margin-top:9px;font-size:.82rem;color:var(--slate);white-space:pre-wrap;border-left:2px solid var(--line);padding-left:11px;}
+  .acts{display:flex;gap:14px;margin-top:11px;flex-wrap:wrap;}
+  .acts a,.acts button{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.76rem;color:var(--teal);background:none;border:none;padding:0;cursor:pointer;text-decoration:none;}
+  .acts a:hover,.acts button:hover{text-decoration:underline;}
+
+  .chip{font-size:.67rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:99px;white-space:nowrap;border:1px solid currentColor;}
+  .c-create{color:var(--ok);background:var(--ok-soft);}
+  .c-change{color:var(--teal);background:var(--teal-soft);}
+  .c-cancel{color:var(--bad);background:var(--bad-soft);}
+  .c-unknown{color:var(--faint);}
+  .s-applied{color:var(--ok);background:var(--ok-soft);}
+  .s-needs{color:var(--warn);background:var(--warn-soft);}
+  .s-failed{color:var(--bad);background:var(--bad-soft);}
+  .s-dupe,.s-reviewed{color:var(--faint);}
+
+  .empty{padding:34px 18px;text-align:center;color:var(--faint);font-style:italic;}
+  .state{text-align:center;padding:70px 20px;color:var(--slate);}
+  .state h1{font-size:1.2rem;margin-bottom:8px;}
+  .picker{max-width:520px;margin:60px auto;}
+  .picker a{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--card);text-decoration:none;color:var(--ink);margin-bottom:10px;font-weight:600;}
+  .picker a:hover{border-color:var(--teal);}
+  .note{font-size:.82rem;color:var(--slate);background:var(--card);border:1px solid var(--line);border-radius:11px;padding:13px 16px;margin-bottom:26px;line-height:1.6;}
+  .note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;color:var(--teal);}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"><div class="state">Loading…</div></div>
+
+<script>
+const AUTH0_DOMAIN = 'dev-oys4h8z7qa7irffk.us.auth0.com';
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const root = document.getElementById('root');
+let DATA = null, EMAIL = '', LODGE = '', FILTER = 'all';
+
+const fmtDay = d => { if(!d) return ''; try{ return new Date(d+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}); }catch(e){ return d; } };
+function ago(iso){
+  if(!iso) return '';
+  const mins = Math.round((Date.now()-new Date(iso))/60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins+'m ago';
+  if (mins < 1440) return Math.round(mins/60)+'h ago';
+  const d = Math.round(mins/1440);
+  return d<8 ? d+'d ago' : new Date(iso).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
+const statusClass = s => ({'Applied':'s-applied','Needs Review':'s-needs','Failed':'s-failed','Duplicate':'s-dupe','Reviewed':'s-reviewed'})[s] || 's-dupe';
+
+function row(t){
+  const flag = t.status==='Needs Review' || t.status==='Failed';
+  const stay = t.arrival ? `${fmtDay(t.arrival)}${t.departure?' – '+fmtDay(t.departure):''}${t.nights?` · ${t.nights} night${t.nights===1?'':'s'}`:''}` : '';
+  const bits = [t.guest, stay, t.reservation && ('#'+t.reservation)].filter(Boolean);
+  return `<div class="r ${flag?'flag':''}">
+    <div class="rtop">
+      <span class="chip c-${esc((t.action||'unknown').toLowerCase())}">${esc(t.action)}</span>
+      <span class="chip ${statusClass(t.status)}">${esc(t.status)}</span>
+      <span class="when">${esc(ago(t.receivedAt))}</span>
+    </div>
+    ${t.summary?`<div class="sum">${esc(t.summary)}</div>`:''}
+    ${bits.length?`<div class="meta">${bits.map(esc).join(' &middot; ')}</div>`:''}
+    ${t.issue?`<div class="issue">${esc(t.issue)}</div>`:''}
+    ${t.changes?`<div class="changes">${esc(t.changes)}</div>`:''}
+    <div class="acts">
+      ${t.tripId?`<a href="/trip.html?tripId=${encodeURIComponent(t.tripId)}" target="_blank" rel="noopener">Open guest page →</a>`:''}
+      ${flag?`<button data-review="${esc(t.id)}">Mark reviewed</button>`:''}
+    </div>
+  </div>`;
+}
+
+function render(){
+  const d = DATA, c = d.counts;
+  const list = FILTER==='review'
+    ? d.rows.filter(r => r.status==='Needs Review' || r.status==='Failed')
+    : d.rows;
+  root.innerHTML = `
+    <h1>Reservation activity</h1>
+    <div class="sub">${esc(d.scope==='all'?'All properties':d.scope)} &middot; <a href="/lodge.html${LODGE?'?lodge='+encodeURIComponent(LODGE):''}">Your guests →</a></div>
+
+    <div class="note">Reservations reach us by email. Your booking system stays the system of record &mdash;
+    we mirror what it sends and never write back to it. Forward confirmations to
+    <code>stays@transformedbytravels.com</code>.</div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="n ${c.needsReview?'warn':'ok'}">${c.needsReview}</div><div class="l">Needs review</div><div class="h">${c.needsReview?'These did not match a stay automatically.':'Everything matched automatically.'}</div></div>
+      <div class="kpi"><div class="n">${c.applied}</div><div class="l">Applied</div></div>
+      <div class="kpi"><div class="n">${c.last7}</div><div class="l">Last 7 days</div></div>
+      <div class="kpi"><div class="n">${c.total}</div><div class="l">All transactions</div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab" role="tab" aria-selected="${FILTER==='all'}" data-f="all">Everything</button>
+      <button class="tab" role="tab" aria-selected="${FILTER==='review'}" data-f="review">Needs review${c.needsReview?' ('+c.needsReview+')':''}</button>
+    </div>
+
+    <div class="rows">${list.length ? list.map(row).join('')
+      : `<div class="empty">${FILTER==='review'?'Nothing waiting on you.':'No reservation emails yet.'}</div>`}</div>`;
+
+  root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { FILTER = b.dataset.f; render(); });
+  root.querySelectorAll('[data-review]').forEach(b => b.onclick = async () => {
+    b.disabled = true; b.textContent = 'Saving…';
+    try {
+      const r = await fetch('/api/stay-transactions', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email: EMAIL, id: b.dataset.review, lodge: LODGE || undefined }),
+      });
+      if (!r.ok) throw new Error((await r.json()).error || 'Could not save');
+      const t = DATA.rows.find(x => x.id === b.dataset.review);
+      if (t) { t.status = 'Reviewed'; DATA.counts.needsReview = Math.max(0, DATA.counts.needsReview - 1); }
+      render();
+    } catch (e) { b.disabled = false; b.textContent = 'Mark reviewed'; alert(e.message); }
+  });
+}
+
+function renderPicker(d){
+  root.innerHTML = `<div class="picker">
+    <h1>Which property?</h1>
+    <p class="sub">You're signed in as the platform owner.</p>
+    <a href="/stays.html">All properties<span>Including unmatched →</span></a>
+    ${(d.lodges||[]).map(l => `<a href="/stays.html?lodge=${encodeURIComponent(l.id)}">${esc(l.name)}<span>View →</span></a>`).join('')}
+  </div>`;
+}
+
+(async () => {
+  try {
+    const client = await auth0.createAuth0Client({
+      domain: AUTH0_DOMAIN,
+      clientId: 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd',
+      authorizationParams: { redirect_uri: window.location.origin + '/stays.html' },
+      cacheLocation: 'localstorage',
+    });
+    if (location.search.includes('code=') && location.search.includes('state=')) {
+      await client.handleRedirectCallback();
+      const back = sessionStorage.getItem('stayTarget');
+      history.replaceState({}, '', '/stays.html' + (back ? '?lodge=' + encodeURIComponent(back) : ''));
+    }
+    const want = new URLSearchParams(location.search).get('lodge');
+    if (want) sessionStorage.setItem('stayTarget', want); else sessionStorage.removeItem('stayTarget');
+    if (!(await client.isAuthenticated())) { await client.loginWithRedirect(); return; }
+
+    const user = await client.getUser();
+    EMAIL = (user.email || '').toLowerCase();
+    LODGE = want || '';
+
+    const r = await fetch('/api/stay-transactions?email=' + encodeURIComponent(EMAIL)
+      + (LODGE ? '&lodge=' + encodeURIComponent(LODGE) : ''));
+    if (r.status === 403) {
+      root.innerHTML = `<div class="state"><h1>No property on this account</h1><p>This page is for properties using Transformed by Travels. Signed in as ${esc(EMAIL)}.</p></div>`;
+      return;
+    }
+    DATA = await r.json();
+    if (!r.ok) throw new Error(DATA.error || 'Could not load');
+    if (DATA.counts.needsReview) FILTER = 'review';
+    render();
+  } catch (e) {
+    root.innerHTML = `<div class="state"><h1>Couldn't load reservation activity</h1><p>${esc(e.message||'Please try again.')}</p></div>`;
+  }
+})();
+</script>
+</body>
+</html>

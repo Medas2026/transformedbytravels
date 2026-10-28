@@ -1,0 +1,28 @@
+Region,Land,Ocean,Sky
+East Africa,TRUE,FALSE,TRUE
+South Africa,TRUE,TRUE,TRUE
+Botswana,TRUE,FALSE,TRUE
+Gorilla Countries,TRUE,FALSE,TRUE
+Namibia,TRUE,TRUE,TRUE
+Madagascar,TRUE,TRUE,TRUE
+Ethiopia,TRUE,FALSE,TRUE
+Indian Tigers & Rhinos,TRUE,FALSE,TRUE
+Indian Specialty Wildlife,TRUE,FALSE,TRUE
+Sri Lanka,TRUE,TRUE,TRUE
+Borneo,TRUE,TRUE,TRUE
+Indonesia,TRUE,TRUE,TRUE
+Galápagos,TRUE,TRUE,TRUE
+Amazon,TRUE,FALSE,TRUE
+Andes,TRUE,TRUE,TRUE
+Mozambique,TRUE,TRUE,TRUE
+Pantanal,TRUE,FALSE,TRUE
+Yellowstone,TRUE,FALSE,TRUE
+Alaska & Yukon,TRUE,TRUE,TRUE
+Canadian Arctic,TRUE,TRUE,TRUE
+Central America,TRUE,TRUE,TRUE
+Patagonia,TRUE,TRUE,TRUE
+Antarctica & Falklands,TRUE,TRUE,TRUE
+Australia,TRUE,TRUE,TRUE
+New Zealand,TRUE,TRUE,TRUE
+Svalbard,TRUE,TRUE,TRUE
+European Wildlife,TRUE,FALSE,TRUE

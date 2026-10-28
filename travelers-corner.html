@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travelers' Corner — Three Realms</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/full.umd.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root{
+      --navy:#0a1628; --panel:#111f37; --panel2:#16243f; --text:#f1f5f9; --soft:#c3cfdf;
+      --muted:#8395ac; --line:rgba(255,255,255,0.09); --teal:#2dd4bf; --teal2:#14b8a6;
+      --land:#f5a623; --ocean:#38bdf8; --sky:#a78bfa;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--navy);color:var(--text);font-family:'Lora',Georgia,serif;line-height:1.6}
+    a{color:inherit}
+    /* Nav */
+    nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;
+      gap:16px;padding:12px 20px;background:rgba(10,22,40,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+    .brand img{height:46px;width:auto;display:block}
+    .brand .t{font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;letter-spacing:0.02em}
+    .brand .t span{color:var(--teal)}
+    .nav-right{display:flex;align-items:center;gap:12px}
+    .who{font-family:'Montserrat',sans-serif;font-size:0.74rem;color:var(--muted)}
+    .btn{font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.02em;
+      border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid var(--teal);background:var(--teal);color:#06231f;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+    .btn.ghost{background:none;color:var(--teal)}
+    .btn:hover{background:var(--teal2);border-color:var(--teal2)}
+    .btn.ghost:hover{background:rgba(45,212,191,0.1)}
+    /* Layout */
+    .wrap{max-width:640px;margin:0 auto;padding:26px 16px 80px}
+    .lede{text-align:center;color:var(--soft);font-size:0.98rem;margin:0 auto 26px;max-width:52ch}
+    .lede h1{font-family:'Montserrat',sans-serif;font-weight:900;font-size:1.7rem;color:#fff;letter-spacing:-0.01em;margin-bottom:8px}
+    .filters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+    .chip-f{font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;padding:7px 15px;border-radius:20px;background:var(--panel);border:1px solid var(--line);color:var(--soft);cursor:pointer}
+    .chip-f.active{background:rgba(45,212,191,0.14);border-color:var(--teal);color:var(--teal)}
+    .chip-f:hover{border-color:var(--teal)}
+    /* Post card */
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:18px}
+    .card.feat{border-color:rgba(245,166,35,0.5)}
+    .chead{display:flex;align-items:center;gap:11px;padding:14px 16px}
+    .av{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:#20304d center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:800;color:var(--teal)}
+    .cwho{font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem}
+    .cwhen{font-size:0.75rem;color:var(--muted)}
+    .feat-tag{margin-left:auto;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--land);border:1px solid rgba(245,166,35,0.5);border-radius:20px;padding:3px 9px}
+    .cphotos{display:grid;gap:2px}
+    .cphotos img{width:100%;max-height:440px;object-fit:cover;display:block;background:#0e1a2e}
+    .cbody{padding:14px 16px}
+    .ctags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}
+    .tag{font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.7rem;padding:4px 10px;border-radius:20px;background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.3);color:var(--teal)}
+    .tag.place{background:rgba(255,255,255,0.05);border-color:var(--line);color:var(--soft)}
+    .tag.realm-Land{background:rgba(245,166,35,0.13);border-color:rgba(245,166,35,0.4);color:var(--land)}
+    .tag.realm-Ocean{background:rgba(56,189,248,0.13);border-color:rgba(56,189,248,0.4);color:var(--ocean)}
+    .tag.realm-Sky{background:rgba(167,139,250,0.13);border-color:rgba(167,139,250,0.4);color:var(--sky)}
+    .cap{font-size:0.95rem;color:var(--soft);white-space:pre-wrap}
+    .cfoot{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--line)}
+    .like{display:inline-flex;align-items:center;gap:7px;background:none;border:none;color:var(--muted);cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;padding:4px 6px;border-radius:8px}
+    .like:hover{color:#f472b6}
+    .cmt-btn{display:inline-flex;align-items:center;gap:7px;background:none;border:none;color:var(--muted);cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;padding:4px 6px;border-radius:8px}
+    .cmt-btn:hover{color:var(--teal)}
+    .cmt-wrap{border-top:1px solid var(--line);padding:12px 16px;background:rgba(255,255,255,0.02)}
+    .cmt-list{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+    .cmt-item{display:flex;gap:10px;align-items:flex-start}
+    .cmt-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:#20304d center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.75rem;color:var(--teal)}
+    .cmt-body{flex:1;min-width:0}
+    .cmt-who{font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:var(--text)}
+    .cmt-when{font-size:0.7rem;color:var(--muted);margin-left:6px;font-weight:400}
+    .cmt-text{font-size:0.88rem;color:var(--soft);white-space:pre-wrap;margin-top:2px}
+    .cmt-form{display:flex;gap:8px;align-items:flex-end}
+    .cmt-input{flex:1;background:var(--navy);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:'Lora',Georgia,serif;font-size:0.9rem;padding:8px 12px;resize:vertical;min-height:38px;max-height:140px}
+    .cmt-input:focus{outline:none;border-color:var(--teal)}
+    .cmt-send{background:var(--teal);border:none;color:#06231f;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;padding:9px 16px;border-radius:10px;cursor:pointer;white-space:nowrap}
+    .cmt-send:disabled{opacity:0.5;cursor:default}
+    .cmt-signin{font-size:0.85rem;color:var(--muted)}
+    .cmt-signin a{color:var(--teal);cursor:pointer}
+    .empty,.loading{text-align:center;color:var(--muted);padding:50px 20px;font-style:italic}
+    /* view toggle (Feed | Map) */
+    .vtoggle{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;margin:0 auto 16px;justify-content:center}
+    .vt{font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;border:none;background:none;color:var(--muted);padding:7px 20px;border-radius:8px;cursor:pointer}
+    .vt.on{background:var(--teal);color:#06231f}
+    .vcenter{text-align:center}
+    /* wildlife map */
+    #wmap{height:62vh;min-height:440px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#0a1628}
+    .leaflet-container{background:#0a1628;font-family:'Lora',Georgia,serif}
+    .leaflet-popup-content-wrapper{background:rgba(17,31,55,0.98);color:var(--text);border:1px solid rgba(45,212,191,0.4);border-radius:12px}
+    .leaflet-popup-tip{background:rgba(17,31,55,0.98);border:1px solid rgba(45,212,191,0.4)}
+    .leaflet-popup-content{margin:12px 14px}
+    .wp-sp{font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.98rem;display:flex;align-items:center;gap:6px}
+    .wp-meta{font-size:0.82rem;color:var(--soft);margin-top:5px}
+    .wp-when{font-family:'Montserrat',sans-serif;font-size:0.72rem;color:var(--muted);margin-top:6px}
+    .wp-cnt{display:inline-block;margin-top:8px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;color:var(--teal);background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.3);padding:3px 9px;border-radius:20px}
+    .wp-prot{display:flex;align-items:flex-start;gap:6px;margin-top:8px;font-size:0.74rem;color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.28);border-radius:8px;padding:6px 8px}
+    .park-badge{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#1b2c4c;border:2px solid #fbbf24;font-size:15px;position:relative}
+    .park-badge .n{position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;line-height:16px;text-align:center;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.62rem;color:#3a2a00;background:#fbbf24;border-radius:9px;padding:0 3px}
+    .map-note{text-align:center;color:var(--muted);font-size:0.78rem;margin-top:12px}
+    .map-note b{color:#fbbf24}
+    /* FAB */
+    .fab{position:fixed;right:20px;bottom:22px;z-index:35;border:none;border-radius:30px;padding:15px 22px;
+      background:var(--teal);color:#06231f;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.9rem;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.4);display:inline-flex;align-items:center;gap:8px}
+    .fab:hover{background:var(--teal2)}
+    /* Modal */
+    .modal{display:none;position:fixed;inset:0;z-index:60;background:rgba(4,10,20,0.75);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto}
+    .modal.open{display:flex}
+    .sheet{background:var(--panel);border:1px solid var(--line);border-radius:16px;width:100%;max-width:520px;padding:22px}
+    .sheet h2{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.15rem;margin-bottom:4px}
+    .sheet .sub{color:var(--muted);font-size:0.82rem;margin-bottom:16px}
+    label{display:block;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+    textarea,input[type=text],select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--text);font-family:'Lora',serif;font-size:0.95rem;padding:10px 12px}
+    textarea{min-height:80px;resize:vertical}
+    .row{display:flex;gap:10px}.row>*{flex:1}
+    .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .thumbs .t{position:relative;width:64px;height:64px;border-radius:8px;background:#20304d center/cover no-repeat;border:1px solid var(--line)}
+    .thumbs .t button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:0.75rem;line-height:1}
+    .sp-wrap{position:relative}
+    .sp-list{position:absolute;top:100%;left:0;right:0;z-index:5;background:var(--panel2);border:1px solid var(--line);border-radius:9px;margin-top:4px;max-height:200px;overflow-y:auto;display:none}
+    .sp-list.open{display:block}
+    .sp-item{padding:9px 12px;cursor:pointer;font-size:0.88rem;border-bottom:1px solid var(--line)}
+    .sp-item:hover{background:rgba(45,212,191,0.1)}
+    .chip{display:inline-flex;align-items:center;gap:8px;margin-top:8px;background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.35);border-radius:20px;padding:5px 12px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.8rem;color:var(--teal)}
+    .chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1}
+    .sheet-actions{display:flex;gap:10px;margin-top:22px}
+    .sheet-actions .btn{flex:1;justify-content:center;padding:12px}
+    .btn.sec{background:none;border-color:var(--line);color:var(--soft)}
+    .status{font-size:0.82rem;color:var(--muted);margin-top:10px;min-height:18px}
+    .status.err{color:#f87171}
+    .muted-link{background:none;border:none;color:var(--teal);cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem}
+  </style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/threerealms/">
+    <img src="/threerealms/realm-symbols/logo.png" alt="Three Realms">
+    <span class="t">Travelers' <span>Corner</span></span>
+  </a>
+  <div class="nav-right">
+    <span class="who" id="who"></span>
+    <a class="btn ghost" href="/portal.html">My Portal</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="lede">
+    <h1>Travelers' Corner</h1>
+    <p>Sightings and places from the field, shared by the community. Post what you find, follow the trail others leave.</p>
+  </div>
+  <div class="vcenter">
+    <div class="vtoggle">
+      <button id="vt-feed" class="vt on" onclick="setView('feed')">Feed</button>
+      <button id="vt-map"  class="vt"    onclick="setView('map')">🗺 Map</button>
+    </div>
+  </div>
+
+  <div id="feedview">
+    <div class="filters" id="filters">
+      <button class="chip-f active" data-f="all" onclick="setFilter('all',this)">All</button>
+      <button class="chip-f" data-f="wildlife" onclick="setFilter('wildlife',this)">🐾 Wildlife</button>
+      <button class="chip-f" data-f="sites" onclick="setFilter('sites',this)">📷 Sites &amp; Views</button>
+    </div>
+    <div id="feed"><div class="loading">Loading the feed…</div></div>
+  </div>
+
+  <div id="mapview" style="display:none">
+    <div class="filters" id="mapfilters">
+      <button class="chip-f active" data-mf="all"   onclick="setMapFilter('all',this)">All</button>
+      <button class="chip-f" data-mf="Land"  onclick="setMapFilter('Land',this)">🦁 Land</button>
+      <button class="chip-f" data-mf="Ocean" onclick="setMapFilter('Ocean',this)">🐋 Ocean</button>
+      <button class="chip-f" data-mf="Sky"   onclick="setMapFilter('Sky',this)">🦅 Sky</button>
+    </div>
+    <div id="wmap"></div>
+    <div class="map-note">Common species show their exact spot. <b>🔒 Protected species</b> (endangered, rhino, pangolin) show at park level only — their precise location is never shared.</div>
+  </div>
+</div>
+
+<button class="fab" onclick="openComposer()">＋ Share</button>
+
+<!-- Composer -->
+<div class="modal" id="composer">
+  <div class="sheet">
+    <h2>Share a sighting or place</h2>
+    <div class="sub">A photo, where you were, and a few words. Tag the animal if it's wildlife.</div>
+
+    <div id="postas-wrap" style="display:none">
+      <label>Post as</label>
+      <select id="postas"></select>
+      <div style="font-size:0.74rem;color:var(--muted);margin-top:5px">Coaches can share a trip on a customer's behalf — it'll be credited to them.</div>
+    </div>
+
+    <label>Photos</label>
+    <input type="file" id="ph-file" accept="image/*" multiple onchange="uploadPhotos(this)" style="font-family:'Montserrat',sans-serif;font-size:0.82rem;color:var(--soft)">
+    <div class="thumbs" id="thumbs"></div>
+
+    <label>Your words</label>
+    <textarea id="cap" placeholder="What did you see? What made it special?"></textarea>
+
+    <div class="row">
+      <div>
+        <label>Place</label>
+        <input type="text" id="place" placeholder="e.g. Masai Mara">
+      </div>
+      <div>
+        <label>Realm</label>
+        <select id="realm"><option value="">—</option><option>Land</option><option>Ocean</option><option>Sky</option></select>
+      </div>
+    </div>
+
+    <label>Animal (optional)</label>
+    <div class="sp-wrap">
+      <input type="text" id="sp-search" placeholder="Search wildlife — e.g. leopard" oninput="spSearch(this.value)" autocomplete="off">
+      <div class="sp-list" id="sp-list"></div>
+    </div>
+    <div id="sp-chip"></div>
+
+    <label>When was this taken?</label>
+    <input type="datetime-local" id="taken">
+    <div id="taken-note" style="font-size:0.74rem;color:var(--muted);margin-top:4px">We'll read this from the photo when we can — edit it if it looks off, or set it by hand.</div>
+
+    <label>Location</label>
+    <button type="button" class="muted-link" id="loc-btn" onclick="useMyLocation()">📍 Use my current location</button>
+    <span id="loc-note" style="font-size:0.8rem;color:var(--muted);margin-left:8px"></span>
+
+    <div class="status" id="c-status"></div>
+    <div class="sheet-actions">
+      <button class="btn sec" onclick="closeComposer()">Cancel</button>
+      <button class="btn" id="post-btn" onclick="submitPost()">Post</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const AUTH0_DOMAIN = 'dev-oys4h8z7qa7irffk.us.auth0.com';
+const AUTH0_CLIENT_ID = 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd';
+const CLOUD = 'dporenlvw', PRESET = 'Trip Image';
+let auth0Client = null, CURRENT_EMAIL = null;
+let PHOTOS = [], SPECIES = null, LAT = null, LNG = null, _spDebounce = null;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+// Force any Cloudinary upload (incl. iPhone HEIC) to a web-safe JPEG — auto-oriented, sized,
+// f_jpg so every browser renders it (no HEIC/format negotiation), .jpg extension for good measure.
+function cldWeb(u){
+  if(!u || !u.includes('/image/upload/')) return u;
+  return u.replace('/image/upload/','/image/upload/f_jpg,q_auto,w_1600/').replace(/\.(heic|heif)$/i,'.jpg');
+}
+function toLocalInput(d){const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());}
+function fmtTaken(v){const d=new Date(v);if(isNaN(d))return String(v);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
+function ago(iso){
+  const d=new Date(iso); if(isNaN(d)) return '';
+  const s=Math.floor((Date.now()-d.getTime())/1000);
+  if(s<60)return 'just now'; if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago'; if(s<604800)return Math.floor(s/86400)+'d ago';
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+// ── Auth (silent — feed works without it) ──
+async function initAuth(){
+  try{
+    auth0Client = await auth0.createAuth0Client({
+      domain:AUTH0_DOMAIN, clientId:AUTH0_CLIENT_ID, useRefreshTokens:true, cacheLocation:'localstorage',
+      authorizationParams:{ redirect_uri: window.location.origin + '/travelers-corner.html' }
+    });
+    if(await auth0Client.isAuthenticated()){
+      const u = await auth0Client.getUser();
+      CURRENT_EMAIL = (u.email||'').toLowerCase();
+      document.getElementById('who').textContent = 'Signed in as ' + u.email;
+      loadCoachCustomers();
+    } else {
+      document.getElementById('who').innerHTML = '<button class="muted-link" onclick="goLogin()">Sign in to post</button>';
+    }
+  }catch(e){ console.warn('auth init', e); }
+}
+function goLogin(){ window.location.href = '/login.html?next=' + encodeURIComponent('/travelers-corner.html'); }
+let COACH_CUSTOMERS = [];
+async function loadCoachCustomers(){
+  if(!CURRENT_EMAIL) return;
+  try{
+    const r = await fetch('/api/coach?action=dashboard&coachEmail=' + encodeURIComponent(CURRENT_EMAIL));
+    const d = await r.json();
+    COACH_CUSTOMERS = d.customers || [];
+    if(COACH_CUSTOMERS.length){
+      document.getElementById('postas').innerHTML =
+        '<option value="">Myself</option>' +
+        COACH_CUSTOMERS.map(c=>`<option value="${esc(c.email)}">${esc(c.name||c.email)} (customer)</option>`).join('');
+      document.getElementById('postas-wrap').style.display = 'block';
+    }
+  }catch(e){}
+}
+
+// ── Feed ──
+let FEED = [], CURFILTER = 'all';
+async function loadFeed(){
+  try{
+    const r = await fetch('/api/community');
+    const d = await r.json();
+    FEED = d.posts || [];
+    renderFeed();
+  }catch(e){ document.getElementById('feed').innerHTML = '<div class="empty">Couldn\'t load the feed.</div>'; }
+}
+function setFilter(mode, btn){
+  CURFILTER = mode;
+  document.querySelectorAll('.chip-f').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderFeed();
+}
+function renderFeed(){
+  const feed = document.getElementById('feed');
+  let list = FEED;
+  if(CURFILTER==='wildlife') list = FEED.filter(p=>p.species);
+  else if(CURFILTER==='sites') list = FEED.filter(p=>!p.species);
+  if(!FEED.length){ feed.innerHTML = '<div class="empty">No posts yet — be the first to share.</div>'; return; }
+  if(!list.length){ feed.innerHTML = '<div class="empty">Nothing in this view yet.</div>'; return; }
+  feed.innerHTML = list.map(renderPost).join('');
+}
+function renderPost(p){
+  const initials = (p.authorName||'?').trim().charAt(0).toUpperCase();
+  const av = p.authorPhoto
+    ? `<div class="av" style="background-image:url('${esc(p.authorPhoto)}')"></div>`
+    : `<div class="av">${esc(initials)}</div>`;
+  const photos = (p.photos||[]).map(u=>`<img src="${esc(u)}" alt="" loading="lazy">`).join('');
+  const tags = [
+    p.species ? `<span class="tag">🐾 ${esc(p.species)}</span>` : '',
+    p.place   ? `<span class="tag place">📍 ${esc(p.place)}</span>` : '',
+    p.realm   ? `<span class="tag realm-${esc(p.realm)}">${esc(p.realm)}</span>` : '',
+  ].filter(Boolean).join('');
+  return `<div class="card${p.featured?' feat':''}">
+    <div class="chead">
+      ${av}
+      <div><div class="cwho">${esc(p.authorName)}</div><div class="cwhen">${esc(ago(p.created))}${p.trip?' · '+esc(p.trip):''}</div></div>
+      ${p.featured?'<span class="feat-tag">Featured</span>':''}
+    </div>
+    ${photos?`<div class="cphotos">${photos}</div>`:''}
+    <div class="cbody">
+      ${p.taken?`<div style="font-family:'Montserrat',sans-serif;font-size:0.72rem;color:var(--muted);margin-bottom:8px;">📅 Taken ${esc(p.taken)}</div>`:''}
+      ${tags?`<div class="ctags">${tags}</div>`:''}
+      ${p.caption?`<div class="cap">${esc(p.caption)}</div>`:''}
+    </div>
+    <div class="cfoot">
+      <button class="like" onclick="likePost('${p.id}',this)">🤍 <span>${p.likes||0}</span></button>
+      <button class="cmt-btn" onclick="toggleComments('${p.id}',this)">💬 <span>${p.comments||0}</span></button>
+    </div>
+    <div class="cmt-wrap" id="cmt-${p.id}" style="display:none"></div>
+  </div>`;
+}
+async function toggleComments(postId, btn){
+  const wrap = document.getElementById('cmt-'+postId);
+  if(!wrap) return;
+  if(wrap.style.display !== 'none'){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  if(wrap.dataset.loaded){ return; }
+  wrap.innerHTML = '<div class="loading" style="padding:16px">Loading comments…</div>';
+  let comments = [];
+  try{
+    const r = await fetch('/api/community?action=comments&postId='+encodeURIComponent(postId));
+    comments = (await r.json()).comments || [];
+  }catch(e){}
+  wrap.dataset.loaded = '1';
+  renderComments(wrap, postId, comments);
+}
+function commentItem(c){
+  const initials = (c.authorName||'?').trim().charAt(0).toUpperCase();
+  const av = c.authorPhoto
+    ? `<div class="cmt-av" style="background-image:url('${esc(c.authorPhoto)}')"></div>`
+    : `<div class="cmt-av">${esc(initials)}</div>`;
+  return `<div class="cmt-item">${av}<div class="cmt-body">
+    <div><span class="cmt-who">${esc(c.authorName)}</span><span class="cmt-when">${esc(ago(c.created))}</span></div>
+    <div class="cmt-text">${esc(c.text)}</div></div></div>`;
+}
+function renderComments(wrap, postId, comments){
+  const listHtml = comments.length
+    ? `<div class="cmt-list">${comments.map(commentItem).join('')}</div>`
+    : `<div class="cmt-list"><div style="color:var(--muted);font-size:0.85rem;font-style:italic">No comments yet — say something kind.</div></div>`;
+  const formHtml = CURRENT_EMAIL
+    ? `<div class="cmt-form">
+         <textarea class="cmt-input" id="cin-${postId}" placeholder="Add a comment…" rows="1"></textarea>
+         <button class="cmt-send" onclick="addComment('${postId}',this)">Post</button>
+       </div>`
+    : `<div class="cmt-signin"><a onclick="goLogin()">Sign in</a> to add a comment.</div>`;
+  wrap.innerHTML = listHtml + formHtml;
+}
+async function addComment(postId, btn){
+  const ta = document.getElementById('cin-'+postId);
+  const text = (ta.value||'').trim();
+  if(!text) return;
+  btn.disabled = true;
+  try{
+    const r = await fetch('/api/community?action=comment',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:CURRENT_EMAIL, postId, text})});
+    const d = await r.json();
+    if(!r.ok || d.error){ alert(d.error||'Could not post comment.'); btn.disabled=false; return; }
+    // Append the new comment and bump the count.
+    const wrap = document.getElementById('cmt-'+postId);
+    let list = wrap.querySelector('.cmt-list');
+    const placeholder = list && list.querySelector('div[style]');
+    if(placeholder) placeholder.remove();
+    list.insertAdjacentHTML('beforeend', commentItem(d.comment));
+    ta.value = '';
+    btn.disabled = false;
+    const post = FEED.find(p=>p.id===postId); if(post) post.comments = (post.comments||0)+1;
+    const cntBtn = document.querySelector(`.cmt-btn[onclick*="${postId}"] span`);
+    if(cntBtn) cntBtn.textContent = (parseInt(cntBtn.textContent||'0',10)+1);
+  }catch(e){ alert('Could not post comment.'); btn.disabled=false; }
+}
+async function likePost(id, btn){
+  const span = btn.querySelector('span');
+  span.textContent = (parseInt(span.textContent||'0',10)+1);
+  btn.firstChild.textContent = '💚 ';
+  try{ await fetch('/api/community?action=like',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({postId:id})}); }catch(e){}
+}
+
+// ── Composer ──
+function openComposer(){
+  if(!CURRENT_EMAIL){ if(confirm('Sign in to share a post?')) goLogin(); return; }
+  document.getElementById('composer').classList.add('open');
+}
+function closeComposer(){ document.getElementById('composer').classList.remove('open'); }
+async function uploadPhotos(input){
+  const status = document.getElementById('c-status');
+  for(const file of Array.from(input.files||[])){
+    if(file.size > 10*1024*1024){ status.textContent='Photos must be under 10MB.'; continue; }
+    status.textContent = 'Uploading photo…';
+    const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', PRESET);
+    try{
+      const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`,{method:'POST',body:fd});
+      const d = await r.json();
+      if(d.secure_url){
+        PHOTOS.push(cldWeb(d.secure_url)); renderThumbs(); status.textContent='';
+        // Read the capture date from the photo's EXIF and prefill "When taken" (first photo only).
+        if(window.exifr && !document.getElementById('taken').value){
+          try{
+            const meta = await exifr.parse(file, ['DateTimeOriginal','CreateDate']);
+            const dt = meta && (meta.DateTimeOriginal || meta.CreateDate);
+            if(dt instanceof Date && !isNaN(dt)){
+              document.getElementById('taken').value = toLocalInput(dt);
+              document.getElementById('taken-note').textContent = '📷 Detected from your photo — edit if needed.';
+            }
+          }catch(e){}
+        }
+      }
+      else status.textContent = 'Upload failed.';
+    }catch(e){ status.textContent = 'Upload error.'; }
+  }
+  input.value='';
+}
+function renderThumbs(){
+  document.getElementById('thumbs').innerHTML = PHOTOS.map((u,i)=>
+    `<div class="t" style="background-image:url('${esc(u)}')"><button onclick="PHOTOS.splice(${i},1);renderThumbs()">×</button></div>`).join('');
+}
+function spSearch(q){
+  clearTimeout(_spDebounce);
+  const list = document.getElementById('sp-list');
+  q=(q||'').trim();
+  if(q.length<2){ list.classList.remove('open'); list.innerHTML=''; return; }
+  _spDebounce = setTimeout(async ()=>{
+    try{
+      const r = await fetch('/api/species?search='+encodeURIComponent(q));
+      const d = await r.json();
+      const rows = (d.records||[]).slice(0,8).map(rec=>{
+        const nm = (rec.fields&&rec.fields['Species Name'])||''; if(!nm) return '';
+        return `<div class="sp-item" onclick="pickSpecies('${rec.id}','${esc(nm).replace(/'/g,"\\'")}')">${esc(nm)}</div>`;
+      }).filter(Boolean).join('');
+      list.innerHTML = rows || '<div class="sp-item" style="color:var(--muted)">No matches</div>';
+      list.classList.add('open');
+    }catch(e){}
+  },250);
+}
+function pickSpecies(id,name){
+  SPECIES = {id,name};
+  document.getElementById('sp-list').classList.remove('open');
+  document.getElementById('sp-search').value='';
+  document.getElementById('sp-chip').innerHTML = `<span class="chip">🐾 ${esc(name)} <button onclick="clearSpecies()">×</button></span>`;
+}
+function clearSpecies(){ SPECIES=null; document.getElementById('sp-chip').innerHTML=''; }
+function useMyLocation(){
+  const note = document.getElementById('loc-note');
+  if(!navigator.geolocation){ note.textContent='Location not available.'; return; }
+  note.textContent='Locating…';
+  navigator.geolocation.getCurrentPosition(
+    pos=>{ LAT=+pos.coords.latitude.toFixed(6); LNG=+pos.coords.longitude.toFixed(6); note.textContent='📍 Location added'; },
+    ()=>{ note.textContent='Couldn\'t get location.'; }
+  );
+}
+async function submitPost(){
+  const status = document.getElementById('c-status'); status.className='status';
+  const caption = document.getElementById('cap').value.trim();
+  if(!caption && !PHOTOS.length){ status.className='status err'; status.textContent='Add a caption or a photo.'; return; }
+  const btn = document.getElementById('post-btn'); btn.disabled=true; btn.textContent='Posting…';
+  const postas = document.getElementById('postas');
+  const body = {
+    email: CURRENT_EMAIL, caption, photoUrls: PHOTOS,
+    authorEmail: (postas && postas.value) || undefined,
+    placeName: document.getElementById('place').value.trim(),
+    realm: document.getElementById('realm').value,
+    speciesId: SPECIES ? SPECIES.id : undefined,
+    latitude: LAT, longitude: LNG,
+    takenAt: document.getElementById('taken').value ? fmtTaken(document.getElementById('taken').value) : undefined,
+  };
+  try{
+    const r = await fetch('/api/community',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d = await r.json();
+    if(!r.ok || d.error){ status.className='status err'; status.textContent=d.error||'Post failed.'; btn.disabled=false; btn.textContent='Post'; return; }
+    // reset + prepend
+    PHOTOS=[]; SPECIES=null; LAT=null; LNG=null;
+    document.getElementById('cap').value=''; document.getElementById('place').value='';
+    document.getElementById('realm').value=''; document.getElementById('sp-chip').innerHTML='';
+    document.getElementById('thumbs').innerHTML=''; document.getElementById('loc-note').textContent='';
+    document.getElementById('taken').value=''; document.getElementById('taken-note').textContent="We'll read this from the photo when we can — edit it if it looks off, or set it by hand.";
+    closeComposer(); btn.disabled=false; btn.textContent='Post';
+    FEED.unshift(d.post); renderFeed();
+  }catch(e){ status.className='status err'; status.textContent='Post failed — try again.'; btn.disabled=false; btn.textContent='Post'; }
+}
+document.getElementById('composer').addEventListener('click', e=>{ if(e.target.id==='composer') closeComposer(); });
+
+// ── Map view ──────────────────────────────────────────────────────────────
+const REALM_COLORS = { Land:'#4ade80', Ocean:'#60a5fa', Sky:'#a5b4fc' };
+let _wmap = null, _wmarkers = [], _wLayer = null, _wLoaded = false, _mapFilter = 'all';
+
+function setView(v){
+  const feed = document.getElementById('feedview'), map = document.getElementById('mapview');
+  document.getElementById('vt-feed').classList.toggle('on', v==='feed');
+  document.getElementById('vt-map').classList.toggle('on', v==='map');
+  feed.style.display = v==='feed' ? 'block' : 'none';
+  map.style.display  = v==='map'  ? 'block' : 'none';
+  document.querySelector('.fab').style.display = v==='feed' ? '' : 'none';
+  if(v==='map'){ initWildlifeMap(); }
+}
+
+function initWildlifeMap(){
+  if(_wmap){ setTimeout(()=>_wmap.invalidateSize(), 60); return; }
+  _wmap = L.map('wmap', { center:[-1.0, 33.0], zoom:5, scrollWheelZoom:false, worldCopyJump:true });
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    { attribution:'Tiles © Esri', maxNativeZoom:16, maxZoom:18 }).addTo(_wmap);
+  _wLayer = L.layerGroup().addTo(_wmap);
+  loadWildlifeMarkers();
+}
+
+async function loadWildlifeMarkers(){
+  try{
+    const r = await fetch('/api/wildlife-map');
+    const d = await r.json();
+    _wmarkers = d.markers || [];
+  }catch(e){ _wmarkers = []; }
+  _wLoaded = true;
+  renderMapMarkers();
+}
+
+function renderMapMarkers(){
+  if(!_wLayer) return;
+  _wLayer.clearLayers();
+  const shown = _wmarkers.filter(m => _mapFilter==='all' || m.realm===_mapFilter);
+  const bounds = [];
+  shown.forEach(m => {
+    if(m.lat==null || m.lng==null) return;
+    bounds.push([m.lat, m.lng]);
+    if(m.precision === 'park'){
+      // protected → park-level: dashed circle + amber badge with count
+      L.circle([m.lat, m.lng], { radius:14000, color:'#fbbf24', weight:1.4, dashArray:'4 4', fillColor:'#fbbf24', fillOpacity:0.08 }).addTo(_wLayer);
+      const icon = L.divIcon({ className:'', iconSize:[30,30], iconAnchor:[15,15],
+        html:`<div class="park-badge">${realmEmoji(m)}${m.count>1?`<span class="n">${m.count}</span>`:''}</div>` });
+      L.marker([m.lat, m.lng], { icon }).addTo(_wLayer).bindPopup(popupHtml(m));
+    } else {
+      const color = REALM_COLORS[m.realm] || 'var(--teal)';
+      L.circleMarker([m.lat, m.lng], { radius:7, color:'#0a1628', weight:2, fillColor: REALM_COLORS[m.realm] || '#2dd4bf', fillOpacity:0.95 })
+        .addTo(_wLayer).bindPopup(popupHtml(m));
+    }
+  });
+  const status = document.getElementById('map-status');
+  if(status) status.remove();
+  if(bounds.length){ try{ _wmap.fitBounds(bounds, { padding:[40,40], maxZoom:7 }); }catch(e){} }
+}
+
+function realmEmoji(m){
+  return m.realm==='Ocean' ? '🐋' : m.realm==='Sky' ? '🦅' : '🦁';
+}
+function popupHtml(m){
+  const protectedNote = m.precision==='park'
+    ? `<div class="wp-prot">🔒 Shown at park level to protect this species — exact location isn't shared.</div>` : '';
+  const cnt = (m.count>1)
+    ? `<div class="wp-cnt">Seen ${m.count} times here recently</div>` : '';
+  const where = m.precision==='park' ? `Seen in <b style="color:var(--soft)">${esc(m.location)}</b>` :
+                (m.location ? `Seen at <b style="color:var(--soft)">${esc(m.location)}</b>` : 'Seen in the field');
+  return `<div class="wp-sp">${esc(m.species)}</div>
+    <div class="wp-meta">${where}</div>
+    ${m.date?`<div class="wp-when">📅 Seen ${esc(ago(m.date))}</div>`:''}
+    ${cnt}${protectedNote}`;
+}
+
+function setMapFilter(f, btn){
+  _mapFilter = f;
+  document.querySelectorAll('#mapfilters .chip-f').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderMapMarkers();
+}
+
+// go
+loadFeed();
+initAuth();
+</script>
+</body>
+</html>

@@ -19,9 +19,9 @@ module.exports = async function handler(req, res) {
     ? activities.slice(0, 6).map((a, i) => `${i + 1}. ${a}`).join('\n')
     : '';
 
-  const prompt = `You are a knowledgeable travel experience specialist. A traveler with the archetype "${archetype || 'Transformational Traveler'}" is planning a trip to ${destination} and wants specific experience recommendations tailored to their interests.
+  const prompt = `You are a knowledgeable travel experience specialist. A traveler with the archetype "${archetype || 'Growth Seeker'}" is planning a trip to ${destination} and wants specific experience recommendations tailored to their interests.
 
-${hasActivities ? `Their top activities based on their travel profile:\n${activityList}` : `Based on their "${archetype || 'Transformational Traveler'}" archetype, identify 5 activities that would suit them best at this destination.`}
+${hasActivities ? `Their top activities based on their travel profile:\n${activityList}` : `Based on their "${archetype || 'Growth Seeker'}" archetype, identify 5 activities that would suit them best at this destination.`}
 
 For each activity listed, suggest 2 specific experiences, operators, or providers they could book in ${destination}. These should be real, named companies, tour operators, local guides, or well-known experiences actually available in ${destination}. Be specific — use real names where possible.
 

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Archetype Rule Tester</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #e2e8f0; padding: 24px; margin: 0; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { color: #2dd4bf; margin: 0 0 4px; font-size: 1.5rem; }
+  .sub { color: #94a3b8; font-size: 0.9rem; margin-bottom: 24px; }
+  .panel { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .panel h2 { margin: 0 0 16px; color: #2dd4bf; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .row { display: grid; grid-template-columns: 140px 1fr 40px; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .row label { font-weight: 600; color: #cbd5e1; }
+  input[type=range] { width: 100%; accent-color: #2dd4bf; }
+  .val { text-align: right; font-family: 'Courier New', monospace; font-size: 1.05rem; color: #2dd4bf; font-weight: bold; }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .preset {
+    background: #0f172a; border: 1px solid #334155; color: #cbd5e1;
+    padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; cursor: pointer;
+  }
+  .preset:hover { border-color: #2dd4bf; color: #2dd4bf; }
+  .result-name { font-size: 1.8rem; font-weight: bold; color: #2dd4bf; margin: 0 0 6px; }
+  .result-tag  { color: #94a3b8; font-size: 0.9rem; margin: 0 0 16px; font-style: italic; }
+  .result-desc { color: #e2e8f0; line-height: 1.65; font-size: 0.94rem; margin: 0 0 18px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+  .stat { background: #0f172a; padding: 12px 14px; border-radius: 8px; border-left: 3px solid #2dd4bf; }
+  .stat-l { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-v { font-size: 1.1rem; color: #e2e8f0; font-weight: 600; margin-top: 3px; }
+  .rule { font-family: 'Courier New', monospace; font-size: 0.82rem; color: #a5b4fc; margin-top: 8px; }
+  .rule .match { color: #34d399; }
+  .rule .fail { color: #64748b; }
+  .loading { color: #64748b; font-style: italic; }
+  .error { color: #f43f5e; }
+</style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <h1>Archetype Rule Tester</h1>
+  <div class="sub">Move the sliders to set each dimension score (0–5). The archetype below is fetched from <code>/api/archetype</code> — the same endpoint the live assessment uses.</div>
+
+  <div class="panel">
+    <h2>Dimension Scores</h2>
+    <div class="row"><label>Curiosity</label><input type="range" id="s-cur" min="0" max="5" step="1" value="3"><div class="val" id="v-cur">3</div></div>
+    <div class="row"><label>Adventure</label><input type="range" id="s-adv" min="0" max="5" step="1" value="3"><div class="val" id="v-adv">3</div></div>
+    <div class="row"><label>Reflection</label><input type="range" id="s-ref" min="0" max="5" step="1" value="3"><div class="val" id="v-ref">3</div></div>
+    <div class="row"><label>Connection</label><input type="range" id="s-con" min="0" max="5" step="1" value="3"><div class="val" id="v-con">3</div></div>
+    <div class="row"><label>Travel Purpose</label><input type="range" id="s-tp" min="0" max="5" step="1" value="3"><div class="val" id="v-tp">3</div></div>
+
+    <div class="presets">
+      <button class="preset" data-p="5,5,5,5,5">All 5s</button>
+      <button class="preset" data-p="4,4,4,4,4">All 4s</button>
+      <button class="preset" data-p="3,3,3,3,3">All 3s</button>
+      <button class="preset" data-p="0,0,0,0,0">All 0s</button>
+      <button class="preset" data-p="4,5,5,4,4">TT candidate</button>
+      <button class="preset" data-p="3,2,5,3,5">Purpose-Driven</button>
+      <button class="preset" data-p="3,5,2,3,2">Adventure-Oriented</button>
+      <button class="preset" data-p="5,2,3,3,3">Cultural Explorer</button>
+      <button class="preset" data-p="2,2,2,2,2">Easygoing</button>
+    </div>
+  </div>
+
+  <div class="panel" id="result-panel">
+    <h2>Result</h2>
+    <div id="result-body" class="loading">Loading…</div>
+  </div>
+
+  <div class="panel">
+    <h2>Rule Trace</h2>
+    <div id="rule-trace" class="rule"></div>
+  </div>
+</div>
+
+<script>
+const inputs = {
+  Curiosity:        document.getElementById('s-cur'),
+  Adventure:        document.getElementById('s-adv'),
+  Reflection:       document.getElementById('s-ref'),
+  Connection:       document.getElementById('s-con'),
+  'Travel Purpose': document.getElementById('s-tp'),
+};
+const vals = {
+  Curiosity:        document.getElementById('v-cur'),
+  Adventure:        document.getElementById('v-adv'),
+  Reflection:       document.getElementById('v-ref'),
+  Connection:       document.getElementById('v-con'),
+  'Travel Purpose': document.getElementById('v-tp'),
+};
+
+// Mirror of the API's rules (kept in sync with /api/archetype.js) — used for the trace only.
+function traceRules({Curiosity, Adventure, Reflection, Connection, TravelPurpose}) {
+  const dims = [Curiosity, Adventure, Reflection, Connection, TravelPurpose];
+  const GS   = (Reflection + TravelPurpose) / 2;
+  const four_ge_4  = dims.filter(d => d >= 4).length >= 4;
+  const none_lt_3  = dims.every(d => d >= 3);
+
+  const rules = [
+    { name: 'Growth Seeker', cond: four_ge_4 && none_lt_3,
+      expr: `4-of-5 dims ≥ 4 (${dims.filter(d=>d>=4).length}/5) AND none < 3 (min=${Math.min(...dims)})` },
+    { name: 'Adventure Traveler', cond: Adventure === 5,
+      expr: `Adventure = 5 (${Adventure})` },
+    { name: 'Cultural Explorer', cond: Curiosity >= 4 && (Connection >= 3 || TravelPurpose >= 3),
+      expr: `Curiosity ≥ 4 (${Curiosity}) AND (Connection ≥ 3 OR Travel Purpose ≥ 3)` },
+    { name: 'Purpose-Driven Traveler',   cond: GS >= 3 && Adventure <= 4,
+      expr: `Growth Signal ≥ 3 (${GS.toFixed(1)}) AND Adventure ≤ 4 (${Adventure})` },
+    { name: 'Experience Seeker', cond: true, expr: 'default fallback' },
+  ];
+
+  let matched = null;
+  const lines = rules.map(r => {
+    if (matched === null && r.cond) {
+      matched = r.name;
+      return `<span class="match">✔ MATCH → ${r.name}</span>   [${r.expr}]`;
+    }
+    if (matched) return `<span class="fail">     skipped:  ${r.name}</span>`;
+    return `<span class="fail">✘ no:     ${r.name}   [${r.expr}]</span>`;
+  });
+  return { matched, trace: lines.join('<br>'), GS };
+}
+
+let pending = null;
+async function update() {
+  const scores = {};
+  Object.keys(inputs).forEach(k => {
+    const v = Number(inputs[k].value);
+    scores[k] = v;
+    vals[k].textContent = v;
+  });
+
+  const traced = traceRules({
+    Curiosity:     scores.Curiosity,
+    Adventure:     scores.Adventure,
+    Reflection:    scores.Reflection,
+    Connection:    scores.Connection,
+    TravelPurpose: scores['Travel Purpose'],
+  });
+  document.getElementById('rule-trace').innerHTML = traced.trace;
+
+  const body = document.getElementById('result-body');
+  body.className = 'loading';
+  body.textContent = 'Loading…';
+
+  const params = new URLSearchParams({
+    curiosity:     scores.Curiosity,
+    adventure:     scores.Adventure,
+    reflection:    scores.Reflection,
+    connection:    scores.Connection,
+    travelPurpose: scores['Travel Purpose'],
+  });
+
+  const thisReq = Symbol();
+  pending = thisReq;
+  try {
+    const resp = await fetch('/api/archetype?' + params.toString());
+    const data = await resp.json();
+    if (pending !== thisReq) return; // superseded by a newer change
+    if (data.error) {
+      body.className = 'error';
+      body.textContent = 'Error: ' + data.error;
+      return;
+    }
+    const raw = _tgiRaw(scores);
+    body.className = '';
+    body.innerHTML = `
+      <p class="result-name">${data.name || '(unknown)'}</p>
+      ${data.tag ? `<p class="result-tag">${data.tag}</p>` : ''}
+      <p class="result-desc">${data.description || '<em>(no description in Airtable)</em>'}</p>
+      <div class="grid">
+        <div class="stat"><div class="stat-l">Growth Signal</div><div class="stat-v">${traced.GS.toFixed(1)} / 5</div></div>
+        <div class="stat"><div class="stat-l">Raw Total</div><div class="stat-v">${raw.total} / 25</div></div>
+        <div class="stat"><div class="stat-l">Travel Growth Index</div><div class="stat-v">${raw.tgi}</div></div>
+        <div class="stat"><div class="stat-l">Min Dim</div><div class="stat-v">${raw.min}</div></div>
+      </div>
+    `;
+  } catch(e) {
+    if (pending !== thisReq) return;
+    body.className = 'error';
+    body.textContent = 'Fetch failed: ' + e.message;
+  }
+}
+
+function _tgiRaw(scores) {
+  const dims = ['Curiosity','Adventure','Reflection','Connection','Travel Purpose'];
+  const total = dims.reduce((s,d) => s + (scores[d] || 0), 0);
+  const min   = Math.min(...dims.map(d => scores[d] || 0));
+  let tgi = Math.round((total / 25) * 100);
+  if (min < 2) tgi = Math.min(tgi, 60);
+  else if (min < 3) tgi = Math.min(tgi, 70);
+  return { total, min, tgi };
+}
+
+// Debounce
+let debounceT;
+Object.values(inputs).forEach(el => {
+  el.addEventListener('input', () => {
+    Object.keys(inputs).forEach(k => vals[k].textContent = inputs[k].value);
+    clearTimeout(debounceT);
+    debounceT = setTimeout(update, 180);
+  });
+});
+
+// Presets
+document.querySelectorAll('.preset').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const [c,a,r,co,tp] = btn.dataset.p.split(',').map(Number);
+    inputs.Curiosity.value        = c;
+    inputs.Adventure.value        = a;
+    inputs.Reflection.value       = r;
+    inputs.Connection.value       = co;
+    inputs['Travel Purpose'].value = tp;
+    update();
+  });
+});
+
+update();
+</script>
+</body>
+</html>

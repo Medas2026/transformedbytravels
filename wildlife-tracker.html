@@ -85,7 +85,23 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
 .location-header-name { font-size: 1rem; font-weight: 700; color: var(--text); }
 .species-card { display: flex; align-items: center; gap: 12px; background: var(--s2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 7px; cursor: pointer; transition: border-color 0.15s; }
 .species-card:active { border-color: var(--teal); }
-.species-thumb { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: var(--s1); flex-shrink: 0; }
+.species-thumb {
+  width: 52px; height: 52px; border-radius: 8px; object-fit: cover;
+  background: var(--s1); flex-shrink: 0;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, z-index 0s 0.25s;
+  cursor: zoom-in;
+}
+/* Hover-zoom preview so users can identify the animal before tapping through */
+@media (hover: hover) {
+  .species-thumb:hover {
+    transform: scale(2.8);
+    transform-origin: left center;
+    z-index: 100;
+    position: relative;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+}
 .species-thumb-placeholder { width: 52px; height: 52px; border-radius: 8px; background: var(--s1); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
 .species-info { flex: 1; min-width: 0; }
 .species-name { font-size: 0.92rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -115,8 +131,17 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
 /* ── Modal ── */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: flex-end; justify-content: center; }
 .modal-overlay.open { display: flex; }
-.modal-sheet { background: var(--s1); border-radius: 20px 20px 0 0; padding: 24px 20px 32px; width: 100%; max-width: 480px; max-height: 90dvh; overflow-y: auto; }
-.modal-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
+.modal-sheet { background: var(--s1); border-radius: 20px 20px 0 0; width: 100%; max-width: 480px; max-height: 90dvh; overflow-y: auto; overflow-x: hidden; }
+.modal-inner { padding: 20px 20px 32px; }
+.modal-hero { position: relative; width: 100%; height: 220px; background: var(--s2); overflow: hidden; border-radius: 20px 20px 0 0; }
+.modal-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.modal-hero .modal-hero-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: var(--soft); }
+.modal-hero-close { position: absolute; top: 10px; right: 12px; width: 34px; height: 34px; background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); border: none; border-radius: 50%; color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; z-index: 2; }
+.modal-hero-scrim { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(10,22,40,0.35) 0%, transparent 22%, transparent 62%, rgba(10,22,40,0.85) 100%); pointer-events: none; }
+.modal-hero-title { position: absolute; left: 18px; right: 18px; bottom: 14px; color: #fff; z-index: 2; }
+.modal-hero-title .modal-title { font-weight: 900; font-size: 22px; letter-spacing: -0.01em; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+.modal-hero-title .modal-sci { font-style: italic; font-size: 13px; color: rgba(255,255,255,0.85); text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+.modal-header { display: none; }
 .modal-thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; background: var(--s2); flex-shrink: 0; }
 .modal-thumb-placeholder { width: 64px; height: 64px; border-radius: 10px; background: var(--s2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
 .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
@@ -178,6 +203,7 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
 .setup-progress { font-size: 0.82rem; color: var(--soft); margin-top: 8px; min-height: 20px; }
 </style>
 <script src="https://unpkg.com/exifr/dist/lite.umd.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
@@ -234,6 +260,7 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
       </div>
       <div id="dozen-banner"></div>
       <input type="text" class="search-bar" id="species-search" placeholder="Search species here..." oninput="renderLocationList()">
+      <div class="filter-row" id="loc-category-row"></div>
       <div class="filter-row">
         <button class="filter-chip active" onclick="setLocationFilter('all')" id="loc-chip-all">All</button>
         <button class="filter-chip" onclick="setLocationFilter('unsighted')" id="loc-chip-unsighted">Unsighted</button>
@@ -247,6 +274,7 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
     <!-- THE TRIP -->
     <div class="tab-panel" id="panel-sightings">
       <div id="trip-dozen-banner"></div>
+      <div id="trip-species-count" style="font-size:0.78rem;color:var(--muted);letter-spacing:0.02em;margin-bottom:10px;text-align:center;"></div>
       <input type="text" class="search-bar" id="trip-search" placeholder="Search all trip species..." oninput="renderTripList()">
       <div class="filter-row">
         <button class="filter-chip active" onclick="setTripFilter('all')" id="trip-chip-all">All</button>
@@ -264,13 +292,19 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
 <!-- Sighting modal -->
 <div class="modal-overlay" id="sighting-modal">
   <div class="modal-sheet">
-    <div class="modal-header">
-      <div id="modal-thumb-wrap"></div>
-      <div>
+    <div class="modal-hero" id="modal-hero-wrap">
+      <div id="modal-hero-img"></div>
+      <div class="modal-hero-scrim"></div>
+      <button class="modal-hero-close" onclick="closeModal()">✕</button>
+      <div class="modal-hero-title">
         <div class="modal-title" id="modal-name"></div>
         <div class="modal-sci" id="modal-sci"></div>
       </div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-inner">
+    <!-- legacy header structure kept hidden for id compatibility -->
+    <div class="modal-header">
+      <div id="modal-thumb-wrap"></div>
     </div>
 
     <div id="modal-custom-name-row" style="display:none;">
@@ -281,12 +315,14 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
     <div class="modal-desc" id="modal-desc"></div>
     <div id="modal-dozen-tag"></div>
 
-    <div class="modal-label">Count</div>
-    <div class="count-stepper">
-      <button class="count-btn" onclick="adjustCount(-1)">−</button>
-      <div class="count-display" id="count-display">1</div>
-      <button class="count-btn" onclick="adjustCount(1)">+</button>
-    </div>
+    <div class="modal-label">Group Size</div>
+    <select id="group-size" style="width:100%;padding:12px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--s2);color:var(--text);font-family:inherit;font-size:1rem;">
+      <option value="Single">Single</option>
+      <option value="Pair">Pair</option>
+      <option value="Family">Family</option>
+      <option value="Small Group">Small Group</option>
+      <option value="Large Group">Large Group</option>
+    </select>
 
     <div class="modal-label">Behavior</div>
     <div class="behavior-grid" id="behavior-grid"></div>
@@ -307,6 +343,7 @@ body { background: #060d16; color: var(--text); font-family: Arial, sans-serif; 
     </div>
 
     <button class="log-btn" id="log-btn" onclick="logSighting()">Log Sighting</button>
+    </div><!-- /modal-inner -->
   </div>
 </div>
 
@@ -392,11 +429,18 @@ const CATEGORY_ICONS = {
 
 // ── URL params ───────────────────────────────────────────────────────────────
 const params    = new URLSearchParams(location.search);
-const TRIP_ID    = params.get('tripId') || '';
-const USER_EMAIL = params.get('email')  || '';
+let TRIP_ID     = params.get('tripId') || '';
+let USER_EMAIL  = params.get('email')  || '';
 const COUNTRY    = params.get('country')|| '';
 const REGION     = params.get('region') || COUNTRY; // prefer region, fall back to country
-const SHARE_TOKEN= params.get('token') || '';
+let SHARE_TOKEN = params.get('token') || '';
+const PIN        = (params.get('pin') || '').trim();
+// Explicit attribution: who's actually logging (may differ from trip owner if
+// tour guide / coach / co-traveler is using the tracker). Falls back to trip
+// owner (USER_EMAIL) + Traveler role when not provided.
+const LOGGED_BY_EMAIL = (params.get('loggedByEmail') || '').toLowerCase();
+const LOGGED_BY_ROLE  = params.get('loggedByRole') || '';
+let TRIP_STATUS = '';
 
 // ── State ───────────────────────────────────────────────────────────────────
 let db            = null;
@@ -404,8 +448,9 @@ let allSpecies    = [];
 let tripDays      = [];
 let pendingSightings = [];
 let syncedSightings  = [];
-let locationFilter  = 'all';
-let tripFilter      = 'all';
+let locationFilter    = 'all';
+let locationCategory  = 'all';
+let tripFilter        = 'all';
 const openCategories = new Set();
 let currentParkName = '';
 let modalSpecies    = null;
@@ -485,12 +530,17 @@ async function downloadAll() {
   btn.textContent = 'Downloading...';
 
   try {
-    // 1. Species pack
+    // 1. Species pack — prefer trip-scoped (only species at this trip's places).
+    // Falls back to region-based if no tripId (shouldn't happen in normal flow).
     prog.textContent = 'Downloading species database...';
-    const speciesUrl = '/api/species-pack' + (REGION ? `?region=${encodeURIComponent(REGION)}&` : '?') + '_t=' + Date.now();
+    const speciesUrl = TRIP_ID
+      ? `/api/species-pack-trip?tripId=${encodeURIComponent(TRIP_ID)}&_t=${Date.now()}`
+      : '/api/species-pack' + (REGION ? `?region=${encodeURIComponent(REGION)}&` : '?') + '_t=' + Date.now();
     const speciesResp = await fetch(speciesUrl, { cache: 'no-store' });
     const speciesData = await speciesResp.json();
     const species = speciesData.species || [];
+    // Clear stale species before writing new pack (prevents old trips' animals from lingering)
+    await dbClear('species');
     for (const s of species) await dbPut('species', s);
     prog.textContent = `✓ ${species.length} species downloaded`;
 
@@ -520,7 +570,7 @@ async function downloadAll() {
           speciesId:  r.fields['Species ID']   || 'custom',
           name:       r.fields['Species Name'] || '',
           sciName:    r.fields['Scientific Name'] || '',
-          count:      r.fields['Count'] || 1,
+          groupSize: r.fields['Group Size'] || 'Single',
           behavior:   r.fields['Behavior'] || '',
           notes:      r.fields['Notes'] || '',
           location:   r.fields['Location'] || '',
@@ -592,14 +642,19 @@ function renderToday() {
   // Find today's day record — no fallback, only exact date match
   const todayRec = tripDays.find(d => (d['Date'] || d['Day Date'] || '') === isoDate) || null;
 
-  // Use time of day to pick active location for species matching
+  // Pick active location for species matching. On travel days (start ≠ end),
+  // always use the ending location — that's the wildlife destination.
+  // On stationary days, use time of day to pick.
   const hour       = new Date().getHours();
   const startLoc   = todayRec ? (todayRec['Starting Location'] || '') : '';
   const endLoc     = todayRec ? (todayRec['Ending Location']   || '') : '';
+  const isTravelDay = startLoc && endLoc && startLoc !== endLoc;
   const park       = todayRec
-    ? (hour >= 13
-        ? (endLoc   || startLoc || 'In the field')
-        : (startLoc || endLoc   || 'In the field'))
+    ? (isTravelDay
+        ? endLoc
+        : (hour >= 13
+            ? (endLoc   || startLoc || 'In the field')
+            : (startLoc || endLoc   || 'In the field')))
     : 'Unscheduled';
   const country = todayRec ? (todayRec['Ending Country'] || todayRec['Starting Country'] || '') : '';
 
@@ -692,6 +747,11 @@ function setLocationFilter(f) {
   renderLocationList();
 }
 
+function setLocationCategory(cat) {
+  locationCategory = cat;
+  renderLocationList();
+}
+
 function renderLocationList() {
   const q = (document.getElementById('species-search')?.value || '').toLowerCase();
   let list = allSpecies.filter(s =>
@@ -706,6 +766,24 @@ function renderLocationList() {
       return cl.includes(pl) || pl.includes(cl) || cw.some(w => pl.includes(w));
     }));
   }
+
+  // Build category chips from what's actually present at this location.
+  // Compute BEFORE applying category filter so the chip list stays stable.
+  const catRow = document.getElementById('loc-category-row');
+  if (catRow) {
+    const cats = [...new Set(list.map(s => s.category).filter(Boolean))].sort();
+    // If the currently-selected category isn't available, reset to 'all'
+    if (locationCategory !== 'all' && !cats.includes(locationCategory)) locationCategory = 'all';
+    const chips = ['<button class="filter-chip' + (locationCategory === 'all' ? ' active' : '') + '" onclick="setLocationCategory(\'all\')">All</button>']
+      .concat(cats.map(c =>
+        `<button class="filter-chip${locationCategory === c ? ' active' : ''}" onclick="setLocationCategory('${c.replace(/'/g, "\\'")}')">${CATEGORY_ICONS[c] || '🐾'} ${c}</button>`
+      ));
+    catRow.innerHTML = chips.join('');
+  }
+  if (locationCategory !== 'all') {
+    list = list.filter(s => s.category === locationCategory);
+  }
+
   if (locationFilter !== 'all') {
     list = list.filter(s => getSightingStatus(s.id) === locationFilter);
   }
@@ -736,6 +814,16 @@ function renderTripList() {
   );
   if (tripFilter !== 'all') {
     list = list.filter(s => getSightingStatus(s.id) === tripFilter);
+  }
+
+  // Species count summary — showing total in the pack + how many the current filter matches
+  const countEl = document.getElementById('trip-species-count');
+  if (countEl) {
+    const total = allSpecies.length;
+    const seen  = [...pendingSightings, ...syncedSightings].filter(s => s.tripId === TRIP_ID).length;
+    const shown = list.length;
+    const filterNote = (q || tripFilter !== 'all') ? ` · showing ${shown}` : '';
+    countEl.textContent = `${total} species in your pack · ${seen} logged${filterNote}`;
   }
 
   const el = document.getElementById('trip-list');
@@ -930,7 +1018,7 @@ function openCustomModal() {
 
   document.getElementById('modal-name').textContent = 'Unlisted Animal';
   document.getElementById('modal-sci').textContent  = 'Enter the name below';
-  document.getElementById('count-display').textContent = '1';
+  document.getElementById('group-size').value = 'Single';
   document.getElementById('modal-notes').value = '';
   document.getElementById('modal-custom-name').value = '';
   document.getElementById('modal-custom-name-row').style.display = 'block';
@@ -955,14 +1043,16 @@ function openModal(speciesId) {
 
   document.getElementById('modal-name').textContent = modalSpecies.name;
   document.getElementById('modal-sci').textContent  = modalSpecies.scientificName || '';
-  document.getElementById('count-display').textContent = '1';
+  document.getElementById('group-size').value = 'Single';
   document.getElementById('modal-notes').value = '';
 
-  // Thumb
-  const wrap = document.getElementById('modal-thumb-wrap');
-  wrap.innerHTML = modalSpecies.photoUrl
-    ? `<img class="modal-thumb" src="${modalSpecies.photoUrl}" alt="${modalSpecies.name}" onerror="this.outerHTML='<div class=\\'modal-thumb-placeholder\\'>${CATEGORY_ICONS[modalSpecies.category]||'🐾'}</div>'">`
-    : `<div class="modal-thumb-placeholder">${CATEGORY_ICONS[modalSpecies.category]||'🐾'}</div>`;
+  // Hero photo (large image at top of modal)
+  const hero = document.getElementById('modal-hero-img');
+  if (hero) {
+    hero.innerHTML = modalSpecies.photoUrl
+      ? `<img src="${modalSpecies.photoUrl}" alt="${modalSpecies.name}" onerror="this.outerHTML='<div class=\\'modal-hero-fallback\\'>${CATEGORY_ICONS[modalSpecies.category]||'🐾'}</div>'">`
+      : `<div class="modal-hero-fallback">${CATEGORY_ICONS[modalSpecies.category]||'🐾'}</div>`;
+  }
 
   // Description
   const descEl = document.getElementById('modal-desc');
@@ -1099,7 +1189,7 @@ async function logSighting() {
       speciesId: _isCustom ? 'custom' : _species.id,
       name:      _name,
       sciName:   _isCustom ? '' : (_species.scientificName || ''),
-      count:     modalCount,
+      groupSize: document.getElementById('group-size').value || 'Single',
       behavior:  modalBehavior,
       notes,
       location,
@@ -1147,8 +1237,10 @@ async function logSighting() {
             speciesId:     sighting.speciesId,
             name:          sighting.name,
             sciName:       sighting.sciName,
-            count:         sighting.count,
+            groupSize:     sighting.groupSize || sighting.count,
             behavior:      sighting.behavior,
+            loggedByEmail: LOGGED_BY_EMAIL || sighting.email,
+            loggedByRole:  LOGGED_BY_ROLE  || 'Traveler',
             notes:         sighting.notes,
             location:      sighting.location,
             date:          sighting.date,
@@ -1188,8 +1280,10 @@ async function syncPending() {
           speciesId:     s.speciesId,
           name:          s.name,
           sciName:       s.sciName,
-          count:         s.count,
+          groupSize:     s.groupSize || s.count,
           behavior:      s.behavior,
+          loggedByEmail: LOGGED_BY_EMAIL || s.email,
+          loggedByRole:  LOGGED_BY_ROLE  || 'Traveler',
           notes:         s.notes,
           location:      s.location,
           date:          s.date,
@@ -1226,7 +1320,10 @@ async function syncPending() {
   renderLocationList();
   renderTripList();
   if (synced) showToast(`${synced} sighting${synced > 1 ? 's' : ''} secured!`);
-  if (failed && !synced) showToast(`Sync failed — will retry when online`);
+  if (failed && !synced) {
+    const short = (lastError || '').slice(0, 140);
+    showToast(short ? `Sync failed: ${short}` : 'Sync failed — will retry when online');
+  }
 }
 
 function updateSyncBadge() {
@@ -1267,12 +1364,17 @@ function showToast(msg) {
 async function refreshSpecies() {
   if (!isOnline) return;
   try {
-    const region    = (await dbGet('meta', 'country'))?.value || REGION;
-    const url       = '/api/species-pack' + (region ? `?region=${encodeURIComponent(region)}&` : '?') + '_t=' + Date.now();
-    const resp      = await fetch(url, { cache: 'no-store' });
-    const data      = await resp.json();
-    const species   = data.species || [];
+    // Prefer trip-scoped pack — matches downloadAll(). Fall back to region if no tripId.
+    const region = (await dbGet('meta', 'country'))?.value || REGION;
+    const url = TRIP_ID
+      ? `/api/species-pack-trip?tripId=${encodeURIComponent(TRIP_ID)}&_t=${Date.now()}`
+      : '/api/species-pack' + (region ? `?region=${encodeURIComponent(region)}&` : '?') + '_t=' + Date.now();
+    const resp    = await fetch(url, { cache: 'no-store' });
+    const data    = await resp.json();
+    const species = data.species || [];
     if (!species.length) return;
+    // Clear stale species first — otherwise old region-based dump lingers on top of trip pack
+    await dbClear('species');
     for (const s of species) await dbPut('species', s);
     allSpecies = await dbGetAll('species');
     renderToday();
@@ -1324,7 +1426,7 @@ async function refreshSightings() {
         speciesId:  r.fields['Species ID']      || 'custom',
         name:       r.fields['Species Name']    || '',
         sciName:    r.fields['Scientific Name'] || '',
-        count:      r.fields['Count']           || 1,
+        groupSize: r.fields['Group Size'] || 'Single',
         behavior:   r.fields['Behavior']        || '',
         notes:      r.fields['Notes']           || '',
         location:   r.fields['Location']        || '',
@@ -1362,11 +1464,36 @@ async function refreshSightings() {
 
 // ── Init ──────────────────────────────────────────────────────────────────
 async function init() {
+  // If accessed via ?pin=X (from a QR code scan or manual entry), resolve
+  // the PIN to a tripId + email before proceeding.
+  if (PIN && !TRIP_ID) {
+    try {
+      const r = await fetch(`/api/trip-by-pin?pin=${encodeURIComponent(PIN)}`);
+      const d = await r.json();
+      if (!r.ok || d.error) {
+        document.getElementById('setup-view').innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:32px 24px;text-align:center;gap:14px;">
+            <div style="font-size:2.5rem;">🔒</div>
+            <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;">PIN not recognized</div>
+            <div style="font-size:0.88rem;color:#94a3b8;line-height:1.65;max-width:280px;">Check the PIN on your trip card and try again.</div>
+          </div>`;
+        return;
+      }
+      TRIP_ID     = d.tripId;
+      USER_EMAIL  = d.travelerEmail || '';
+      SHARE_TOKEN = d.shareToken    || '';
+      TRIP_STATUS = d.status        || '';
+    } catch(e) {
+      console.warn('[init] PIN resolution failed:', e.message);
+    }
+  }
+
   // Validate share token if present in URL
   if (TRIP_ID && SHARE_TOKEN) {
     try {
       const r = await fetch(`/api/trip-share?tripId=${encodeURIComponent(TRIP_ID)}&token=${encodeURIComponent(SHARE_TOKEN)}`);
       const d = await r.json();
+      if (d && d.trip && d.trip.status) TRIP_STATUS = d.trip.status;
       if (!r.ok || d.error) {
         document.getElementById('setup-view').innerHTML = `
           <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:32px 24px;text-align:center;gap:14px;">
@@ -1383,6 +1510,19 @@ async function init() {
 
   db = await openDB();
 
+  // If the trip is Completed, offer to sync + clear cached data instead of
+  // launching the app. Guard: only if this device actually has cached data
+  // for this trip (fresh visitors shouldn't see cleanup UI).
+  if (TRIP_STATUS === 'Completed') {
+    const anySpecies = await dbGetAll('species');
+    const anySightings = await dbGetAll('sightings');
+    const hasCache = anySpecies.length > 0 || anySightings.length > 0;
+    if (hasCache) {
+      showCompletedTripCleanup(anySightings.filter(s => s.status === 'pending' && s.tripId === TRIP_ID).length);
+      return;
+    }
+  }
+
   // Check if we already have species data cached AND it's for the same trip
   const cached       = await dbGetAll('species');
   const cachedTripId = (await dbGet('meta', 'tripId'))?.value || '';
@@ -1398,12 +1538,74 @@ async function init() {
     launchApp();
   } else if (isOnline) {
     // Different trip or no cache — auto re-download then launch
-    document.getElementById('setup-title').textContent = 'Updating for new trip…';
-    document.getElementById('setup-text').textContent  = 'Downloading your trip schedule and species data.';
+    const firstTime = cached.length === 0;
+    document.getElementById('setup-title').textContent = firstTime ? 'Setting up your wildlife guide…' : 'Updating for new trip…';
+    document.getElementById('setup-text').textContent  = firstTime
+      ? 'Downloading the species list for your trip so it works offline in the field. This only happens once per trip.'
+      : 'Downloading your trip schedule and species data.';
     document.getElementById('setup-download-btn').style.display = 'none';
     await downloadAll();
+  } else {
+    // Offline with no cache — clear "connect to WiFi" message
+    document.getElementById('setup-title').textContent = 'Connect to Wi-Fi to set up';
+    document.getElementById('setup-text').textContent  = 'You need an internet connection the first time to download the wildlife guide for your trip. Once downloaded, it works offline in the field.';
+    document.getElementById('setup-download-btn').textContent = 'Try Again';
+    document.getElementById('setup-download-btn').onclick = () => location.reload();
   }
-  // else: offline with no cache — show setup screen to download
+}
+
+function showCompletedTripCleanup(pendingCount) {
+  const view = document.getElementById('setup-view');
+  const pendMsg = pendingCount
+    ? `<div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.35);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:0.85rem;color:#fbbf24;">You have <strong>${pendingCount}</strong> unsynced sighting${pendingCount===1?'':'s'} — they'll be uploaded before the cache clears.</div>`
+    : '';
+  view.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:32px 24px;text-align:center;gap:14px;">
+      <div style="font-size:2.5rem;">🏁</div>
+      <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.15rem;color:#fff;">Trip Complete</div>
+      <div style="font-size:0.9rem;color:#94a3b8;line-height:1.65;max-width:340px;">
+        Your trip is done. You can free up space on your device by clearing the cached wildlife data — all your synced sightings are safely stored in your portal.
+      </div>
+      ${pendMsg}
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;margin-top:12px;">
+        <button onclick="cleanupCompletedTrip()" id="cleanup-btn" style="padding:14px;background:var(--teal);color:#0d1520;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;border:none;border-radius:10px;cursor:pointer;">Sync &amp; Clear Cache</button>
+        <button onclick="skipCleanupAndLaunch()" style="padding:12px;background:none;color:#94a3b8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border:1px solid var(--border);border-radius:10px;cursor:pointer;">Keep Data &amp; Continue</button>
+      </div>
+    </div>`;
+}
+
+async function cleanupCompletedTrip() {
+  const btn = document.getElementById('cleanup-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
+  try {
+    // Load pending sightings + sync them
+    const all = await dbGetAll('sightings');
+    const pending = all.filter(s => s.status === 'pending' && s.tripId === TRIP_ID);
+    pendingSightings = pending;
+    if (pending.length && isOnline) {
+      await syncPending();
+    }
+    if (btn) btn.textContent = 'Clearing…';
+    await dbClear('species');
+    await dbClear('tripDays');
+    await dbClear('sightings');
+    // Show done state
+    const view = document.getElementById('setup-view');
+    view.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:32px 24px;text-align:center;gap:14px;">
+        <div style="font-size:2.5rem;">✓</div>
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.15rem;color:#fff;">All Clear</div>
+        <div style="font-size:0.9rem;color:#94a3b8;line-height:1.65;max-width:320px;">Cache cleared. Your sightings live on in your portal at transformedbytravels.com. Safe travels!</div>
+      </div>`;
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Sync & Clear Cache'; }
+    alert('Cleanup failed: ' + e.message);
+  }
+}
+
+function skipCleanupAndLaunch() {
+  // User wants to keep viewing — fall back to normal launch path
+  launchApp();
 }
 
 // Register service worker

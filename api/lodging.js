@@ -92,11 +92,67 @@ async function clearLodgingFromDays(tripId, lodgingId) {
   }
 }
 
+// Full rebuild: for every Trip Day, find the lodging record whose
+// [Check-in Date, Check-out Date) range covers that day's Date, and set
+// Lodging ID accordingly. Days with no covering lodging are cleared.
+// Cleans up stale links from prior edits.
+async function rebuildTripLodgingLinks(tripId) {
+  // Load all lodging records + all trip days for this trip
+  const lodgingFilter = `?filterByFormula=${encodeURIComponent(`({Trip ID}="${tripId}")`)}`;
+  const daysFilter    = `?filterByFormula=${encodeURIComponent(`({Trip ID}="${tripId}")`)}`;
+  const [lodgingResp, daysResp] = await Promise.all([
+    airtableRequest('GET', lodgingFilter, null),
+    tripDaysRequest('GET', daysFilter, null),
+  ]);
+  const lodgings = (lodgingResp.body.records || []).map(r => ({
+    id:       r.id,
+    checkIn:  (r.fields['Check-in Date']  || '').slice(0, 10),
+    checkOut: (r.fields['Check-out Date'] || '').slice(0, 10),
+    name:     r.fields['Name'] || 'Lodging',
+  })).filter(l => l.checkIn && l.checkOut);
+  const days = (daysResp.body.records || []).map(r => ({
+    id:      r.id,
+    date:    (r.fields['Date'] || '').slice(0, 10),
+    current: r.fields['Lodging ID'] || '',
+  }));
+
+  // For each day, determine the correct lodging (if any)
+  const updates = [];
+  const summary = { linked: 0, cleared: 0, unchanged: 0 };
+  for (const d of days) {
+    if (!d.date) { summary.unchanged++; continue; }
+    const match = lodgings.find(l => d.date >= l.checkIn && d.date < l.checkOut);
+    const targetId = match ? match.id : '';
+    if (targetId === d.current) { summary.unchanged++; continue; }
+    updates.push({ id: d.id, fields: { 'Lodging ID': targetId } });
+    if (targetId) summary.linked++; else summary.cleared++;
+  }
+
+  // Batch PATCH (Airtable limit: 10 records per request)
+  for (let i = 0; i < updates.length; i += 10) {
+    const chunk = updates.slice(i, i + 10);
+    await tripDaysRequest('PATCH', '', { records: chunk });
+  }
+  return { ...summary, daysScanned: days.length, lodgingCount: lodgings.length };
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // POST ?action=rebuild-links — reconcile Trip Days' Lodging ID with current lodging dates
+  if (req.method === 'POST' && req.query.action === 'rebuild-links') {
+    const tripId = (req.body && req.body.tripId || req.query.tripId || '').trim();
+    if (!tripId) return res.status(400).json({ error: 'tripId required' });
+    try {
+      const result = await rebuildTripLodgingLinks(tripId);
+      return res.status(200).json({ success: true, ...result });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
 
   // GET — fetch all lodging for a trip
   if (req.method === 'GET') {

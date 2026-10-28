@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Field Notes — Three Realms Travel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:   #2dd4bf;
+      --teal2:  #14b8a6;
+      --dark:   #0a1628;
+      --navy:   #0f172a;
+      --s2:     #1e293b;
+      --text:   #f1f5f9;
+      --soft:   #cbd5e1;
+      --muted:  #64748b;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--text); font-family: 'Lora', Georgia, serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(10,22,40,0.95), transparent);
+      backdrop-filter: blur(4px);
+    }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); letter-spacing: 0.04em; text-decoration: none; }
+    .nav-brand span { color: var(--teal); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { color: var(--soft); text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-cta { background: var(--teal); color: #0a1628 !important; padding: 9px 22px; border-radius: 6px; font-weight: 800 !important; }
+
+    .header-section { padding: 140px 48px 40px; max-width: 1200px; margin: 0 auto; }
+    .section-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal);
+      margin-bottom: 16px;
+    }
+    h1 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 3rem; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 18px; }
+    .lead { font-size: 1.1rem; color: var(--soft); line-height: 1.7; max-width: 720px; }
+
+    .tag-filter {
+      max-width: 1200px; margin: 0 auto; padding: 0 48px 8px;
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .tag-btn {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 6px 14px; border-radius: 6px;
+      background: transparent; color: var(--soft);
+      border: 1px solid rgba(255,255,255,0.15);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .tag-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .tag-btn.active { background: var(--teal); color: var(--dark); border-color: var(--teal); }
+
+    .posts-section { padding: 32px 48px 120px; max-width: 1200px; margin: 0 auto; }
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 360px));
+      justify-content: start;
+      gap: 28px;
+    }
+    .post-card {
+      background: var(--s2);
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: flex; flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .post-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: rgba(45,212,191,0.3); }
+    .post-card-img {
+      width: 100%; aspect-ratio: 16 / 10; object-fit: cover;
+      background: #1e293b; display: block;
+    }
+    .post-card-img-placeholder {
+      width: 100%; aspect-ratio: 16 / 10;
+      background: linear-gradient(135deg, #0f2a2a 0%, #0d2035 100%);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(45,212,191,0.35); font-size: 3rem;
+    }
+    .post-card-body { padding: 22px 24px 24px; display: flex; flex-direction: column; flex: 1; }
+    .post-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .post-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--teal); background: rgba(45,212,191,0.12);
+      padding: 3px 9px; border-radius: 4px;
+    }
+    .post-card-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; line-height: 1.3; color: var(--text); margin-bottom: 10px; }
+    .post-card-excerpt { font-size: 0.95rem; color: var(--soft); line-height: 1.6; flex: 1; margin-bottom: 14px; }
+    .post-card-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: 'Montserrat', sans-serif; font-size: 0.75rem;
+      color: var(--muted); letter-spacing: 0.04em;
+    }
+    .post-card-read { color: var(--teal); font-weight: 700; }
+
+    .blog-state, .empty, .loading {
+      grid-column: 1 / -1;
+      text-align: center; padding: 80px 20px;
+      color: var(--muted); font-style: italic;
+    }
+
+    @media (max-width: 700px) {
+      nav { padding: 14px 20px; }
+      .nav-links { gap: 16px; }
+      .header-section, .tag-filter, .posts-section { padding-left: 20px; padding-right: 20px; }
+      h1 { font-size: 2rem; }
+    }
+  </style>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/js/mobile-nav.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html"><img src="realm-symbols/logo.png" alt="Three Realms Travel" style="height:90px;width:auto;display:block;"></a>
+  <div class="nav-links">
+    <a href="our-product.html">Product</a>
+    <a href="world-animals.html">World Animals</a>
+    <a href="wildlife-100.html">Wildlife 100</a>
+    <a href="itineraries.html">Itineraries</a>
+    <a href="trip-reports.html">Trip Reports</a>
+    <a href="field-notes.html">Field Notes</a>
+    <a href="https://app.transformedbytravels.com/travelers-corner.html">Travelers&#39; Corner</a>
+    <a href="store.html">Store</a>
+    <a href="partners.html">Partners</a>
+    <a href="https://app.transformedbytravels.com/portal.html" style="color: var(--teal) !important; border: 1px solid var(--teal); padding: 8px 18px; border-radius: 6px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">My Portal</a>
+    <a href="lets-talk.html?ref=nav#book" style="background:var(--teal);color:#0a1628 !important;padding:9px 22px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-decoration:none;letter-spacing:0.05em;">Get Started</a>
+  </div>
+</nav>
+
+<div class="header-section">
+  <div class="section-tag">Stories from the wild</div>
+  <h1>Field Notes</h1>
+  <p class="lead">Dispatches from the parks, camps, and remote corners where the wildlife lives. Real observations, hard-won timing, and the small things you only learn by being there.</p>
+</div>
+
+<div class="tag-filter" id="tag-filter"></div>
+
+<div class="posts-section">
+  <div class="posts-grid" id="posts-grid">
+    <div class="loading">Loading field notes…</div>
+  </div>
+</div>
+
+<script>
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+let allPosts = [];
+let activeTag = null;
+
+function escHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function loadPosts() {
+  const grid = document.getElementById('posts-grid');
+  try {
+    const resp = await fetch('/api/blog');
+    const data = await resp.json();
+    allPosts = data.records || [];
+    if (!allPosts.length) {
+      grid.innerHTML = '<div class="empty">No field notes yet — check back soon.</div>';
+      return;
+    }
+    buildTagFilter();
+    renderGrid();
+  } catch(e) {
+    grid.innerHTML = '<div class="empty">Could not load field notes.</div>';
+  }
+}
+
+function buildTagFilter() {
+  const tags = new Set();
+  allPosts.forEach(r => (r.fields['Tags'] || []).forEach(t => tags.add(t)));
+  const filter = document.getElementById('tag-filter');
+  if (!tags.size) { filter.style.display = 'none'; return; }
+  const allBtn = `<button class="tag-btn active" onclick="filterTag(null, this)">All</button>`;
+  const tagBtns = [...tags].map(t =>
+    `<button class="tag-btn" onclick="filterTag('${escHtml(t)}', this)">${escHtml(t)}</button>`
+  ).join('');
+  filter.innerHTML = allBtn + tagBtns;
+}
+
+function filterTag(tag, btn) {
+  activeTag = tag;
+  document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid  = document.getElementById('posts-grid');
+  const posts = activeTag
+    ? allPosts.filter(r => (r.fields['Tags'] || []).includes(activeTag))
+    : allPosts;
+  if (!posts.length) {
+    grid.innerHTML = '<div class="empty">No field notes match that tag.</div>';
+    return;
+  }
+  grid.innerHTML = posts.map(r => {
+    const f       = r.fields;
+    const slug    = f['Slug'] || '';
+    const title   = f['Title'] || 'Untitled';
+    const excerpt = f['Excerpt'] || '';
+    const tags    = (f['Tags'] || []).map(t => `<span class="post-tag">${escHtml(t)}</span>`).join('');
+    const img     = f['Hero Image URL'] || '';
+    const imgEl   = img
+      ? `<img class="post-card-img" src="${escHtml(img)}" alt="${escHtml(title)}" loading="lazy">`
+      : `<div class="post-card-img-placeholder">✦</div>`;
+    let dateStr = '';
+    if (f['Published Date']) {
+      const d = new Date(f['Published Date'] + 'T00:00:00Z');
+      dateStr = MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+    }
+    return `
+      <a class="post-card" href="field-note.html?slug=${encodeURIComponent(slug)}">
+        ${imgEl}
+        <div class="post-card-body">
+          ${tags ? `<div class="post-card-tags">${tags}</div>` : ''}
+          <div class="post-card-title">${escHtml(title)}</div>
+          ${excerpt ? `<div class="post-card-excerpt">${escHtml(excerpt)}</div>` : ''}
+          <div class="post-card-meta">
+            <span>${dateStr}</span>
+            <span class="post-card-read">Read →</span>
+          </div>
+        </div>
+      </a>`;
+  }).join('');
+}
+
+loadPosts();
+</script>
+
+</body>
+</html>

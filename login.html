@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in · Transformed by Travels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+<style>
+  :root {
+    --dark:  #0a1628;
+    --navy:  #0f1e35;
+    --s1:    #14243d;
+    --s2:    #1a2f4a;
+    --teal:  #2dd4bf;
+    --teal2: #14b8a6;
+    --text:  #f8fafc;
+    --soft:  #cbd5e1;
+    --muted: #94a3b8;
+    --error: #f43f5e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100vh; background: linear-gradient(135deg, var(--dark) 0%, var(--navy) 100%); color: var(--text); font-family: 'Montserrat', sans-serif; }
+  body { display: flex; align-items: center; justify-content: center; padding: 32px 20px; }
+
+  .card {
+    width: 100%; max-width: 440px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(45,212,191,0.18);
+    border-radius: 16px;
+    padding: 40px 34px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  .brand-tag { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal); margin-bottom: 12px; text-align: center; }
+  h1 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.5rem; margin: 0 0 8px; text-align: center; letter-spacing: -0.01em; }
+  .sub { font-family: 'Lora', Georgia, serif; font-size: 0.98rem; color: var(--soft); text-align: center; margin: 0 0 28px; line-height: 1.6; }
+
+  label { display: block; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  input[type=email], input[type=text], input[type=password] {
+    width: 100%; padding: 12px 14px; margin-bottom: 16px;
+    background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px; color: var(--text); font-family: 'Montserrat', sans-serif; font-size: 0.95rem;
+    transition: border-color 0.15s;
+  }
+  input:focus { outline: none; border-color: var(--teal); }
+  input:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row-2 input { margin-bottom: 16px; }
+
+  .btn {
+    width: 100%; padding: 14px; border-radius: 8px; border: none; cursor: pointer;
+    background: var(--teal); color: #0a1628;
+    font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.02em;
+    transition: background 0.15s;
+  }
+  .btn:hover:not(:disabled) { background: var(--teal2); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-link { background: none; color: var(--muted); font-weight: 600; font-size: 0.82rem; padding: 8px; margin-top: 12px; }
+  .btn-link:hover:not(:disabled) { color: var(--teal); background: none; }
+
+  .error { display:none; color: var(--error); font-size: 0.85rem; margin: -8px 0 12px; }
+  .hint  { color: var(--muted); font-size: 0.82rem; margin-top: 10px; line-height: 1.5; }
+
+  .loading { text-align: center; color: var(--muted); font-size: 0.9rem; padding: 40px 0; }
+</style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+  <div class="card" id="card">
+    <div class="brand-tag">Transformed by Travels</div>
+
+    <!-- Loading state while Auth0 initializes -->
+    <div id="stage-loading" class="loading">Loading…</div>
+
+    <!-- Stage 1: email only -->
+    <div id="stage-email" style="display:none;">
+      <h1>Welcome</h1>
+      <p class="sub">Enter your email to get started.</p>
+
+      <label for="inp-email">Email</label>
+      <input type="email" id="inp-email" placeholder="you@example.com" autocomplete="email" autofocus />
+      <div id="email-error" class="error"></div>
+
+      <button class="btn" id="btn-email-next" onclick="submitEmail()">Continue →</button>
+    </div>
+
+    <!-- Stage 2a: returning user (has traveler + has auth) — Auth0 handles the login page -->
+    <div id="stage-returning" style="display:none;">
+      <h1>Welcome back<span id="returning-name-suffix"></span></h1>
+      <p class="sub">Sign in to continue.</p>
+      <button class="btn" onclick="doLogin()">Sign in with password →</button>
+      <button class="btn btn-link" onclick="restart()">Use a different email</button>
+    </div>
+
+    <!-- Stage 2b: existing traveler (took assessment) — needs to set a password -->
+    <div id="stage-setup" style="display:none;">
+      <h1>Welcome<span id="setup-name-suffix"></span></h1>
+      <p class="sub">You have a profile with us, but haven't set a password yet. Let's create one — takes 30 seconds.</p>
+      <button class="btn" onclick="doSignup()">Set Up Password →</button>
+      <button class="btn btn-link" onclick="doLogin()">Already set up? Sign in instead</button>
+      <button class="btn btn-link" onclick="restart()">Use a different email</button>
+    </div>
+
+    <!-- Stage 2c: brand new — name required, then password on Auth0 -->
+    <div id="stage-new" style="display:none;">
+      <h1>Let's set up your account</h1>
+      <p class="sub">A couple of quick details, then you'll pick a password.</p>
+
+      <div class="row-2">
+        <div>
+          <label for="inp-first">First name</label>
+          <input type="text" id="inp-first" autocomplete="given-name" />
+        </div>
+        <div>
+          <label for="inp-last">Last name</label>
+          <input type="text" id="inp-last" autocomplete="family-name" />
+        </div>
+      </div>
+      <div id="new-error" class="error"></div>
+
+      <button class="btn" onclick="doSignupNew()">Continue to password →</button>
+      <button class="btn btn-link" onclick="restart()">Use a different email</button>
+    </div>
+
+  </div>
+
+<script>
+const AUTH0_DOMAIN    = 'dev-oys4h8z7qa7irffk.us.auth0.com';
+const AUTH0_CLIENT_ID = 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd';
+const REDIRECT_URI    = window.location.origin + '/login.html';
+
+let auth0Client   = null;
+let pendingEmail  = '';
+let existingName  = '';
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function show(stage) {
+  ['loading','email','returning','setup','new'].forEach(s => {
+    const el = document.getElementById('stage-' + s);
+    if (el) el.style.display = 'none';
+  });
+  const el = document.getElementById('stage-' + stage);
+  if (el) el.style.display = 'block';
+}
+function nextDestination() {
+  return sessionStorage.getItem('loginNext') || '/portal.html';
+}
+function setNextFromQuery() {
+  const p = new URLSearchParams(window.location.search);
+  const next = p.get('next');
+  if (next) sessionStorage.setItem('loginNext', next);
+}
+function restart() {
+  pendingEmail = ''; existingName = '';
+  document.getElementById('inp-email').value = '';
+  show('email');
+  setTimeout(() => document.getElementById('inp-email').focus(), 0);
+}
+
+// ── Auth0 setup + callback handling ────────────────────────────────────────
+async function init() {
+  setNextFromQuery();
+
+  auth0Client = await auth0.createAuth0Client({
+    domain:            AUTH0_DOMAIN,
+    clientId:          AUTH0_CLIENT_ID,
+    useRefreshTokens:  true,
+    cacheLocation:     'localstorage',
+    authorizationParams: { redirect_uri: REDIRECT_URI },
+  });
+
+  // If Auth0 is redirecting us back with ?code=…, handle it.
+  if (window.location.search.includes('code=')) {
+    let appState = {};
+    try {
+      const r = await auth0Client.handleRedirectCallback();
+      appState = r.appState || {};
+    } catch (e) {
+      console.error('[login] callback error:', e);
+    }
+    window.history.replaceState({}, document.title, '/login.html');
+    await onSignedIn(appState);
+    return;
+  }
+
+  // Already signed in? Skip login entirely and go to next.
+  const authed = await auth0Client.isAuthenticated();
+  if (authed) {
+    await onSignedIn({});
+    return;
+  }
+
+  show('email');
+  setTimeout(() => document.getElementById('inp-email').focus(), 0);
+}
+
+// After we return from Auth0 with a valid session, ensure the Traveler
+// record is in sync then hand off to whichever page they came from.
+async function onSignedIn(appState) {
+  try {
+    const user  = await auth0Client.getUser();
+    const email = (user && user.email) || '';
+    if (email) {
+      const nameFromState = (appState && appState.newSignupName) || (user && user.name) || '';
+      await fetch('/api/auth-signin', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email, name: nameFromState }),
+      }).catch(e => console.warn('[login] auth-signin failed:', e));
+    }
+  } catch (e) {
+    console.warn('[login] onSignedIn error:', e);
+  }
+
+  const next = nextDestination();
+  sessionStorage.removeItem('loginNext');
+  window.location.href = next;
+}
+
+// ── Stage 1: email → decide next stage ─────────────────────────────────────
+async function submitEmail() {
+  const err   = document.getElementById('email-error');
+  const btn   = document.getElementById('btn-email-next');
+  const email = (document.getElementById('inp-email').value || '').trim().toLowerCase();
+  err.style.display = 'none';
+
+  if (!email || !email.includes('@')) {
+    err.textContent = 'Please enter a valid email address.';
+    err.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try {
+    const r = await fetch('/api/check-email?email=' + encodeURIComponent(email));
+    const d = await r.json();
+    pendingEmail = email;
+
+    if (d.exists && d.hasAuthAccount) {
+      existingName = d.name || '';
+      const suffix = existingName ? ', ' + existingName.split(' ')[0] : '';
+      document.getElementById('returning-name-suffix').textContent = suffix;
+      show('returning');
+    } else if (d.exists && !d.hasAuthAccount) {
+      // Legacy traveler — took the assessment before this login existed.
+      // Auth0 may or may not know their email. Send them to standard login;
+      // if they don't have an Auth0 account, they can use "Sign up" on Auth0's page.
+      existingName = d.name || '';
+      const setupSuffix = existingName ? ', ' + existingName.split(' ')[0] : '';
+      const setupSuffixEl = document.getElementById('setup-name-suffix');
+      if (setupSuffixEl) setupSuffixEl.textContent = setupSuffix;
+      show('setup');
+    } else {
+      show('new');
+      setTimeout(() => document.getElementById('inp-first').focus(), 0);
+    }
+  } catch (e) {
+    err.textContent = 'Something went wrong. Please try again.';
+    err.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Continue →';
+  }
+}
+
+// ── Stage 2a: returning user — Auth0 login ─────────────────────────────────
+async function doLogin() {
+  await auth0Client.loginWithRedirect({
+    authorizationParams: {
+      login_hint: pendingEmail,
+    },
+  });
+}
+
+// ── Stage 2b: existing traveler (no auth yet) — signup with prefilled email ─
+async function doSignup() {
+  await auth0Client.loginWithRedirect({
+    authorizationParams: {
+      screen_hint: 'signup',
+      login_hint:  pendingEmail,
+    },
+    appState: { newSignupName: existingName },
+  });
+}
+
+// ── Stage 2c: brand-new user — collect name, then Auth0 signup ─────────────
+async function doSignupNew() {
+  const first = (document.getElementById('inp-first').value || '').trim();
+  const last  = (document.getElementById('inp-last').value  || '').trim();
+  const err   = document.getElementById('new-error');
+  err.style.display = 'none';
+
+  if (!first || !last) {
+    err.textContent = 'First and last name required.';
+    err.style.display = 'block';
+    return;
+  }
+
+  const fullName = first + ' ' + last;
+  await auth0Client.loginWithRedirect({
+    authorizationParams: {
+      screen_hint: 'signup',
+      login_hint:  pendingEmail,
+    },
+    appState: { newSignupName: fullName },
+  });
+}
+
+// Submit on Enter for email stage
+document.getElementById('inp-email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitEmail();
+});
+
+init();
+</script>
+</body>
+</html>

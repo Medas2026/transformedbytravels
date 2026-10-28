@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Your upcoming stay</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* The guest booked a lodge. They have never heard of us. Everything here belongs to
+     the property — our name appears once, in the footer, and nowhere else. */
+  :root {
+    --paper:  #faf8f4;
+    --card:   #ffffff;
+    --ink:    #1b2430;
+    --slate:  #5d6b78;
+    --faint:  #93a1ac;
+    --line:   #e6e2d9;
+    --accent: #2a7f73;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Open Sans', system-ui, sans-serif; line-height: 1.65;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 28px 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { width: 100%; max-width: 560px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 44px 40px 36px; box-shadow: 0 18px 50px rgba(27,36,48,0.07);
+  }
+  .lodge { text-align: center; margin-bottom: 30px; }
+  .lodge img { max-height: 76px; max-width: 220px; width: auto; display: block; margin: 0 auto 12px; }
+  .lodge-name {
+    font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.22rem;
+    letter-spacing: 0.01em;
+  }
+  .lodge-tag { font-size: 0.88rem; color: var(--faint); margin-top: 5px; }
+
+  h1 {
+    font-family: 'Montserrat', sans-serif; font-weight: 700;
+    font-size: 1.55rem; line-height: 1.3; letter-spacing: -0.01em;
+    margin-bottom: 14px; text-wrap: balance;
+  }
+  .dates {
+    display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 700;
+    font-size: 0.76rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); background: rgba(42,127,115,0.09);
+    border: 1px solid rgba(42,127,115,0.22); border-radius: 99px;
+    padding: 5px 13px; margin-bottom: 20px;
+  }
+  .lede { color: var(--slate); font-size: 1.04rem; margin-bottom: 26px; }
+
+  .ask {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 13px;
+    padding: 22px 24px; margin-bottom: 22px;
+  }
+  .ask h2 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.02rem; margin-bottom: 7px; }
+  .ask p { color: var(--slate); font-size: 0.95rem; }
+
+  .btn {
+    display: block; width: 100%; text-align: center;
+    background: var(--accent); color: #fff; text-decoration: none;
+    font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.97rem;
+    padding: 16px 24px; border-radius: 11px; border: none; cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn:hover { background: #22695f; transform: translateY(-1px); }
+  .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .btn-quiet {
+    display: block; text-align: center; margin-top: 14px;
+    color: var(--slate); font-size: 0.92rem; text-decoration: none;
+    border-bottom: 1px solid transparent; width: fit-content; margin-left: auto; margin-right: auto;
+  }
+  .btn-quiet:hover { color: var(--ink); border-bottom-color: var(--line); }
+
+  .by {
+    text-align: center; margin-top: 26px; font-size: 0.76rem; color: var(--faint);
+  }
+  .by a { color: var(--faint); }
+
+  .state { text-align: center; padding: 50px 10px; color: var(--slate); }
+  .state h1 { font-size: 1.25rem; margin-bottom: 10px; }
+  @media (max-width: 520px) { .card { padding: 32px 24px 28px; } h1 { font-size: 1.35rem; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="root">
+  <div class="state">Opening your invitation…</div>
+</div>
+
+<script>
+const TOKEN = new URLSearchParams(location.search).get('t') || '';
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const root = document.getElementById('root');
+
+function fail(msg) {
+  root.innerHTML = `<div class="state"><h1>This invitation isn't available</h1><p>${esc(msg)}</p></div>`;
+}
+
+function render(d) {
+  const lodge = d.lodge;
+  const who   = lodge ? lodge.name : (d.destination || 'Your stay');
+
+  // Paint the card in the property's colour when they have set one.
+  if (lodge && lodge.color && /^#[0-9a-f]{6}$/i.test(lodge.color)) {
+    document.body.style.background = lodge.color;
+  }
+
+  const tripUrl = `/trip.html?tripId=${encodeURIComponent(d.tripId)}&email=${encodeURIComponent(d.email)}`;
+  const assessUrl = `https://transformedbytravels.com/Assessment?tripId=${encodeURIComponent(d.tripId)}&ref=lodge-invite`;
+
+  const greeting = d.guestFirstName
+    ? `${esc(d.guestFirstName)}, we're getting ready for you`
+    : `We're getting ready for you`;
+
+  // One ask. Not an account, not a password — the assessment, which is what makes
+  // everything else work. If they have already done it, send them straight in.
+  const ask = d.assessed ? `
+    <div class="ask">
+      <h2>Thank you — that helps</h2>
+      <p>${esc(who)} is shaping your stay around what you told us. Look in now and again
+         between now and your arrival; there will be more here each time.</p>
+    </div>
+    <a class="btn" href="${esc(tripUrl)}">Open my page</a>`
+  : `
+    <div class="ask">
+      <h2>One thing before you arrive</h2>
+      <p>Five minutes of questions about what you want from <em>this</em> trip — not a personality test.
+         ${esc(who)} uses it to shape what you see, what they suggest, and how they look after you.</p>
+    </div>
+    <a class="btn" href="${esc(assessUrl)}">Start — about 5 minutes</a>
+    <a class="btn-quiet" href="${esc(tripUrl)}">Skip for now and look around</a>`;
+
+  root.innerHTML = `
+    <div class="card">
+      <div class="lodge">
+        ${lodge && lodge.logoUrl ? `<img src="${esc(lodge.logoUrl)}" alt="${esc(lodge.name)}" onerror="this.style.display='none'">` : ''}
+        <div class="lodge-name">${esc(who)}</div>
+        ${lodge && lodge.tagline ? `<div class="lodge-tag">${esc(lodge.tagline)}</div>` : ''}
+      </div>
+      <h1>${greeting}</h1>
+      ${d.dates ? `<div class="dates">${esc(d.dates)}</div>` : ''}
+      <p class="lede">
+        ${esc(who)} has started preparing your stay, and this page is where it takes shape.
+        It will fill out as your dates approach, hold your plans while you're with us, and
+        become a record of the trip once you're home.
+      </p>
+      ${ask}
+    </div>
+    <p class="by">Provided by ${esc(who)} with
+      <a href="https://transformedbytravels.com" target="_blank" rel="noopener">Transformed by Travels</a>
+    </p>`;
+
+  document.title = `${who} — your stay`;
+}
+
+(async () => {
+  if (!TOKEN) return fail('This link is missing its invitation code.');
+  try {
+    const r = await fetch('/api/welcome?t=' + encodeURIComponent(TOKEN));
+    if (r.status === 404) return fail('This link may have expired, or been replaced by a newer one.');
+    if (!r.ok) return fail('Something went wrong opening your invitation.');
+    render(await r.json());
+  } catch (e) {
+    fail('Could not reach the server. Please try again in a moment.');
+  }
+})();
+</script>
+</body>
+</html>

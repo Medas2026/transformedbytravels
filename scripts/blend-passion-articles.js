@@ -18,7 +18,7 @@ if (!AIRTABLE_KEY)  { console.error('AIRTABLE_API_KEY not set');  process.exit(1
 
 const ARCHETYPES = [
   {
-    name: 'Transformational Traveler',
+    name: 'Growth Seeker',
     description: 'Seeks deep personal growth through travel. Wants experiences that change them. Values depth, meaning, and reflection. Drawn to the profound and the life-altering.'
   },
   {
@@ -26,7 +26,7 @@ const ARCHETYPES = [
     description: 'Travel has intention and meaning. Values reflection, culture, history, wellness. Often drawn to pilgrimage, voluntourism, and purposeful exploration. Thoughtful and deliberate.'
   },
   {
-    name: 'Adventure-Oriented Traveler',
+    name: 'Adventure Traveler',
     description: 'Physical challenge and adrenaline first. Drawn to pushing limits, outdoor extremes, and testing themselves. Practical, energetic, focused on the doing.'
   },
   {
@@ -34,7 +34,7 @@ const ARCHETYPES = [
     description: 'Intellectually curious. Deep interest in history, art, food, and local life. Wants to understand places deeply. Prefers meaning over adrenaline.'
   },
   {
-    name: 'Easygoing Traveler',
+    name: 'Experience Seeker',
     description: 'Relaxed, comfort-seeking, social. Enjoys travel without intensity. Wants to enjoy experiences without pressure or complexity. Warm, unhurried tone.'
   },
 ];
@@ -94,11 +94,11 @@ ${archetype.description}
 Below is a base article about ${passion}. Rewrite it in a voice and emphasis that speaks directly to this type of traveler. Keep the same facts, personal anecdotes, and core advice — but adjust the tone, emphasis, and framing so it resonates with their travel personality.
 
 For example:
-- A Transformational Traveler version should emphasize how photography changes the way you see and experience the world.
-- An Adventure-Oriented Traveler version should emphasize capturing action, wildlife, and extreme conditions.
+- A Growth Seeker version should emphasize how photography changes the way you see and experience the world.
+- An Adventure Traveler version should emphasize capturing action, wildlife, and extreme conditions.
 - A Cultural Explorer version should emphasize documenting art, architecture, people, and local life.
 - A Purpose-Driven Traveler version should emphasize intentional, mindful photography as a practice.
-- An Easygoing Traveler version should emphasize effortless, enjoyable photography with no pressure.
+- An Experience Seeker version should emphasize effortless, enjoyable photography with no pressure.
 
 Keep it conversational, warm, and practical. Same approximate length as the original. Do not add a title or heading — just the article body.
 

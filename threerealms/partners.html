@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Partners — Three Realms Travel</title>
+  <meta name="description" content="The operators, lodges, and guides we work with on the ground — hand-picked partners who run the trips we plan.">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:   #2dd4bf;
+      --teal2:  #14b8a6;
+      --dark:   #0a1628;
+      --navy:   #0f172a;
+      --s2:     #1e293b;
+      --text:   #f1f5f9;
+      --soft:   #cbd5e1;
+      --muted:  #64748b;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--text); font-family: 'Lora', Georgia, serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(10,22,40,0.95), transparent);
+      backdrop-filter: blur(4px);
+    }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); letter-spacing: 0.04em; text-decoration: none; }
+    .nav-brand span { color: var(--teal); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { color: var(--soft); text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-cta { background: var(--teal); color: #0a1628 !important; padding: 9px 22px; border-radius: 6px; font-weight: 800 !important; }
+
+    .header-section { padding: 140px 48px 32px; max-width: 1200px; margin: 0 auto; }
+    .section-tag {
+      font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal);
+      margin-bottom: 16px;
+    }
+    h1 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 3rem; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 18px; }
+    .lead { font-size: 1.1rem; color: var(--soft); line-height: 1.7; max-width: 720px; }
+
+    .partners-section { padding: 24px 48px 40px; max-width: 1200px; margin: 0 auto; }
+
+    .region-group { margin-top: 56px; }
+    .region-group:first-child { margin-top: 24px; }
+    .region-heading {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.4rem; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text); margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(45,212,191,0.25);
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .region-heading .count {
+      font-family: 'Lora', serif; font-weight: 400; font-style: italic;
+      color: var(--muted); font-size: 0.85rem; letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .partners-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 380px));
+      justify-content: start;
+      gap: 28px;
+    }
+    .partner-card {
+      background: var(--s2);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .partner-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: rgba(45,212,191,0.3); }
+    .partner-photo {
+      width: 100%; aspect-ratio: 16 / 10;
+      background: #1e293b; background-size: cover; background-position: center;
+      position: relative;
+    }
+    .partner-photo.placeholder {
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #0f2a2a 0%, #0d2035 100%);
+      color: rgba(45,212,191,0.35); font-size: 3rem;
+    }
+    .partner-logo {
+      position: absolute; left: 16px; bottom: 16px;
+      height: 58px; width: auto; max-width: 62%;
+      background: #fff; border-radius: 8px;
+      padding: 4px 6px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+    }
+    .partner-body { padding: 22px 24px 24px; flex: 1; display: flex; flex-direction: column; }
+    .partner-country { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 8px; }
+    .partner-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; line-height: 1.3; color: var(--text); margin-bottom: 6px; }
+    .partner-role { font-family: 'Montserrat', sans-serif; font-size: 0.78rem; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 14px; }
+    .partner-desc { font-size: 0.95rem; color: var(--soft); line-height: 1.6; flex: 1; margin-bottom: 16px; }
+
+    .partner-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .partner-tag {
+      font-family: 'Montserrat', sans-serif; font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--teal); background: rgba(45,212,191,0.10);
+      border: 1px solid rgba(45,212,191,0.25);
+      border-radius: 999px; padding: 5px 11px;
+    }
+
+    .partner-actions {
+      display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: 'Montserrat', sans-serif; font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .partner-actions a { color: var(--teal); text-decoration: none; }
+    .partner-actions a:hover { text-decoration: underline; }
+    .partner-actions a.secondary { color: var(--soft); }
+
+    /* ── Become a partner CTA ── */
+    .cta-band {
+      max-width: 1200px; margin: 0 auto 120px;
+      padding: 44px 48px;
+      background: linear-gradient(135deg, rgba(45,212,191,0.10) 0%, rgba(45,212,191,0.03) 100%);
+      border: 1px solid rgba(45,212,191,0.22);
+      border-radius: 14px;
+      display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between;
+    }
+    .cta-copy { max-width: 620px; }
+    .cta-copy h2 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.5rem; margin-bottom: 10px; }
+    .cta-copy p { color: var(--soft); line-height: 1.7; font-size: 1rem; }
+    .cta-btn {
+      background: var(--teal); color: #0a1628; text-decoration: none;
+      font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.86rem;
+      letter-spacing: 0.05em; padding: 14px 28px; border-radius: 8px;
+      white-space: nowrap; transition: background 0.2s;
+    }
+    .cta-btn:hover { background: #5eead4; }
+
+    .empty { grid-column: 1 / -1; text-align: center; padding: 80px 20px; color: var(--muted); font-style: italic; }
+
+    @media (max-width: 700px) {
+      nav { padding: 14px 20px; }
+      .nav-links { gap: 16px; }
+      .header-section, .partners-section { padding-left: 20px; padding-right: 20px; }
+      .cta-band { margin-left: 20px; margin-right: 20px; padding: 32px 24px; }
+      h1 { font-size: 2rem; }
+    }
+  </style>
+  <script defer src="/js/mobile-nav.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+
+<nav>
+  <a class="nav-brand" href="index.html"><img src="realm-symbols/logo.png" alt="Three Realms Travel" style="height:90px;width:auto;display:block;"></a>
+  <div class="nav-links">
+    <a href="our-product.html">Product</a>
+    <a href="world-animals.html">World Animals</a>
+    <a href="wildlife-100.html">Wildlife 100</a>
+    <a href="itineraries.html">Itineraries</a>
+    <a href="trip-reports.html">Trip Reports</a>
+    <a href="field-notes.html">Field Notes</a>
+    <a href="https://app.transformedbytravels.com/travelers-corner.html">Travelers&#39; Corner</a>
+    <a href="store.html">Store</a>
+    <a href="partners.html">Partners</a>
+    <a href="https://app.transformedbytravels.com/portal.html" style="color: var(--teal) !important; border: 1px solid var(--teal); padding: 8px 18px; border-radius: 6px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">My Portal</a>
+    <a href="lets-talk.html?ref=nav#book" style="background:var(--teal);color:#0a1628 !important;padding:9px 22px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-decoration:none;letter-spacing:0.05em;">Get Started</a>
+  </div>
+</nav>
+
+<div class="header-section">
+  <div class="section-tag">Who runs your trip</div>
+  <h1>Our Partners</h1>
+  <p class="lead">We plan the journey; these are the people who run it on the ground. Every partner on this page is one we know personally — chosen for their guides, their conservation record, and the way they treat travelers when things don't go to plan.</p>
+</div>
+
+<div class="partners-section" id="partners-root"></div>
+
+<div class="cta-band">
+  <div class="cta-copy">
+    <h2>Are you an operator or lodge?</h2>
+    <p>We're adding partners in the places our travelers ask for most. If you run wildlife trips and want to work with travelers who arrive knowing exactly what they came to see, let's talk.</p>
+  </div>
+  <a class="cta-btn" href="lets-talk.html?ref=partners#book">Become a partner →</a>
+</div>
+
+<script>
+/* ──────────────────────────────────────────────────────────────
+   PARTNERS
+   To add a partner, copy a block below and fill it in.
+     region   — groups the cards (e.g. 'Africa', 'South America')
+     photo    — path to a wide photo, or '' for the placeholder tile
+     logo     — path to their logo, or '' for none
+     tags     — short specialties, 2-4 works best
+     website  — their site, or '' to hide the link
+     linkText — optional label for that link (default 'Visit site ↗')
+   ────────────────────────────────────────────────────────────── */
+const PARTNERS = [
+  {
+    name:     'JB HeartFelt Tours and Travels',
+    region:   'Africa',
+    country:  'Kampala, Uganda',
+    role:     'Tour operator · Community tourism',
+    photo:    'https://res.cloudinary.com/dporenlvw/image/upload/f_auto,q_auto,w_760/v1783719556/Screenshot_2026-07-10_at_4.38.33_PM_xsfogm.png',
+    logo:     'images/partner-jb-heartfelt-logo.jpg',
+    desc:     'JB HeartFelt Tours and Travels leads a movement to uplift local Ugandan and East African communities. By showcasing East Africa’s breathtaking landscapes and rich cultural heritage, its revenue supports youth development programs that teach relevant skills to the next generation. Its mission is to reduce poverty by fostering sustainable opportunities and building a brighter future for its people — and it works to show visitors from outside the country the local communities and culture.',
+    tags:     ['Community tourism', 'Cultural immersion', 'Youth development', 'East Africa'],
+    website:  'https://www.jbheartfelttours.com',
+    linkText: 'Visit their site ↗'
+  }
+];
+
+const REGION_ORDER = ['Africa', 'Asia', 'Americas', 'North America', 'South America', 'Central America', 'Europe', 'Oceania', 'Australia', 'Antarctica'];
+
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function cardHtml(p) {
+  const photoStyle = p.photo ? `style="background-image:url('${p.photo.replace(/'/g, '%27')}');"` : '';
+  const photoCls   = p.photo ? 'partner-photo' : 'partner-photo placeholder';
+  const photoInner = p.photo ? '' : '🌍';
+  const logoHtml   = p.logo ? `<img class="partner-logo" src="${escHtml(p.logo)}" alt="${escHtml(p.name)} logo">` : '';
+  const tagsHtml   = (p.tags || []).map(t => `<span class="partner-tag">${escHtml(t)}</span>`).join('');
+  const siteHtml   = p.website
+    ? `<a class="secondary" href="${escHtml(p.website)}" target="_blank" rel="noopener">${escHtml(p.linkText || 'Visit site ↗')}</a>`
+    : '';
+
+  return `
+    <div class="partner-card">
+      <div class="${photoCls}" ${photoStyle}>${photoInner}${logoHtml}</div>
+      <div class="partner-body">
+        ${p.country ? `<div class="partner-country">${escHtml(p.country)}</div>` : ''}
+        <div class="partner-name">${escHtml(p.name)}</div>
+        ${p.role ? `<div class="partner-role">${escHtml(p.role)}</div>` : ''}
+        <div class="partner-desc">${escHtml(p.desc)}</div>
+        ${tagsHtml ? `<div class="partner-tags">${tagsHtml}</div>` : ''}
+        <div class="partner-actions">
+          <a href="lets-talk.html?ref=partners&partner=${encodeURIComponent(p.name)}#book">Plan this trip through Three Realms →</a>
+          ${siteHtml}
+        </div>
+      </div>
+    </div>`;
+}
+
+function groupByRegion(list) {
+  const groups = new Map();
+  list.forEach(p => {
+    const r = p.region || 'Other';
+    if (!groups.has(r)) groups.set(r, []);
+    groups.get(r).push(p);
+  });
+  const ordered = [];
+  REGION_ORDER.forEach(r => { if (groups.has(r)) { ordered.push([r, groups.get(r)]); groups.delete(r); } });
+  [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0])).forEach(e => ordered.push(e));
+  return ordered;
+}
+
+function init() {
+  const root = document.getElementById('partners-root');
+  if (!PARTNERS.length) {
+    root.innerHTML = `<div class="empty">Partners coming soon.</div>`;
+    return;
+  }
+  root.innerHTML = groupByRegion(PARTNERS).map(([region, items]) => `
+    <div class="region-group">
+      <div class="region-heading">
+        ${escHtml(region)}
+        <span class="count">${items.length} partner${items.length === 1 ? '' : 's'}</span>
+      </div>
+      <div class="partners-grid">${items.map(cardHtml).join('')}</div>
+    </div>
+  `).join('');
+}
+init();
+</script>
+
+</body>
+</html>

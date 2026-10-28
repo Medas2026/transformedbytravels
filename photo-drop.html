@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Your Trip Photos — Three Realms</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root{--navy:#0a1628;--panel:#111f37;--panel2:#16243f;--text:#f1f5f9;--soft:#c3cfdf;--muted:#8395ac;--line:rgba(255,255,255,0.10);--teal:#2dd4bf;--teal2:#14b8a6;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--navy);color:var(--text);font-family:'Lora',Georgia,serif;line-height:1.6;min-height:100vh}
+    .wrap{max-width:520px;margin:0 auto;padding:32px 18px 80px}
+    .brand{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:24px}
+    .brand img{height:54px;width:auto}
+    h1{font-family:'Montserrat',sans-serif;font-weight:900;font-size:1.5rem;text-align:center;letter-spacing:-0.01em;margin-bottom:6px}
+    .sub{text-align:center;color:var(--soft);font-size:0.98rem;margin-bottom:26px}
+    .sub b{color:var(--teal)}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px}
+    label{display:block;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+    input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--text);font-family:'Lora',serif;font-size:1rem;padding:11px 13px;margin-bottom:18px}
+    .drop{border:2px dashed rgba(45,212,191,0.4);border-radius:14px;padding:30px 18px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+    .drop:hover{border-color:var(--teal);background:rgba(45,212,191,0.05)}
+    .drop .ic{font-size:2.4rem;margin-bottom:8px}
+    .drop .big{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.05rem;color:#fff}
+    .drop .small{font-size:0.85rem;color:var(--muted);margin-top:5px}
+    #file{display:none}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin-top:18px}
+    .th{position:relative;aspect-ratio:1;border-radius:9px;background:#20304d center/cover no-repeat;border:1px solid var(--line);overflow:hidden}
+    .th .ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,22,40,0.55);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.7rem}
+    .th.done .ov{background:rgba(10,22,40,0.15);color:#4ade80}
+    .status{text-align:center;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;color:var(--soft);margin-top:20px;min-height:20px}
+    .done-panel{display:none;text-align:center;padding:12px 0}
+    .done-panel.show{display:block}
+    .done-panel .ic{font-size:2.6rem;margin-bottom:8px}
+    .done-panel h2{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.15rem;margin-bottom:6px}
+    .done-panel p{color:var(--soft);font-size:0.95rem}
+    .foot{text-align:center;color:var(--muted);font-size:0.78rem;margin-top:26px}
+  </style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><img src="/threerealms/realm-symbols/logo.png" alt="Three Realms Travel"></div>
+  <h1>Add your trip photos</h1>
+  <p class="sub">Share your photos from <b id="trip-name">this trip</b> — they'll join the pool for the trip's Journey Book.</p>
+
+  <div class="card" id="card">
+    <label>Your name</label>
+    <input type="text" id="who" placeholder="So we know whose photos these are" autocomplete="name">
+
+    <label>Photos</label>
+    <div class="drop" id="drop" onclick="document.getElementById('file').click()">
+      <div class="ic">📷</div>
+      <div class="big">Tap to add photos</div>
+      <div class="small">Pick as many as you like — straight from your camera roll</div>
+    </div>
+    <input type="file" id="file" accept="image/*" multiple onchange="addFiles(this.files)">
+
+    <div class="grid" id="grid"></div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="card done-panel" id="done">
+    <div class="ic">🎉</div>
+    <h2>Thank you!</h2>
+    <p id="done-msg">Your photos are in. You can close this page — or add more anytime.</p>
+    <div style="margin-top:16px;"><button onclick="reset()" style="background:none;border:1px solid var(--line);color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.85rem;border-radius:8px;padding:10px 20px;cursor:pointer;">Add more photos</button></div>
+  </div>
+
+  <p class="foot">Three Realms Travel · trip photo drop</p>
+</div>
+
+<script>
+const CLOUD = 'dporenlvw', PRESET = 'Trip Image';
+const params = new URLSearchParams(location.search);
+const TRIP_ID = (params.get('trip') || params.get('tripId') || '').trim();
+let TRIP_NAME = params.get('t') || '';
+let uploaded = 0;
+
+// Show the trip name (from ?t= or look it up).
+(async () => {
+  if (TRIP_NAME) { document.getElementById('trip-name').textContent = TRIP_NAME; return; }
+  if (!TRIP_ID) return;
+  try {
+    const r = await fetch('/api/trips?id=' + encodeURIComponent(TRIP_ID));
+    const d = await r.json();
+    const nm = d.record && d.record.fields && (d.record.fields['Trip Name'] || d.record.fields['Destination']);
+    if (nm) { TRIP_NAME = nm; document.getElementById('trip-name').textContent = nm; }
+  } catch(e) {}
+})();
+
+function reset(){ document.getElementById('done').classList.remove('show'); document.getElementById('card').style.display='block'; document.getElementById('grid').innerHTML=''; document.getElementById('status').textContent=''; }
+
+async function addFiles(files){
+  if (!TRIP_ID) { alert('This link is missing its trip — please use the link from your email.'); return; }
+  const list = Array.from(files || []);
+  if (!list.length) return;
+  const who = document.getElementById('who').value.trim();
+  const grid = document.getElementById('grid');
+  const status = document.getElementById('status');
+  let pending = list.length, ok = 0;
+  status.textContent = 'Uploading ' + list.length + ' photo' + (list.length>1?'s':'') + '…';
+
+  for (const file of list) {
+    if (!/^image\//.test(file.type)) { pending--; continue; }
+    const cell = document.createElement('div'); cell.className='th';
+    try { cell.style.backgroundImage = `url('${URL.createObjectURL(file)}')`; } catch(e){}
+    cell.innerHTML = '<div class="ov">…</div>';
+    grid.appendChild(cell);
+
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', PRESET);
+    fd.append('folder', 'trip-pool/' + TRIP_ID);
+    if (who) fd.append('tags', who.replace(/[^a-zA-Z0-9 _-]/g,'').slice(0,40));
+    try {
+      const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, { method:'POST', body:fd });
+      const d = await resp.json();
+      if (d.secure_url) { cell.classList.add('done'); cell.querySelector('.ov').textContent='✓'; ok++; uploaded++; }
+      else { cell.querySelector('.ov').textContent='✕'; }
+    } catch(e) { cell.querySelector('.ov').textContent='✕'; }
+    pending--;
+    status.textContent = pending>0 ? ('Uploading… ' + ok + ' of ' + list.length + ' done') : (ok + ' photo' + (ok>1?'s':'') + ' added ✓');
+  }
+
+  // Ping the team so they know photos arrived.
+  if (ok > 0) {
+    try {
+      await fetch('/api/guide-photos', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ tripId: TRIP_ID, tripName: TRIP_NAME || 'a trip', guideEmail: (who || 'A trip guest'), count: ok, folder: 'trip-pool/' + TRIP_ID }) });
+    } catch(e) {}
+    document.getElementById('card').style.display='none';
+    document.getElementById('done-msg').textContent = `${uploaded} photo${uploaded>1?'s':''} added to ${TRIP_NAME||'the trip'}. You can close this page — or add more anytime.`;
+    document.getElementById('done').classList.add('show');
+  }
+}
+</script>
+</body>
+</html>

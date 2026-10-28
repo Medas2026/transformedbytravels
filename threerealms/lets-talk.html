@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Let's Talk — Three Realms Travel</title>
+  <meta name="description" content="Book a free 30-minute call to plan a trip that changes how you see the world. Or send a note and we'll be in touch.">
+  <link rel="icon" href="/Favicon.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="https://plausible.io/js/pa-_E9cFdzUFrWlkW9MIz16L.js"></script>
+  <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+  <script defer src="/js/mobile-nav.js"></script>
+  <style>
+    /* ============================================================
+       Let's Talk landing page
+       ============================================================ */
+    .lt-hero {
+      background: linear-gradient(135deg, #0a1628 0%, #14263f 100%);
+      color: #fff;
+      padding: 48px 24px 40px;
+      text-align: center;
+    }
+    .lt-hero .lt-tag {
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--teal);
+      background: rgba(45,212,191,0.1);
+      border: 1px solid rgba(45,212,191,0.3);
+      border-radius: 4px;
+      padding: 6px 14px;
+      margin-bottom: 14px;
+    }
+    .lt-hero h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.9rem, 4vw, 2.8rem);
+      line-height: 1.15;
+      max-width: 880px;
+      margin: 0 auto 14px;
+      color: #fff;
+    }
+    .lt-hero p.lead {
+      font-family: 'Lora', Georgia, serif;
+      font-style: italic;
+      font-size: clamp(1rem, 1.5vw, 1.15rem);
+      color: rgba(255,255,255,0.85);
+      max-width: 700px;
+      margin: 0 auto 22px;
+      line-height: 1.5;
+    }
+    .lt-hero-ctas {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    }
+    .lt-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 14px 30px; border-radius: 8px;
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;
+      text-decoration: none; cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+      border: none;
+    }
+    .lt-btn:hover { transform: translateY(-1px); }
+    .lt-btn-primary { background: var(--teal); color: #0a1628; }
+    .lt-btn-primary:hover { background: var(--teal2); }
+    .lt-btn-outline {
+      background: transparent; color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.35);
+    }
+    .lt-btn-outline:hover { background: rgba(255,255,255,0.08); border-color: #fff; }
+
+    /* ── Ref banner (shown when ?ref= param is present) ── */
+    .lt-ref-banner {
+      display: none;
+      background: rgba(45,212,191,0.08);
+      border-bottom: 1px solid rgba(45,212,191,0.2);
+      padding: 14px 24px; text-align: center;
+      font-family: 'Lora', Georgia, serif; font-style: italic;
+      color: var(--soft); font-size: 0.98rem;
+    }
+    .lt-ref-banner strong { color: var(--teal); font-family: 'Montserrat', sans-serif; font-style: normal; font-weight: 700; margin-left: 8px; }
+
+    /* ── How it works ── */
+    .lt-how {
+      background: rgba(255,255,255,0.02);
+      padding: 40px 24px 48px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .lt-how-inner { max-width: 1080px; margin: 0 auto; }
+    .lt-how h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+      text-align: center;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .lt-how-sub {
+      text-align: center; max-width: 640px; margin: 0 auto 28px;
+      color: var(--soft); font-family: 'Lora', serif; font-size: 0.98rem; line-height: 1.55;
+    }
+    .lt-how-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+    }
+    .lt-step {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 28px 24px;
+    }
+    .lt-step-num {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900; font-size: 2.4rem;
+      color: var(--teal); line-height: 1; margin-bottom: 10px;
+    }
+    .lt-step h3 {
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 1.15rem; color: #fff; margin-bottom: 10px;
+    }
+    .lt-step p {
+      font-family: 'Lora', serif; color: var(--soft);
+      font-size: 0.96rem; line-height: 1.65;
+    }
+
+    /* ── Cal.com inline embed ── */
+    .lt-cal {
+      background: #fff;
+      padding: 64px 24px 24px;
+    }
+    .lt-cal-inner { max-width: 1000px; margin: 0 auto; }
+    .lt-cal h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      text-align: center;
+      color: #0a1628;
+      margin-bottom: 10px;
+    }
+    .lt-cal-sub {
+      text-align: center; color: #64748b;
+      font-family: 'Open Sans', sans-serif; font-size: 1rem;
+      margin-bottom: 32px;
+    }
+    #my-cal-inline {
+      width: 100%; min-height: 720px;
+      border-radius: 12px; overflow: hidden;
+    }
+
+    /* ── Contact form ── */
+    .lt-form-section {
+      background: rgba(255,255,255,0.02);
+      padding: 72px 24px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .lt-form-inner { max-width: 600px; margin: 0 auto; }
+    .lt-form-section h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.5rem, 2.5vw, 1.9rem);
+      text-align: center; color: #fff;
+      margin-bottom: 10px;
+    }
+    .lt-form-sub {
+      text-align: center; color: var(--soft);
+      font-family: 'Lora', serif; font-size: 1rem;
+      margin-bottom: 32px;
+    }
+    .lt-form { display: flex; flex-direction: column; gap: 14px; }
+    .lt-form label {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 4px; display: block;
+    }
+    .lt-form input, .lt-form textarea {
+      width: 100%; background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 12px 14px;
+      color: var(--text); font-family: 'Open Sans', sans-serif;
+      font-size: 0.95rem; box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .lt-form input:focus, .lt-form textarea:focus {
+      outline: none; border-color: var(--teal);
+    }
+    .lt-form textarea { resize: vertical; min-height: 120px; }
+    .lt-form button {
+      background: var(--teal); color: #0a1628;
+      border: none; border-radius: 8px;
+      padding: 14px 30px; margin-top: 8px;
+      font-family: 'Montserrat', sans-serif; font-weight: 800;
+      font-size: 0.92rem; letter-spacing: 0.05em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .lt-form button:hover { background: var(--teal2); }
+    .lt-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .lt-form-status {
+      margin-top: 12px; font-size: 0.92rem;
+      font-family: 'Open Sans', sans-serif; text-align: center;
+    }
+
+    @media (max-width: 780px) {
+      .lt-how-grid { grid-template-columns: 1fr; }
+      .lt-hero { padding: 72px 20px 48px; }
+    }
+  </style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="index.html"><img src="realm-symbols/logo.png" alt="Three Realms Travel" style="height:90px;width:auto;display:block;"></a>
+  <div class="nav-links">
+    <a href="our-product.html">Product</a>
+    <a href="world-animals.html">World Animals</a>
+    <a href="wildlife-100.html">Wildlife 100</a>
+    <a href="itineraries.html">Itineraries</a>
+    <a href="trip-reports.html">Trip Reports</a>
+    <a href="field-notes.html">Field Notes</a>
+    <a href="https://app.transformedbytravels.com/travelers-corner.html">Travelers&#39; Corner</a>
+    <a href="store.html">Store</a>
+    <a href="partners.html">Partners</a>
+    <a href="https://app.transformedbytravels.com/portal.html" style="color: var(--teal) !important; border: 1px solid var(--teal); padding: 8px 18px; border-radius: 6px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">My Portal</a>
+    <a href="lets-talk.html?ref=nav#book" style="background:var(--teal);color:#0a1628 !important;padding:9px 22px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-decoration:none;letter-spacing:0.05em;">Get Started</a>
+  </div>
+</nav>
+
+<!-- REF BANNER (shown when ?ref= param passes) -->
+<div class="lt-ref-banner" id="lt-ref-banner">
+  You clicked through from<strong id="lt-ref-name"></strong>
+</div>
+
+<!-- HERO -->
+<section class="lt-hero">
+  <span class="lt-tag">Let's Talk</span>
+  <h1>Let's plan the trip that changes how you see the world.</h1>
+  <p class="lead">Every trip starts with who you are — not where you're going. Book a call, and we'll turn a bucket list into a plan.</p>
+  <div class="lt-hero-ctas">
+    <a href="#book" class="lt-btn lt-btn-primary">Book a Call →</a>
+    <a href="#send-note" class="lt-btn lt-btn-outline">Send a Note</a>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="lt-how">
+  <div class="lt-how-inner">
+    <h2>How working with us works</h2>
+    <p class="lt-how-sub">A short call. A clear plan. A trip you actually want to take.</p>
+    <div class="lt-how-grid">
+      <div class="lt-step">
+        <div class="lt-step-num">01</div>
+        <h3>Take the Travel Style Assessment</h3>
+        <p>Six minutes in our app reveals your archetype — Transformational, Adventure-Oriented, Cultural, Purpose-Driven, or Easy-Going — and the five dimensions that actually shape how you travel.</p>
+      </div>
+      <div class="lt-step">
+        <div class="lt-step-num">02</div>
+        <h3>Build the trip in the Trip Planner</h3>
+        <p>Your Trip Planner in the portal scores every destination, park, lodge, and activity against your DNA. You approve each choice — no black boxes, no generic itineraries.</p>
+      </div>
+      <div class="lt-step">
+        <div class="lt-step-num">03</div>
+        <h3>Take the app on the road</h3>
+        <p>Complete itinerary in your pocket, offline wildlife tracker for sightings, daily journal prompts, and a shared PIN so co-travelers can join in. We stay in your ear the whole trip.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CAL.COM INLINE EMBED -->
+<section class="lt-cal" id="book">
+  <div class="lt-cal-inner">
+    <h2>Book a free 30-minute call</h2>
+    <p class="lt-cal-sub">No pitch. Just questions about the trip you're imagining.</p>
+    <div id="my-cal-inline"></div>
+  </div>
+</section>
+
+<!-- CONTACT FORM -->
+<section class="lt-form-section" id="send-note">
+  <div class="lt-form-inner">
+    <h2>Not ready to schedule? Send a note.</h2>
+    <p class="lt-form-sub">Tell us what you're thinking about. We'll get back within a business day.</p>
+    <form class="lt-form" id="lt-form">
+      <div>
+        <label for="lt-name">Name</label>
+        <input type="text" id="lt-name" name="name" autocomplete="name">
+      </div>
+      <div>
+        <label for="lt-email">Email <span style="color:var(--teal);">*</span></label>
+        <input type="email" id="lt-email" name="email" autocomplete="email" required>
+      </div>
+      <div>
+        <label for="lt-message">What's on your mind? <span style="color:var(--teal);">*</span></label>
+        <textarea id="lt-message" name="message" required placeholder="Destinations you're curious about, dates you're thinking, questions you have — anything works."></textarea>
+      </div>
+      <button type="submit" id="lt-submit">Send</button>
+      <div class="lt-form-status" id="lt-status"></div>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-brand">THREE <span>REALMS</span> TRAVEL</div>
+    <p>Wildlife travel for the serious adventurer — land, ocean, sky.</p>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);">© 2026 Three Realms Travel</p>
+</footer>
+
+<script>
+// ── Ref banner (attribution from offer clicks) ──────────────────────
+const _urlParams = new URLSearchParams(window.location.search);
+let _ref = _urlParams.get('ref') || _urlParams.get('utm_campaign') || '';
+// A trip report passes the destination too, so the banner can name it and the stored Ref
+// records WHICH report produced the lead — not just that a report did.
+const _dest = (_urlParams.get('destination') || '').trim();
+if (_dest) _ref = _ref ? `${_ref}:${_dest}` : _dest;
+
+if (_ref) {
+  const banner = document.getElementById('lt-ref-banner');
+  const nameEl = document.getElementById('lt-ref-name');
+  if (_dest && (_urlParams.get('ref') || '').startsWith('trip-report')) {
+    banner.innerHTML = 'You clicked through from the <strong id="lt-ref-name"></strong> trip report';
+    document.getElementById('lt-ref-name').textContent = _dest;
+  } else {
+    nameEl.textContent = _ref.replace(/[-_:]/g, ' ').replace(/\s+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+  banner.style.display = 'block';
+}
+
+// ── Form submission ────────────────────────────────────────────────
+document.getElementById('lt-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn    = document.getElementById('lt-submit');
+  const status = document.getElementById('lt-status');
+  const name    = document.getElementById('lt-name').value.trim();
+  const email   = document.getElementById('lt-email').value.trim();
+  const message = document.getElementById('lt-message').value.trim();
+  if (!email || !message) return;
+
+  btn.disabled = true; btn.textContent = 'Sending…';
+  status.textContent = ''; status.style.color = 'var(--soft)';
+
+  try {
+    const resp = await fetch('/api/contact-inquiry', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, email, message, ref: _ref, source: 'lets-talk', site: 'threerealms' })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      try { plausible('Contact Form', { props: { ref: _ref || 'direct', destination: _dest || 'none' } }); } catch(e) {}
+      status.style.color = 'var(--teal)';
+      status.textContent = '✓ Thanks — we\'ll get back within a business day.';
+      document.getElementById('lt-form').reset();
+    } else {
+      throw new Error(data.error || 'Submission failed');
+    }
+  } catch(err) {
+    status.style.color = '#f43f5e';
+    status.textContent = 'Sorry — couldn\'t send. Try email instead: MichaelE@transformedbytravels.com';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send';
+  }
+});
+</script>
+
+<!-- Cal.com inline embed -->
+<script>
+(function (C, A, L) {
+  let p = function (a, ar) { a.q.push(ar); };
+  let d = C.document;
+  C.Cal = C.Cal || function () {
+    let cal = C.Cal; let ar = arguments;
+    if (!cal.loaded) {
+      cal.ns = {}; cal.q = cal.q || [];
+      d.head.appendChild(d.createElement("script")).src = A;
+      cal.loaded = true;
+    }
+    if (ar[0] === L) {
+      const api = function () { p(api, arguments); };
+      const namespace = ar[1];
+      api.q = api.q || [];
+      if (typeof namespace === "string") {
+        cal.ns[namespace] = cal.ns[namespace] || api;
+        p(cal.ns[namespace], ar);
+        p(cal, ["initNamespace", namespace]);
+      } else p(cal, ar);
+      return;
+    }
+    p(cal, ar);
+  };
+})(window, "https://app.cal.com/embed/embed.js", "Cal");
+Cal("init", { origin: "https://cal.com" });
+Cal("inline", {
+  elementOrSelector: "#my-cal-inline",
+  calLink: "michael-emerson-tbyt",
+  layout: "month_view"
+});
+</script>
+
+</body>
+</html>

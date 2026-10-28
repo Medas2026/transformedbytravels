@@ -131,6 +131,26 @@ img {
   flex-shrink: 0;
 }
 
+.logo a.logo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.nav-logo-video {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #fff;
+  display: block;
+}
+
+@media (max-width: 780px) {
+  .nav-logo-video { width: 40px; height: 40px; }
+}
+
 .logo-text {
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
@@ -158,6 +178,18 @@ img {
 
 .nav-links a:hover {
   color: #2a9d8f;
+}
+
+.nav-links a.nav-portal-btn {
+  border: 1.5px solid #2a9d8f;
+  color: #2a9d8f;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-links a.nav-portal-btn:hover {
+  background: #2a9d8f;
+  color: #fff;
 }
 
 .nav-cart {

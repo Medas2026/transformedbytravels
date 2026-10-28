@@ -28,11 +28,19 @@ module.exports = async function handler(req, res) {
     if (park)          filters.push(`SEARCH(LOWER("${park}"),LOWER({Location}))`);
     if (month)         filters.push(`SEARCH("${month}",{Month})`);
     const formula = filters.length > 1 ? `AND(${filters.join(',')})` : (filters[0] || '');
-    const qs = (formula ? `?filterByFormula=${encodeURIComponent(formula)}&` : '?') +
+    const baseQs = (formula ? `?filterByFormula=${encodeURIComponent(formula)}&` : '?') +
                'sort[0][field]=Date&sort[0][direction]=desc';
     try {
-      const data = await at(qs);
-      return res.status(200).json({ records: data.records || [] });
+      const records = [];
+      let offset = '';
+      do {
+        const qs   = baseQs + (offset ? '&offset=' + encodeURIComponent(offset) : '');
+        const data = await at(qs);
+        if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+        records.push(...(data.records || []));
+        offset = data.offset || '';
+      } while (offset);
+      return res.status(200).json({ records });
     } catch(e) {
       return res.status(500).json({ error: e.message });
     }
@@ -40,16 +48,28 @@ module.exports = async function handler(req, res) {
 
   // ── POST — log a sighting ─────────────────────────────────────────────────
   if (req.method === 'POST') {
-    const { speciesId, name, sciName, count, location, notes, behavior, date, travelerEmail, tripId, lat, lon, gpsAccuracy } = req.body || {};
+    const { speciesId, name, sciName, count, groupSize, location, notes, behavior, date, travelerEmail, tripId, lat, lon, gpsAccuracy, loggedByEmail, loggedByRole } = req.body || {};
     if (!name) return res.status(400).json({ error: 'name is required' });
 
     const d = date ? new Date(date) : new Date();
+
+    // Group Size is a single-select field (Single/Pair/Family/Small Group/Large Group).
+    // Accept `groupSize` directly, or map legacy numeric `count` to a category.
+    const numToGroup = n => {
+      const v = Number(n);
+      if (!v || v <= 1) return 'Single';
+      if (v <= 2)       return 'Pair';
+      if (v <= 6)       return 'Family';
+      if (v <= 20)      return 'Small Group';
+      return 'Large Group';
+    };
+    const effectiveGroupSize = groupSize || (count != null ? numToGroup(count) : 'Single');
 
     const fields = {
       ...(speciesId && speciesId !== 'custom' ? { 'Species ID': speciesId } : {}),
       'Species Name':    name,
       'Scientific Name': sciName || '',
-      'Count':           count || 1,
+      'Group Size':      effectiveGroupSize,
       'Location':        location || '',
       'Notes':           notes || '',
       'Date':            d.toISOString().slice(0, 19),
@@ -60,9 +80,12 @@ module.exports = async function handler(req, res) {
     if (lat != null)   fields['Latitude']     = lat;
     if (lon != null)   fields['Longitude']    = lon;
     if (gpsAccuracy)   fields['GPS Accuracy'] = gpsAccuracy;
+    // Attribution: fall back to travelerEmail + "Traveler" if not provided
+    fields['Logged by Email'] = (loggedByEmail || travelerEmail || '').toLowerCase().trim();
+    fields['Logged by Role']  = loggedByRole || 'Traveler';
 
     try {
-      const rec = await at('', 'POST', { fields });
+      const rec = await at('', 'POST', { fields, typecast: true });
       if (rec.error) return res.status(500).json({ error: rec.error.message || JSON.stringify(rec.error) });
       return res.status(200).json({ ok: true, id: rec.id });
     } catch(e) {

@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Transformed by Travels">
   <link rel="apple-touch-icon" href="/images/app-icon.png">
-  <title>Travel for Growth Assessment | Transformed by Travels</title>
+  <title>Three Realms Travel Assessment | Transformed by Travels</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
@@ -258,6 +258,7 @@
   </script>
   <!-- DOMPurify: sanitize AI-generated HTML before rendering -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
@@ -284,11 +285,11 @@
 
         <!-- Archetype teasers -->
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:36px;">
-          <span style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:20px;padding:6px 16px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#2dd4bf;">🦋 Transformational Traveler</span>
+          <span style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:20px;padding:6px 16px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#2dd4bf;">🦋 Growth Seeker</span>
           <span style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:20px;padding:6px 16px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#2dd4bf;">🏮 Purpose-Driven Traveler</span>
-          <span style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:20px;padding:6px 16px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#2dd4bf;">⛰️ Adventure-Oriented Traveler</span>
+          <span style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:20px;padding:6px 16px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#2dd4bf;">⛰️ Adventure Traveler</span>
           <span style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:20px;padding:6px 16px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#2dd4bf;">🏛️ Cultural Explorer</span>
-          <span style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:20px;padding:6px 16px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#2dd4bf;">🏖️ Easygoing Traveler</span>
+          <span style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.3);border-radius:20px;padding:6px 16px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;color:#2dd4bf;">🏖️ Experience Seeker</span>
         </div>
 
         <!-- What you'll get -->
@@ -314,35 +315,14 @@
       <!-- Divider -->
       <div style="border-top:1px solid var(--bd);margin-bottom:32px;"></div>
 
-      <!-- Form -->
-      <div class="form-card">
-        <h3 style="text-align:center;font-size:1.1rem;margin-bottom:6px;">Get Your Free Results by Email</h3>
-        <p style="text-align:center;font-size:0.85rem;color:var(--soft);margin-bottom:22px;">Takes about 5 minutes · No right or wrong answers</p>
-        <div class="field">
-          <label>First Name *</label>
-          <input type="text" id="inp-first" placeholder="First name" required />
-        </div>
-        <div class="field">
-          <label>Last Name *</label>
-          <input type="text" id="inp-last" placeholder="Last name" required />
-        </div>
-        <div class="field">
-          <label>Email *</label>
-          <input type="email" id="inp-email" placeholder="your@email.com" required />
-        </div>
-        <div style="margin-top:8px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
-          <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;">
-            <input type="checkbox" id="inp-marketing-consent" style="all:revert;margin-top:3px;accent-color:#2dd4bf;width:17px;height:17px;flex-shrink:0;cursor:pointer;">
-            <span style="font-family:'Open Sans',sans-serif;font-size:0.88rem;font-weight:normal;color:var(--soft);line-height:1.6;text-transform:none;letter-spacing:normal;">
-              I agree to receive marketing emails from Transformed by Travels. You can withdraw consent at any time by clicking Unsubscribe in any email.
-            </span>
-          </label>
-        </div>
+      <!-- Auth-gated CTA (signed-in users skip straight to Begin; anonymous get bounced to /login.html) -->
+      <div class="form-card" id="welcome-identity" style="display:none;">
+        <p style="text-align:center;font-size:0.95rem;color:var(--soft);margin:0;">Signed in as <span id="welcome-user-email" style="color:#2dd4bf;font-weight:700;"></span></p>
       </div>
 
       <button class="btn btn-primary btn-lg" id="begin-assessment-btn" onclick="startAssessment()" style="width:100%;font-size:1.05rem;padding:16px;">Begin My Assessment →</button>
       <p style="text-align:center;font-size:0.78rem;color:var(--muted);margin-top:12px;">🔒 Your answers are private and never shared</p>
-      <p id="welcome-error" style="color:#f43f5e;font-size:0.85rem;margin-top:10px;display:none;">Please fill in all fields above.</p>
+      <p id="welcome-error" style="color:#f43f5e;font-size:0.85rem;margin-top:10px;display:none;">Something went wrong. Please try again.</p>
     </div>
 
     <!-- ══════════════════════════════════════════
@@ -366,7 +346,7 @@
     <div class="screen" id="screen-questions">
       <div class="progress-wrap">
         <div class="progress-label">
-          <span id="q-label">Question 1 of 35</span>
+          <span id="q-label">Question 1</span>
           <span id="q-pct">0%</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" id="q-progress" style="width:0%"></div></div>
@@ -415,14 +395,17 @@
          SCREEN 4: RESULTS
     ══════════════════════════════════════════ -->
     <div class="screen" id="screen-results">
+      <div id="report-back-to-portal" style="display:none;margin:0 0 16px;">
+        <a href="/portal.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--teal);font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.85rem;text-decoration:none;">← Back to Portal</a>
+      </div>
       <div class="results-header">
-        <h1 id="results-name-title">Your Travel for Growth Assessment</h1>
+        <h1 id="results-name-title">Your Three Realms Travel Assessment</h1>
         <p>Here's what your answers reveal about how you travel and grow.</p>
       </div>
 
       <!-- HEADER 1 -->
       <div class="section-header">
-        <h2>Let's Start out With Your <span>Travel for Growth Assessment</span></h2>
+        <h2>Let's Start out With Your <span>Three Realms Travel Assessment</span></h2>
         <p>It's always best to know where your journey begins from</p>
       </div>
 
@@ -462,6 +445,23 @@
         <div class="result-section-title">Dimension Breakdown</div>
         <p class="result-section-sub">Your score on each of the five dimensions of transformational travel.</p>
         <div id="dim-bars"></div>
+      </div>
+
+      <!-- Wildlife section (Animals special version only) -->
+      <div class="result-section" id="wildlife-spider-section" style="display:none;">
+        <div class="result-section-title">Your Three Wildlife Dimensions</div>
+        <div class="chart-above">
+          <p>These three dimensions describe how you engage with wildlife when you travel.</p>
+        </div>
+        <div class="chart-container">
+          <canvas id="wildlifeSpiderChart"></canvas>
+        </div>
+      </div>
+
+      <div class="result-section" id="wildlife-bars-section" style="display:none;">
+        <div class="result-section-title">Wildlife Dimension Breakdown</div>
+        <p class="result-section-sub">Your score on each of the three wildlife dimensions.</p>
+        <div id="wildlife-dim-bars"></div>
       </div>
 
       <!-- Item Highlights -->
@@ -630,7 +630,20 @@ function getDisplayArchetype(archName) {
 
 let QUESTIONS = []; // loaded from Airtable TFG Items
 
-const ADDITIONAL = [
+// ── Lite mode ────────────────────────────────────────────────────────────────
+// ?lite=1  — the version a lodge guest takes. Same 25 core questions (the archetype
+//            depends on them), but one follow-up instead of six, and a report that
+//            shows the archetype and nothing else. Fewer questions, more completions.
+// ?demo=1  — a prospect trying it on the marketing site. Identical experience, but
+//            nothing is written anywhere: no Traveler record, no history, no email.
+const LITE = ['1','true','yes'].includes((new URLSearchParams(location.search).get('lite')||'').toLowerCase());
+const DEMO = ['1','true','yes'].includes((new URLSearchParams(location.search).get('demo')||'').toLowerCase());
+// In lite mode the only follow-up worth asking is how they travel — it changes how a
+// lodge hosts them. Passions, life stage, planning style and the rest are for the full
+// travel product, not a five-minute pre-arrival question set.
+const LITE_KEEP = ['A6'];
+
+const ADDITIONAL_ALL = [
   {
     id:"A1", type:"multi", max:3,
     stem:"Select up to 3 travel passions that most influence where and how you travel.",
@@ -703,6 +716,8 @@ const ADDITIONAL = [
     ]
   }
 ];
+const ADDITIONAL = LITE ? ADDITIONAL_ALL.filter(q => LITE_KEEP.includes(q.id)) : ADDITIONAL_ALL;
+
 
 const DIM_META = {
   Curiosity: {
@@ -739,10 +754,35 @@ const DIM_META = {
     bLabel: "Renewal",
     aDesc: "You often travel with a sense of intention. A journey can be a way to grow, learn, and gain new perspective on your life and the world.",
     bDesc: "You approach travel primarily as a way to relax, recharge, and enjoy life."
+  },
+  // ── Wildlife dimensions (Animals special version) ───────────────────
+  // DRAFT copy — safe to edit any time. Poles use the same A=high/B=low
+  // pattern as the core dims.
+  'Wildlife Encounter Style': {
+    force: "Wildlife",
+    aLabel: "Immersive",
+    bLabel: "Observational",
+    aDesc: "You are energized by close, patient encounters with wildlife. Tracking, quiet approach, and understanding animal behavior are what make these experiences unforgettable for you.",
+    bDesc: "You enjoy watching wildlife unfold at a comfortable distance. Scanning, photographing, and witnessing animals in their environment is deeply satisfying on its own terms."
+  },
+  'Wildlife Expedition Style': {
+    force: "Wildlife",
+    aLabel: "Expedition",
+    bLabel: "Lodge-based",
+    aDesc: "You are drawn to remote, expedition-style wildlife travel. Long days, rugged access, and the reward of finding animals in true wilderness are what make a trip memorable.",
+    bDesc: "You prefer wildlife travel that pairs great animals with comfort. Well-appointed lodges, structured game drives, and reliable logistics let you focus fully on the experience."
+  },
+  'Wildlife Journey Style': {
+    force: "Wildlife",
+    aLabel: "Purposeful",
+    bLabel: "Recreational",
+    aDesc: "For you, wildlife travel is a form of learning and stewardship. Understanding species, ecosystems, and conservation gives your journey deeper meaning.",
+    bDesc: "You travel for the joy and wonder of wildlife. Beautiful animals, dramatic landscapes, and shareable moments are the essence of a great trip."
   }
 };
 
 const DIMS = ["Curiosity","Adventure","Reflection","Connection","Travel Purpose"];
+const DIMS_WILDLIFE = ["Wildlife Encounter Style","Wildlife Expedition Style","Wildlife Journey Style"];
 
 const ACTIVITIES = [
   {name:"Cultural Immersion",        icon:"🏛️",  C:1,Adv:0,Con:1,Ref:0,Int:0},
@@ -780,7 +820,7 @@ const ACTIVITIES = [
 
 const DIM_ACT_KEY = {Curiosity:"C", Adventure:"Adv", Reflection:"Ref", Connection:"Con", 'Travel Purpose':"Int"};
 
-// Travel Activity Matrix (Curiosity, Immersion=Connection, Challenge=Adventure, Connection=Intention, Reflection)
+// Travel Activity Matrix (Curiosity, Immersion=Connection, Challenge=Adventure, Connection=Travel Purpose, Reflection)
 const TRAVEL_MATRIX = [
   {name:"Museums & cultural institutions",       Cur:5,Imm:2,Cha:0,Con:1,Ref:2},
   {name:"Historic monuments & heritage sites",   Cur:5,Imm:2,Cha:1,Con:1,Ref:2},
@@ -836,7 +876,9 @@ let answers = {};       // {qId: 0|1}
 let qFlips  = {};       // {idx: bool} — saved random flip per question
 let addAnswers = {};    // {A1:[],A2:"",...}
 let currentAddIdx = 0;
+
 let spiderChartInst = null;
+let wildlifeSpiderChartInst = null;
 
 // ═══════════════════════════════════════════════
 // HELPERS
@@ -857,8 +899,8 @@ function showScreen(id) {
 }
 
 function zone(s) {
-  if (s === 7) return "sa";
-  if (s >= 4)  return "a";
+  if (s === 5) return "sa";
+  if (s >= 3)  return "a";
   if (s >= 1)  return "b";
   return "sb";
 }
@@ -880,116 +922,118 @@ function zoneLabel(z, dim) {
 // ═══════════════════════════════════════════════
 // SCORING VERSION
 // ═══════════════════════════════════════════════
-const SCORING_VERSION = '2.2';
+const SCORING_VERSION = '3.0';
 
 // ═══════════════════════════════════════════════
-// ARCHETYPES
+// ARCHETYPES — content (name, tag, desc, trips, destinations) comes from
+// the Airtable "Archetype Table" via /api/archetype. Only images stay
+// local because they ship with the site.
 // ═══════════════════════════════════════════════
-const ARCHETYPES = {
-  TT: {
-    icon: "🦋", iconImg: "images/archetypes/TT Icon.png", name: "The Transformational Traveler", tag: "Fully Integrated Traveler",
-    desc: "You approach travel as a powerful path to personal growth. You seek experiences that combine curiosity, challenge, connection, purpose, and reflection. For you, travel is not just about seeing the world—it's about becoming a better version of yourself.",
-    photos: ["images/archetypes/TT1.png", "images/archetypes/TT2.png"],
-    trips: "Trips that combine exploration, meaningful encounters, and time for reflection will resonate most with you. Consider journeys that mix adventure and insight, such as cultural expeditions, wildlife safaris, walking pilgrimages, or small-group trips that emphasize learning and personal growth. Destinations with dramatic landscapes and rich traditions often create the most powerful experiences for you.",
-    global: "Nepal • Peru • Bhutan • Japan",
-    us: "Sedona • Grand Canyon National Park • Santa Fe • Glacier National Park • Denali National Park • Yosemite National Park"
-  },
-  PDT: {
-    icon: "🏮", iconImg: "images/archetypes/MS Icon.png", name: "The Purpose-Driven Traveler", tag: "Growth, Meaning & Reflection",
-    desc: "You travel to gain perspective and deeper understanding. Cultural insights, powerful landscapes, and reflective moments help you think about life in new ways. Your journeys often leave you changed.",
-    photos: ["images/archetypes/MS1.png", "images/archetypes/MS2.png"],
-    trips: "You'll be drawn to destinations that offer powerful stories, culture, and perspective. Historic cities, spiritual landscapes, and places that have shaped civilizations can provide the kind of depth you enjoy. Trips that include time for exploration as well as reflection—such as cultural journeys, heritage routes, or visits to iconic historical sites—often leave a lasting impression.",
-    global: "Jerusalem • India • Greece • Cambodia",
-    us: "Washington, D.C. • Gettysburg National Military Park • Boston"
-  },
-  AOT: {
-    icon: "⛰️", iconImg: "images/archetypes/AS Icon.png", name: "The Adventure-Oriented Traveler", tag: "Energy, Stretch & Challenge",
-    desc: "You love travel that stretches your comfort zone. Hiking, exploring remote places, and active experiences energize you. The best trips are the ones that leave you feeling exhilarated and alive.",
-    photos: ["images/archetypes/AS1.png", "images/archetypes/AS2.png"],
-    trips: "You'll love trips that bring excitement and active exploration. Destinations that offer hiking, trekking, paddling, wildlife expeditions, or other outdoor challenges are likely to energize you. The most satisfying journeys are those that allow you to experience the landscape directly rather than simply observe it.",
-    global: "Patagonia • Nepal • Costa Rica • Iceland",
-    us: "Zion National Park • Grand Teton National Park • Arches National Park"
-  },
-  CE: {
-    icon: "🏛️", iconImg: "images/archetypes/CE Icon.png", name: "The Cultural Explorer", tag: "Learning, Culture & Engagement",
-    desc: "You travel to learn about the world. History, art, architecture, and traditions fascinate you, and you enjoy discovering the stories behind the places you visit. Each destination becomes an opportunity to expand your understanding.",
-    photos: ["images/archetypes/CE1.png", "images/archetypes/CE2.png"],
-    trips: "Your ideal trips will immerse you in history, art, architecture, and cultural traditions. Cities rich in heritage, archaeological sites, museums, and historic neighborhoods will naturally draw your interest. Guided cultural tours or itineraries that provide context and storytelling often make your travel especially rewarding.",
-    global: "Italy • France • Japan • Turkey",
-    us: "Charleston • New Orleans • Santa Fe"
-  },
-  EGT: {
-    icon: "🏖️", iconImg: "images/archetypes/EGT Icon.png", name: "The Easygoing Traveler", tag: "Relaxation & Enjoyment",
-    desc: "Travel for you is about relaxation and enjoyment rather than pursuing a specific style of exploration. You appreciate pleasant places, good company, and going with the flow. The best trips are the ones that feel effortless.",
-    photos: ["images/archetypes/EGT1.png", "images/archetypes/EGT2.png"],
-    trips: "Relaxing destinations where you can enjoy the atmosphere without a demanding schedule will appeal to you. Beach towns, scenic regions, charming cities, and comfortable resorts often provide the kind of travel experience you enjoy. The best trips are the ones that feel effortless and allow you to simply enjoy being there.",
-    global: "Hawaii • The Bahamas • Southern France • California",
-    us: "Hawaii • Maui • Naples"
-  }
+const ARCHETYPE_IMAGES = {
+  "The Growth Seeker": { icon: "🦋", iconImg: "images/archetypes/Growth-seeker-archetype.png", photos: ["images/archetypes/TT1.png", "images/archetypes/TT2.png"] },
+  "The Purpose-Driven Traveler":   { icon: "🏮", iconImg: "images/archetypes/Purpose-Driven-Archetype.png", photos: ["images/archetypes/MS1.png", "images/archetypes/MS2.png"] },
+  "The Adventure Traveler": { icon: "⛰️", iconImg: "images/archetypes/Adventure-Traveler-Archetype.png", photos: ["images/archetypes/AS1.png", "images/archetypes/AS2.png"] },
+  "The Cultural Explorer":         { icon: "🏛️", iconImg: "images/archetypes/Cultural-Explorer-Archtetype.png", photos: ["images/archetypes/CE1.png", "images/archetypes/CE2.png"] },
+  "The Experience Seeker":        { icon: "🏖️", iconImg: "images/archetypes/Experience-seeker-archetype.png", photos: ["images/archetypes/EGT1.png", "images/archetypes/EGT2.png"] },
 };
 
-function getArchetype(raw) {
-  const C   = raw.Curiosity;
-  const Adv = raw.Adventure;
-  const Ref = raw.Reflection;
-  const Con = raw.Connection;
-  const TP  = raw['Travel Purpose'];
-  const GS  = (Ref + TP) / 2;
+// Fallback used only if the API is unreachable — matches Easygoing so we degrade gracefully.
+const ARCHETYPE_FALLBACK = {
+  name: "The Experience Seeker",
+  tag: "",
+  desc: "",
+  trips: "",
+  global: "",
+  us: "",
+  ...ARCHETYPE_IMAGES["The Experience Seeker"],
+};
 
-  const dims       = [C, Adv, Ref, Con, TP];
-  const above6     = dims.filter(d => d >= 6).length;
-  const noneBelow3 = dims.every(d => d >= 3);
+const _archCache = {};
 
-  // 1a. Transformational Traveler: 4+ dimensions at maximum (7) — always TT
-  const at7 = dims.filter(d => d === 7).length;
-  if (at7 >= 4) return ARCHETYPES.TT;
+async function getArchetype(raw) {
+  const key = [raw.Curiosity, raw.Adventure, raw.Reflection, raw.Connection, raw['Travel Purpose']].join('|');
+  if (_archCache[key]) return _archCache[key];
 
-  // 1b. Transformational Traveler: 4 of 5 dimensions >= 6 AND none < 3
-  if (above6 >= 4 && noneBelow3) return ARCHETYPES.TT;
-
-  // 2. Purpose-Driven Traveler: Growth Signal >= 5 AND Adventure < 6
-  if (GS >= 5 && Adv < 6) return ARCHETYPES.PDT;
-
-  // 3. Adventure-Oriented Traveler: Adventure >= 6
-  if (Adv >= 6) return ARCHETYPES.AOT;
-
-  // 4. Cultural Explorer: Curiosity >= 6 AND (Connection >= 4 OR Travel Purpose >= 4) AND Adventure < 6 AND GS < 6
-  if (C >= 6 && (Con >= 4 || TP >= 4) && Adv < 6 && GS < 6) return ARCHETYPES.CE;
-
-  // 5. Easygoing Traveler: everyone else
-  return ARCHETYPES.EGT;
+  const params = new URLSearchParams({
+    curiosity:     raw.Curiosity,
+    adventure:     raw.Adventure,
+    reflection:    raw.Reflection,
+    connection:    raw.Connection,
+    travelPurpose: raw['Travel Purpose']
+  });
+  try {
+    const resp = await fetch('/api/archetype?' + params.toString());
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    const imgs = ARCHETYPE_IMAGES[data.name] || {};
+    const merged = {
+      name:    data.name,
+      tag:     data.tag         || '',
+      desc:    data.description || '',
+      trips:   data.tripsYouWillLove || '',
+      global:  data.destinationsToConsider || '',
+      us:      data.usDestinationsToConsider || '',
+      icon:    imgs.icon    || '',
+      iconImg: imgs.iconImg || '',
+      photos:  imgs.photos  || [],
+      guidance:data.travelerGuidance || '',
+    };
+    _archCache[key] = merged;
+    return merged;
+  } catch(e) {
+    console.error('[getArchetype] falling back:', e);
+    return ARCHETYPE_FALLBACK;
+  }
 }
 
 // ═══════════════════════════════════════════════
 // ASSESSMENT FLOW
 // ═══════════════════════════════════════════════
 let _marketingConsent = false;
+let _assessmentAuth0 = null;   // shared Auth0 client for the welcome-screen gate
+let _assessmentAuthed = false; // known-authed flag (set at page load or after login return)
 
-function startAssessment() {
-  const first = document.getElementById('inp-first').value.trim();
-  const last  = document.getElementById('inp-last').value.trim();
-  const email = document.getElementById('inp-email').value.trim();
+// Redirect anonymous visitors to /login.html, preserving the current URL
+// (including ?special=animals) as the ?next= param.
+function redirectToLogin() {
+  const nextUrl = window.location.pathname + (window.location.search || '');
+  window.location.href = '/login.html?next=' + encodeURIComponent(nextUrl);
+}
+
+async function startAssessment() {
+  const btn   = document.getElementById('begin-assessment-btn');
   const err   = document.getElementById('welcome-error');
+  err.style.display = 'none';
 
-  if (!first || !last || !email) {
-    err.style.display = 'block';
+  // Guard: must be signed in — except in demo mode, where the whole point is that a
+  // prospect can try it with no account, no email, and nothing kept afterwards.
+  if (!_assessmentAuthed && !DEMO) {
+    redirectToLogin();
     return;
   }
-  err.style.display = 'none';
-  _marketingConsent = document.getElementById('inp-marketing-consent').checked;
-  userName  = first + " " + last;
-  userEmail = email;
+  if (DEMO && !userName) userName = 'You';
 
-  fetch('/api/airtable-traveler?email=' + encodeURIComponent(email))
+  btn.disabled = true; btn.textContent = 'Loading…';
+
+  // URL param overrides the traveler record — used by marketing links (e.g. ThreeRealms).
+  const urlSpecial = new URLSearchParams(window.location.search).get('special');
+  const forcedAnimals = (urlSpecial || '').toLowerCase() === 'animals';
+
+  if (DEMO && !userEmail) {
+    // No record to read, no special version to inherit — just load the questions.
+    window._specialVersion = '';
+    return proceedToAssessment();
+  }
+
+  fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail))
     .then(r => r.json())
     .then(data => {
-      if (data.record) {
-        proceedToAssessment();
-      } else {
-        proceedToAssessment();
-      }
+      const fromRecord = (data.record && data.record.fields && data.record.fields['Special Version']) || '';
+      window._specialVersion = forcedAnimals ? 'Animals' : fromRecord;
+      proceedToAssessment();
     })
     .catch(() => {
+      window._specialVersion = forcedAnimals ? 'Animals' : '';
       proceedToAssessment();
     });
 }
@@ -1000,7 +1044,8 @@ async function proceedToAssessment() {
     const btn = document.getElementById('begin-assessment-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
     try {
-      const resp = await fetch('/api/tfg-items');
+      const specialParam = window._specialVersion ? '?special=' + encodeURIComponent(window._specialVersion.toLowerCase()) : '';
+      const resp = await fetch('/api/tfg-items' + specialParam);
       const data = await resp.json();
       if (data.items && data.items.length) {
         QUESTIONS = data.items;
@@ -1214,7 +1259,7 @@ function handleAddOpt(el, qId, val, isMulti, max) {
   }
 }
 
-function nextAdditional() {
+async function nextAdditional() {
   const q   = ADDITIONAL[currentAddIdx];
   const ans = addAnswers[q.id];
   const err = document.getElementById('add-error');
@@ -1230,20 +1275,28 @@ function nextAdditional() {
   if (currentAddIdx < ADDITIONAL.length) {
     renderAdditional();
   } else {
-    buildResults();
+    await buildResults();
     showScreen('screen-results');
     // Silently save assessment results to Airtable
     if (userEmail) {
       const hopesList    = Array.isArray(addAnswers['A5']) ? addAnswers['A5'] : (addAnswers['A5'] ? [addAnswers['A5']] : []);
       const passionsList = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]);
       const raw  = calcScores();
-      const arch = getArchetype(raw);
+      const arch = await getArchetype(raw);
       const _tgiDims = ['Curiosity','Adventure','Reflection','Connection','Travel Purpose'];
       const _tgiTotal = _tgiDims.reduce((sum, d) => sum + (raw[d] || 0), 0);
-      let tgi = Math.round((_tgiTotal / 35) * 100);
+      let tgi = Math.round((_tgiTotal / 25) * 100);
       const _tgiMin = Math.min(..._tgiDims.map(d => raw[d] || 0));
-      if (_tgiMin < 3) tgi = Math.min(tgi, 60);
-      else if (_tgiMin < 4) tgi = Math.min(tgi, 70);
+      if (_tgiMin < 2) tgi = Math.min(tgi, 60);
+      else if (_tgiMin < 3) tgi = Math.min(tgi, 70);
+
+      // ?demo=1 — someone trying the assessment on the marketing site. They see their
+      // real result, and we keep none of it: no Traveler record, no assessment history,
+      // no email captured. Nothing to delete later, nothing to explain.
+      if (DEMO) {
+        console.log('[assessment] demo mode — result shown, nothing saved');
+        return;
+      }
 
       console.log('[assessment save] email:', userEmail, 'name:', userName, 'archetype:', arch.name);
       fetch('/api/airtable-traveler', {
@@ -1253,6 +1306,10 @@ function nextAdditional() {
           email:            userEmail,
           name:             userName,
           archetype:        arch.name,
+          // When the assessment is opened from a guest's trip page it carries ?tripId=,
+          // so the result is stamped on that trip as well as the traveler record. An
+          // archetype is a read on the trip being taken, not a permanent trait.
+          tripId:           new URLSearchParams(location.search).get('tripId') || '',
           passions:         passionsList.join(', '),
           lifeStage:        addAnswers['A2'] || '',
           travelStyle:      addAnswers['A6'] || '',
@@ -1285,20 +1342,34 @@ function nextAdditional() {
 function calcScores() {
   if (window._reportRaw) return window._reportRaw;
   const raw = {Curiosity:0, Adventure:0, Reflection:0, Connection:0, 'Travel Purpose':0};
+  if (window._specialVersion === 'Animals') {
+    raw['Wildlife Encounter Style']  = 0;
+    raw['Wildlife Expedition Style'] = 0;
+    raw['Wildlife Journey Style']    = 0;
+  }
   for (const q of QUESTIONS) {
-    if (answers[q.id] !== undefined) raw[q.dim] += answers[q.id];
+    if (answers[q.id] !== undefined && raw[q.dim] !== undefined) raw[q.dim] += answers[q.id];
   }
   return raw;
 }
 
-function buildResults() {
+async function buildResults() {
   const raw = calcScores();
 
   // Header
-  document.getElementById('results-name-title').textContent = `${userName}'s Travel for Growth Assessment`;
+  document.getElementById('results-name-title').textContent = `${userName}'s Three Realms Travel Assessment`;
+
+  // Lite report: the archetype and nothing else. A guest who answered 26 questions
+  // before a holiday wants to know who they are, not to read a psychometric profile —
+  // and the dimension charts raise questions the lodge is not there to answer.
+  if (LITE) {
+    document.querySelectorAll('.result-section').forEach(el => { el.style.display = 'none'; });
+    const t = document.getElementById('results-name-title');
+    if (t) t.textContent = `${userName}, here's how you're traveling`;
+  }
 
   // Archetype
-  const arch = getArchetype(raw);
+  const arch = await getArchetype(raw);
   const _passions = (addAnswers['A1']||[]).filter(p=>PASSION_LABELS[p]).map(p=>PASSION_LABELS[p]);
   const _passionLabel = _passions.length === 1 ? 'Passion' : _passions.length > 1 ? 'Passions' : '';
   document.getElementById('archetype-card').innerHTML = `
@@ -1309,6 +1380,11 @@ function buildResults() {
     <div class="archetype-photos">
       ${arch.photos.map(url => `<img src="${url}" alt="${arch.name}" class="archetype-photo" />`).join('')}
     </div>
+    ${arch.guidance ? `
+      <div style="margin-top:28px;padding:22px 24px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.28);border-radius:12px;text-align:left;">
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:#f59e0b;margin-bottom:10px;">How to travel well as a ${arch.name.replace(/^The\s+/i, '')}</div>
+        <p style="font-family:'Lora',Georgia,serif;font-style:italic;font-size:1rem;line-height:1.7;color:var(--text);margin:0;">${arch.guidance}</p>
+      </div>` : ''}
   `;
 
   // Spider chart
@@ -1317,13 +1393,22 @@ function buildResults() {
   // Dimension bars
   buildDimBars(raw);
 
+  // Wildlife sections (Animals special version only)
+  const isAnimals = window._specialVersion === 'Animals';
+  document.getElementById('wildlife-spider-section').style.display = isAnimals ? 'block' : 'none';
+  document.getElementById('wildlife-bars-section').style.display   = isAnimals ? 'block' : 'none';
+  if (isAnimals) {
+    buildWildlifeSpider(raw);
+    buildWildlifeBars(raw);
+  }
+
   // Total Growth Index
   const _tgiDims2 = ['Curiosity','Adventure','Reflection','Connection','Travel Purpose'];
   const _tgiTotal2 = _tgiDims2.reduce((sum, d) => sum + (raw[d] || 0), 0);
-  let tgiDisplay = Math.round((_tgiTotal2 / 35) * 100);
+  let tgiDisplay = Math.round((_tgiTotal2 / 25) * 100);
   const _tgiMin2 = Math.min(..._tgiDims2.map(d => raw[d] || 0));
-  if (_tgiMin2 < 3) tgiDisplay = Math.min(tgiDisplay, 60);
-  else if (_tgiMin2 < 4) tgiDisplay = Math.min(tgiDisplay, 70);
+  if (_tgiMin2 < 2) tgiDisplay = Math.min(tgiDisplay, 60);
+  else if (_tgiMin2 < 3) tgiDisplay = Math.min(tgiDisplay, 70);
   document.getElementById('tgi-value-tp').textContent = tgiDisplay;
   document.getElementById('tgi-circle-tp').style.setProperty('--tgi-deg', Math.round((tgiDisplay / 100) * 360) + 'deg');
   const tgiDescs = [
@@ -1343,11 +1428,11 @@ function buildResults() {
   function scoreDestForUser(dest, r) {
     // dest is an object with {name, country, continent, Cur, Adv, Con, Int, Ref}
     const uNorm = {
-      Cur: (r.Curiosity  / 7) * 10,
-      Adv: (r.Adventure  / 7) * 10,
-      Con: (r.Connection / 7) * 10,
-      Int: (r['Travel Purpose']  / 7) * 10,
-      Ref: (r.Reflection / 7) * 10,
+      Cur: (r.Curiosity  / 5) * 10,
+      Adv: (r.Adventure  / 5) * 10,
+      Con: (r.Connection / 5) * 10,
+      Int: (r['Travel Purpose']  / 5) * 10,
+      Ref: (r.Reflection / 5) * 10,
     };
     let total = 0;
     ['Cur','Adv','Con','Int','Ref'].forEach(k => {
@@ -1465,8 +1550,8 @@ function buildItemHighlights() {
 }
 
 function buildSpider(raw) {
-  const scores    = DIMS.map(d => Math.round((raw[d] / 7) * 100));
-  const dimColor  = d => { const s = raw[d]; return s === 7 ? '#2dd4bf' : s >= 4 ? '#34d399' : s >= 1 ? '#fb923c' : '#f43f5e'; };
+  const scores    = DIMS.map(d => Math.round((raw[d] / 5) * 100));
+  const dimColor  = d => { const s = raw[d]; return s === 5 ? '#2dd4bf' : s >= 3 ? '#34d399' : s >= 1 ? '#fb923c' : '#f43f5e'; };
   const colors    = DIMS.map(dimColor);
 
   if (spiderChartInst) spiderChartInst.destroy();
@@ -1519,7 +1604,7 @@ function buildDimBars(raw) {
     const z   = zone(s);
     const col = zoneColor(z);
     const m   = DIM_META[dim];
-    const pct = Math.round((s / 7) * 100);
+    const pct = Math.round((s / 5) * 100);
     const desc = (z === 'sa' || z === 'a') ? m.aDesc : m.bDesc;
 
     const aActive  = (z === 'sa' || z === 'a');
@@ -1533,7 +1618,92 @@ function buildDimBars(raw) {
       <div class="dim-row">
         <div class="dim-header">
           <span class="dim-name">${dim}</span>
-          <span class="dim-score-badge" style="background:${col}22;color:${col};">${s}/7</span>
+          <span class="dim-score-badge" style="background:${col}22;color:${col};">${s}/5</span>
+        </div>
+        <div class="dim-poles">
+          <span style="color:${bColor};">${bDisplay}</span>
+          <span style="color:${aColor};">${aDisplay}</span>
+        </div>
+        <div class="dim-bar-wrap">
+          <div class="dim-bar-fill" style="width:${pct}%;background:${col};"></div>
+          <div class="dim-marker" style="left:${pct}%;"></div>
+        </div>
+        <p class="dim-desc">${desc}</p>
+      </div>
+    `;
+  }).join('');
+}
+
+function buildWildlifeSpider(raw) {
+  const scores   = DIMS_WILDLIFE.map(d => Math.round(((raw[d] || 0) / 5) * 100));
+  const dimColor = d => { const s = raw[d] || 0; return s === 5 ? '#2dd4bf' : s >= 3 ? '#34d399' : s >= 1 ? '#fb923c' : '#f43f5e'; };
+  const colors   = DIMS_WILDLIFE.map(dimColor);
+
+  if (wildlifeSpiderChartInst) wildlifeSpiderChartInst.destroy();
+
+  const ctx = document.getElementById('wildlifeSpiderChart').getContext('2d');
+  wildlifeSpiderChartInst = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: DIMS_WILDLIFE,
+      datasets: [{
+        data: scores,
+        backgroundColor: 'rgba(45,212,191,0.15)',
+        borderColor: '#2dd4bf',
+        borderWidth: 2,
+        pointBackgroundColor: colors,
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0,
+          max: 100,
+          ticks: {
+            stepSize: 50,
+            color: '#64748b',
+            backdropColor: 'transparent',
+            font: { family: 'Montserrat', size: 11, weight: '600' },
+            callback: v => v === 0 ? 'Balanced' : v + '%'
+          },
+          grid: { color: 'rgba(255,255,255,0.35)' },
+          angleLines: { color: 'rgba(255,255,255,0.35)' },
+          pointLabels: {
+            color: colors,
+            font: { family: 'Montserrat', size: 12, weight: '700' }
+          }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function buildWildlifeBars(raw) {
+  const container = document.getElementById('wildlife-dim-bars');
+  container.innerHTML = DIMS_WILDLIFE.map(dim => {
+    const s   = raw[dim] || 0;
+    const z   = zone(s);
+    const col = zoneColor(z);
+    const m   = DIM_META[dim];
+    const pct = Math.round((s / 5) * 100);
+    const desc = (z === 'sa' || z === 'a') ? m.aDesc : m.bDesc;
+
+    const aActive  = (z === 'sa' || z === 'a');
+    const bActive  = (z === 'sb' || z === 'b');
+    const aDisplay = (z === 'sa' ? 'Strong ' : '') + m.aLabel;
+    const bDisplay = (z === 'sb' ? 'Strong ' : '') + m.bLabel;
+    const aColor   = aActive ? col : 'var(--muted)';
+    const bColor   = bActive ? col : 'var(--muted)';
+
+    return `
+      <div class="dim-row">
+        <div class="dim-header">
+          <span class="dim-name">${dim}</span>
+          <span class="dim-score-badge" style="background:${col}22;color:${col};">${s}/5</span>
         </div>
         <div class="dim-poles">
           <span style="color:${bColor};">${bDisplay}</span>
@@ -1918,13 +2088,13 @@ function showDestMatch(dest, raw) {
     ? {Cur:dest[7], Adv:dest[8], Con:dest[9], Int:dest[10], Ref:dest[11]}
     : {Cur:dest.Cur, Adv:dest.Adv, Con:dest.Con, Int:dest.Int, Ref:dest.Ref};
 
-  // Normalize user scores from 0-7 to 1-10 scale
+  // Normalize user scores from 0-5 to 1-10 scale
   const userNorm = {
-    Cur: (raw.Curiosity  / 7) * 10,
-    Adv: (raw.Adventure  / 7) * 10,
-    Con: (raw.Connection / 7) * 10,
-    Int: (raw['Travel Purpose']  / 7) * 10,
-    Ref: (raw.Reflection / 7) * 10,
+    Cur: (raw.Curiosity  / 5) * 10,
+    Adv: (raw.Adventure  / 5) * 10,
+    Con: (raw.Connection / 5) * 10,
+    Int: (raw['Travel Purpose']  / 5) * 10,
+    Ref: (raw.Reflection / 5) * 10,
   };
 
   // Per-dimension match (0-1): 1 = perfect, 0 = worst
@@ -2019,7 +2189,7 @@ async function createAccount() {
     const hopesList    = Array.isArray(addAnswers['A5']) ? addAnswers['A5'] : (addAnswers['A5'] ? [addAnswers['A5']] : []);
     const passionsList = (addAnswers['A1'] || []).filter(p => PASSION_LABELS[p]);
     const raw  = calcScores();
-    const arch = getArchetype(raw);
+    const arch = await getArchetype(raw);
 
     // Store profile data so portal can save it after Auth0 signup
     sessionStorage.setItem('pendingProfile', JSON.stringify({
@@ -2133,6 +2303,7 @@ async function initReportMode() {
 
   // Reconstruct raw scores for rendering (inject via answers object simulation)
   // Override calcScores to return Airtable values directly
+  window._specialVersion = f['Special Version'] || '';
   const airtableRaw = {
     Curiosity:  Number(f['DS-1 Curiosity']  || 0),
     Adventure:  Number(f['DS-2 Adventure']  || 0),
@@ -2140,10 +2311,16 @@ async function initReportMode() {
     Connection: Number(f['DS-4 Connection'] || 0),
     'Travel Purpose':  Number(f['DS-5 Intention']  || 0)
   };
+  if (window._specialVersion === 'Animals') {
+    airtableRaw['Wildlife Encounter Style']  = Number(f['DS-6 Encounter Style']  || 0);
+    airtableRaw['Wildlife Expedition Style'] = Number(f['DS-7 Expedition Style'] || 0);
+    airtableRaw['Wildlife Journey Style']    = Number(f['DS-8 Journey Style']    || 0);
+  }
   window._reportRaw = airtableRaw;
 
   // Show report mode UI
   document.getElementById('create-account-btn').style.display = 'none';
+  document.getElementById('report-back-to-portal').style.display = 'block';
   document.getElementById('screen-welcome').classList.remove('active');
 
   // Load questions so item highlights section can render
@@ -2155,7 +2332,7 @@ async function initReportMode() {
     } catch(e) {}
   }
 
-  buildResults();
+  await buildResults();
   showScreen('screen-results');
 }
 
@@ -2181,39 +2358,47 @@ if (_reportParam || _reportSession) {
 }
 
 async function initAssessmentMode() {
-  const auth0Client = await auth0.createAuth0Client({
+  _assessmentAuth0 = await auth0.createAuth0Client({
     domain:   'dev-oys4h8z7qa7irffk.us.auth0.com',
     clientId: 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd',
     useRefreshTokens: true,
     cacheLocation: 'localstorage',
     authorizationParams: { redirect_uri: window.location.origin + '/transformational-profile.html' }
   });
+
   let isAuthenticated = false;
-  try { isAuthenticated = await auth0Client.isAuthenticated(); } catch(e) {}
-  if (!isAuthenticated) { document.getElementById('screen-welcome').classList.add('active'); return; }
+  try { isAuthenticated = await _assessmentAuth0.isAuthenticated(); } catch(e) {}
 
-  const user = await auth0Client.getUser();
+  // Show welcome regardless — the button will either start the assessment (authed)
+  // or bounce to /login.html?next=… (anonymous).
+  document.getElementById('screen-welcome').classList.add('active');
+
+  if (!isAuthenticated) return;
+
+  const user = await _assessmentAuth0.getUser();
   userEmail = user.email;
+  _assessmentAuthed = true;
 
-  // Try to get name from Airtable
+  // Try to get canonical name from the Traveler record
   try {
     const resp = await fetch('/api/airtable-traveler?email=' + encodeURIComponent(userEmail));
     const data = await resp.json();
     if (data.record && data.record.fields['Traveler Name']) {
       userName = data.record.fields['Traveler Name'];
     } else {
-      userName = user.given_name || 'Traveler';
+      userName = user.name || user.given_name || 'Traveler';
     }
   } catch(e) {
-    userName = user.given_name || 'Traveler';
+    userName = user.name || user.given_name || 'Traveler';
   }
 
-  // Always show welcome form — pre-fill from Auth0 so user can confirm before starting
-  const parts = (user.name || '').split(' ');
-  document.getElementById('inp-email').value = userEmail;
-  if (parts[0]) document.getElementById('inp-first').value = parts[0];
-  if (parts[1]) document.getElementById('inp-last').value  = parts.slice(1).join(' ');
-  document.getElementById('screen-welcome').classList.add('active');
+  // Show the "Signed in as …" strip so it's obvious we know who they are.
+  const identCard = document.getElementById('welcome-identity');
+  const emailEl   = document.getElementById('welcome-user-email');
+  if (identCard && emailEl) {
+    emailEl.textContent = userEmail;
+    identCard.style.display = 'block';
+  }
 }
 
 function downloadPDF() {

@@ -1,0 +1,117 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Stawi journey</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;600&display=swap');
+  :root{ --navy:#14284d; --blue:#1c6fb4; --green:#4e9b3a; --ink:#1d2a3a; --muted:#8798ad; --line:#dfe8f2; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{width:1680px;background:#fff;font-family:'Open Sans',-apple-system,sans-serif;color:var(--ink);padding:54px 60px 36px;}
+
+  h1{font-family:'Montserrat',sans-serif;font-size:27px;font-weight:800;color:var(--navy);letter-spacing:-.3px;}
+  .sub{font-size:15px;color:var(--muted);margin:7px 0 40px;}
+
+  .rowlabel{font-family:'Montserrat',sans-serif;font-size:10.5px;font-weight:800;letter-spacing:.14em;
+            text-transform:uppercase;margin-bottom:11px;}
+
+  /* ── the industry today: a short band over the stay only ── */
+  .today{display:grid;grid-template-columns:38fr 13fr 49fr;align-items:center;margin-bottom:12px;}
+  .today .gap{height:16px;border-top:2px dotted var(--line);}
+  .today .band{height:38px;background:#e8edf3;border-radius:7px;display:flex;align-items:center;
+               justify-content:center;font-size:12.5px;color:#7b8a9c;font-weight:600;}
+  .todaynote{font-size:12.5px;color:var(--muted);font-style:italic;margin:0 0 42px;text-align:center;}
+
+  /* ── with Stawi: the full arc, proportional to real time ── */
+  .arc{display:grid;grid-template-columns:38fr 13fr 49fr;gap:9px;}
+  .phase{border-radius:12px;padding:19px 21px 21px;color:#fff;min-height:234px;position:relative;}
+  .p1{background:linear-gradient(160deg,#1c6fb4,#15558c);}
+  .p2{background:linear-gradient(160deg,#14284d,#0f1f3c);}
+  .p3{background:linear-gradient(160deg,#4e9b3a,#3b7a2b);}
+
+  .ptime{font-family:'Montserrat',sans-serif;font-size:9.5px;font-weight:800;letter-spacing:.15em;
+         text-transform:uppercase;opacity:.72;}
+  .pname{font-family:'Montserrat',sans-serif;font-size:19px;font-weight:800;margin:5px 0 3px;letter-spacing:-.2px;}
+  .pttc{font-size:11.5px;opacity:.8;font-style:italic;margin-bottom:14px;}
+  ul{list-style:none;}
+  li{font-size:13px;line-height:1.5;padding:6px 0 6px 17px;position:relative;border-top:1px solid rgba(255,255,255,.16);}
+  li:first-child{border-top:0;}
+  li:before{content:'';position:absolute;left:0;top:13px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.65);}
+  li b{font-weight:700;}
+
+  /* ── the loop back into the network ── */
+  .loop{margin-top:16px;display:flex;align-items:center;gap:13px;border:2px dashed var(--line);
+        border-radius:11px;padding:14px 20px;}
+  .loopicon{font-size:19px;}
+  .loop .t{font-family:'Montserrat',sans-serif;font-weight:800;font-size:12.5px;color:var(--navy);
+           letter-spacing:.05em;text-transform:uppercase;}
+  .loop .d{font-size:13px;color:#52637a;}
+
+  .foot{margin-top:26px;display:flex;justify-content:space-between;align-items:baseline;
+        border-top:1px solid var(--line);padding-top:13px;}
+  .foot .brand{font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;color:var(--navy);}
+  .foot .tag{font-size:12.5px;color:var(--muted);font-style:italic;}
+</style>
+
+<h1>One guest, one journey — reservation to six months home</h1>
+<p class="sub">The bands below are drawn to the time they actually occupy.</p>
+
+<div class="rowlabel" style="color:var(--muted)">What the industry reaches today</div>
+<div class="today">
+  <div class="gap"></div>
+  <div class="band">check-in → check-out</div>
+  <div class="gap"></div>
+</div>
+<p class="todaynote">Everything before the arrival is marketing. Everything after it is a satisfaction survey and an offer to return.</p>
+
+<div class="rowlabel" style="color:var(--navy)">What Stawi reaches</div>
+<div class="arc">
+
+  <div class="phase p1">
+    <div class="ptime">Reservation → arrival · weeks to months</div>
+    <div class="pname">Before</div>
+    <div class="pttc">TTC: pre-trip preparation</div>
+    <ul>
+      <li><b>Traveler Style Assessment</b> — one of five segments, and how they like to be guided</li>
+      <li><b>"I want to go from ___ to ___"</b> — revisited each month until it is theirs</li>
+      <li><b>Monthly journaling</b>, so the aspiration can surface before they travel</li>
+      <li><b>Couples see each other</b> — the compatibility report lands before the trip, not after</li>
+    </ul>
+  </div>
+
+  <div class="phase p2">
+    <div class="ptime">The stay</div>
+    <div class="pname">During</div>
+    <div class="pttc">TTC: experience &amp; reflection</div>
+    <ul>
+      <li><b>A daily companion</b> — conditions, sun and moon, what is on</li>
+      <li><b>Guidance matched</b> to style and aspiration</li>
+      <li><b>Journaling and a photo or two</b> a day</li>
+      <li><b>The staff know how to host them</b> — before they arrive, not by day three</li>
+    </ul>
+  </div>
+
+  <div class="phase p3">
+    <div class="ptime">Check-out → six months · where it holds or dissolves</div>
+    <div class="pname">After</div>
+    <div class="pttc">TTC: evaluation &amp; integration</div>
+    <ul>
+      <li><b>Week two</b> — their own words and photographs returned. <i>What has changed?</i></li>
+      <li><b>Months two to five</b> — one short prompt a month. Deliberately sparse</li>
+      <li><b>Month six</b> — the assessment retaken, the movement shown, the whole arc as a keepsake</li>
+      <li><b>One well-earned invitation back</b>, at the moment it means something</li>
+      <li><b>Evidence for the property</b> — which aspirations hold, and what produced them</li>
+    </ul>
+  </div>
+</div>
+
+<div class="loop">
+  <div class="loopicon">↻</div>
+  <div>
+    <div class="t">And then the next one</div>
+    <div class="d">The guest carries their record — the trend, the aspirations, what actually changed — to the next destination in the network. They choose what to share. The journey continues instead of restarting.</div>
+  </div>
+</div>
+
+<div class="foot">
+  <div class="brand">Stawi</div>
+  <div class="tag">Travel that makes us flourish · Transformed by Travels, LLC</div>
+</div>

@@ -3,11 +3,16 @@ const https = require('https');
 const BASE_ID    = 'appdlxcWb45dIqNK2';
 const TABLE_NAME = 'TFG Items';
 
+const CORE_DIMS = new Set(['Curiosity','Adventure','Reflection','Connection','Travel Purpose']);
+
 module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const special = String((req.query && req.query.special) || '').toLowerCase();
+  const includeWildlife = special === 'animals';
 
   const apiKey  = process.env.AIRTABLE_API_KEY;
   const sort    = 'sort[0][field]=Item%20Number&sort[0][direction]=asc';
@@ -22,7 +27,7 @@ module.exports = function handler(req, res) {
     let data = '';
     resp.on('data', chunk => { data += chunk; });
     resp.on('end', () => {
-      console.log('[tfg-items] status:', resp.statusCode, 'body:', data.slice(0, 300));
+      console.log('[tfg-items] status:', resp.statusCode, 'special:', special);
       try {
         const parsed = JSON.parse(data);
         if (parsed.error) {
@@ -38,8 +43,9 @@ module.exports = function handler(req, res) {
           highlight: r.fields['Highlight Item']          || false,
           aCoach:    r.fields['Option A Coaching Text']  || '',
           bCoach:    r.fields['Option B Coaching Text']  || ''
-        })).filter(q => q.id && q.stem);
-        res.status(200).json({ items });
+        })).filter(q => q.id && q.stem)
+           .filter(q => includeWildlife || CORE_DIMS.has(q.dim));
+        res.status(200).json({ items, special });
       } catch(e) {
         res.status(500).json({ error: 'Parse error: ' + e.message });
       }

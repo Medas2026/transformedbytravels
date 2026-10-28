@@ -62,7 +62,10 @@ module.exports = function handler(req, res) {
   if (req.method === 'GET' && req.query.action === 'planner-list') {
     const email = ((req.query && req.query.email) || '').toLowerCase().trim();
     if (!email) return res.status(400).json({ error: 'Email required' });
-    const filter = `?filterByFormula=${encodeURIComponent(`({Travel Planner Email}="${email}")`)}`;
+    // Includes clients where the requester is either the assigned Travel Planner
+    // OR the assigned Coach with a Linked pairing status.
+    const formula = `OR(({Travel Planner Email}="${email}"),AND({Coach Email}="${email}",{Coach Pairing Status}="Linked"))`;
+    const filter  = `?filterByFormula=${encodeURIComponent(formula)}`;
     airtableRequest('GET', filter, null, (err, data) => {
       if (err) return res.status(500).json({ error: err.message });
       res.status(200).json({ records: data.records || [] });
@@ -124,6 +127,19 @@ module.exports = function handler(req, res) {
     return;
   }
 
+  // GET — load profile by Airtable record ID (used to resolve linked-record fields
+  // like Traveler.Partner where the value is a record ID array).
+  if (req.method === 'GET' && req.query.action === 'get-by-id') {
+    const id = (req.query.id || '').trim();
+    if (!id) return res.status(400).json({ error: 'id required' });
+    airtableRequest('GET', '/' + id, null, (err, data) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (data.error) return res.status(500).json({ error: data.error.message || JSON.stringify(data.error) });
+      res.status(200).json({ record: data });
+    });
+    return;
+  }
+
   // GET — load profile by email
   if (req.method === 'GET') {
     const email = ((req.query && req.query.email) || '').toLowerCase().trim();
@@ -161,8 +177,11 @@ module.exports = function handler(req, res) {
 
       airtableRequest('PATCH', `/${recordId}`, { fields }, async (err2, data2, status2) => {
         if (err2) return res.status(500).json({ error: err2.message });
-        if (data2.error) return res.status(500).json({ error: data2.error, detail: data2 });
-        if (!b.dnaQueryUpdate && !b.profileEdit) await writeAssessmentHistory(b);
+        if (data2.error) { console.error('[airtable-traveler] PATCH rejected:', JSON.stringify(data2)); return res.status(500).json({ error: data2.error, detail: data2 }); }
+        if (!b.dnaQueryUpdate && !b.profileEdit) {
+          await writeAssessmentHistory(b);
+          await writeTripArchetype(b);
+        }
         res.status(200).json({ success: true, action: 'updated', record: data2 });
       });
 
@@ -175,6 +194,7 @@ module.exports = function handler(req, res) {
         if (err2) { console.error('[airtable-traveler] create error:', err2.message); return res.status(500).json({ error: err2.message }); }
         if (data2.error) { console.error('[airtable-traveler] Airtable create rejected:', JSON.stringify(data2)); return res.status(500).json({ error: data2.error, detail: data2 }); }
         await writeAssessmentHistory(b);
+        await writeTripArchetype(b);
         res.status(200).json({ success: true, action: 'created', record: data2 });
       });
     }
@@ -190,23 +210,39 @@ function buildFields(b, isNew) {
     };
   }
 
-  // Profile edit — only update contact fields
+  // Profile edit — only update contact fields.
+  // Skip empty strings for single-select fields (Airtable rejects "" as it
+  // tries to create a new option named "" which needs schema permissions).
   if (b.profileEdit) {
     const fields = {};
-    if (b.name              !== undefined) fields['Traveler Name']            = b.name;
-    if (b.phone             !== undefined) fields['Phone Number']             = b.phone;
-    if (b.address           !== undefined) fields['Address']                  = b.address;
-    if (b.city              !== undefined) fields['City']                     = b.city;
-    if (b.state             !== undefined) fields['State']                    = b.state;
-    if (b.zip               !== undefined) fields['ZIP Code']                 = b.zip;
-    if (b.homeAirport       !== undefined) fields['Home Airport']             = b.homeAirport;
-    if (b.travelStyle       !== undefined) fields['Travel Style']             = b.travelStyle;
-    if (b.homeTimezone      !== undefined) fields['Home Timezone']            = b.homeTimezone;
-    if (b.distanceUnits     !== undefined) fields['Distance Units']           = b.distanceUnits;
-    if (b.dateFormat        !== undefined) fields['Date Format']              = b.dateFormat;
-    if (b.profilePhotoUrl   !== undefined) fields['Profile Photo URL']        = b.profilePhotoUrl;
-    if (b.preTripWorkshopDate     !== undefined) fields['Pre-Trip Workshop Date']     = b.preTripWorkshopDate;
-    if (b.integrationWorkshopDate !== undefined) fields['Integration Workshop Date'] = b.integrationWorkshopDate;
+    const setIfPresent = (k, v) => { if (v !== undefined) fields[k] = v; };
+    const setIfNonEmpty = (k, v) => { if (v !== undefined && v !== '') fields[k] = v; };
+    setIfPresent('Traveler Name',    b.name);
+    setIfPresent('Phone Number',     b.phone);
+    setIfPresent('Address',          b.address);
+    setIfPresent('City',             b.city);
+    setIfPresent('State',            b.state);
+    setIfPresent('ZIP Code',         b.zip);
+    setIfPresent('Home Airport',     b.homeAirport);
+    setIfPresent('Profile Photo URL', b.profilePhotoUrl);
+    // Single-select fields — skip empty strings
+    setIfNonEmpty('Travel Style',    b.travelStyle);
+    setIfNonEmpty('Home Timezone',   b.homeTimezone);
+    setIfNonEmpty('Distance Units',  b.distanceUnits);
+    setIfNonEmpty('Date Format',     b.dateFormat);
+    setIfPresent('Pre-Trip Workshop Date',     b.preTripWorkshopDate);
+    setIfPresent('Integration Workshop Date',  b.integrationWorkshopDate);
+    // Emergency Contact + Health fields
+    setIfPresent('Emergency Contact Name',         b.emergencyName);
+    setIfNonEmpty('Emergency Contact Relationship', b.emergencyRelationship);
+    setIfPresent('Emergency Contact Phone',        b.emergencyPhone);
+    setIfPresent('Emergency Contact Email',        b.emergencyEmail);
+    setIfNonEmpty('Blood Type',                    b.bloodType);
+    setIfPresent('Allergies',                      b.allergies);
+    setIfPresent('Medications',                    b.medications);
+    setIfPresent('Medical Conditions',             b.medicalConditions);
+    setIfPresent('Dietary Restrictions',           b.dietaryRestrictions);
+    setIfPresent('Travel Insurance',               b.travelInsurance);
     return fields;
   }
 
@@ -233,6 +269,9 @@ function buildFields(b, isNew) {
     fields['DS-3 Reflection'] = Number(b.scores.Reflection || 0);
     fields['DS-4 Connection'] = Number(b.scores.Connection || 0);
     fields['DS-5 Intention']  = Number(b.scores['Travel Purpose'] || b.scores.Intention || 0);
+    if (b.scores['Wildlife Encounter Style']  != null) fields['DS-6 Encounter Style']  = Number(b.scores['Wildlife Encounter Style']);
+    if (b.scores['Wildlife Expedition Style'] != null) fields['DS-7 Expedition Style'] = Number(b.scores['Wildlife Expedition Style']);
+    if (b.scores['Wildlife Journey Style']    != null) fields['DS-8 Journey Style']    = Number(b.scores['Wildlife Journey Style']);
   }
 
   if (b.tgi !== undefined) {
@@ -254,6 +293,46 @@ function buildFields(b, isNew) {
   return fields;
 }
 
+// Stamp the result onto the trip it was taken for, when the assessment was opened from a
+// guest's trip page (?tripId=…). An archetype describes the trip someone is taking, not a
+// permanent trait — the same guest returning next year should be read afresh, and their
+// earlier stay should keep the answer they gave at the time. Best-effort: a failure here
+// must never fail the assessment itself, since the Traveler record is already saved.
+function writeTripArchetype(b) {
+  return new Promise((resolve) => {
+    const tripId = String(b.tripId || '').trim();
+    if (!tripId || !b.archetype) return resolve(false);
+
+    const bodyStr = JSON.stringify({
+      fields: {
+        'Archetype': b.archetype,
+        'Assessment Date': new Date().toISOString().split('T')[0],
+      },
+    });
+    const options = {
+      hostname: 'api.airtable.com',
+      path: `/v0/${BASE_ID}/${encodeURIComponent('Trips')}/${tripId}`,
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'Bearer ' + process.env.AIRTABLE_API_KEY,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(bodyStr),
+      },
+    };
+    const rq = https.request(options, (r) => {
+      let d = '';
+      r.on('data', c => d += c);
+      r.on('end', () => {
+        if (r.statusCode >= 300) console.error('[trip archetype] Airtable said', r.statusCode, d.slice(0, 200));
+        resolve(r.statusCode < 300);
+      });
+    });
+    rq.on('error', (e) => { console.error('[trip archetype]', e.message); resolve(false); });
+    rq.write(bodyStr);
+    rq.end();
+  });
+}
+
 function writeAssessmentHistory(b) {
   return new Promise((resolve) => {
     const fields = {
@@ -272,6 +351,9 @@ function writeAssessmentHistory(b) {
       fields['DS-3 Reflection'] = Number(b.scores.Reflection || 0);
       fields['DS-4 Connection'] = Number(b.scores.Connection || 0);
       fields['DS-5 Intention']  = Number(b.scores['Travel Purpose'] || b.scores.Intention || 0);
+      if (b.scores['Wildlife Encounter Style']  != null) fields['DS-6 Encounter Style']  = Number(b.scores['Wildlife Encounter Style']);
+      if (b.scores['Wildlife Expedition Style'] != null) fields['DS-7 Expedition Style'] = Number(b.scores['Wildlife Expedition Style']);
+      if (b.scores['Wildlife Journey Style']    != null) fields['DS-8 Journey Style']    = Number(b.scores['Wildlife Journey Style']);
     }
     if (b.tgi !== undefined) fields['TGI'] = Number(b.tgi);
     if (b.itemScores) fields['Item Scores'] = typeof b.itemScores === 'string' ? b.itemScores : JSON.stringify(b.itemScores);

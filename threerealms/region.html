@@ -99,7 +99,7 @@
     /* ── REALM TABS ── */
     .tabs-section {
       background: var(--dark); border-bottom: 1px solid rgba(255,255,255,0.07);
-      position: sticky; top: 64px; z-index: 50;
+      position: sticky; top: 96px; z-index: 50;
     }
     .tabs-inner { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
     .tab-bar { display: flex; gap: 0; }
@@ -219,6 +219,22 @@
     }
     .species-months { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 10px; }
     .species-month { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.58rem; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: rgba(45,212,191,0.15); color: var(--teal); }
+    .species-locations {
+      display: flex; flex-wrap: wrap; gap: 4px;
+      margin-top: 10px; padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .species-locations-label {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); width: 100%; margin-bottom: 2px;
+    }
+    .species-loc-chip {
+      font-family: 'Montserrat', sans-serif; font-weight: 600;
+      font-size: 0.66rem; padding: 3px 8px; border-radius: 4px;
+      background: rgba(255,255,255,0.06); color: var(--soft);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
     .no-species { text-align: center; padding: 48px 20px; color: var(--muted); font-style: italic; grid-column: 1 / -1; }
     .loading-msg { text-align: center; padding: 48px 20px; color: var(--muted); font-style: italic; grid-column: 1 / -1; }
     .location-filter { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
@@ -230,6 +246,38 @@
     .loc-chip.active { background: rgba(45,212,191,0.15); border-color: #2dd4bf; color: #2dd4bf; }
     @media (max-width: 600px) {
       .loc-country { min-width: 0; width: 100%; margin-bottom: 2px; }
+    }
+
+    /* ── Save-this-Place button (region.html) ── */
+    .place-save-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(45,212,191,0.4);
+      background: transparent;
+      color: #2dd4bf;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+    }
+    .place-save-btn:hover {
+      background: rgba(45,212,191,0.15);
+      border-color: #2dd4bf;
+      color: #fff;
+    }
+    .place-save-btn:active { transform: scale(0.97); }
+    .place-save-btn.saved {
+      background: #2dd4bf;
+      color: #0a1628;
+      border-color: #2dd4bf;
+    }
+    .place-save-btn.saved:hover {
+      background: #14b8a6;
+      border-color: #14b8a6;
+      color: #0a1628;
     }
     .sp-pos-btns { position: absolute; bottom: 6px; left: 6px; display: none; gap: 2px; }
     .sp-edit-mode .sp-pos-btns { display: flex; }
@@ -268,16 +316,27 @@
       footer { flex-direction: column; align-items: flex-start; padding: 32px 20px; }
     }
   </style>
+<script src="wishlist-widget.js" defer></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/js/mobile-nav.js"></script>
 </head>
 <body>
 
 <!-- NAV -->
 <nav>
-  <a class="nav-brand" href="index.html">THREE <span>REALMS</span> TRAVEL</a>
+  <a class="nav-brand" href="index.html"><img src="realm-symbols/logo.png" alt="Three Realms Travel" style="height:90px;width:auto;display:block;"></a>
   <div class="nav-links">
-    <a class="nav-back" href="index.html#explore">← All Regions</a>
-    <a href="index.html#services">Services</a>
-    <a href="index.html#cta" style="background:var(--teal);color:#0a1628;padding:9px 22px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-decoration:none;letter-spacing:0.05em;">Get Started</a>
+    <a href="our-product.html">Product</a>
+    <a href="world-animals.html">World Animals</a>
+    <a href="wildlife-100.html">Wildlife 100</a>
+    <a href="itineraries.html">Itineraries</a>
+    <a href="trip-reports.html">Trip Reports</a>
+    <a href="field-notes.html">Field Notes</a>
+    <a href="https://app.transformedbytravels.com/travelers-corner.html">Travelers&#39; Corner</a>
+    <a href="store.html">Store</a>
+    <a href="partners.html">Partners</a>
+    <a href="https://app.transformedbytravels.com/portal.html" style="color: var(--teal) !important; border: 1px solid var(--teal); padding: 8px 18px; border-radius: 6px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">My Portal</a>
+    <a href="lets-talk.html?ref=nav#book" style="background:var(--teal);color:#0a1628 !important;padding:9px 22px;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.82rem;text-decoration:none;letter-spacing:0.05em;">Get Started</a>
   </div>
 </nav>
 
@@ -292,6 +351,17 @@
     <div class="hero-badges" id="hero-badges"></div>
     <h1 class="hero-region" id="region-name">Loading…</h1>
     <p class="hero-sub" id="region-sub"></p>
+    <button id="save-region-btn" onclick="saveThisRegion(this)" style="display:none;margin-top:14px;padding:9px 18px;border:1px solid rgba(255,255,255,0.35);border-radius:22px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.05em;cursor:pointer;background:rgba(0,0,0,0.4);color:#fff;backdrop-filter:blur(6px);">❤ Save this Region</button>
+    <div id="hero-seasonality" style="display:none;margin-top:14px;font-family:'Montserrat',sans-serif;font-size:0.82rem;color:#e2e8f0;"></div>
+  </div>
+</div>
+
+<!-- SEASONALITY PANEL — full detail -->
+<div id="seasonality-panel" style="display:none;max-width:1000px;margin:20px auto 0;padding:0 24px;">
+  <div style="background:rgba(15,30,53,0.6);border:1px solid rgba(45,212,191,0.2);border-radius:14px;padding:22px 26px;">
+    <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:#2dd4bf;margin-bottom:12px;">When to go</div>
+    <div id="seasonality-months" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;"></div>
+    <div id="seasonality-notes" style="font-family:'Lora', Georgia, serif;font-size:0.95rem;color:#cbd5e1;line-height:1.7;"></div>
   </div>
 </div>
 
@@ -327,6 +397,13 @@
       <button id="sp-adjust-btn" class="sp-adjust-btn" onclick="spToggleEdit()" title="Adjust photo crop positions" style="margin-top:28px;flex-shrink:0;">⊙ Adjust</button>
     </div>
     <p class="species-subhead" id="species-subhead">Loading…</p>
+    <div style="margin-bottom:14px;position:relative;max-width:420px;">
+      <input id="species-search" type="text" placeholder="Search for an animal — e.g. leopard, lion, elephant"
+        oninput="setSpeciesSearch(this.value)"
+        style="width:100%;background:var(--s3);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 38px 10px 14px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:0.9rem;outline:none;">
+      <button id="species-search-clear" onclick="clearSpeciesSearch()"
+        style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);font-size:1.15rem;cursor:pointer;padding:4px 8px;">×</button>
+    </div>
     <div class="location-filter" id="location-filter" style="display:none;"></div>
     <div class="species-filter" id="species-filter" style="display:none;"></div>
     <div class="species-grid" id="species-grid">
@@ -361,7 +438,7 @@ const REALM_COLORS = { land: '#d97706', ocean: '#0ea5e9', sky: '#8b5cf6' };
 const REALM_LABELS = { land: '🌿 Land', ocean: '🌊 Ocean', sky: '🐦 Sky' };
 const REALM_BADGE  = { land: 'badge-land', ocean: 'badge-ocean', sky: 'badge-sky' };
 const STATUS_CLASS = { LC:'status-LC', NT:'status-NT', VU:'status-VU', EN:'status-EN', CR:'status-CR' };
-const TYPE_EMOJI   = { Mammal:'🦁', Bird:'🦅', Reptile:'🐢', Fish:'🐠', Insect:'🦋', 'Marine Mammal':'🐋', Amphibian:'🐸' };
+const TYPE_EMOJI   = { Mammal:'🦁', Bird:'🦅', Reptile:'🐢', Fish:'🐠', Insect:'🦋', 'Marine Mammal':'🐋', Amphibian:'🐸', Cephalopod:'🐙', Crustacean:'🦀', Coral:'🪸', Invertebrate:'⭐' };
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // Peak months aggregated from species
@@ -373,6 +450,32 @@ const regionName  = (params.get('name') || '').trim();
 if (!regionName) {
   document.getElementById('region-name').textContent = 'Region not found';
   document.getElementById('region-sub').textContent  = 'No region specified in URL.';
+}
+
+// ── Save-this-Region (wishlist) ──────────────────────────────────────────
+let _wlRegion = null;
+function _setRegionSaveBtn(btn, saved) {
+  btn.textContent = saved ? '✓ Region Saved' : '❤ Save this Region';
+  btn.style.background  = saved ? '#2dd4bf' : 'rgba(0,0,0,0.4)';
+  btn.style.color       = saved ? '#0a1628' : '#fff';
+  btn.style.borderColor = saved ? '#2dd4bf' : 'rgba(255,255,255,0.35)';
+}
+function _initRegionSaveButton() {
+  const btn = document.getElementById('save-region-btn');
+  if (!btn || !_wlRegion) return;
+  btn.style.display = 'inline-block';
+  _setRegionSaveBtn(btn, !!(window.tbtWishlist && window.tbtWishlist.isRegionSaved(_wlRegion.name)));
+}
+function saveThisRegion(btn) {
+  if (!_wlRegion || !window.tbtWishlist) return;
+  const added = window.tbtWishlist.toggleRegion({
+    name:  _wlRegion.name,
+    hero:  _wlRegion.heroPhoto || '',
+    land:  _wlRegion.land,
+    ocean: _wlRegion.ocean,
+    sky:   _wlRegion.sky,
+  });
+  _setRegionSaveBtn(btn, added);
 }
 
 async function init() {
@@ -395,6 +498,9 @@ async function init() {
     return;
   }
 
+  _wlRegion = region;
+  _initRegionSaveButton();
+
   // Determine primary realm color for hero
   const primaryRealm = region.land ? 'land' : region.ocean ? 'ocean' : 'sky';
   const heroColor    = REALM_COLORS[primaryRealm];
@@ -404,7 +510,11 @@ async function init() {
 
   // Hero realm image hint
   const imgEl = document.getElementById('hero-bg-img');
-  if (region.land)  imgEl.style.backgroundImage = "url('../images/realms/Land.jpg')";
+  if (region.heroPhoto) {
+    imgEl.style.backgroundImage = `url('${String(region.heroPhoto).replace(/'/g, "%27")}')`;
+    imgEl.style.opacity = '0.55';   // the region's own photo — show it, scrim keeps the title legible
+  }
+  else if (region.land)  imgEl.style.backgroundImage = "url('../images/realms/Land.jpg')";
   else if (region.ocean) imgEl.style.backgroundImage = "url('../images/realms/Ocean.jpg')";
   else imgEl.style.backgroundImage = "url('../images/realms/Sky.png')";
 
@@ -429,6 +539,9 @@ async function init() {
   const subText = primaryDesc ? primaryDesc.split('.')[0] + '.' : '';
   document.getElementById('region-sub').textContent = subText;
 
+  // Seasonality
+  renderSeasonality(region);
+
   // CTA heading
   document.getElementById('cta-heading').textContent = `Ready to visit ${region.name}?`;
 
@@ -441,6 +554,46 @@ async function init() {
 
   // Species
   await renderSpecies(regionName, activeRealms);
+}
+
+// ── Seasonality panel ─────────────────────────────────────────────────────
+function renderSeasonality(region) {
+  const best  = Array.isArray(region.bestMonths)  ? region.bestMonths  : [];
+  const avoid = Array.isArray(region.avoidMonths) ? region.avoidMonths : [];
+  const notes = region.seasonalityNotes || '';
+  if (!best.length && !avoid.length && !notes) return;
+
+  const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const bestSet  = new Set(best);
+  const avoidSet = new Set(avoid);
+
+  // Compact hero label — small teal "Best: Jun–Sep"
+  const range = (arr) => {
+    if (!arr.length) return '';
+    if (arr.length === 12) return 'Year-round';
+    const idx = arr.map(m => M.indexOf(m)).filter(i => i >= 0).sort((a,b) => a-b);
+    if (idx.every((v,i) => i === 0 || v === idx[i-1] + 1)) return `${M[idx[0]]}–${M[idx[idx.length-1]]}`;
+    return idx.map(i => M[i]).join(', ');
+  };
+  const heroLabel = best.length ? `<span style="color:#2dd4bf;font-weight:700;">Best months:</span> ${range(best)}` : '';
+  const heroEl = document.getElementById('hero-seasonality');
+  if (heroEl && heroLabel) { heroEl.innerHTML = heroLabel; heroEl.style.display = 'block'; }
+
+  // Full panel
+  const monthsEl = document.getElementById('seasonality-months');
+  if (monthsEl) {
+    monthsEl.innerHTML = M.map(m => {
+      const isBest  = bestSet.has(m);
+      const isAvoid = avoidSet.has(m);
+      const bg = isBest ? 'rgba(45,212,191,0.2)' : isAvoid ? 'rgba(244,63,94,0.15)' : 'rgba(255,255,255,0.04)';
+      const col = isBest ? '#2dd4bf' : isAvoid ? '#f43f5e' : '#64748b';
+      const border = isBest ? 'rgba(45,212,191,0.4)' : isAvoid ? 'rgba(244,63,94,0.35)' : 'rgba(255,255,255,0.08)';
+      return `<div style="flex:1;min-width:56px;padding:8px 4px;text-align:center;background:${bg};border:1px solid ${border};border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;color:${col};letter-spacing:0.05em;">${m}</div>`;
+    }).join('');
+  }
+  const notesEl = document.getElementById('seasonality-notes');
+  if (notesEl) notesEl.innerHTML = notes ? notes.split(/\n{2,}/).map(p => `<p style="margin:0 0 8px;">${p.replace(/\n/g,'<br>')}</p>`).join('') : '';
+  document.getElementById('seasonality-panel').style.display = 'block';
 }
 
 function buildTabs(region, activeRealms) {
@@ -473,12 +626,6 @@ function buildTabs(region, activeRealms) {
         <div class="tab-desc">${desc || '<em style="color:var(--muted)">Highlights coming soon.</em>'}</div>
       </div>
       <div class="tab-aside" id="aside-${realm}">
-        <div class="aside-card">
-          <div class="aside-label">Best months</div>
-          <div class="months-bar" id="months-${realm}">
-            ${MONTHS_SHORT.map(m => `<span class="month-pill" data-month="${m}">${m}</span>`).join('')}
-          </div>
-        </div>
         <div class="aside-card" id="aside-parks-${realm}" style="display:none;">
           <div class="aside-label">Key parks &amp; reserves</div>
           <div class="aside-text" id="parks-text-${realm}"></div>
@@ -511,26 +658,49 @@ function setParksAside(realm, parks) {
 }
 
 function initMiniMap(region) {
-  const miniMap = L.map('mini-map', {
+  _miniMap = L.map('mini-map', {
     center: [region.lat, region.lng],
     zoom: 4, zoomControl: true, scrollWheelZoom: false,
     dragging: true,
   });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © CARTO',
-    subdomains: 'abcd', maxZoom: 20
-  }).addTo(miniMap);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © Esri',
+    maxNativeZoom: 16, maxZoom: 20
+  }).addTo(_miniMap);
 
   const color = region.land ? REALM_COLORS.land : region.ocean ? REALM_COLORS.ocean : REALM_COLORS.sky;
   L.circleMarker([region.lat, region.lng], {
     radius: 10, color: '#0a1628', weight: 2,
     fillColor: color, fillOpacity: 0.9,
-  }).addTo(miniMap).bindTooltip(region.name, { permanent: true, direction: 'top', offset: [0, -12], className: 'map-tooltip' });
+  }).addTo(_miniMap).bindTooltip(region.name, { permanent: true, direction: 'top', offset: [0, -12], className: 'map-tooltip' });
+  _miniRegionView = { center: [region.lat, region.lng], zoom: 4 };
+}
+
+// Re-center the mini-map on the selected park (when it has coordinates);
+// clearing the selection returns it to the whole-region view.
+function focusPark(loc) {
+  if (!_miniMap) return;
+  if (loc && loc.lat && loc.lng) {
+    if (_parkMarker) _parkMarker.remove();
+    _parkMarker = L.circleMarker([loc.lat, loc.lng], {
+      radius: 8, color: '#0a1628', weight: 2, fillColor: '#fbbf24', fillOpacity: 0.95,
+    }).addTo(_miniMap).bindTooltip(loc.name, { permanent: true, direction: 'top', offset: [0, -10], className: 'map-tooltip' });
+    _miniMap.setView([loc.lat, loc.lng], 7, { animate: true });
+  } else {
+    if (_parkMarker) { _parkMarker.remove(); _parkMarker = null; }
+    if (_miniRegionView) _miniMap.setView(_miniRegionView.center, _miniRegionView.zoom, { animate: true });
+  }
 }
 
 let _allSpecies    = [];
+let _allLocations  = [];
+let _locById       = new Map();
+let _miniMap       = null;
+let _miniRegionView = null;
+let _parkMarker    = null;
 let _activeLocId   = null;
 let _activeType    = 'all';
+let _searchText    = '';
 let _regionName    = '';
 
 async function renderSpecies(name, activeRealms) {
@@ -548,6 +718,8 @@ async function renderSpecies(name, activeRealms) {
     ]);
     _allSpecies = (await specResp.json()).species || [];
     const locations = (await locResp.json()).locations || [];
+    _allLocations = locations;
+    _locById = new Map(locations.map(l => [l.id, l]));
 
     if (!_allSpecies.length) {
       subhead.textContent = 'Species data for this region is coming soon.';
@@ -584,9 +756,38 @@ async function renderSpecies(name, activeRealms) {
     const allMonths = new Set(_allSpecies.flatMap(s => (s.bestMonths || []).map(m => m.slice(0,3))));
     if (activeRealms) activeRealms.forEach(realm => highlightMonths(realm, allMonths));
 
-    // Parks aside
-    const allParks = [...new Set(_allSpecies.flatMap(s => s.bestParks || []))].sort();
-    if (activeRealms) activeRealms.forEach(r => setParksAside(r, allParks));
+    // Parks aside — use the region's OWN curated wildlife locations (region-
+    // scoped), ranked so the iconic parks come first. Previously this unioned
+    // every species' global `bestParks`, which span the whole continent, so
+    // e.g. East Africa wrongly listed Kruger, Chobe, Okavango, etc.
+    const PARK_STOP = new Set(['lake','national','park','reserve','np','marine','conservancy',
+      'mountains','mountain','hills','hill','forest','island','stream','wildlife','game',
+      'area','conservation','the','river']);
+    const normPark = s => s.toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .replace(/([a-z])\1+/g, '$1')              // collapse doubled letters: maasai → masai
+      .split(' ').filter(t => t && !PARK_STOP.has(t)).join(' ').trim();
+
+    let parkNames;
+    if (_allLocations.length) {
+      // Rank each region park by how many species flag it as a "best" park
+      // (fuzzy-matched to bridge naming gaps like "Masai" vs "Maasai Mara",
+      // "Lake Manyara" vs "Manyara"), so famous parks sort to the top.
+      const bestNorm = _allSpecies.flatMap(s => s.bestParks || []).map(normPark).filter(Boolean);
+      const scoreOf  = key => key ? bestNorm.reduce((n, b) => n + (key === b || key.includes(b) || b.includes(key) ? 1 : 0), 0) : 0;
+      const seen = new Set();
+      parkNames = _allLocations
+        .map(l => (l.name || '').trim()).filter(Boolean)
+        .map(name => ({ name, key: normPark(name) }))
+        .filter(o => o.key && !seen.has(o.key) && seen.add(o.key))   // dedupe e.g. "Nakuru" / "Lake Nakuru"
+        .map(o => ({ name: o.name, score: scoreOf(o.key) }))
+        .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
+        .map(o => o.name);
+    } else {
+      // No curated locations for this region yet — fall back to species bestParks.
+      parkNames = [...new Set(_allSpecies.flatMap(s => s.bestParks || []))].sort();
+    }
+    if (activeRealms) activeRealms.forEach(r => setParksAside(r, parkNames));
 
     // Build type filter
     const types = [...new Set(_allSpecies.map(s => s.type || s.category).filter(Boolean))].sort();
@@ -626,6 +827,17 @@ function setTypeFilter(type, btn) {
   applyFilters();
 }
 
+function setSpeciesSearch(text) {
+  _searchText = (text || '').trim().toLowerCase();
+  document.getElementById('species-search-clear').style.display = _searchText ? 'block' : 'none';
+  applyFilters();
+}
+
+function clearSpeciesSearch() {
+  document.getElementById('species-search').value = '';
+  setSpeciesSearch('');
+}
+
 function applyFilters() {
   const grid    = document.getElementById('species-grid');
   const subhead = document.getElementById('species-subhead');
@@ -637,10 +849,80 @@ function applyFilters() {
   if (_activeType !== 'all') {
     filtered = filtered.filter(s => (s.type || s.category) === _activeType);
   }
+  if (_searchText) {
+    filtered = filtered.filter(s =>
+      (s.name || '').toLowerCase().includes(_searchText) ||
+      (s.scientificName || '').toLowerCase().includes(_searchText)
+    );
+  }
 
-  const locLabel = _activeLocId ? 'at this location' : `across ${_regionName}`;
-  subhead.textContent = `${filtered.length} species recorded ${locLabel}${_activeLocId ? '' : ' — from the iconic to the hidden gem'}.`;
+  const activeLoc = _activeLocId ? _allLocations.find(l => l.id === _activeLocId) : null;
+  const activeLocName = activeLoc ? activeLoc.name : '';
+
+  // When a specific place is active, hide the plain subhead and let the
+  // integrated save-bar carry the "X species at [Place]" line instead.
+  if (activeLoc) {
+    subhead.style.display = 'none';
+  } else {
+    subhead.style.display = '';
+    let subheadText;
+    if (_searchText) {
+      subheadText = `${filtered.length} species matching "${_searchText}" in ${_regionName}.`;
+    } else {
+      subheadText = `${filtered.length} species recorded across ${_regionName} — from the iconic to the hidden gem.`;
+    }
+    subhead.textContent = subheadText;
+  }
+
+  renderPlaceSaveBar(activeLoc, filtered.length);
+  focusPark(activeLoc);
   renderSpeciesCards(filtered, grid);
+}
+
+// Integrated bar shown when a specific Place is selected. Combines the
+// species-count line + Save button so there's no duplication with the subhead.
+function renderPlaceSaveBar(loc, speciesCount) {
+  const existing = document.getElementById('place-overview');
+  if (!loc) { if (existing) existing.remove(); return; }
+  let card = existing;
+  if (!card) {
+    card = document.createElement('div');
+    card.id = 'place-overview';
+    card.style.cssText = 'background:rgba(45,212,191,0.06);border:1px solid rgba(45,212,191,0.25);border-radius:12px;padding:16px 18px;margin:12px 0 22px;';
+    const subhead = document.getElementById('species-subhead');
+    if (subhead && subhead.parentNode) subhead.parentNode.insertBefore(card, subhead.nextSibling);
+  }
+  const esc = s => (s || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const saved = window.tbtWishlist && window.tbtWishlist.isPlaceSaved(loc.id);
+  const btnLabel = saved ? '✓ Place Saved' : '❤ Save this Place';
+  const meta = [loc.country, loc.parkType].filter(Boolean).map(esc).join(' · ');
+  const descHtml = loc.description
+    ? `<p style="font-size:0.9rem;color:#cbd5e1;line-height:1.7;margin:12px 0 0;">${esc(loc.description)}</p>`
+    : '';
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.05rem;color:#f1f5f9;">📍 ${esc(loc.name)}</div>
+        ${meta ? `<div style="font-family:'Montserrat',sans-serif;font-size:0.74rem;letter-spacing:0.05em;color:#94a3b8;margin-top:3px;text-transform:uppercase;">${meta}</div>` : ''}
+      </div>
+      <button id="place-save-btn" class="place-save-btn${saved ? ' saved' : ''}" onclick="togglePlaceSave('${loc.id}', this)">${btnLabel}</button>
+    </div>
+    ${descHtml}
+    <div style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;color:#2dd4bf;margin-top:14px;">${speciesCount} species recorded here</div>
+  `;
+}
+
+function togglePlaceSave(id, btn) {
+  const loc = _allLocations.find(l => l.id === id);
+  if (!loc || !window.tbtWishlist) return;
+  const added = window.tbtWishlist.togglePlace({
+    id:      loc.id,
+    name:    loc.name,
+    country: loc.country || '',
+    region:  _regionName,
+  });
+  btn.textContent = added ? '✓ Place Saved' : '❤ Save this Place';
+  btn.classList.toggle('saved', added);
 }
 
 function renderSpeciesCards(species, grid) {
@@ -667,8 +949,32 @@ function renderSpeciesCards(species, grid) {
       : `<div class="species-photo-placeholder">${emoji}</div>`;
     const descSnippet = (s.description || '').split('.').slice(0, 2).join('.') + (s.description ? '.' : '');
 
+    // Where in this region can you find it? — only show when more than one
+    // location exists and the user isn't already filtered to a specific one.
+    let locsHtml = '';
+    if (!_activeLocId && _allLocations.length > 1 && (s.locationIds || []).length) {
+      const names = s.locationIds
+        .map(id => _locById.get(id))
+        .filter(Boolean)
+        .map(l => l.name);
+      if (names.length) {
+        locsHtml = `<div class="species-locations">
+          <div class="species-locations-label">Found at</div>
+          ${names.map(n => `<span class="species-loc-chip">${n}</span>`).join('')}
+        </div>`;
+      }
+    }
+
+    const saved = window.tbtWishlist && window.tbtWishlist.isAnimalSaved(s.id || s.name);
+    const heartLabel = saved ? '✓ Saved' : '❤ Save';
+    const heartStyle = saved
+      ? 'background:var(--teal);color:#0a1628;border-color:var(--teal);'
+      : 'background:rgba(0,0,0,0.4);color:#fff;border-color:rgba(255,255,255,0.3);';
+    const heartBtn = `<button class="wl-species-btn" data-sp-id="${s.id}" onclick="toggleAnimalSave('${(s.id || '').replace(/'/g,"\\'")}', this)" style="position:absolute;top:8px;right:8px;padding:5px 11px;border:1px solid;border-radius:16px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.65rem;letter-spacing:0.05em;cursor:pointer;backdrop-filter:blur(6px);${heartStyle}">${heartLabel}</button>`;
+
     return `
-      <div class="species-card" data-sp-id="${s.id}">
+      <div class="species-card" data-sp-id="${s.id}" style="position:relative;">
+        ${heartBtn}
         ${photoHtml}
         <div class="species-body">
           <div class="species-type-tag">${s.type || s.category || ''}</div>
@@ -677,9 +983,27 @@ function renderSpeciesCards(species, grid) {
           ${status ? `<span class="species-status ${statusClass}">${status}</span>` : ''}
           <div class="species-desc">${descSnippet}</div>
           ${monthsHtml}
+          ${locsHtml}
         </div>
       </div>`;
   }).join('');
+}
+
+function toggleAnimalSave(id, btn) {
+  const sp = _allSpecies.find(x => x.id === id);
+  if (!sp || !window.tbtWishlist) return;
+  const added = window.tbtWishlist.toggleAnimal({
+    id:       sp.id,
+    name:     sp.name,
+    sci:      sp.scientificName || '',
+    photo:    sp.photoUrl || '',
+    category: sp.category || sp.type || '',
+  });
+  btn.textContent = added ? '✓ Saved' : '❤ Save';
+  const styleTail = added
+    ? 'background:var(--teal);color:#0a1628;border-color:var(--teal);'
+    : 'background:rgba(0,0,0,0.4);color:#fff;border-color:rgba(255,255,255,0.3);';
+  btn.style.cssText = 'position:absolute;top:8px;right:8px;padding:5px 11px;border:1px solid;border-radius:16px;font-family:\'Montserrat\',sans-serif;font-weight:700;font-size:0.65rem;letter-spacing:0.05em;cursor:pointer;backdrop-filter:blur(6px);' + styleTail;
 }
 
 window.addEventListener('load', init);

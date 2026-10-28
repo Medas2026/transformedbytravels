@@ -97,7 +97,8 @@ function sendInviteEmail(toEmail, fromName, acceptUrl, tripName) {
   <tr><td align="center" style="padding:32px 16px;">
     <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
       <tr><td style="background:#0d1520;padding:28px 40px;text-align:center;border-bottom:3px solid #2dd4bf;">
-        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#2dd4bf;margin:0 0 6px;">Transformed by Travels</p>
+        <img src="https://threerealmstravel.com/threerealms/realm-symbols/logo.png" height="44" alt="Three Realms Travel" style="display:inline-block;margin:0 0 10px;" />
+        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#2dd4bf;margin:0 0 6px;">Three Realms Travel</p>
         <p style="font-family:Georgia,serif;font-size:20px;color:#ffffff;margin:0;">Travel Partner Invitation</p>
       </td></tr>
       <tr><td style="padding:36px 40px 28px;">
@@ -124,7 +125,7 @@ function sendInviteEmail(toEmail, fromName, acceptUrl, tripName) {
 </body></html>`;
 
     const payload = JSON.stringify({
-      from:    'TravelForGrowth@transformedbytravels.com',
+      from:    'Michael at Three Realms Travel <michael@transformedbytravels.com>',
       to:      toEmail,
       subject: `${fromName} invited you to connect on Transformed by Travels`,
       html

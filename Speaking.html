@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Michael Emerson — global speaker, adventure traveler, and technology visionary. Keynotes on transformational travel, personal growth, and the power of exploration." />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="icon" href="/Favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/Favicon.png">
+  <title>Michael Emerson, Speaker — Transformed by Travels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://plausible.io/js/pa-_E9cFdzUFrWlkW9MIz16L.js"></script>
+  <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+  <script defer src="/js/mobile-nav.js"></script>
+  <style>
+    /* ============================================================
+       Speaking page (2026-08)
+       ============================================================ */
+    .sp-hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 84px 24px 64px;
+      text-align: center;
+    }
+    .sp-hero h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.6rem, 6vw, 4.4rem);
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .sp-hero .sp-tag {
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45,212,191,0.1);
+      border: 1px solid rgba(45,212,191,0.3);
+      border-radius: 4px;
+      padding: 6px 14px;
+      margin-bottom: 20px;
+    }
+    .sp-hero .sp-roles {
+      font-family: 'Open Sans', sans-serif;
+      font-size: clamp(1rem, 1.5vw, 1.15rem);
+      color: rgba(255,255,255,0.85);
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .sp-main {
+      padding: 72px 0 40px;
+      background: #fff;
+    }
+    .sp-two-col {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 56px;
+      align-items: start;
+    }
+    .sp-photo {
+      position: sticky;
+      top: 96px;
+    }
+    .sp-photo img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+      display: block;
+    }
+    .sp-copy p {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: #2a2a3e;
+      margin-bottom: 22px;
+    }
+    .sp-copy p:first-of-type::first-line {
+      font-weight: 600;
+    }
+
+    .sp-stats {
+      background: #f7f9fb;
+      padding: 56px 0;
+    }
+    .sp-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .sp-stat {
+      text-align: center;
+      padding: 20px 12px;
+    }
+    .sp-stat-num {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.9rem, 3.5vw, 2.6rem);
+      color: #2a9d8f;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .sp-stat-label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #4a5060;
+    }
+
+    .sp-cta {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 72px 24px;
+      text-align: center;
+    }
+    .sp-cta h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+      margin-bottom: 14px;
+    }
+    .sp-cta p {
+      color: rgba(255,255,255,0.85);
+      max-width: 640px;
+      margin: 0 auto 28px;
+      font-size: 1.05rem;
+    }
+    .sp-cta .btn { padding: 16px 34px; font-size: 1rem; }
+
+    @media (max-width: 900px) {
+      .sp-two-col {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .sp-photo {
+        position: static;
+        max-width: 320px;
+        margin: 0 auto;
+      }
+      .sp-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+  <!-- HEADER / NAV -->
+  <header class="header">
+    <div class="container nav-container">
+      <div class="logo">
+        <a href="/" class="logo-link">
+          <video class="nav-logo-video" src="/images/Rotating Logo.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
+          <span class="logo-text">Transformed<span class="logo-accent">byTravels</span></span>
+        </a>
+      </div>
+      <nav class="nav">
+        <ul class="nav-links">
+          <li><a href="/Assessment">Assessment</a></li>
+          <li><a href="/Technology">Technology</a></li>
+          <li><a href="/Speaking">Speaking</a></li>
+          <li><a href="/Media">Media</a></li>
+          <li><a href="https://app.transformedbytravels.com/portal.html" class="nav-portal-btn">My Portal</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="sp-hero">
+    <span class="sp-tag">Speaking</span>
+    <h1>Michael Emerson</h1>
+    <p class="sp-roles">Global speaker · Adventure traveler · Technology visionary</p>
+  </section>
+
+  <!-- BIO / TWO-COLUMN -->
+  <section class="sp-main">
+    <div class="container">
+      <div class="sp-two-col">
+
+        <div class="sp-photo">
+          <img src="/images/speaking-michael-portrait.png" alt="Michael Emerson" />
+        </div>
+
+        <div class="sp-copy">
+          <p>
+            Michael Emerson is a global speaker, adventure traveler, and technology visionary. He
+            reveals to audiences the potential of travel to help them reach their personal goals.
+            Drawing on a lifetime of exploration and years of work in psychology and technology, he
+            shows how travel can become one of the most powerful tools we have for growth and
+            transformation.
+          </p>
+
+          <p>
+            Michael has spoken at more than 100 corporate events around the world, addressing
+            audiences ranging from intimate leadership groups of 10 to conference halls of 7,500
+            people. His speaking experience spans keynote presentations, hosted events, and on-stage
+            interviews with distinguished guests and fellow speakers. He has appeared as a weekly
+            expert on TV, and his ideas have been featured in magazines, television news programs,
+            and industry newsletters.
+          </p>
+
+          <p>
+            A PhD candidate in Psychology with an emphasis on research and assessment, Michael
+            combines academic insight with real-world experience. He has spent more than a decade
+            working in assessment-driven coaching, helping individuals better understand themselves
+            and reach their potential. His research focuses on transformational travel — how
+            meaningful experiences away from home can reshape our perspectives, values, and identity.
+          </p>
+
+          <p>
+            What makes Michael's message especially compelling is that he lives the adventure he
+            describes. He had to overcome hydrophobia to become a world-class scuba diver. He has
+            survived typhoons at sea and a harrowing medical evacuation from a remote island —
+            experiences that give his insights unusual force. As President of Transformed by Travels,
+            he also brings a leadership perspective that resonates strongly with corporate audiences.
+          </p>
+
+          <p>
+            Through storytelling, original research, and touches of humor and irony, Michael inspires
+            audiences to see travel — and life itself — as a journey of discovery, growth, and
+            transformation. He leaves audiences with an entirely new perspective on how travel can
+            change their lives for the better.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="sp-stats">
+    <div class="sp-stats-grid">
+      <div class="sp-stat">
+        <div class="sp-stat-num">100+</div>
+        <div class="sp-stat-label">Corporate Events</div>
+      </div>
+      <div class="sp-stat">
+        <div class="sp-stat-num">7,500</div>
+        <div class="sp-stat-label">Largest Audience</div>
+      </div>
+      <div class="sp-stat">
+        <div class="sp-stat-num">10+</div>
+        <div class="sp-stat-label">Years of Coaching</div>
+      </div>
+      <div class="sp-stat">
+        <div class="sp-stat-num">PhD</div>
+        <div class="sp-stat-label">Psychology Candidate</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOOKING CTA -->
+  <section class="sp-cta">
+    <h2>Book Michael for your event</h2>
+    <p>
+      Keynote, workshop, or on-stage interview — let's talk about your audience and what you want
+      them to take home.
+    </p>
+    <button type="button"
+            class="btn btn-primary btn-lg"
+            data-cal-link="michael-emerson-tbyt"
+            data-cal-config='{"layout":"month_view"}'
+            style="background:#2a9d8f;color:#fff;border-color:#2a9d8f;">
+      Schedule a Call
+    </button>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-logo">
+        <span class="logo-text">Transformed<span class="logo-accent">byTravels</span></span>
+      </div>
+      <div class="footer-social">
+        <a href="#" aria-label="Twitter">𝕏</a>
+        <a href="#" aria-label="YouTube">▶</a>
+        <a href="#" aria-label="Instagram">📷</a>
+      </div>
+      <p class="footer-copy">&copy; 2026 Transformed by Travels. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Cal.com embed (modal on button click) -->
+  <script>
+    (function (C, A, L) {
+      let p = function (a, ar) { a.q.push(ar); };
+      let d = C.document;
+      C.Cal = C.Cal || function () {
+        let cal = C.Cal; let ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {}; cal.q = cal.q || [];
+          d.head.appendChild(d.createElement("script")).src = A;
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function () { p(api, arguments); };
+          const namespace = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace === "string") {
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ["initNamespace", namespace]);
+          } else p(cal, ar);
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, "https://app.cal.com/embed/embed.js", "Cal");
+    Cal("init", { origin: "https://cal.com" });
+  </script>
+
+</body>
+</html>

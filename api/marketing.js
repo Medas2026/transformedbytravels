@@ -74,7 +74,7 @@ function substitute(text, vars) {
 
 function sendEmail(to, subject, html, callback) {
   const apiKey = process.env.RESEND_API_KEY;
-  const body   = JSON.stringify({ from: 'TravelForGrowth@transformedbytravels.com', to, subject, html });
+  const body   = JSON.stringify({ from: 'Michael at Three Realms Travel <michael@transformedbytravels.com>', to, subject, html });
   const options = {
     hostname: 'api.resend.com',
     path:     '/emails',
@@ -112,7 +112,7 @@ function buildNurtureHTML(name, subject, p1, p2, p3, email, campaign) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
 <tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">
-<img src="${baseUrl}/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>
+<img src="https://threerealmstravel.com/threerealms/realm-symbols/logo.png" height="72" alt="Three Realms Travel" /></td></tr>
 <tr><td style="padding:36px 40px;">
 <h2 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 16px;">${subject}</h2>
 <div style="font-family:Arial,sans-serif;font-size:15px;color:#475569;line-height:1.75;">

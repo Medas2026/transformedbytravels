@@ -37,6 +37,11 @@ module.exports = async function handler(req, res) {
         landDesc:   r.fields['Land Description']  || '',
         oceanDesc:  r.fields['Ocean Description'] || '',
         skyDesc:    r.fields['Sky Description']   || '',
+        heroPhoto:  r.fields['Hero Photo']        || '',
+        bestMonths:       Array.isArray(r.fields['Best Months'])   ? r.fields['Best Months']   : [],
+        avoidMonths:      Array.isArray(r.fields['Avoid Months'])  ? r.fields['Avoid Months']  : [],
+        seasonalityNotes: r.fields['Seasonality Notes']            || '',
+        coachVisited: r.fields['Coach Visited'] === true,
       }));
 
     return res.status(200).json({ regions });

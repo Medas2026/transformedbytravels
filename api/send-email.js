@@ -43,15 +43,28 @@ function buildEmailHTML(name, archetype, archetypePassions, archetypeTag, archet
   const dims = ['Curiosity', 'Adventure', 'Reflection', 'Connection', 'Travel Purpose'];
   const dimRows = dims.map(d => {
     const score = Number((scores || {})[d] || 0);
-    const pct = Math.round((score / 7) * 100);
+    const pct = Math.round((score / 5) * 100);
     return '<tr><td style="padding:6px 0;"><table width="100%" cellpadding="0" cellspacing="0"><tr>' +
       '<td width="130" style="font-family:Arial,sans-serif;font-size:13px;color:#334155;font-weight:bold;padding-right:12px;">' + d + '</td>' +
       '<td><table width="100%" cellpadding="0" cellspacing="0" style="border-radius:6px;background:#e2e8f0;"><tr>' +
       '<td width="' + pct + '%" style="background:#2dd4bf;height:14px;border-radius:6px;"></td><td style="height:14px;"></td>' +
       '</tr></table></td>' +
-      '<td width="45" style="text-align:right;font-family:Arial,sans-serif;font-size:13px;color:#64748b;padding-left:10px;">' + score + '/7</td>' +
+      '<td width="45" style="text-align:right;font-family:Arial,sans-serif;font-size:13px;color:#64748b;padding-left:10px;">' + score + '/5</td>' +
       '</tr></table></td></tr>';
   }).join('');
+
+  // Archetype symbol at the top of the summary card (absolute URL for email clients).
+  const ARCH_ICON = {
+    'The Growth Seeker': 'Growth-seeker-archetype.png',        'Growth Seeker': 'Growth-seeker-archetype.png',
+    'The Adventure Traveler': 'Adventure-Traveler-Archetype.png', 'Adventure Traveler': 'Adventure-Traveler-Archetype.png',
+    'The Cultural Explorer': 'Cultural-Explorer-Archtetype.png',  'Cultural Explorer': 'Cultural-Explorer-Archtetype.png',
+    'The Purpose-Driven Traveler': 'Purpose-Driven-Archetype.png','Purpose-Driven Traveler': 'Purpose-Driven-Archetype.png',
+    'The Experience Seeker': 'Experience-seeker-archetype.png',   'Experience Seeker': 'Experience-seeker-archetype.png',
+  };
+  const iconFile = ARCH_ICON[archetype] || '';
+  const iconImg = iconFile
+    ? '<img src="https://transformedbytravels.com/images/archetypes/' + encodeURIComponent(iconFile) + '" alt="" width="112" style="width:112px;height:auto;display:block;margin:0 auto 18px;" />'
+    : '';
 
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#f1f5f9;">' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">' +
@@ -76,6 +89,7 @@ function buildEmailHTML(name, archetype, archetypePassions, archetypeTag, archet
     '<tr><td style="padding:0 40px 32px;">' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:12px;">' +
     '<tr><td style="padding:32px;text-align:center;">' +
+    iconImg +
     '<p style="font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#2dd4bf;margin:0 0 10px;">' + (archetypeTag || '') + '</p>' +
     '<h2 style="font-family:Georgia,serif;font-size:26px;color:#ffffff;margin:0 0 8px;">' + (archetype || '') + '</h2>' +
     (archetypePassions ? '<p style="font-family:Arial,sans-serif;font-size:16px;color:#2dd4bf;font-weight:bold;margin:0 0 16px;">' + archetypePassions + '</p>' : '<div style="margin-bottom:16px;"></div>') +
@@ -159,7 +173,7 @@ module.exports = async function handler(req, res) {
         '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:32px 16px;">' +
         '<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">' +
         '<tr><td style="background:#ffffff;padding:32px;text-align:center;border-bottom:3px solid #2dd4bf;">' +
-        '<img src="https://transformedbytravels.vercel.app/images/Base%20Green%20Graphic%20Logo%20Black.png" height="80" alt="Transformed by Travels" /></td></tr>' +
+        '<img src="https://threerealmstravel.com/threerealms/realm-symbols/logo.png" height="72" alt="Three Realms Travel" /></td></tr>' +
         '<tr><td style="padding:36px 40px;">' +
         '<h2 style="font-family:Georgia,serif;font-size:22px;color:#0f172a;margin:0 0 24px;">Your Guide to ' + destination + '</h2>' +
         '<div style="font-family:Arial,sans-serif;font-size:14px;color:#334155;line-height:1.75;">' + guideHtml + '</div>' +
@@ -169,7 +183,7 @@ module.exports = async function handler(req, res) {
         '</td></tr></table></td></tr></table></body></html>';
 
       sendViaResend({
-        from: 'TravelForGrowth@transformedbytravels.com',
+        from: 'Michael at Three Realms Travel <michael@transformedbytravels.com>',
         to: email,
         subject: 'Destination: ' + destination,
         html: destEmailHtml
@@ -248,7 +262,7 @@ module.exports = async function handler(req, res) {
         '<p style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;margin:0;">© Transformed by Travels · All rights reserved</p>' +
         '</td></tr></table></td></tr></table></body></html>';
 
-      sendViaResend({ from: 'TravelForGrowth@transformedbytravels.com', to: email, subject, html: dnaHtml }, apiKey, res);
+      sendViaResend({ from: 'Michael at Three Realms Travel <michael@transformedbytravels.com>', to: email, subject, html: dnaHtml }, apiKey, res);
       return;
     }
 
@@ -266,12 +280,12 @@ module.exports = async function handler(req, res) {
     const p3 = substitute(tmpl.p3, vars);
     const subject = tmpl.subject
       ? substitute(tmpl.subject, vars)
-      : name + ', your Travel for Growth Assessment is ready';
+      : name + ', your Three Realms Travel Assessment is ready';
 
     const html = buildEmailHTML(name, archetype, archetypePassions, archetypeTag, archetypeDesc, scores, [p1, p2, p3]);
 
     sendViaResend({
-      from: 'TravelForGrowth@transformedbytravels.com',
+      from: 'Michael at Three Realms Travel <michael@transformedbytravels.com>',
       to: email,
       subject,
       html

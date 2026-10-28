@@ -39,8 +39,9 @@
   .list-wrap { overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
   .species-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; active: background: var(--s2); }
   .species-row:active { background: var(--s2); }
-  .species-thumb { width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: var(--s2); flex-shrink: 0; }
-  .species-thumb-ph { width: 54px; height: 54px; border-radius: 8px; background: var(--s2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+  .species-thumb { width: 80px; height: 80px; border-radius: 10px; object-fit: contain; background: var(--s2); flex-shrink: 0; transition: filter 0.3s, opacity 0.3s; }
+  .species-thumb.not-seen { filter: grayscale(0.85) brightness(0.95); opacity: 0.85; }
+  .species-thumb-ph { width: 80px; height: 80px; border-radius: 10px; background: var(--s2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
   .species-info { flex: 1; min-width: 0; }
   .species-name { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .species-sci  { font-size: 0.72rem; color: var(--muted); font-style: italic; margin-top: 1px; }
@@ -56,7 +57,7 @@
   /* ── Detail view ── */
   .detail-view { position: fixed; inset: 0; background: var(--bg); z-index: 100; overflow-y: auto; -webkit-overflow-scrolling: touch; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
   .detail-view.open { transform: translateX(0); }
-  .detail-hero { width: 100%; height: 240px; object-fit: cover; background: var(--s2); display: block; }
+  .detail-hero { width: 100%; height: 240px; object-fit: contain; background: var(--s2); display: block; }
   .detail-hero-ph { width: 100%; height: 200px; background: var(--s2); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
   .detail-back { position: absolute; top: calc(12px + env(safe-area-inset-top,0px)); left: 14px; background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); border: none; border-radius: 20px; color: var(--text); font-size: 0.8rem; font-family: 'Montserrat', sans-serif; font-weight: 700; padding: 6px 14px; cursor: pointer; }
   .detail-body { padding: 18px 16px 40px; }
@@ -103,6 +104,7 @@
   .main { display: flex; flex-direction: column; height: 100%; }
   .content { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 </style>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
@@ -120,6 +122,14 @@
       <button class="filter-pill" data-filter="Big Five" onclick="setFilter('Big Five',this)">Big Five</button>
       <button class="filter-pill" data-filter="Primate" onclick="setFilter('Primate',this)">Primates</button>
       <button class="filter-pill" data-filter="seen" onclick="setFilter('seen',this)">Seen ✓</button>
+    </div>
+
+    <!-- Seen scope toggle — appears only when the tripId is known -->
+    <div id="scope-toggle-wrap" style="display:none;padding:0 14px 8px;">
+      <div style="display:inline-flex;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:2px;">
+        <button id="scope-btn-trip" onclick="setScope('trip', this)" style="padding:5px 14px;border-radius:18px;border:none;background:var(--teal);color:#000;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;cursor:pointer;">This trip</button>
+        <button id="scope-btn-all"  onclick="setScope('all', this)"  style="padding:5px 14px;border-radius:18px;border:none;background:transparent;color:var(--soft);font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.72rem;cursor:pointer;">All time</button>
+      </div>
     </div>
 
     <div class="search-wrap">
@@ -152,6 +162,7 @@
     <div class="detail-name" id="dv-name"></div>
     <div class="detail-sci"  id="dv-sci"></div>
     <div class="detail-tags" id="dv-tags"></div>
+    <button class="log-btn" id="log-btn" onclick="openLogSheet()" style="margin-top:14px;">Log Sighting</button>
     <div class="detail-section" id="dv-desc-sec" style="display:none;">
       <h3>About</h3>
       <p id="dv-desc"></p>
@@ -168,7 +179,6 @@
       <h3>Best Months</h3>
       <div class="months-row" id="dv-months"></div>
     </div>
-    <button class="log-btn" id="log-btn" onclick="openLogSheet()">Log Sighting</button>
   </div>
 </div>
 
@@ -199,6 +209,9 @@
 // ── State ────────────────────────────────────────────────────────────────────
 let ALL_SPECIES  = [];
 let SIGHTINGS    = JSON.parse(localStorage.getItem('tbt-sightings') || '[]');
+let SERVER_SIGHTINGS_TRIP = [];   // hydrated on load if tripId known
+let SERVER_SIGHTINGS_ALL  = [];   // hydrated on load if email known
+let SEEN_SCOPE   = 'trip';         // 'trip' | 'all' — controls the Seen ✓ filter + grayscale
 let ACTIVE_FILTER = 'all';
 let DETAIL_SPECIES = null;
 let _heroZoom = 1.0;
@@ -227,9 +240,21 @@ window.addEventListener('offline', updateOnlineStatus);
 updateOnlineStatus();
 
 // ── Load species ─────────────────────────────────────────────────────────────
+// When opened with ?tripId=… the field guide scopes to just that trip's species.
+// Without a tripId it falls back to the global species pack.
+const _wgParams = new URLSearchParams(location.search);
+const _wgTripId = _wgParams.get('tripId') || '';
+const _wgEmail  = (_wgParams.get('email') || '').toLowerCase();
+const _wgApiUrl = _wgTripId
+  ? ('/api/species-pack-trip?tripId=' + encodeURIComponent(_wgTripId))
+  : '/api/species-pack';
+const _wgCacheKey = _wgTripId
+  ? ('tbt-species-cache-trip-' + _wgTripId)
+  : 'tbt-species-cache';
+
 async function loadSpecies() {
   // Try localStorage cache first (instant offline load)
-  const cached = localStorage.getItem('tbt-species-cache');
+  const cached = localStorage.getItem(_wgCacheKey);
   if (cached) {
     try {
       const data = JSON.parse(cached);
@@ -242,11 +267,11 @@ async function loadSpecies() {
   // Fetch fresh data if online
   if (!navigator.onLine && ALL_SPECIES.length) return;
   try {
-    const resp = await fetch('/api/species-pack');
+    const resp = await fetch(_wgApiUrl);
     if (!resp.ok) throw new Error('Network error');
     const data = await resp.json();
     ALL_SPECIES = data.species || [];
-    localStorage.setItem('tbt-species-cache', JSON.stringify(data));
+    localStorage.setItem(_wgCacheKey, JSON.stringify(data));
     renderList();
     document.getElementById('loading-msg').style.display = 'none';
     // Show download banner if not installed as PWA
@@ -262,6 +287,72 @@ async function loadSpecies() {
   }
 }
 
+// ── Sightings hydration & scope ──────────────────────────────────────────────
+// Local + trip-scoped-server + all-time-server sightings feed the "Seen ✓"
+// filter and the grayscale-vs-color thumbnail. The scope toggle lets the user
+// swap between "this trip" and "all time" views.
+
+async function hydrateServerSightings() {
+  // Trip-scoped (needs tripId)
+  if (_wgTripId) {
+    try {
+      const r = await fetch('/api/sightings?tripId=' + encodeURIComponent(_wgTripId));
+      const d = await r.json();
+      SERVER_SIGHTINGS_TRIP = (d.records || []).map(rec => ({
+        speciesId: rec.fields['Species ID'] || '',
+        name:      rec.fields['Species Name'] || '',
+      })).filter(s => s.speciesId);
+    } catch(e) { console.warn('[hydrate trip sightings]', e); }
+  }
+  // Lifetime (needs email)
+  if (_wgEmail) {
+    try {
+      const r = await fetch('/api/sightings?travelerEmail=' + encodeURIComponent(_wgEmail));
+      const d = await r.json();
+      SERVER_SIGHTINGS_ALL = (d.records || []).map(rec => ({
+        speciesId: rec.fields['Species ID'] || '',
+        name:      rec.fields['Species Name'] || '',
+      })).filter(s => s.speciesId);
+    } catch(e) { console.warn('[hydrate all-time sightings]', e); }
+  }
+  // Show the toggle only when we have a tripId — otherwise "This trip" is meaningless
+  if (_wgTripId && _wgEmail) {
+    const wrap = document.getElementById('scope-toggle-wrap');
+    if (wrap) wrap.style.display = 'block';
+  }
+  renderList();
+}
+
+// Which species IDs count as "seen" for the current scope. Merges local
+// (in-memory) sightings so the just-logged animal shows without a page reload.
+function seenIdsForScope() {
+  const ids = new Set();
+  const localSet = SIGHTINGS.map(s => s.speciesId).filter(Boolean);
+  if (SEEN_SCOPE === 'all') {
+    SERVER_SIGHTINGS_ALL.forEach(s => ids.add(s.speciesId));
+    localSet.forEach(id => ids.add(id));
+  } else {
+    SERVER_SIGHTINGS_TRIP.forEach(s => ids.add(s.speciesId));
+    // Local sightings just made in this session — for trip scope, count them
+    // if we have a tripId at all (they're being made against this trip).
+    if (_wgTripId) localSet.forEach(id => ids.add(id));
+  }
+  return ids;
+}
+
+function setScope(scope, btn) {
+  SEEN_SCOPE = scope;
+  const tripBtn = document.getElementById('scope-btn-trip');
+  const allBtn  = document.getElementById('scope-btn-all');
+  [tripBtn, allBtn].forEach(b => {
+    if (!b) return;
+    b.style.background = 'transparent';
+    b.style.color      = 'var(--soft)';
+  });
+  if (btn) { btn.style.background = 'var(--teal)'; btn.style.color = '#000'; }
+  renderList();
+}
+
 // ── Filters & search ─────────────────────────────────────────────────────────
 function setFilter(f, btn) {
   ACTIVE_FILTER = f;
@@ -272,7 +363,7 @@ function setFilter(f, btn) {
 
 function renderList() {
   const q = (document.getElementById('search-input').value || '').toLowerCase();
-  const seenIds = new Set(SIGHTINGS.map(s => s.speciesId));
+  const seenIds = seenIdsForScope();
 
   let list = ALL_SPECIES.filter(sp => {
     if (ACTIVE_FILTER === 'seen')    return seenIds.has(sp.id);
@@ -298,7 +389,7 @@ function renderList() {
     const seen = seenIds.has(sp.id);
     return `<div class="species-row" onclick="openDetail('${sp.id}')">
       ${sp.photoUrl
-        ? `<img src="${sp.photoUrl}" class="species-thumb" alt="${sp.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><div class="species-thumb-ph" style="display:none;">${typeEmoji(sp.type)}</div>`
+        ? `<img src="${sp.photoUrl}" class="species-thumb${seen ? '' : ' not-seen'}" alt="${sp.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><div class="species-thumb-ph" style="display:none;">${typeEmoji(sp.type)}</div>`
         : `<div class="species-thumb-ph">${typeEmoji(sp.type)}</div>`}
       <div class="species-info">
         <div class="species-name">${sp.name}</div>
@@ -374,7 +465,7 @@ function openDetail(id) {
   } else monSec.style.display = 'none';
 
   // Log button
-  const seenIds = new Set(SIGHTINGS.map(s => s.speciesId));
+  const seenIds = seenIdsForScope();
   const logBtn = document.getElementById('log-btn');
   if (seenIds.has(sp.id)) { logBtn.textContent = '✓ Logged — Log Again'; logBtn.classList.add('logged'); }
   else                    { logBtn.textContent = 'Log Sighting'; logBtn.classList.remove('logged'); }
@@ -427,6 +518,8 @@ function saveSighting() {
     lat:        gps ? gps.lat : null,
     lon:        gps ? gps.lon : null,
     gpsAccuracy: gps ? gps.accuracy : null,
+    travelerEmail: _wgEmail || null,
+    tripId:        _wgTripId || null,
     synced:     false,
   };
   SIGHTINGS.push(sighting);
@@ -487,6 +580,7 @@ window.addEventListener('online', syncSightings);
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
 loadSpecies();
+hydrateServerSightings();
 </script>
 </body>
 </html>

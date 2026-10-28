@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Your guests · Transformed by Travels</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+<style>
+  :root{
+    --paper:#f6f8f7; --card:#fff; --ink:#18242c; --slate:#5a6b74; --faint:#8d9ca3;
+    --line:#e2eae7; --teal:#2a7f73; --teal-soft:#e4efec;
+    --ok:#2f7a5a; --ok-soft:#e4f0ea; --warn:#8d6410; --warn-soft:#f7eeda;
+  }
+  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+    --paper:#0d1416; --card:#141f22; --ink:#e6eeec; --slate:#9fb2b4; --faint:#71868a;
+    --line:#26383c; --teal:#5cc0ae; --teal-soft:#14312d;
+    --ok:#6fc295; --ok-soft:#122b21; --warn:#d8a94e; --warn-soft:#2e2514; } }
+  :root[data-theme="dark"]{
+    --paper:#0d1416; --card:#141f22; --ink:#e6eeec; --slate:#9fb2b4; --faint:#71868a;
+    --line:#26383c; --teal:#5cc0ae; --teal-soft:#14312d;
+    --ok:#6fc295; --ok-soft:#122b21; --warn:#d8a94e; --warn-soft:#2e2514; }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:'Open Sans',system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1040px;margin:0 auto;padding:30px 20px 90px;}
+
+  .top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:8px;}
+  .top img{max-height:52px;width:auto;}
+  h1{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-0.01em;}
+  .sub{color:var(--slate);font-size:.95rem;margin-bottom:28px;}
+
+  /* Numbers a property would act on, not vanity metrics. */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:34px;}
+  .kpi{background:var(--card);padding:16px 18px;}
+  .kpi .n{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.9rem;line-height:1;font-variant-numeric:tabular-nums;}
+  .kpi .l{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-top:8px;}
+  .kpi .h{font-size:.8rem;color:var(--slate);margin-top:5px;line-height:1.45;}
+  .kpi .n.warn{color:var(--warn);} .kpi .n.ok{color:var(--ok);}
+
+  h2{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.05rem;margin:0 0 4px;}
+  .shead{display:flex;align-items:baseline;gap:10px;margin:0 0 14px;}
+  .shead .c{font-size:.8rem;color:var(--faint);}
+  section{margin-bottom:36px;}
+
+  .rows{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);}
+  .r{display:grid;grid-template-columns:1fr auto;gap:10px 16px;padding:14px 18px;border-bottom:1px solid var(--line);align-items:center;}
+  .r:last-child{border-bottom:none;}
+  .r .nm{font-weight:600;}
+  .r .meta{font-size:.84rem;color:var(--slate);margin-top:2px;}
+  .r .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+  .chip{font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:99px;white-space:nowrap;border:1px solid currentColor;}
+  .chip.arch{color:var(--teal);background:var(--teal-soft);}
+  .chip.none{color:var(--warn);background:var(--warn-soft);}
+  .chip.jr{color:var(--ok);background:var(--ok-soft);}
+  .empty{padding:26px 18px;text-align:center;color:var(--faint);font-style:italic;}
+  .state{text-align:center;padding:70px 20px;color:var(--slate);}
+  .state h1{font-size:1.2rem;margin-bottom:8px;}
+  a.open{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.78rem;color:var(--teal);text-decoration:none;white-space:nowrap;}
+  a.open:hover{text-decoration:underline;}
+  .picker{max-width:520px;margin:60px auto;}
+  .picker h1{margin-bottom:6px;}
+  .picker p{color:var(--slate);margin-bottom:22px;}
+  .picker a{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--card);text-decoration:none;color:var(--ink);margin-bottom:10px;font-weight:600;}
+  .picker a:hover{border-color:var(--teal);}
+  .picker a span{font-size:.82rem;color:var(--faint);font-weight:400;}
+  .asbar{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);border-radius:10px;padding:9px 14px;font-size:.84rem;font-weight:600;margin-bottom:22px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .asbar a{color:inherit;}
+  @media(max-width:560px){ .r{grid-template-columns:1fr;} .r .right{justify-content:flex-start;} }
+</style>
+</head>
+<body>
+<div class="wrap" id="root"><div class="state">Loading…</div></div>
+
+<script>
+const AUTH0_DOMAIN = 'dev-oys4h8z7qa7irffk.us.auth0.com';
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const root = document.getElementById('root');
+
+const fmt = d => { if(!d) return ''; try{ return new Date(d+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}); }catch(e){ return d; } };
+const stay = t => t.start && t.end ? `${fmt(t.start)} – ${fmt(t.end)}${t.nights?` · ${t.nights} night${t.nights===1?'':'s'}`:''}` : fmt(t.start);
+
+function rows(list, opts={}) {
+  if (!list.length) return `<div class="rows"><div class="empty">${esc(opts.empty||'Nothing here yet.')}</div></div>`;
+  return `<div class="rows">` + list.map(t => `
+    <div class="r">
+      <div>
+        <div class="nm">${esc(t.guest)}</div>
+        <div class="meta">${esc(stay(t))}</div>
+      </div>
+      <div class="right">
+        ${t.assessed
+          ? `<span class="chip arch">${esc(t.archetype.replace(/^The /,''))}</span>`
+          : `<span class="chip none">Not assessed</span>`}
+        ${opts.showJournal && t.journalled ? `<span class="chip jr">Journalled</span>` : ''}
+        <a class="open" href="/trip.html?tripId=${encodeURIComponent(t.tripId)}&email=${encodeURIComponent(t.email)}" target="_blank" rel="noopener">Open page →</a>
+      </div>
+    </div>`).join('') + `</div>`;
+}
+
+function renderPicker(d) {
+  root.innerHTML = `<div class="picker">
+    <h1>Which property?</h1>
+    <p>You're signed in as the platform owner, so you can look in on any property.</p>
+    ${d.lodges.length ? d.lodges.map(l => `
+      <a href="/lodge.html?lodge=${encodeURIComponent(l.id)}">${esc(l.name)}<span>View guests →</span></a>`).join('')
+      : `<p>No lodges set up yet.</p>`}
+  </div>`;
+}
+
+function render(d) {
+  const m = d.metrics, c = d.counts;
+  root.innerHTML = `
+    ${d.viewingAs ? `<div class="asbar"><span>Viewing as ${esc(d.lodge.name)} — the property sees exactly this.</span><a href="/lodge.html">Switch property</a></div>` : ''}
+    <div class="top">
+      ${d.lodge.logoUrl?`<img src="${esc(d.lodge.logoUrl)}" alt="" onerror="this.style.display='none'">`:''}
+      <div>
+        <h1>${esc(d.lodge.name)}</h1>
+        <div class="sub">${esc(d.lodge.tagline||'Your guests')}</div>
+      </div>
+    </div>
+
+    ${m.staysNeedingReview ? `<div class="asbar"><span>${m.staysNeedingReview} reservation email${m.staysNeedingReview===1?'':'s'} couldn't be matched to a stay.</span><a href="/stays.html${d.viewingAs?'?lodge='+encodeURIComponent(new URLSearchParams(location.search).get('lodge')||''):''}">Review →</a></div>` : ''}
+
+    <div class="kpis">
+      <div class="kpi"><div class="n">${c.inHouse}</div><div class="l">In house</div></div>
+      <div class="kpi"><div class="n">${c.arriving}</div><div class="l">Arriving · 30 days</div></div>
+      <div class="kpi"><div class="n ${m.awaitingAssessment?'warn':'ok'}">${m.awaitingAssessment}</div><div class="l">Not yet assessed</div><div class="h">${m.awaitingAssessment?'They will get a generic stay unless they answer before arriving.':'Everyone arriving has answered.'}</div></div>
+      <div class="kpi"><div class="n">${m.assessedPct}%</div><div class="l">Assessed</div><div class="h">${m.assessedBeforeArrivalPct}% of those answered before they arrived.</div></div>
+      <div class="kpi"><div class="n">${m.journalledPct}%</div><div class="l">Wrote something</div><div class="h">Of guests whose stay has begun.</div></div>
+    </div>
+
+    <section>
+      <div class="shead"><h2>In house now</h2><span class="c">${c.inHouse}</span></div>
+      ${rows(d.inHouse, {showJournal:true, empty:'Nobody staying today.'})}
+    </section>
+
+    <section>
+      <div class="shead"><h2>Arriving soon</h2><span class="c">next 30 days</span></div>
+      ${rows(d.arriving, {empty:'No arrivals in the next 30 days.'})}
+    </section>
+
+    <section>
+      <div class="shead"><h2>Recently stayed</h2><span class="c">last 90 days</span></div>
+      ${rows(d.recent, {showJournal:true, empty:'No departures in the last 90 days.'})}
+    </section>
+
+    <p style="font-size:.85rem;color:var(--slate);"><a href="/stays.html${d.viewingAs?'?lodge='+encodeURIComponent(new URLSearchParams(location.search).get('lodge')||''):''}" style="color:var(--teal);font-weight:600;">Reservation activity →</a> &mdash; every booking email we've received for this property.</p>`;
+}
+
+(async () => {
+  try {
+    const client = await auth0.createAuth0Client({
+      domain: AUTH0_DOMAIN,
+      clientId: 'sPmkgijLkcVwqVJEknbXN1eeS3vthBmd',
+      authorizationParams: { redirect_uri: window.location.origin + '/lodge.html' },
+      cacheLocation: 'localstorage',
+    });
+    if (location.search.includes('code=') && location.search.includes('state=')) {
+      await client.handleRedirectCallback();
+      history.replaceState({}, '', '/lodge.html' + (sessionStorage.getItem('lodgeTarget') ? '?lodge=' + encodeURIComponent(sessionStorage.getItem('lodgeTarget')) : ''));
+    }
+    // Remember which property was asked for, so the Auth0 round-trip can restore it.
+    const want = new URLSearchParams(location.search).get('lodge');
+    if (want) sessionStorage.setItem('lodgeTarget', want);
+    if (!(await client.isAuthenticated())) {
+      await client.loginWithRedirect();
+      return;
+    }
+    const user = await client.getUser();
+    const email = (user.email || '').toLowerCase();
+
+    const asLodge = new URLSearchParams(location.search).get('lodge') || '';
+    const r = await fetch('/api/lodge-dashboard?email=' + encodeURIComponent(email)
+      + (asLodge ? '&lodge=' + encodeURIComponent(asLodge) : ''));
+    if (r.status === 403) {
+      root.innerHTML = `<div class="state"><h1>No lodge on this account</h1><p>This page is for properties using Transformed by Travels. Signed in as ${esc(email)}.</p></div>`;
+      return;
+    }
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Could not load');
+    if (d.chooseLodge) return renderPicker(d);
+    render(d);
+  } catch (e) {
+    root.innerHTML = `<div class="state"><h1>Couldn't load your guests</h1><p>${esc(e.message||'Please try again.')}</p></div>`;
+  }
+})();
+</script>
+</body>
+</html>

@@ -94,7 +94,309 @@ html, body { height: 100%; background: #060d16; color: var(--text); font-family:
 .rating-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
 .rating-btn { background: rgba(245,158,11,0.1); border: 1.5px solid rgba(245,158,11,0.3); color: var(--amber); border-radius: 8px; padding: 7px 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: Arial, sans-serif; }
 .rating-btn.selected { background: var(--amber); color: #0d1520; }
+
+/* ── Park cards on Places tab ─────────────────────────────────────── */
+.pk-card { background: var(--s1); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 18px; transition: border-color 0.2s, box-shadow 0.2s; }
+.pk-card.visited { border-color: rgba(45,212,191,0.5); box-shadow: 0 0 0 3px rgba(45,212,191,0.08); }
+.pk-hero-wrap { position: relative; height: 180px; background: var(--s2); overflow: hidden; }
+.pk-hero { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pk-hero-scrim { position: absolute; inset: 0; background: linear-gradient(transparent 40%, rgba(0,0,0,0.85)); pointer-events: none; }
+.pk-hero-label { position: absolute; bottom: 12px; left: 14px; right: 14px; color: #fff; }
+.pk-day-tag { display: inline-block; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: #2dd4bf; margin-bottom: 4px; }
+.pk-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.25rem; color: #fff; line-height: 1.2; }
+.pk-country { font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-top: 2px; }
+.pk-body { padding: 16px 16px 18px; }
+.pk-coach-note { background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.25); border-radius: 8px; padding: 9px 12px; margin-bottom: 12px; font-size: 0.82rem; color: var(--soft); display: flex; align-items: center; gap: 8px; }
+.pk-section-label { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 14px 0 4px; }
+.pk-body p { font-size: 0.9rem; line-height: 1.65; color: var(--soft); margin: 0; }
+.pk-tip { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: 8px; padding: 11px 12px; margin-top: 12px; }
+.pk-tip-label { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); margin-bottom: 4px; }
+.pk-visit-btn { width: 100%; margin-top: 18px; padding: 12px; border-radius: 10px; border: 1.5px solid rgba(45,212,191,0.4); background: transparent; color: var(--teal); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.86rem; cursor: pointer; transition: all 0.15s; }
+.pk-visit-btn:hover:not(:disabled) { background: rgba(45,212,191,0.08); }
+.pk-visit-btn.visited { background: var(--teal); color: #0a1628; border-color: var(--teal); }
+.pk-visit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.pk-visit-meta { font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 6px; }
+
+/* ── Lodge overlay (Wild Rice pilot pattern) ── */
+.lodge-banner {
+  padding: 22px 16px 20px;
+  color: #fff;
+  text-align: center;
+}
+.lodge-banner-logo {
+  max-width: 90px;
+  max-height: 90px;
+  margin: 0 auto 12px;
+  display: block;
+  filter: drop-shadow(0 3px 10px rgba(0,0,0,0.4));
+}
+.lodge-banner-name {
+  font-family: Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.lodge-banner-tagline {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.85);
+}
+.lodge-welcome {
+  padding: 20px 14px 12px;
+  text-align: center;
+}
+.lodge-welcome h2 {
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+  color: var(--text);
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+.lodge-welcome-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal);
+  background: rgba(45,212,191,0.1);
+  border: 1px solid rgba(45,212,191,0.3);
+  border-radius: 20px;
+  padding: 4px 12px;
+  margin-top: 6px;
+}
+.lodge-reflection {
+  background: linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(45,212,191,0.06) 100%);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin: 16px 14px 8px;
+}
+.lodge-reflection-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 6px;
+}
+.lodge-reflection-title {
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.lodge-reflection-body {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--soft);
+}
+.lodge-reflection-meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 10px;
+  font-style: italic;
+}
+.lodge-assessment-cta {
+  background: rgba(45,212,191,0.08);
+  border: 1px solid rgba(45,212,191,0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 14px;
+  text-align: center;
+}
+.lodge-assessment-cta h3 {
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  color: var(--text);
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+.lodge-assessment-cta p {
+  font-size: 0.83rem;
+  color: var(--soft);
+  margin-bottom: 12px;
+  line-height: 1.45;
+}
+.lodge-assessment-cta a {
+  display: inline-block;
+  background: var(--teal);
+  color: #0a1628;
+  text-decoration: none;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 10px 22px;
+  border-radius: 8px;
+}
+.lodge-slots-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 18px 14px 8px;
+}
+.lodge-seasonal {
+  background: linear-gradient(135deg, rgba(217,119,6,0.12) 0%, rgba(217,119,6,0.04) 100%);
+  border: 1px solid rgba(217,119,6,0.3);
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin: 12px 14px 8px;
+}
+.lodge-seasonal-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 6px;
+}
+.lodge-seasonal-title {
+  font-family: Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.lodge-seasonal-body {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--soft);
+  white-space: pre-line;
+}
+.lodge-seasonal-img {
+  width: calc(100% + 32px);
+  height: 150px;
+  object-fit: cover;
+  margin: -18px -16px 14px;
+  border-radius: 14px 14px 0 0;
+  display: block;
+}
+
+.lodge-spotlight {
+  background: linear-gradient(135deg, rgba(45,212,191,0.12) 0%, rgba(45,212,191,0.04) 100%);
+  border: 1px solid rgba(45,212,191,0.35);
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin: 12px 14px 8px;
+}
+.lodge-spotlight-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 8px;
+}
+.lodge-spotlight-title {
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.lodge-spotlight-body {
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--soft);
+  white-space: pre-line;
+}
+.lodge-spotlight-img {
+  width: calc(100% + 32px);
+  height: 180px;
+  object-fit: cover;
+  margin: -18px -16px 14px;
+  border-radius: 14px 14px 0 0;
+  display: block;
+}
+.lodge-slot {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 0 14px 12px;
+}
+.lodge-slot.matched {
+  border-color: rgba(45,212,191,0.4);
+  background: linear-gradient(180deg, rgba(45,212,191,0.05) 0%, var(--s2) 100%);
+}
+.lodge-slot-img {
+  width: calc(100% + 32px);
+  height: 140px;
+  object-fit: cover;
+  margin: -14px -16px 12px;
+  border-radius: 12px 12px 0 0;
+  display: block;
+}
+.lodge-slot-title {
+  font-family: Georgia, serif;
+  font-size: 1.02rem;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.lodge-slot-body {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--soft);
+  white-space: pre-line;
+}
+.lodge-slot-video {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--teal);
+  text-decoration: none;
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+.lodge-slot-match {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--teal);
+  background: rgba(45,212,191,0.1);
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.lodge-request-card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 14px;
+}
+.lodge-request-card h3 {
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  color: var(--text);
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+.lodge-request-card p { font-size: 0.83rem; color: var(--soft); margin-bottom: 12px; line-height: 1.45; }
+.lodge-request-card textarea {
+  width: 100%; min-height: 80px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+  color: var(--text); font-family: Arial, sans-serif;
+  font-size: 0.88rem; resize: vertical;
+}
+.lodge-request-card button {
+  margin-top: 10px; padding: 11px 20px;
+  background: var(--teal); color: #0a1628;
+  border: none; border-radius: 8px;
+  font-family: Arial, sans-serif; font-weight: 700;
+  font-size: 0.88rem; cursor: pointer;
+}
+.lodge-request-status { font-size: 0.83rem; margin-top: 8px; text-align: center; }
 </style>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 <div id="app">
@@ -110,16 +412,22 @@ html, body { height: 100%; background: #060d16; color: var(--text); font-family:
   <div class="tab-bar">
     <div class="tab active" id="tab-schedule" onclick="switchTab('schedule')">Schedule</div>
     <div class="tab"        id="tab-today"    onclick="switchTab('today')">Today</div>
+    <div class="tab"        id="tab-places"   onclick="switchTab('places')" style="display:none;">Places</div>
     <div class="tab"        id="tab-journal"  onclick="switchTab('journal')">Journal</div>
   </div>
 
   <div class="page-content">
     <div id="panel-schedule" class="tab-panel active">
+      <div id="offline-card" style="display:none;margin:0 12px 16px;padding:16px;border-radius:12px;background:#0f1e35;border:1px solid rgba(45,212,191,0.25);"></div>
       <div id="schedule-loading" class="loading-msg">Loading schedule…</div>
       <div id="schedule-list"></div>
     </div>
     <div id="panel-today" class="tab-panel">
       <div id="today-content" class="loading-msg">Loading…</div>
+    </div>
+    <div id="panel-places" class="tab-panel">
+      <div id="places-pending-badge" style="display:none;margin:0 0 14px;padding:10px 14px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:10px;color:#34d399;font-family:Arial,sans-serif;font-size:0.85rem;align-items:center;gap:10px;"></div>
+      <div id="places-content" class="loading-msg">Loading places…</div>
     </div>
     <div id="panel-journal" class="tab-panel">
       <div id="journal-form-wrap"></div>
@@ -140,6 +448,8 @@ const QUEUE_KEY = 'tbt_jq_'   + TRIP_ID;
 let tripMeta    = null;
 let tripDays    = [];
 let lodgingById = {};
+let tripStops   = null;   // rich Place records for this trip
+let placeVisits = [];     // Place Visits records for this trip (server side)
 let journalEntries  = [];
 let travelerProfile = null;
 let currentRating   = 0;
@@ -163,7 +473,7 @@ function fmtShort(iso) {
 }
 function todayIso() { return new Date().toLocaleDateString('en-CA'); }
 function dayNum() {
-  const start = tripMeta && (tripMeta['Activation Date'] || tripMeta['Start Date']);
+  const start = tripMeta && (tripMeta['Start Date'] || tripMeta['Activation Date']);
   if (!start) return null;
   const diff = Math.round((new Date(todayIso()) - new Date(start)) / 86400000);
   return diff >= 0 ? diff + 1 : null;
@@ -276,13 +586,25 @@ function renderToday() {
   const el  = document.getElementById('today-content');
   const today = dayNum();
   const rec = today ? tripDays.find(r => r.fields['Day Number'] === today) : null;
+
+  const isWildlife = tripMeta && tripMeta['Special Version'] === 'Animals';
+  const pin        = tripMeta && (tripMeta['PIN'] || '').toString().trim();
+  const trackerUrl = pin
+    ? `/wildlife-tracker.html?pin=${encodeURIComponent(pin)}`
+    : `/wildlife-tracker.html?tripId=${encodeURIComponent(TRIP_ID || '')}&email=${encodeURIComponent(EMAIL || '')}`;
+  const wildlifeCta = isWildlife ? `
+    <a href="${trackerUrl}" style="display:block;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0f172a;text-decoration:none;padding:16px 20px;border-radius:12px;margin-bottom:16px;font-family:'Montserrat',sans-serif;font-weight:800;text-align:center;box-shadow:0 4px 14px rgba(251,146,60,0.35);">
+      🐾 Open Wildlife Tracker →
+      <div style="font-size:0.72rem;font-weight:600;opacity:0.75;margin-top:2px;">Log sightings, view expected species, works offline</div>
+    </a>` : '';
+
   if (!rec) {
-    el.innerHTML = '<div class="loading-msg">No schedule entry for today.</div>';
-    el.className = 'loading-msg';
+    el.innerHTML = wildlifeCta + '<div class="loading-msg">No schedule entry for today.</div>';
+    el.className = '';
     return;
   }
   el.className = '';
-  el.innerHTML = dayCardHtml(rec, true);
+  el.innerHTML = wildlifeCta + dayCardHtml(rec, true);
 }
 
 function renderJournalForm() {
@@ -358,7 +680,7 @@ async function saveJournal() {
   if (!ref) { status.style.color='#f43f5e'; status.textContent='Reflection is required.'; return; }
   btn.disabled = true;
   status.style.color = 'var(--muted)'; status.textContent = 'Saving…';
-  const start   = tripMeta && (tripMeta['Activation Date'] || tripMeta['Start Date']);
+  const start   = tripMeta && (tripMeta['Start Date'] || tripMeta['Activation Date']);
   const profile = travelerProfile || {};
   const payload = {
     email: EMAIL, tripId: TRIP_ID,
@@ -366,7 +688,9 @@ async function saveJournal() {
     dayRating: currentRating || 0,
     entryDate: todayIso(), startDate: start || '',
     tripName:  tripMeta ? (tripMeta['Trip Name'] || tripMeta['Destination'] || '') : '',
-    archetype: profile['Archetype'] || '',
+    // This trip's own archetype wins; the traveler record is the fallback. An archetype
+    // describes the trip someone is taking, not a permanent trait.
+    archetype: (tripMeta && tripMeta['Archetype']) || profile['Archetype'] || '',
     hopes:     profile['Hopes to Experience'] || ''
   };
   if (isOnline) {
@@ -442,11 +766,14 @@ async function loadProfile() {
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
 function switchTab(name) {
-  ['schedule','today','journal'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===name);
-    document.getElementById('panel-'+t).classList.toggle('active',t===name);
+  ['schedule','today','places','journal'].forEach(t=>{
+    const tab   = document.getElementById('tab-'+t);
+    const panel = document.getElementById('panel-'+t);
+    if (tab)   tab.classList.toggle('active',   t===name);
+    if (panel) panel.classList.toggle('active', t===name);
   });
-  if(name==='today')renderToday();
+  if (name === 'today')  renderToday();
+  if (name === 'places') renderPlaces();
 }
 
 // ── Finish Trip ───────────────────────────────────────────────────────────────
@@ -515,6 +842,195 @@ window.addEventListener('online',updateOnline);
 window.addEventListener('offline',updateOnline);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+// ── Lodge overlay ─────────────────────────────────────────────────────────────
+let lodgeData = null;
+
+async function loadLodge() {
+  try {
+    const r = await fetch('/api/lodge-content?tripId=' + encodeURIComponent(TRIP_ID));
+    const d = await r.json();
+    if (d && d.lodge) lodgeData = d;
+  } catch(e) { console.warn('[loadLodge]', e.message); }
+}
+
+function renderLodge() {
+  if (!lodgeData || !lodgeData.lodge) return;
+  const L = lodgeData.lodge;
+  const G = lodgeData.guest || {};
+  const R = lodgeData.reflection;
+  const slots = lodgeData.slots || [];
+
+  // Inject new tab as first tab. Progressively drop trailing words until the
+  // name fits within a mobile tab (~14 chars).
+  const tabBar = document.querySelector('.tab-bar');
+  const tabName = L.name || 'Lodge';
+  const shortName = (() => {
+    if (tabName.length <= 14) return tabName;
+    const parts = tabName.split(' ');
+    for (let i = parts.length - 1; i >= 1; i--) {
+      const attempt = parts.slice(0, i).join(' ');
+      if (attempt.length <= 14) return attempt;
+    }
+    return tabName.slice(0, 14);
+  })();
+  const tabEl = document.createElement('div');
+  tabEl.className = 'tab';
+  tabEl.id = 'tab-lodge';
+  tabEl.textContent = shortName;
+  tabEl.onclick = () => switchTab('lodge');
+  tabBar.insertBefore(tabEl, tabBar.firstChild);
+
+  // Deactivate other tabs, hide their panels
+  tabBar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  tabEl.classList.add('active');
+
+  // Build lodge panel
+  const panelEl = document.createElement('div');
+  panelEl.className = 'tab-panel active';
+  panelEl.id = 'panel-lodge';
+  panelEl.style.padding = '0';
+
+  const brand = L.brandColor || '#0a1628';
+  const logoHtml = L.logoUrl
+    ? `<img class="lodge-banner-logo" src="${esc(L.logoUrl)}" alt="${esc(L.name)}">`
+    : '';
+  const tagHtml = L.tagline ? `<div class="lodge-banner-tagline">${esc(L.tagline)}</div>` : '';
+
+  // Guest first-name — prefer the Traveler profile (which has Traveler Name),
+  // fall back to trip's Traveler Name, then "friend".
+  const guestName = (travelerProfile && (travelerProfile['Traveler Name'] || travelerProfile['First Name']))
+                 || (tripMeta && (tripMeta['Traveler Name'] || tripMeta['First Name']))
+                 || '';
+  const firstName = guestName ? guestName.split(' ')[0] : 'friend';
+
+  const archetypeBadge = G.archetypeName
+    ? `<div class="lodge-welcome-badge">${esc(G.archetypeName)}</div>`
+    : '';
+
+  const assessmentCta = !G.archetype ? `
+    <div class="lodge-assessment-cta">
+      <h3>Let ${esc(L.name)} tailor your stay</h3>
+      <p>Take the 6-minute Travel Style Assessment. We'll shape your reading, walks, and dining around what you want from this stay.</p>
+      <a href="https://transformedbytravels.com/Assessment?ref=lodge-${encodeURIComponent(L.name)}&tripId=${encodeURIComponent(TRIP_ID)}" target="_blank">Take the Assessment →</a>
+    </div>` : '';
+
+  const reflectionCard = R ? `
+    <div class="lodge-reflection">
+      <div class="lodge-reflection-label">This week's reflection</div>
+      <div class="lodge-reflection-title">${esc(R.tipName || '')}</div>
+      <div class="lodge-reflection-body">${esc(R.tipText || '')}</div>
+      ${R.weeksUntilTrip ? `<div class="lodge-reflection-meta">Week ${(R.tipNumber || 1)} of your countdown · ${R.weeksUntilTrip} week${R.weeksUntilTrip === 1 ? '' : 's'} until arrival</div>` : ''}
+    </div>` : '';
+
+  const SEA = lodgeData.seasonal;
+  const seasonalCard = SEA ? `
+    <div class="lodge-seasonal">
+      ${SEA.imageUrl ? `<img class="lodge-seasonal-img" src="${esc(SEA.imageUrl)}" alt="" onerror="this.style.display='none'">` : ''}
+      <div class="lodge-seasonal-label">Right now on the shore</div>
+      <div class="lodge-seasonal-title">${esc(SEA.title || '')}</div>
+      <div class="lodge-seasonal-body">${esc((SEA.body || '').trim())}</div>
+    </div>` : '';
+
+  const S = lodgeData.spotlight;
+  const spotlightCard = S ? `
+    <div class="lodge-spotlight">
+      ${S.imageUrl ? `<img class="lodge-spotlight-img" src="${esc(S.imageUrl)}" alt="" onerror="this.style.display='none'">` : ''}
+      <div class="lodge-spotlight-label">This week's spotlight</div>
+      <div class="lodge-spotlight-title">${esc(S.title || '')}</div>
+      <div class="lodge-spotlight-body">${esc((S.body || '').trim())}</div>
+      ${S.videoUrl ? `<div><a class="lodge-slot-video" href="${esc(S.videoUrl)}" target="_blank" rel="noopener">▶ Watch video →</a></div>` : ''}
+    </div>` : '';
+
+  const guestArch = G.archetype;
+  const slotsHtml = slots.map(s => {
+    const isMatched = guestArch && s.archetypes && s.archetypes.includes(guestArch);
+    const matchTag = isMatched ? `<div class="lodge-slot-match">For You</div>` : '';
+    const img = s.imageUrl ? `<img class="lodge-slot-img" src="${esc(s.imageUrl)}" alt="" onerror="this.style.display='none'">` : '';
+    const video = s.videoUrl ? `<div><a class="lodge-slot-video" href="${esc(s.videoUrl)}" target="_blank" rel="noopener">▶ Watch video →</a></div>` : '';
+    return `<div class="lodge-slot${isMatched ? ' matched' : ''}">
+      ${img}
+      ${matchTag}
+      <div class="lodge-slot-title">${esc(s.title || '')}</div>
+      <div class="lodge-slot-body">${esc((s.body || '').trim())}</div>
+      ${video}
+    </div>`;
+  }).join('');
+
+  panelEl.innerHTML = `
+    <div class="lodge-banner" style="background:${esc(brand)};">
+      ${logoHtml}
+      <div class="lodge-banner-name">${esc(L.name)}</div>
+      ${tagHtml}
+    </div>
+    <div class="lodge-welcome">
+      <h2>Welcome, ${esc(firstName)}</h2>
+      ${archetypeBadge}
+    </div>
+    ${seasonalCard}
+    ${spotlightCard}
+    ${reflectionCard}
+    ${assessmentCta}
+    ${slots.length ? `<div class="lodge-slots-label">More from ${esc(L.name)}</div>${slotsHtml}` : ''}
+    <div class="lodge-request-card">
+      <h3>Need to adjust your reservation?</h3>
+      <p>Extra night, dietary needs, arrival tweaks, guided activity requests — send us a note and we'll take care of it.</p>
+      <textarea id="lodge-request-text" placeholder="What would you like to change or add?"></textarea>
+      <button onclick="submitLodgeRequest()">Send to ${esc(L.name)}</button>
+      <div class="lodge-request-status" id="lodge-request-status"></div>
+    </div>`;
+
+  document.querySelector('.page-content').insertBefore(panelEl, document.querySelector('.page-content').firstChild);
+}
+
+async function submitLodgeRequest() {
+  const text = (document.getElementById('lodge-request-text').value || '').trim();
+  const status = document.getElementById('lodge-request-status');
+  if (!text) { status.style.color = 'var(--muted)'; status.textContent = 'Please write your request first.'; return; }
+  status.style.color = 'var(--soft)'; status.textContent = 'Sending…';
+  try {
+    const r = await fetch('/api/contact-inquiry', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        name:    tripMeta && tripMeta['Traveler Name'] || '',
+        email:   EMAIL,
+        message: `[Lodge request from trip ${TRIP_ID}]\n\n${text}`,
+        ref:     'lodge-request',
+        source:  'lodge-personal-page',
+        site:    'lodge',
+      })
+    });
+    const d = await r.json();
+    if (d.success) {
+      status.style.color = 'var(--teal)';
+      status.textContent = '✓ Sent — our team will follow up shortly.';
+      document.getElementById('lodge-request-text').value = '';
+    } else throw new Error(d.error || 'Failed to send');
+  } catch(e) {
+    status.style.color = '#f43f5e';
+    status.textContent = 'Could not send. Please try again.';
+  }
+}
+
+// Extend switchTab to handle the lodge tab
+const _origSwitchTab = window.switchTab;
+window.switchTab = function(name) {
+  if (name === 'lodge') {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-lodge').classList.add('active');
+    document.getElementById('panel-lodge').classList.add('active');
+    return;
+  }
+  // For other tabs, also make sure lodge tab is deactivated
+  const lodgeTab = document.getElementById('tab-lodge');
+  const lodgePanel = document.getElementById('panel-lodge');
+  if (lodgeTab) lodgeTab.classList.remove('active');
+  if (lodgePanel) lodgePanel.classList.remove('active');
+  if (_origSwitchTab) _origSwitchTab(name);
+};
+
 async function init() {
   if(!TRIP_ID){document.getElementById('schedule-loading').textContent='No trip ID in URL.';return;}
   updateOnline();
@@ -524,7 +1040,8 @@ async function init() {
       loadTrip().catch(e=>console.error('[init] loadTrip:',e.message)),
       loadDays().catch(e=>console.error('[init] loadDays:',e.message)),
       loadLodging().catch(e=>console.error('[init] loadLodging:',e.message)),
-      loadProfile().catch(e=>console.error('[init] loadProfile:',e.message))
+      loadProfile().catch(e=>console.error('[init] loadProfile:',e.message)),
+      loadLodge().catch(e=>console.error('[init] loadLodge:',e.message))
     ]);
     try{saveCache();}catch(e){}
     flushQueue();
@@ -535,14 +1052,628 @@ async function init() {
   }
   if(isOnline){try{await loadJournal();}catch(e){console.error('[init] loadJournal:',e.message);}}
   renderBanner();
+  renderLodge();
   renderSchedule();
+  renderOfflineCard();
   renderJournalForm();
   renderFinishTrip();
   renderPastEntries();
+  showPlacesTabIfEligible();
+
+  // Merge any queued (unsynced) visits into local placeVisits so the UI
+  // reflects them immediately on load, then attempt a background sync.
+  const queued = loadVisitQueue();
+  queued.forEach(entry => {
+    placeVisits.push({
+      id: entry.tempId,
+      fields: { 'Place Name': entry.placeName, 'Visited Date': entry.visitedDate },
+    });
+  });
+  updatePendingBadge();
+  if (navigator.onLine) syncPendingUploads({ silent: true });
+
   // URL ?tab= overrides default; otherwise auto-switch to Today when trip is active
   if(TAB==='journal'){switchTab('journal');}
   else if(TAB==='today'){switchTab('today');}
+  else if(TAB==='places'){switchTab('places');}
   else if(tripMeta&&tripMeta['Status of Trip']==='Active'){switchTab('today');}
+}
+
+// ── Offline queue for place-visits and entry photos ─────────────────────────
+// Place visits live in localStorage. Photo blobs live in IndexedDB (photos are
+// too big for localStorage). Sync fires on `online` event, on load if online,
+// and via a manual "Upload now" button.
+
+const VISIT_QUEUE_KEY = () => 'tbt-pending-visits-' + TRIP_ID;
+
+function loadVisitQueue() {
+  try { return JSON.parse(localStorage.getItem(VISIT_QUEUE_KEY()) || '[]'); }
+  catch(e) { return []; }
+}
+function saveVisitQueue(q) { localStorage.setItem(VISIT_QUEUE_KEY(), JSON.stringify(q)); }
+
+// IndexedDB helpers for pending photos
+function openPhotoDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('tbt-photos', 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('pending')) {
+        db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+async function queuePhoto(entry) {
+  const db = await openPhotoDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('pending', 'readwrite');
+    tx.objectStore('pending').add(entry).onsuccess = e => resolve(e.target.result);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function listQueuedPhotos() {
+  const db = await openPhotoDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction('pending', 'readonly').objectStore('pending').getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror   = () => reject(req.error);
+  });
+}
+async function deleteQueuedPhoto(id) {
+  const db = await openPhotoDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction('pending', 'readwrite').objectStore('pending').delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+let _syncInFlight = false;
+async function syncPendingUploads(opts) {
+  if (_syncInFlight) return { skipped: true };
+  _syncInFlight = true;
+  const silent = !!(opts && opts.silent);
+  const results = { visits: 0, photos: 0, failed: 0 };
+
+  try {
+    if (!navigator.onLine) { return results; }
+
+    // 1) Sync queued visits → real Place Visit records
+    let queue = loadVisitQueue();
+    const nextQueue = [];
+    for (const entry of queue) {
+      try {
+        const resp = await fetch('/api/place-visits', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            placeName:     entry.placeName,
+            country:       entry.country || '',
+            tripDayNumber: entry.tripDayNumber || null,
+            travelerEmail: entry.travelerEmail,
+            tripId:        entry.tripId,
+            visitedDate:   entry.visitedDate,
+          }),
+        });
+        const data = await resp.json();
+        if (data && data.ok) {
+          results.visits++;
+          // Rewrite any queued photos that referenced this local tempId
+          const photos = await listQueuedPhotos();
+          for (const p of photos) {
+            if (p.tempVisitId && p.tempVisitId === entry.tempId) {
+              const db = await openPhotoDB();
+              await new Promise((res, rej) => {
+                const tx = db.transaction('pending', 'readwrite');
+                const store = tx.objectStore('pending');
+                p.visitId = data.id;
+                store.put(p).onsuccess = () => res();
+                tx.onerror = () => rej(tx.error);
+              });
+            }
+          }
+          // Merge into local placeVisits state so UI updates
+          placeVisits.push({ id: data.id, fields: data.fields || {
+            'Place Name':   entry.placeName,
+            'Visited Date': entry.visitedDate,
+          }});
+        } else {
+          results.failed++;
+          nextQueue.push(entry);
+        }
+      } catch(e) {
+        results.failed++;
+        nextQueue.push(entry);
+      }
+    }
+    saveVisitQueue(nextQueue);
+
+    // 2) Sync queued photos → Cloudinary + PATCH visit with Entry URL
+    const photos = await listQueuedPhotos();
+    for (const p of photos) {
+      if (!p.visitId) continue; // still waiting for its visit to sync
+      try {
+        const fd = new FormData();
+        fd.append('file', p.blob, p.name || 'entry.jpg');
+        fd.append('upload_preset', 'Trip Image');
+        const upResp = await fetch('https://api.cloudinary.com/v1_1/dporenlvw/image/upload', { method: 'POST', body: fd });
+        const upData = await upResp.json();
+        if (!upData.secure_url) throw new Error(upData.error?.message || 'upload failed');
+
+        const patchResp = await fetch('/api/place-visits?id=' + encodeURIComponent(p.visitId), {
+          method:  'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ photoUrl: upData.secure_url }),
+        });
+        const patchData = await patchResp.json();
+        if (!patchData.ok) throw new Error(patchData.error || 'save failed');
+
+        // Update local state
+        const v = placeVisits.find(x => x.id === p.visitId);
+        if (v) { v.fields = v.fields || {}; v.fields['Entry URL'] = upData.secure_url; }
+        await deleteQueuedPhoto(p.id);
+        results.photos++;
+      } catch(e) {
+        console.warn('[sync photo]', e);
+        results.failed++;
+      }
+    }
+
+    if (!silent) renderPlaces();
+    updatePendingBadge();
+    return results;
+  } finally {
+    _syncInFlight = false;
+  }
+}
+
+// Sync on reconnect (fire and forget)
+window.addEventListener('online', () => { syncPendingUploads({ silent: true }); });
+
+async function updatePendingBadge() {
+  const el = document.getElementById('places-pending-badge');
+  if (!el) return;
+  const visits = loadVisitQueue().length;
+  const photos = (await listQueuedPhotos().catch(() => [])).length;
+  const total  = visits + photos;
+  if (!total) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML = `
+    <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;">${total} pending upload${total === 1 ? '' : 's'}</span>
+    <button onclick="manualSync()" style="margin-left:auto;background:var(--teal);color:#0a1628;border:none;border-radius:20px;padding:6px 14px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.75rem;cursor:pointer;">Upload now</button>
+  `;
+}
+
+async function manualSync() {
+  const el = document.getElementById('places-pending-badge');
+  if (el) el.innerHTML = '<span style="font-family:Montserrat,sans-serif;font-weight:700;font-size:0.82rem;">Uploading…</span>';
+  if (!navigator.onLine) {
+    if (el) el.innerHTML = '<span style="font-family:Montserrat,sans-serif;font-weight:700;font-size:0.82rem;color:#facc15;">You\'re offline — will retry when connected.</span>';
+    setTimeout(updatePendingBadge, 2000);
+    return;
+  }
+  const r = await syncPendingUploads();
+  if (r.failed) alert(`Uploaded ${r.visits} visits and ${r.photos} photos. ${r.failed} failed — will retry.`);
+}
+
+// ── Places tab (park cards) ─────────────────────────────────────────────────
+// Only wildlife (Animals) trips get the Places tab — matches the pattern used
+// for offline prep + wishlist species.
+function showPlacesTabIfEligible() {
+  if (!tripMeta) return;
+  if (tripMeta['Special Version'] !== 'Animals') return;
+  const tab = document.getElementById('tab-places');
+  if (tab) tab.style.display = '';
+}
+
+function fmtVisitDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch { return String(iso); }
+}
+
+async function renderPlaces() {
+  const el = document.getElementById('places-content');
+  if (!el) return;
+
+  // Load trip stops + existing visits in parallel (once)
+  if (!tripStops) {
+    el.textContent = 'Loading places…';
+    try {
+      const [stopsResp, visitsResp] = await Promise.all([
+        fetch('/api/trip-stops?tripId=' + encodeURIComponent(TRIP_ID)),
+        fetch('/api/place-visits?tripId=' + encodeURIComponent(TRIP_ID)),
+      ]);
+      const stopsData  = await stopsResp.json();
+      const visitsData = await visitsResp.json();
+      tripStops   = stopsData.stops   || [];
+      placeVisits = visitsData.records || [];
+    } catch(e) {
+      console.error('[places] load failed:', e);
+      el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:32px 20px;">Could not load places. Try reconnecting.</div>';
+      return;
+    }
+  }
+
+  if (!tripStops.length) {
+    el.innerHTML = `<div style="color:var(--muted);text-align:center;padding:40px 20px;line-height:1.6;">
+      No places set up for this trip yet.<br>
+      <span style="font-size:0.82rem;">Ask your coach to build the schedule first.</span>
+    </div>`;
+    return;
+  }
+
+  // Build a lookup of visits by normalized place name so a card knows if it's visited.
+  const norm = n => String(n || '').toLowerCase().trim();
+  const visitByName = new Map();
+  placeVisits.forEach(v => {
+    const key = norm(v.fields['Place Name']);
+    if (key) visitByName.set(key, v);
+  });
+
+  el.innerHTML = tripStops.map(s => {
+    const visit    = visitByName.get(norm(s.placeName));
+    const visited  = !!visit;
+    const day      = s.dayNumber != null ? 'Day ' + s.dayNumber : 'Stop';
+    const country  = [s.country, s.region].filter(Boolean).join(' · ');
+    const hero     = s.heroPhoto || '';
+    const desc     = s.whyStopHere || s.description || '';
+    const tip      = s.insiderTip || '';
+    const wildlife = s.wildlifeNotes || '';
+    const coach    = s.coachVisited ? (s.coachVisitNote || 'Michael has been here') : '';
+
+    const entry     = visited ? (visit.fields['Entry URL'] || '') : '';
+    const inputId   = 'pk-photo-' + (visit ? visit.id : ('new-' + Math.random().toString(36).slice(2, 8)));
+
+    const photoBlock = visited && entry
+      ? `<div style="margin-top:14px;position:relative;">
+           <img src="${escAttr(entry)}" onclick="window.open('${escAttr(entry)}','_blank')" style="width:100%;max-height:260px;object-fit:cover;border-radius:10px;cursor:zoom-in;display:block;">
+           <button onclick="document.getElementById('${inputId}').click()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:16px;padding:6px 12px;font-family:'Montserrat',sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer;">Replace</button>
+         </div>`
+      : (visited
+        ? `<button class="pk-visit-btn" style="margin-top:10px;" onclick="document.getElementById('${inputId}').click()">📷 Add entry photo</button>`
+        : '');
+
+    const captureInput = visited
+      ? `<input type="file" accept="image/*" capture="environment" id="${inputId}" style="display:none;" onchange="uploadPlaceEntryPhoto('${visit.id}', this)">`
+      : '';
+
+    const visitBtn = visited
+      ? `<button class="pk-visit-btn visited" onclick="togglePlaceVisit('${escAttr(s.placeName)}', '${escAttr(s.country || '')}', ${s.dayNumber || 'null'}, '${visit.id}')">✓ Visited</button>
+         <div class="pk-visit-meta">Visited ${fmtVisitDate(visit.fields['Visited Date'])} — tap to remove</div>
+         ${photoBlock}
+         ${captureInput}`
+      : `<button class="pk-visit-btn" onclick="togglePlaceVisit('${escAttr(s.placeName)}', '${escAttr(s.country || '')}', ${s.dayNumber || 'null'}, '')">I've been here</button>`;
+
+    return `
+      <div class="pk-card${visited ? ' visited' : ''}">
+        ${hero ? `
+          <div class="pk-hero-wrap">
+            <img class="pk-hero" src="${escAttr(hero)}" alt="${escAttr(s.placeName)}" loading="lazy" onerror="this.style.display='none'">
+            <div class="pk-hero-scrim"></div>
+            <div class="pk-hero-label">
+              <div class="pk-day-tag">${escHtml(day)}${country ? ' · ' + escHtml(country) : ''}</div>
+              <div class="pk-name">${escHtml(s.placeName)}</div>
+            </div>
+          </div>
+        ` : `
+          <div class="pk-body" style="padding-bottom:0;">
+            <div class="pk-day-tag" style="color:var(--teal);">${escHtml(day)}${country ? ' · ' + escHtml(country) : ''}</div>
+            <div class="pk-name" style="color:#fff;">${escHtml(s.placeName)}</div>
+          </div>
+        `}
+        <div class="pk-body">
+          ${coach ? `<div class="pk-coach-note">✓ ${escHtml(coach)}</div>` : ''}
+          ${desc ? `
+            <div class="pk-section-label">Why stop here</div>
+            <div style="font-size:0.9rem;line-height:1.65;color:var(--soft);">${mdToHtml(desc)}</div>
+          ` : ''}
+          ${tip ? `
+            <div class="pk-tip">
+              <div class="pk-tip-label">💡 Insider tip</div>
+              <div style="color:var(--soft);font-size:0.9rem;line-height:1.65;">${mdToHtml(tip)}</div>
+            </div>
+          ` : ''}
+          ${wildlife ? `
+            <div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:8px;padding:11px 12px;margin-top:12px;">
+              <div style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.66rem;letter-spacing:0.12em;text-transform:uppercase;color:#34d399;margin-bottom:4px;">🐾 Wildlife notes</div>
+              <div style="color:var(--soft);font-size:0.9rem;line-height:1.65;">${mdToHtml(wildlife)}</div>
+            </div>
+          ` : ''}
+          ${visitBtn}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function togglePlaceVisit(placeName, country, dayNumber, existingVisitId) {
+  if (!placeName || !EMAIL) return;
+
+  // Un-toggle. If the visit isn't synced yet, drop it from the local queue.
+  if (existingVisitId) {
+    if (existingVisitId.startsWith('local-')) {
+      const q = loadVisitQueue().filter(e => e.tempId !== existingVisitId);
+      saveVisitQueue(q);
+      placeVisits = placeVisits.filter(v => v.id !== existingVisitId);
+      renderPlaces();
+      updatePendingBadge();
+      return;
+    }
+    try {
+      await fetch('/api/place-visits?id=' + encodeURIComponent(existingVisitId), { method: 'DELETE' });
+      placeVisits = placeVisits.filter(v => v.id !== existingVisitId);
+      renderPlaces();
+    } catch(e) {
+      alert('Could not remove visit — try again when back online.');
+    }
+    return;
+  }
+
+  // Create a new visit. Always store in the queue first so it survives an
+  // immediate reload or crash, then trigger a background sync.
+  const nowIso  = new Date().toISOString();
+  const tempId  = 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  const entry = {
+    tempId,
+    placeName,
+    country:       country || '',
+    tripDayNumber: dayNumber || null,
+    travelerEmail: EMAIL,
+    tripId:        TRIP_ID,
+    visitedDate:   nowIso,
+  };
+  const q = loadVisitQueue(); q.push(entry); saveVisitQueue(q);
+
+  // Optimistic UI — show as visited immediately using the tempId
+  placeVisits.push({
+    id: tempId,
+    fields: {
+      'Place Name':   placeName,
+      'Visited Date': nowIso,
+    },
+  });
+  renderPlaces();
+  updatePendingBadge();
+
+  // Fire background sync; UI already reflects the change, no need to await
+  syncPendingUploads({ silent: true });
+}
+
+async function uploadPlaceEntryPhoto(visitId, inputEl) {
+  const file = inputEl && inputEl.files && inputEl.files[0];
+  if (!file || !visitId) return;
+
+  // Show a local preview immediately using object URL — user sees their photo
+  // instantly whether they're online or not.
+  const localUrl = URL.createObjectURL(file);
+  const idx = placeVisits.findIndex(v => v.id === visitId);
+  if (idx >= 0) {
+    placeVisits[idx].fields = placeVisits[idx].fields || {};
+    placeVisits[idx].fields['Entry URL'] = localUrl;
+    placeVisits[idx]._localPhoto = true;
+  }
+
+  // Queue the blob for later upload. If the visit itself is still pending
+  // (tempId starts with "local-"), stamp the tempVisitId so the sync loop
+  // can link it up once the visit gets a real ID.
+  try {
+    const isTempVisit = String(visitId).startsWith('local-');
+    await queuePhoto({
+      visitId:       isTempVisit ? '' : visitId,
+      tempVisitId:   isTempVisit ? visitId : '',
+      placeName:     idx >= 0 ? placeVisits[idx].fields['Place Name'] : '',
+      blob:          file,
+      mimeType:      file.type,
+      name:          file.name || 'entry.jpg',
+      queuedAt:      new Date().toISOString(),
+    });
+  } catch(e) {
+    console.error('[queue photo]', e);
+    alert('Could not save your photo locally. Please try again.');
+    if (inputEl) inputEl.value = '';
+    return;
+  }
+
+  renderPlaces();
+  updatePendingBadge();
+  if (inputEl) inputEl.value = '';
+
+  // Kick off a sync in the background. If offline, this returns without error
+  // and the badge shows the pending count.
+  syncPendingUploads({ silent: true });
+}
+
+// Escape helpers (fallback if not already defined)
+function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s) { return escHtml(s); }
+
+// Tiny markdown converter for Airtable rich-text fields. Handles the common
+// syntax Airtable emits: **bold**, _italic_, line breaks, and simple lists.
+function mdToHtml(s) {
+  if (!s) return '';
+  // Strip backslash escapes Airtable emits when rich-text formatting is enabled
+  // and the user typed literal ** or __ characters. Airtable escapes them as
+  // \*\* / \_\_ — we treat those as intended markdown formatting.
+  s = String(s).replace(/\\([*_])/g, '$1');
+  let h = escHtml(s);
+  // Bold/italic — order matters: process bold first so **_x_** stays intact
+  h = h.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/__([^_]+)__/g,     '<strong>$1</strong>');
+  h = h.replace(/(?<!\w)_([^_\n]+)_(?!\w)/g, '<em>$1</em>');
+  h = h.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
+  // Bullets — lines starting with "- " or "* "
+  h = h.replace(/^([-*])\s+(.+)$/gm, '<li>$2</li>');
+  h = h.replace(/(<li>[\s\S]+?<\/li>)(?!\s*<li>)/g, '<ul style="margin:6px 0 0;padding-left:18px;">$1</ul>');
+  // Line breaks — double newline → paragraph, single newline → <br>
+  h = h.split(/\n{2,}/).map(p => p.trim() ? `<p style="margin:0 0 8px;">${p.replace(/\n/g,'<br>')}</p>` : '').join('');
+  return h;
+}
+
+// ── Offline preparation ──────────────────────────────────────────────────────
+// Register the service worker so /api/species-pack-trip and Cloudinary photos
+// get cached. The worker itself lives at /sw.js and was already set up for
+// the wildlife guide.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+let _offlinePackMeta = null; // last downloaded pack (species count, size)
+
+function fmtVerifiedTs(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  } catch { return String(iso); }
+}
+
+function renderOfflineCard() {
+  const el = document.getElementById('offline-card');
+  if (!el || !tripMeta) return;
+
+  // Only wildlife trips need offline species preparation.
+  if (tripMeta['Special Version'] !== 'Animals') {
+    el.style.display = 'none';
+    return;
+  }
+
+  const verifiedAt = tripMeta['Cache Verified At'] || '';
+  el.style.display = 'block';
+
+  if (verifiedAt) {
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:1.15rem;color:#2dd4bf;">✓</span>
+        <span style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.9rem;color:#fff;">Ready for offline use</span>
+      </div>
+      <div style="font-size:0.82rem;color:#94a3b8;margin-bottom:12px;line-height:1.5;">Last verified <strong style="color:#cbd5e1;">${fmtVerifiedTs(verifiedAt)}</strong>${_offlinePackMeta ? ` · ${_offlinePackMeta.speciesCount} species cached` : ''}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="testOfflineMode()" style="flex:1;min-width:130px;padding:9px 12px;background:transparent;color:#2dd4bf;border:1px solid rgba(45,212,191,0.4);border-radius:8px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.82rem;cursor:pointer;">Test offline mode</button>
+        <button onclick="downloadOfflinePack(true)" style="flex:1;min-width:130px;padding:9px 12px;background:transparent;color:#cbd5e1;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-family:'Montserrat',sans-serif;font-weight:600;font-size:0.82rem;cursor:pointer;">Re-download</button>
+      </div>
+    `;
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <span style="font-size:1.15rem;">📥</span>
+      <span style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;color:#fff;">Prepare for offline use</span>
+    </div>
+    <p style="font-size:0.85rem;color:#cbd5e1;margin:0 0 12px;line-height:1.55;">Download every species and park you'll visit on this trip so photos and notes load without wifi in the field.</p>
+    <button id="offline-download-btn" onclick="downloadOfflinePack(false)" style="width:100%;padding:12px;background:#2dd4bf;color:#0a1628;border:none;border-radius:8px;font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.9rem;cursor:pointer;">Download trip library</button>
+    <div id="offline-progress" style="display:none;margin-top:12px;">
+      <div style="height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
+        <div id="offline-progress-bar" style="height:100%;width:0%;background:#2dd4bf;transition:width 0.15s;"></div>
+      </div>
+      <div id="offline-progress-text" style="font-size:0.78rem;color:#94a3b8;margin-top:6px;text-align:center;"></div>
+    </div>
+  `;
+}
+
+async function downloadOfflinePack(isRedownload) {
+  // Always show a progress card while downloading, regardless of previous state.
+  const card = document.getElementById('offline-card');
+  if (card) {
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <span style="font-size:1.15rem;">📥</span>
+        <span style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.95rem;color:#fff;">${isRedownload ? 'Re-downloading trip library' : 'Downloading trip library'}</span>
+      </div>
+      <div id="offline-progress" style="margin-top:8px;">
+        <div style="height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
+          <div id="offline-progress-bar" style="height:100%;width:0%;background:#2dd4bf;transition:width 0.15s;"></div>
+        </div>
+        <div id="offline-progress-text" style="font-size:0.78rem;color:#94a3b8;margin-top:6px;text-align:center;">Preparing…</div>
+      </div>
+    `;
+  }
+  const btn      = document.getElementById('offline-download-btn'); // will be null in progress state
+  const progress = document.getElementById('offline-progress');
+  const bar      = document.getElementById('offline-progress-bar');
+  const text     = document.getElementById('offline-progress-text');
+
+  try {
+    // 1. Grab the trip-scoped species pack (SW caches this automatically).
+    const packResp = await fetch('/api/species-pack-trip?tripId=' + encodeURIComponent(TRIP_ID));
+    const pack     = await packResp.json();
+    if (pack.error) throw new Error(pack.error);
+    const list     = pack.species || [];
+    _offlinePackMeta = pack.meta || { speciesCount: list.length };
+
+    if (!list.length) {
+      const placeCount = (_offlinePackMeta && _offlinePackMeta.placeCount) || 0;
+      const msg = placeCount === 0
+        ? "This trip doesn't have any places set up yet. Open the trip in the portal and run 'Set Up from Template' to populate the schedule, then come back to download."
+        : "This trip has " + placeCount + " places, but none of them match species in our database yet. Ask your coach to review the place names or add species to those parks.";
+      alert(msg);
+      renderOfflineCard();
+      return;
+    }
+
+    // 2. Show progress UI
+    if (progress) progress.style.display = 'block';
+    if (btn) btn.style.display = 'none';
+
+    // 3. Grab park content + hero photos so the Places tab works offline too.
+    let placeHeroes = [];
+    try {
+      const stopsResp = await fetch('/api/trip-stops?tripId=' + encodeURIComponent(TRIP_ID));
+      const stopsData = await stopsResp.json();
+      placeHeroes = (stopsData.stops || []).map(s => s.heroPhoto).filter(Boolean);
+    } catch(e) { console.warn('[offline] trip-stops fetch failed:', e); }
+
+    // 4. Pre-fetch each species and park photo so the SW puts them in cache.
+    //    no-cors mode ensures cross-origin requests come back as opaque
+    //    responses that the SW's fetch handler will cache.
+    const allPhotos = [
+      ...list.map(sp => sp.photoUrl).filter(Boolean),
+      ...placeHeroes,
+    ];
+    let done = 0;
+    for (const url of allPhotos) {
+      try { await fetch(url, { mode: 'no-cors' }); } catch(e) {}
+      done++;
+      const pct = Math.round((done / allPhotos.length) * 100);
+      if (bar)  bar.style.width = pct + '%';
+      if (text) text.textContent = `Cached ${done} of ${allPhotos.length} photos`;
+    }
+
+    // 4. Stamp the Trip record so we know it happened (and when)
+    const nowIso = new Date().toISOString();
+    try {
+      const patchResp = await fetch('/api/trips?id=' + encodeURIComponent(TRIP_ID), {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ cacheVerifiedAt: nowIso, email: EMAIL }),
+      });
+      const patchData = await patchResp.json();
+      if (patchData && patchData.record) {
+        tripMeta = patchData.record.fields;
+      } else if (tripMeta) {
+        tripMeta['Cache Verified At'] = nowIso;
+      }
+    } catch(e) { console.warn('[offline] cacheVerifiedAt patch failed:', e); }
+
+    renderOfflineCard();
+  } catch(e) {
+    console.error('[offline] download failed:', e);
+    alert('Download failed: ' + (e.message || 'try again'));
+    renderOfflineCard();
+  }
+}
+
+// Confidence check — a second window loads /wildlife-guide.html so the user
+// can browse their cached species without wifi and confirm images appear.
+function testOfflineMode() {
+  const opened = window.open('/wildlife-guide.html?offlineTest=1&tripId=' + encodeURIComponent(TRIP_ID) + '&email=' + encodeURIComponent(EMAIL), '_blank');
+  if (!opened) alert('Please allow popups so we can open the field guide for testing.');
 }
 
 init();

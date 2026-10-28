@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sighting Backfill Tool</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/full.umd.js"></script>
+<style>
+  :root {
+    --teal: #2dd4bf;
+    --bg:   #0a1628;
+    --s1:   #0f1e35;
+    --s2:   #1a2840;
+    --bd:   rgba(255,255,255,0.08);
+    --txt:  #f1f5f9;
+    --soft: #cbd5e1;
+    --mut:  #64748b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    background: var(--bg); color: var(--txt);
+    font-family: -apple-system, sans-serif;
+    font-size: 14px;
+  }
+  h1 { color: #fff; margin: 0 0 6px; font-size: 22px; }
+  .sub { color: var(--mut); font-size: 13px; margin-bottom: 24px; }
+  .panel { background: var(--s1); border: 1px solid var(--bd); border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
+  label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--mut); margin-bottom: 4px; }
+  input, select, textarea {
+    background: var(--s2); border: 1px solid var(--bd); color: var(--txt);
+    border-radius: 6px; padding: 8px 10px; font-family: inherit; font-size: 14px;
+    width: 100%;
+  }
+  button {
+    background: var(--teal); color: #0f172a; border: none; border-radius: 6px;
+    padding: 9px 18px; font-family: inherit; font-weight: 700; cursor: pointer;
+    font-size: 13px;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary { background: none; border: 1px solid var(--bd); color: var(--soft); }
+  .drop {
+    background: var(--s1); border: 2px dashed rgba(45,212,191,0.4); border-radius: 12px;
+    padding: 34px; text-align: center; cursor: pointer; margin-bottom: 20px;
+    transition: background 0.15s;
+  }
+  .drop.over { background: rgba(45,212,191,0.08); }
+  .drop-hint { color: var(--soft); font-size: 15px; margin-bottom: 4px; }
+  .drop-sub  { color: var(--mut); font-size: 12px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .photo-card {
+    background: var(--s1); border: 1px solid var(--bd); border-radius: 10px;
+    padding: 14px; margin-bottom: 12px; display: grid;
+    grid-template-columns: 140px 1fr; gap: 16px;
+  }
+  .photo-card.logged { opacity: 0.55; border-color: rgba(45,212,191,0.4); }
+  .thumb {
+    width: 140px; height: 140px; object-fit: cover; border-radius: 8px;
+    background: var(--s2);
+  }
+  .meta {
+    font-size: 12px; color: var(--mut); margin-bottom: 10px;
+    line-height: 1.55;
+  }
+  .meta strong { color: var(--soft); font-weight: 600; }
+  .badge {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    padding: 2px 7px; border-radius: 4px; margin-left: 6px;
+  }
+  .badge.ok  { background: rgba(45,212,191,0.15); color: var(--teal); }
+  .badge.no  { background: rgba(244,63,94,0.15);  color: #fb7185; }
+  .form-row { margin-bottom: 8px; }
+  .actions { margin-top: 10px; display: flex; gap: 8px; }
+  .status { font-size: 12px; margin-left: auto; align-self: center; color: var(--mut); }
+  .status.ok { color: var(--teal); }
+  .status.err { color: #fb7185; }
+  #species-list { position: relative; }
+  .autocomplete {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+    background: var(--s2); border: 1px solid var(--bd); border-radius: 6px;
+    max-height: 200px; overflow-y: auto; display: none;
+  }
+  .autocomplete div {
+    padding: 8px 10px; cursor: pointer; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .autocomplete div:hover { background: rgba(45,212,191,0.1); }
+  .empty { color: var(--mut); text-align: center; padding: 40px 20px; font-size: 14px; }
+</style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+<h1>Sighting Backfill Tool</h1>
+<div class="sub">Drop photos to extract date + GPS from EXIF and log sightings against a past trip. Metadata only — photos aren't uploaded.</div>
+
+<div class="panel">
+  <div class="row2" style="margin-bottom: 12px;">
+    <div>
+      <label>Coach Email</label>
+      <input id="email" type="email" placeholder="you@example.com">
+    </div>
+    <div>
+      <label>Load Trips</label>
+      <button onclick="loadTrips()">Load Trips</button>
+    </div>
+  </div>
+  <div class="row2">
+    <div>
+      <label>Trip</label>
+      <select id="trip"><option value="">— pick a trip —</option></select>
+    </div>
+    <div>
+      <label>Region (for species pack)</label>
+      <input id="region" placeholder="e.g. Gorilla Countries, East Africa">
+    </div>
+  </div>
+  <div style="margin-top: 12px;">
+    <button onclick="loadSpecies()">Load Species Pack</button>
+    <span id="species-count" style="color: var(--mut); font-size: 12px; margin-left: 12px;"></span>
+  </div>
+</div>
+
+<div class="drop" id="drop" ondragover="event.preventDefault(); this.classList.add('over');"
+     ondragleave="this.classList.remove('over');"
+     ondrop="event.preventDefault(); this.classList.remove('over'); handleFiles(event.dataTransfer.files);"
+     onclick="document.getElementById('file-input').click();">
+  <div class="drop-hint">📸 Drop photos here or click to select</div>
+  <div class="drop-sub">JPEGs with GPS EXIF work best. Any images are accepted.</div>
+  <input id="file-input" type="file" accept="image/*" multiple style="display: none;" onchange="handleFiles(this.files);">
+</div>
+
+<div id="photos"></div>
+
+<script>
+const API_BASE = 'https://app.transformedbytravels.com';
+let SPECIES = [];
+let TRIPS   = [];
+let PHOTOS  = []; // { id, file, previewUrl, exif, logged, error }
+let NEXT_ID = 1;
+
+// Prefill email from localStorage
+document.getElementById('email').value = localStorage.getItem('sbf-email') || '';
+document.getElementById('region').value = localStorage.getItem('sbf-region') || '';
+
+async function loadTrips() {
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  if (!email) { alert('Enter your coach email first'); return; }
+  localStorage.setItem('sbf-email', email);
+  const sel = document.getElementById('trip');
+  sel.innerHTML = '<option>Loading…</option>';
+  try {
+    const r = await fetch(`${API_BASE}/api/trips?email=${encodeURIComponent(email)}`);
+    const d = await r.json();
+    TRIPS = d.records || [];
+    sel.innerHTML = '<option value="">— pick a trip —</option>' +
+      TRIPS.map(t => {
+        const f = t.fields;
+        const name = f['Trip Name'] || f['Destination'] || 'Untitled';
+        const dates = (f['Start Date'] || '') + (f['End Date'] ? ' – ' + f['End Date'] : '');
+        return `<option value="${t.id}">${name} (${dates})</option>`;
+      }).join('');
+    sel.onchange = () => {
+      const trip = TRIPS.find(t => t.id === sel.value);
+      if (trip) {
+        const region = trip.fields['Animal Region'] || trip.fields['Country'] || '';
+        if (region) {
+          document.getElementById('region').value = region;
+          localStorage.setItem('sbf-region', region);
+        }
+      }
+    };
+  } catch(e) {
+    sel.innerHTML = '<option value="">Error loading trips: ' + e.message + '</option>';
+  }
+}
+
+async function loadSpecies() {
+  const region = document.getElementById('region').value.trim();
+  const count = document.getElementById('species-count');
+  count.textContent = 'Loading…';
+  try {
+    const r = await fetch(`${API_BASE}/api/species-pack?region=${encodeURIComponent(region)}`);
+    const d = await r.json();
+    SPECIES = d.species || [];
+    count.textContent = `${SPECIES.length} species loaded`;
+    localStorage.setItem('sbf-region', region);
+    // Re-render existing photo cards so their species pickers get the fresh list
+    renderPhotos();
+  } catch(e) {
+    count.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function handleFiles(fileList) {
+  const files = Array.from(fileList);
+  for (const file of files) {
+    const id = NEXT_ID++;
+    const previewUrl = URL.createObjectURL(file);
+    let exif = null;
+    try {
+      exif = await exifr.parse(file, { gps: true, tiff: true });
+    } catch(e) { console.warn('EXIF parse failed for', file.name, e); }
+    PHOTOS.push({ id, file, previewUrl, exif, logged: false, error: null });
+  }
+  renderPhotos();
+}
+
+function renderPhotos() {
+  const el = document.getElementById('photos');
+  if (!PHOTOS.length) { el.innerHTML = '<div class="empty">No photos loaded yet.</div>'; return; }
+  el.innerHTML = PHOTOS.map(renderPhotoCard).join('');
+}
+
+function renderPhotoCard(p) {
+  const lat = p.exif && p.exif.latitude != null ? p.exif.latitude : null;
+  const lon = p.exif && p.exif.longitude != null ? p.exif.longitude : null;
+  const dt  = p.exif && (p.exif.DateTimeOriginal || p.exif.CreateDate || p.exif.ModifyDate);
+  const dtStr = dt ? new Date(dt).toISOString().slice(0, 19) : '';
+  const gpsBadge = (lat != null && lon != null)
+    ? `<span class="badge ok">GPS ✓</span>`
+    : `<span class="badge no">no GPS</span>`;
+  const dateBadge = dt
+    ? `<span class="badge ok">date ✓</span>`
+    : `<span class="badge no">no date</span>`;
+  return `<div class="photo-card ${p.logged ? 'logged' : ''}" id="card-${p.id}">
+    <img class="thumb" src="${p.previewUrl}" alt="">
+    <div>
+      <div class="meta">
+        <strong>${escapeHtml(p.file.name)}</strong> ${gpsBadge} ${dateBadge}<br>
+        ${dt ? 'Taken: ' + dtStr.replace('T',' ') : 'No timestamp'}<br>
+        ${lat != null && lon != null ? `GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}` : 'No GPS coordinates in EXIF'}
+      </div>
+      <div class="form-row" id="species-wrap-${p.id}" style="position: relative;">
+        <label>Species</label>
+        <input id="species-${p.id}" type="text" placeholder="Type to search species pack…"
+               oninput="showSuggestions(${p.id}, this.value)"
+               onfocus="showSuggestions(${p.id}, this.value)"
+               onblur="setTimeout(() => hideSuggestions(${p.id}), 200);">
+        <div class="autocomplete" id="suggest-${p.id}"></div>
+      </div>
+      <div class="row2 form-row">
+        <div>
+          <label>Group Size</label>
+          <select id="group-${p.id}">
+            <option value="Single">Single</option>
+            <option value="Pair">Pair</option>
+            <option value="Family">Family</option>
+            <option value="Small Group">Small Group</option>
+            <option value="Large Group">Large Group</option>
+          </select>
+        </div>
+        <div>
+          <label>Location / Park</label>
+          <input id="loc-${p.id}" type="text" placeholder="e.g. Bwindi">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Notes (optional)</label>
+        <input id="notes-${p.id}" type="text" placeholder="behavior, sighting context…">
+      </div>
+      <input type="hidden" id="lat-${p.id}" value="${lat != null ? lat : ''}">
+      <input type="hidden" id="lon-${p.id}" value="${lon != null ? lon : ''}">
+      <input type="hidden" id="date-${p.id}" value="${dtStr}">
+      <input type="hidden" id="speciesId-${p.id}" value="">
+      <input type="hidden" id="sciName-${p.id}"   value="">
+      <div class="actions">
+        <button onclick="logSighting(${p.id})" ${p.logged ? 'disabled' : ''}>${p.logged ? '✓ Logged' : 'Log Sighting'}</button>
+        <button class="secondary" onclick="removePhoto(${p.id})">Remove</button>
+        <span class="status ${p.error ? 'err' : (p.logged ? 'ok' : '')}" id="status-${p.id}">${p.error || (p.logged ? '✓ Saved' : '')}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function showSuggestions(id, query) {
+  const el = document.getElementById(`suggest-${id}`);
+  if (!SPECIES.length) { el.style.display = 'none'; return; }
+  const q = (query || '').toLowerCase();
+  const matches = SPECIES.filter(s =>
+    s.name.toLowerCase().includes(q) || (s.scientificName || '').toLowerCase().includes(q)
+  ).slice(0, 12);
+  if (!matches.length) { el.style.display = 'none'; return; }
+  el.innerHTML = matches.map(s =>
+    `<div onclick="pickSpecies(${id}, '${s.id}', '${escapeAttr(s.name)}', '${escapeAttr(s.scientificName || '')}')">
+      <strong>${escapeHtml(s.name)}</strong>${s.scientificName ? ' — <em style="color:#94a3b8;">' + escapeHtml(s.scientificName) + '</em>' : ''}
+    </div>`
+  ).join('');
+  el.style.display = 'block';
+}
+
+function hideSuggestions(id) {
+  const el = document.getElementById(`suggest-${id}`);
+  if (el) el.style.display = 'none';
+}
+
+function pickSpecies(id, speciesId, name, sciName) {
+  document.getElementById(`species-${id}`).value    = name;
+  document.getElementById(`speciesId-${id}`).value  = speciesId;
+  document.getElementById(`sciName-${id}`).value    = sciName;
+  hideSuggestions(id);
+}
+
+function removePhoto(id) {
+  PHOTOS = PHOTOS.filter(p => p.id !== id);
+  renderPhotos();
+}
+
+async function logSighting(id) {
+  const p = PHOTOS.find(x => x.id === id);
+  if (!p) return;
+  const tripId = document.getElementById('trip').value;
+  if (!tripId) { alert('Pick a trip first'); return; }
+  const email  = document.getElementById('email').value.trim().toLowerCase();
+
+  const name       = document.getElementById(`species-${id}`).value.trim();
+  const speciesId  = document.getElementById(`speciesId-${id}`).value.trim();
+  const sciName    = document.getElementById(`sciName-${id}`).value.trim();
+  const groupSize  = document.getElementById(`group-${id}`).value || 'Single';
+  const location   = document.getElementById(`loc-${id}`).value.trim();
+  const notes      = document.getElementById(`notes-${id}`).value.trim();
+  const lat        = document.getElementById(`lat-${id}`).value;
+  const lon        = document.getElementById(`lon-${id}`).value;
+  const date       = document.getElementById(`date-${id}`).value;
+
+  if (!name) { alert('Enter or pick a species'); return; }
+
+  const body = {
+    speciesId:     speciesId || 'custom',
+    name,
+    sciName,
+    groupSize,
+    location,
+    notes,
+    date: date || new Date().toISOString(),
+    travelerEmail: email,
+    tripId,
+    loggedByEmail: email,
+    loggedByRole:  'Coach',
+    lat: lat ? Number(lat) : null,
+    lon: lon ? Number(lon) : null,
+  };
+
+  const statusEl = document.getElementById(`status-${id}`);
+  statusEl.className = 'status'; statusEl.textContent = 'Saving…';
+  try {
+    const r = await fetch(`${API_BASE}/api/sightings`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || 'HTTP ' + r.status);
+    p.logged = true; p.error = null;
+    renderPhotos();
+  } catch(e) {
+    p.error = 'Error: ' + e.message;
+    statusEl.className = 'status err';
+    statusEl.textContent = p.error;
+  }
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function escapeAttr(s) {
+  return escapeHtml(s).replace(/'/g, '&#39;');
+}
+</script>
+
+</body>
+</html>

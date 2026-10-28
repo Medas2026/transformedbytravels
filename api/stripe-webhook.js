@@ -62,6 +62,57 @@ function airtablePatch(recordId, fields) {
   });
 }
 
+const ORDERS_TABLE = 'Calendar Orders';
+
+function airtableCreate(table, fields) {
+  return new Promise((resolve, reject) => {
+    const https   = require('https');
+    const bodyStr = JSON.stringify({ fields, typecast: true });
+    const req = https.request({
+      hostname: 'api.airtable.com',
+      path:     `/v0/${AIRTABLE_BASE}/${encodeURIComponent(table)}`,
+      method:   'POST',
+      headers: { 'Authorization': 'Bearer ' + process.env.AIRTABLE_API_KEY, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr) },
+    }, (res) => { let d = ''; res.on('data', c => d += c); res.on('end', () => { try { resolve(JSON.parse(d)); } catch (e) { reject(e); } }); });
+    req.on('error', reject); req.write(bodyStr); req.end();
+  });
+}
+
+function airtableFindIn(table, formula) {
+  return new Promise((resolve, reject) => {
+    const https = require('https');
+    const req = https.request({
+      hostname: 'api.airtable.com',
+      path:     `/v0/${AIRTABLE_BASE}/${encodeURIComponent(table)}?maxRecords=1&filterByFormula=${encodeURIComponent(formula)}`,
+      method:   'GET',
+      headers:  { 'Authorization': 'Bearer ' + process.env.AIRTABLE_API_KEY },
+    }, (res) => { let d = ''; res.on('data', c => d += c); res.on('end', () => { try { resolve((JSON.parse(d).records || [])[0] || null); } catch (e) { reject(e); } }); });
+    req.on('error', reject); req.end();
+  });
+}
+
+function sendOrderEmail(order) {
+  return new Promise((resolve) => {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) return resolve();
+    const html = `<h2>New calendar order</h2>
+      <p><strong>${order.summary}</strong><br>${order.total} calendars &mdash; $${order.amount}</p>
+      <p><strong>Customer:</strong> ${order.name} (${order.email})${order.phone ? ' &middot; ' + order.phone : ''}</p>
+      <p><strong>Ship to:</strong><br>${String(order.shipping || '').replace(/\n/g, '<br>')}</p>
+      <p style="color:#888">Stripe session ${order.session}</p>`;
+    const bodyStr = JSON.stringify({
+      from:    'Three Realms Store <orders@transformedbytravels.com>',
+      to:      ['MichaelE@transformedbytravels.com'],
+      subject: `Calendar order (${order.total}): ${order.name} — ${order.summary}`,
+      html,
+    });
+    const https = require('https');
+    const req = https.request({ hostname: 'api.resend.com', path: '/emails', method: 'POST', headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr) } },
+      (res) => { let d = ''; res.on('data', c => d += c); res.on('end', () => resolve()); });
+    req.on('error', () => resolve()); req.write(bodyStr); req.end();
+  });
+}
+
 // Vercel requires raw body for Stripe signature verification
 export const config = { api: { bodyParser: false } };
 
@@ -140,6 +191,42 @@ module.exports = async function handler(req, res) {
           });
           console.log('Deactivated:', email, event.type);
         }
+      }
+    }
+
+    // ── Store: calendar order (one-time payment) ────────────────────────────
+    if (event.type === 'checkout.session.completed') {
+      const s = event.data.object;
+      if (s.metadata && s.metadata.type === 'calendar') {
+        // Idempotency — Stripe may retry; don't double-record.
+        const existing = await airtableFindIn(ORDERS_TABLE, `{Stripe Session ID}="${s.id}"`);
+        if (existing) { console.log('Calendar order already recorded:', s.id); return res.status(200).json({ received: true, dup: true }); }
+
+        const cd = s.customer_details || {};
+        const sd = s.shipping_details || s.shipping || {};
+        const a  = sd.address || {};
+        const shipping = [
+          sd.name || cd.name || '',
+          a.line1, a.line2,
+          [a.city, a.state, a.postal_code].filter(Boolean).join(', '),
+          a.country,
+        ].filter(Boolean).join('\n');
+        const amount = (s.amount_total != null) ? (s.amount_total / 100).toFixed(2) : '';
+
+        await airtableCreate(ORDERS_TABLE, {
+          'Order Date':         new Date().toISOString().split('T')[0],
+          'Items':              s.metadata.summary || '',
+          'Total Quantity':     Number(s.metadata.total || 0),
+          'Amount':             Number(amount) || 0,
+          'Customer Name':      cd.name || sd.name || '',
+          'Customer Email':     cd.email || '',
+          'Phone':              cd.phone || '',
+          'Shipping Address':   shipping,
+          'Stripe Session ID':  s.id,
+          'Fulfillment Status': 'New',
+        });
+        await sendOrderEmail({ summary: s.metadata.summary || '', total: s.metadata.total || 0, amount, name: cd.name || sd.name || '', email: cd.email || '', phone: cd.phone || '', shipping, session: s.id });
+        console.log('Calendar order recorded:', s.id, s.metadata.summary, s.metadata.total);
       }
     }
 

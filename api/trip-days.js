@@ -66,7 +66,36 @@ module.exports = async function handler(req, res) {
 
   // POST — generate day records for a trip
   if (req.method === 'POST') {
-    const { tripId, startDate, endDate, dayNum: explicitDayNum, startingLocation, startingCountry } = req.body || {};
+    const b = req.body || {};
+
+    // Template-driven mode: caller provides explicit records + optional overwrite
+    if (Array.isArray(b.records) && b.records.length) {
+      const tripId = (b.tripId || '').trim();
+      if (!tripId) return res.status(400).json({ error: 'tripId required' });
+
+      try {
+        if (b.overwrite) {
+          const filter = `?filterByFormula=${encodeURIComponent(`({Trip ID}="${tripId}")`)}` +
+                         `&sort[0][field]=Day%20Number&sort[0][direction]=asc`;
+          const existing = await airtableRequest('GET', filter, null);
+          const ids = ((existing.body || {}).records || []).map(r => r.id);
+          for (let i = 0; i < ids.length; i += 10) {
+            const chunk  = ids.slice(i, i + 10);
+            const params = chunk.map(id => 'records[]=' + encodeURIComponent(id)).join('&');
+            await airtableRequest('DELETE', '?' + params, null);
+          }
+        }
+
+        const enriched = b.records.map(r => ({ ...r, 'Trip ID': tripId }));
+        const created  = await batchCreate(enriched);
+        return res.status(200).json({ success: true, count: created.length, records: created });
+      } catch(e) {
+        console.error('[trip-days batch-create]', e.message);
+        return res.status(500).json({ error: e.message });
+      }
+    }
+
+    const { tripId, startDate, endDate, dayNum: explicitDayNum, startingLocation, startingCountry } = b;
     if (!tripId || !startDate || !endDate) {
       return res.status(400).json({ error: 'tripId, startDate, and endDate required' });
     }
