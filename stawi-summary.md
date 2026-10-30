@@ -1,7 +1,7 @@
 # The Stawi Transformation Platform
 
-*Delivering travel that makes us flourish — across the whole arc of a journey, and a network of
-destinations to continue it.*
+*Delivering travel that makes us flourish, with a focus on the whole journey — before, during,
+and long after the stay.*
 
 *From Transformed by Travels, LLC*
 
@@ -97,11 +97,15 @@ encouraging self-report results. Formal validation is planned.**
 
 ## Most people don't travel alone
 
-Ask a couple why they booked, and a surprising number will tell you the trip is about each
-other. Not the place, not the wildlife — the chance to be in the same room again, properly,
-for the first time in a year. *From drifting apart to reconnected* is one of the most common
-aspirations there is, and neither Pine's framework nor anyone else's accounts for it, because
-both treat transformation as something that happens to an individual.
+Leaders in the travel industry know that many transformations are achieved as a couple or a
+family. Ask a couple why they booked and a high percentage will tell you the trip is about each
+other — not the place, not the wildlife, but the chance to be in the same room again, properly,
+for the first time in a year. *From drifting apart to reconnecting* is one of the most common
+aspirations there is, and no existing framework accounts for it, because they all treat
+transformation as something that happens to an individual.
+
+Without good communication a trip can become a source of friction rather than transformation.
+Stawi lets travelers stay in sync.
 
 Stawi already handles pairs, and it is the part of the product furthest along.
 
