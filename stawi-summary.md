@@ -24,10 +24,12 @@ things a destination can decide to do and then do. One of them is different:
 That shift cannot be made by deciding to make it. It needs a strategy, a process and a system —
 and until now the system hasn't existed. **That is what Stawi is.**
 
+*Stawi* is a Swahili word meaning to flourish — to thrive, and to cause thriving.
+
 ## The problem
 
-Guests who come for transformation are harder to serve than visitors, and in ways a property
-cannot see from the booking. Pine calls them *aspirants* — people who arrive wanting to become
+Guests who come for transformation are harder to serve than traditional visitors, and in ways
+a property cannot see from the booking. Pine calls them *aspirants* — people who arrive wanting to become
 something rather than simply to spend their time well. We'll keep calling them guests, because
 that is what your team calls them, but the distinction is the whole problem.
 
@@ -51,6 +53,10 @@ While the experience was near perfect, the transformation could have been a lot 
 not a criticism of the property — it is the industry's standard shape, and nobody has had the
 tooling to do otherwise.
 
+**The post-trip half is our differentiator.** Everyone in this industry is working on the stay.
+Almost no one is still there in month four, when whatever the trip started either takes hold or
+quietly fades.
+
 ## What we have built
 
 Stawi is a digital platform that helps destinations understand their guests and stay with
@@ -70,12 +76,21 @@ transformation:
 A key assumption is that guests differ along **two independent dimensions**, and a destination
 needs both.
 
-**What they want to become.** Pine's four aspiration types — Refinement, Ambition, Cultivation,
-Metamorphosis — and the role each asks the brand to play: Expert, Coach, Counselor, Alchemist.
+**What they want to become.** Pine's four aspiration types:
+
+- **Refinement** — getting better at something they already do
+- **Ambition** — reaching a goal they have set themselves
+- **Cultivation** — growing into a fuller version of who they are
+- **Metamorphosis** — becoming someone different from who they were
 
 **How they want to be guided there.** Our **Traveler Style Assessment (TSA)** places a guest in
-one of five segments — Purpose Driven, Growth Seeker, Adventure Traveler, Cultural Explorer, or
-Experience Seeker — each carrying its own attributes about how that person likes to travel.
+one of five segments, each carrying its own attributes about how that person likes to travel:
+
+- **Purpose Driven** — travel in service of something larger than the trip
+- **Growth Seeker** — travel as a way to stretch and learn
+- **Adventure Traveler** — travel measured in challenge and the outdoors
+- **Cultural Explorer** — travel as immersion in a place and its people
+- **Experience Seeker** — travel for time well spent, without a project attached
 
 These are not competing taxonomies. Shown the travel styles, Joseph Pine described them as well
 aligned with his own framework and with what he has observed in the field — not the same, but
